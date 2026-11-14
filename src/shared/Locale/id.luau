@@ -331,6 +331,7 @@ return {
 	["town.sign.tukang"] = "Toko Tukang",
 	["town.sign.kopi"] = "Kedai Kopi",
 	["town.sign.jamu"] = "Warung Jamu",
+	["town.sign.kelontong"] = "Toko Kelontong",
 	["town.sign.tengkulak"] = "Lapak Tarno",
 	["town.sign.bibit"] = "Toko Bibit",
 	["town.sign.pancing"] = "Toko Pancing",

@@ -1,79 +1,50 @@
 --!strict
--- Village plots (R2a): 10 identical 96 x 96 lands in a square ring around the center town, every plot facing the town.
--- Layout: south 3, north 3, west 2, east 2 (see docs/Map_Plan.md). Plots are axis-aligned (yaw = multiples of 90 degrees)
--- so the soil painted into the Terrain's 4-stud cells always lines up. Change SIDES to change the number of plots
--- (also set Game Settings > Places > Max Players to COUNT).
--- Each plot's local +Z (front / spawn side) faces the map center. If Workspace.Plots doesn't exist, placeholders are
--- built from this. Real plots: Workspace > Folder "Plots" > Model "Plot1".."PlotN", each with PrimaryPart "Origin"
--- (flat part, plot center). Optional TextLabel "OwnerLabel" anywhere inside shows the owner.
--- All coordinates are multiples of 4 (terrain cell edges): DISTANCE, PITCH / 2, SIZE / 2.
+-- Village plots (R2 ring map): 8 identical lands, two on each of the four axis roads (see Config/Map), one on each
+-- side of the road, all FACING the road. Every plot has its own reserved square of REGION x REGION studs; the player
+-- starts with a START x START land inside it, at the road end, and grows into the rest (R2b: buy 16-stud chunks).
+-- Because every plot has the same square and the same start, all players start and finish with exactly the same land.
+--
+-- Plot-local frame: origin = center of the reserved square, +Z = toward the road (the front), +X = to the right.
+--   reserved square : x, z in -96 .. 96            (192 x 192)
+--   start land      : x in -64 .. 64, z in -32 .. 96  (128 x 128, flush with the road)
+-- Plots are axis-aligned (yaw = multiples of 90 degrees) so the soil painted into the Terrain's 4-stud cells always
+-- lines up; every coordinate here is a multiple of 4. Set Game Settings > Places > Max Players = COUNT.
+-- If Workspace.Plots doesn't exist, placeholders are built from this. Real plots: Workspace > Folder "Plots" > Model
+-- "Plot1".."PlotN", each with PrimaryPart "Origin" (flat part, plot center). Optional TextLabel "OwnerLabel".
 
-local DISTANCE = 240 -- plot center to map center, measured along the side's axis
-local PITCH = 104 -- center to center of two neighbours on one side (96 land + an 8-stud lane)
-local SIZE = 96
-
--- Plots of one side are centered on it, so counts of 3 sit at -104 / 0 / 104 and counts of 2 at -52 / 52.
-local SIDES = {
-	{ name = "south", dx = 0, dz = 1, yaw = math.pi, count = 3 },
-	{ name = "north", dx = 0, dz = -1, yaw = 0, count = 3 },
-	{ name = "west", dx = -1, dz = 0, yaw = math.pi / 2, count = 2 },
-	{ name = "east", dx = 1, dz = 0, yaw = -math.pi / 2, count = 2 },
-}
+local REGION = 192
+local START = 128
+local ROAD_HALF = 12 -- half width of the axis roads (Config/Map ROAD.HALF)
+local INNER = ROAD_HALF + REGION -- half size of the inner square (town, ring road and plazas) = 204
+local LATERAL = ROAD_HALF + REGION / 2 -- plot center, sideways from the axis = 108
+local DEPTH = INNER + REGION / 2 -- plot center, along the axis = 300
 
 export type Slot = { name: string, x: number, z: number, yaw: number }
 
--- Lateral offsets of one side, middle plots first (so the first players are spread around the ring).
-local function offsets(count: number): { number }
-	local list = {}
-	for i = 1, count do
-		table.insert(list, (i - (count + 1) / 2) * PITCH)
-	end
-	table.sort(list, function(a, b)
-		if math.abs(a) ~= math.abs(b) then
-			return math.abs(a) < math.abs(b)
-		end
-		return a < b
-	end)
-	return list
-end
-
--- Plot numbers go round-robin over the sides (south, north, west, east, then the next plot of each side ...).
-local LAYOUT: { Slot } = {}
-do
-	local perSide = {}
-	local most = 0
-	for index, side in SIDES do
-		perSide[index] = offsets(side.count)
-		most = math.max(most, side.count)
-	end
-	for round = 1, most do
-		for index, side in SIDES do
-			local offset = perSide[index][round]
-			if offset then
-				-- Lateral axis = perpendicular to the side's axis.
-				local lateralX = if side.dx == 0 then offset else 0
-				local lateralZ = if side.dz == 0 then offset else 0
-				table.insert(LAYOUT, {
-					name = `{side.name}{round}`,
-					x = side.dx * DISTANCE + lateralX,
-					z = side.dz * DISTANCE + lateralZ,
-					yaw = side.yaw,
-				})
-			end
-		end
-	end
-end
+-- yaw turns the plot's local +Z toward its road. Order = plot numbers: spread around the ring, so a server that is
+-- not full still looks alive on every side.
+local LAYOUT: { Slot } = {
+	{ name = "south_left", x = -LATERAL, z = DEPTH, yaw = math.pi / 2 }, -- road is to the east
+	{ name = "north_right", x = LATERAL, z = -DEPTH, yaw = -math.pi / 2 }, -- road is to the west
+	{ name = "east_top", x = DEPTH, z = -LATERAL, yaw = 0 }, -- road is to the south
+	{ name = "west_bottom", x = -DEPTH, z = LATERAL, yaw = math.pi }, -- road is to the north
+	{ name = "south_right", x = LATERAL, z = DEPTH, yaw = -math.pi / 2 },
+	{ name = "north_left", x = -LATERAL, z = -DEPTH, yaw = math.pi / 2 },
+	{ name = "east_bottom", x = DEPTH, z = LATERAL, yaw = math.pi },
+	{ name = "west_top", x = -DEPTH, z = -LATERAL, yaw = 0 },
+}
 
 return {
 	COUNT = #LAYOUT,
-	SIZE = SIZE, -- the land is exactly SIZE x SIZE, centered on the plot anchor (decor grid cell 0,0 = local -48,-48)
-	DISTANCE = DISTANCE,
-	PITCH = PITCH,
-	FRONT_Z = SIZE / 2, -- the land ends here toward the town (plot-local z); plot-local z = -SIZE / 2 is the back
+	SIZE = REGION, -- reserved square; the decor grid's cell (0,0) is plot-local (-96, -96)
+	START_SIZE = START,
+	ROAD_HALF = ROAD_HALF,
+	INNER = INNER, -- the plots' reserved squares start this far from the map center (along their axis)
+	FRONT_Z = REGION / 2, -- the road side of the reserved square AND of the start land (plot-local z)
 
-	-- World position and yaw of every plot (the plot's local +Z points at the map center).
+	-- World position and yaw of every plot (the plot's local +Z points at its road).
 	LAYOUT = LAYOUT,
 
-	SPAWN_OFFSET = Vector3.new(-28, 4, -12), -- relative to Origin; just in front of the farm tiles
+	SPAWN_OFFSET = Vector3.new(0, 4, 70), -- relative to Origin; inside the start land, in front of the house
 	GROUND_COLOR = Color3.fromRGB(134, 150, 104),
 }

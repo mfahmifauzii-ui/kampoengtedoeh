@@ -16,7 +16,7 @@ Rencana pengerjaan ada di `Roadmap.md`. Tidak ada tanggal atau jadwal di dokumen
 Game cozy, tanpa fail state, di kampung Indonesia. Pemain bertani, memancing, menghias lahan, dan lama-lama membangun rumah serta beternak.
 
 - **Target:** perempuan sekitar 16+, suka personalisasi dan estetika. Cek kebijakan rating & usia Roblox yang terbaru langsung dari sumbernya sebelum mengunci target ini.
-- **Server:** **10 pemain** (10 slot lahan, ✅ R2a), tiap pemain punya satu lahan. Bentuk peta: cincin persegi, lihat `Map_Plan.md`. Jumlah slot bisa diubah di `Config/Plots`.
+- **Server:** **8 pemain** (8 lahan identik, ✅ R2), tiap pemain punya satu lahan. Peta: kanal bundar mengelilingi pulau kota, cincin jalan batu, 4 jalan silang, lahan mengapit jalan; lihat `Map_Plan.md`. Delapan dipilih karena hanya 8 atau 12 yang bisa benar-benar simetris dan adil.
 - **Platform:** HP landscape dulu, UI berbahasa Indonesia.
 - **Pilar:** Bertani · Mancing · Menghias. Menyusul: Beternak, Rumah, Warung pemain.
 
@@ -52,12 +52,12 @@ Dompet awal: 100 Koin, 10 Bunga. ✅
 
 ## 4. Lahan 🔧
 
-Lahan pemain tersusun dari **chunk 16×16 stud** (16 habis dibagi 2, 4, dan 8, jadi pas dengan grid hiasan 2 stud, sel Terrain 4 stud, dan petak tanam 8 stud).
+Lahan pemain tersusun dari **chunk 16×16 stud** (16 habis dibagi 2, 4, dan 8, jadi pas dengan grid hiasan 2 stud, sel Terrain 4 stud, dan petak tanam 8 stud). Semua pemain sama: **awal dan akhir lahan identik**.
 
-- **Awal:** 3×3 chunk (48×48). **Maksimal:** 6×6 chunk (96×96).
-- Chunk baru dibeli satu per satu, **harus menempel** pada lahan yang sudah dimiliki. Harga naik per chunk *(asumsi: mulai ±300 Koin, naik sampai belasan ribu)*.
-- Bagian yang belum dibeli tampak sebagai semak atau pagar rendah, tidak bisa dimasuki untuk membangun.
-- Rumah panggung tetap di lahan dan harus muat di 3×3 awal (cek ukurannya terhadap `Config/Map` `HOUSE`).
+- **Awal:** **128×128** (8×8 chunk, ✅ R2), menempel ke jalan. **Maksimal:** **192×192** (12×12 chunk, kotak cadangan tiap lahan). Ruang perluasan = belakang 64 stud dan samping 32 stud di tiap sisi (20.480 stud²).
+- 🗓 (R2b) Chunk baru dibeli satu per satu, **harus menempel** pada lahan yang sudah dimiliki. Harga naik per chunk *(asumsi: mulai ±300 Koin, naik sampai belasan ribu)*.
+- ✅ Area perluasan **diisi hutan** (pohon, semak, batu) yang dibersihkan saat chunk dibeli, jadi peta tidak terlihat kosong. Lahan awal tampak terang dan berpagar bambu.
+- Rumah panggung berada di dalam lahan awal (`Config/Map` `HOUSE`).
 - Pemain yang menjual chunk? Tidak ada. Lahan hanya bertambah.
 - **Batas jumlah petak tanam dihapus.** Luas lahan yang jadi batasnya. Perluasan petak lama (300/800/2.000/5.000/12.000 Koin, 6→21 petak) digantikan pembelian chunk. Pass "Petak Ekstra" perlu diganti bentuknya (lihat §17).
 
@@ -258,7 +258,7 @@ Kit bambu ForgeGUI terpasang, HUD baru jadi. Detail di `GUI_Design.md`. 🗓 Kom
 - **Data:** ProfileStore (session lock, autosave). Skema berversi, migrasi di `Data/Migrations.luau`. Versi terakhir menurut dokumen: v7.
 - **Remote:** satu modul `Net`, tiap handler cek tipe + rate limit + kepemilikan/jarak.
 - **Config:** semua konten di `Shared/Config/*.luau`.
-- **Performa:** StreamingEnabled, model lahan di-stream, VFX di-pool, tidak ada loop per-frame di server (tumbuh dihitung dari timestamp). Dengan 8–10 lahan, jumlah Part per lahan harus tetap kecil (hiasan ≤ 8 part per item).
+- **Performa:** StreamingEnabled, model lahan di-stream, VFX di-pool, tidak ada loop per-frame di server (tumbuh dihitung dari timestamp). Dengan 8 lahan, jumlah Part per lahan harus tetap kecil (hiasan ≤ 8 part per item).
 
 ```
 src/
@@ -300,7 +300,7 @@ Event musiman **tidak** direncanakan sekarang. Kerangka `Config/Events` ada di k
 
 1. **Data hilang:** ProfileStore, jangan simpan dari klien, hadiah lewat ProcessReceipt + log. Hapus fitur (tawar/kedekatan/skill) dengan migrasi dan uji pakai save lama.
 2. **Exploit:** waktu hanya dari server; validasi penempatan; rate limit; reward dari roll server.
-3. **Performa HP:** 8–10 lahan × hiasan itu berat; cek jumlah Part, streaming, dan FPS di HP asli.
+3. **Performa HP:** 8 lahan × hiasan itu berat; cek jumlah Part, streaming, dan FPS di HP asli.
 4. **Kebijakan:** tidak ada item acak berbayar; isi kuesioner usia dengan jujur; cek aturan rating terbaru.
 5. **Scope creep:** fitur baru hanya setelah playtest memberi data. Satu fase satu waktu.
 6. **Paket Koin** bisa terasa pay-to-progress: jaga kecil dan jangan jual barang yang tidak bisa didapat gratis.

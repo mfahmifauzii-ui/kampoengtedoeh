@@ -1,14 +1,17 @@
 --!strict
--- Builds the village map at server start (river + road crossing at the town, ten plots in a ring; see Config/Map and docs/Map_Plan.md):
--- terrain + river + round Empang pool, road, bridge with the town on it, warung + NPC, docks with
--- fishing spots, lamps, edge trees and invisible walls.
+-- Builds the village map at server start (R2 ring map, see Config/Map and docs/Map_Plan.md):
+-- terrain + a circular canal around the town island, a cobblestone ring road, four axis roads with plank bridges,
+-- the town island (banyan tree, warung, 8 shophouses), docks with fishing spots, lamps, forest on the not-yet-owned
+-- parts of every plot's reserved square, edge trees and invisible walls.
 -- If Workspace.Map already exists (hand-built map), nothing is generated.
 --
 -- Real models: put Models named "Warung", "TokoKota" (town shophouse), "RumahPanggung" in
 -- ServerStorage > MapModels. They replace the placeholders automatically. Each is scaled to the
 -- height used here and rotated by its numeric attribute "FrontYaw" (degrees) so its front faces the road.
 --
--- World contract with other services: Workspace.Fishing (spots). NPCs: MapService.BridgeCFrame places them (NpcService).
+-- World contract with other services: Workspace.Fishing (spots). NPCs: MapService.TownCFrame places them (NpcService).
+-- Forest models on a plot's unowned ground carry the attribute ExpansionOf = <plot number> (R2b clears them when
+-- the player buys that ground).
 
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -23,14 +26,11 @@ local Map = require(ReplicatedStorage.Shared.Config.Map)
 local Plots = require(ReplicatedStorage.Shared.Config.Plots)
 local Land = require(ReplicatedStorage.Shared.Modules.Land)
 
-local SQRT2 = math.sqrt(2)
-local ROAD_ROT = CFrame.Angles(0, math.pi / 4, 0) -- local X = road direction (SW -> NE)
-local RIVER_ROT = CFrame.Angles(0, -math.pi / 4, 0) -- local X = river direction (NW -> SE)
-local ROAD_DIR = Vector3.new(1, 0, -1) / SQRT2
-local RIVER_SIDE = ROAD_DIR -- unit vector pointing from the river axis to its NE bank
-local BRIDGE_FRAME = ROAD_ROT -- local X = along the road, local Z = along the river
-
+local TOWN = Map.TOWN
+local ROAD_HALF = Map.ROAD.HALF
 local DECK_Y = Map.BRIDGE.DECK_Y
+-- The four axis directions (east, west, south, north): roads, bridges and lamps run along them.
+local AXES = { Vector3.new(1, 0, 0), Vector3.new(-1, 0, 0), Vector3.new(0, 0, 1), Vector3.new(0, 0, -1) }
 
 local C = {
 	ASPHALT = Color3.fromRGB(70, 68, 66),
@@ -81,18 +81,6 @@ local function ghost(part: Part)
 	part.CanCollide = false
 	part.CanQuery = false
 	part.CanTouch = false
-end
-
-local function riverPoint(t: number): Vector3
-	return Vector3.new(t / SQRT2, 0, t / SQRT2)
-end
-
-local function roadPoint(u: number): Vector3
-	return ROAD_DIR * u
-end
-
-local function bridgeAt(x: number, y: number, z: number): CFrame
-	return BRIDGE_FRAME * CFrame.new(x, y, z)
 end
 
 local function getTemplate(name: string): Model?
@@ -240,19 +228,30 @@ local function buildTerrain()
 	local river = Map.RIVER
 	local total = Map.SIZE + Map.MARGIN * 2
 
-	-- Public ground is sand-colored; only the four player lands are green (LeafyGrass: flat grass texture,
-	-- Material.Grass would grow 3D blades that hide roads and docks).
+	-- Public ground is sand-colored; only the START x START part of every plot is green (LeafyGrass: flat grass
+	-- texture, Material.Grass would grow 3D blades that hide roads and docks).
 	-- MEASURED in Studio: the terrain surface sits Land.SURFACE_OFFSET (2) studs ABOVE the top of a filled block,
 	-- so every block is lowered by that much to put the visible ground at y = 0 (roads, docks, plots assume y = 0).
 	-- Terrain cells are 4 studs with edges at multiples of 4; a block paints a cell when the cell's center is inside it
 	-- (see Land), so the paint blocks below are 0.5 smaller than the cells they fill.
 	local drop = -Land.SURFACE_OFFSET
 	terrain:FillBlock(CFrame.new(0, -Map.GRASS_DEPTH / 2 + drop, 0), Vector3.new(total, Map.GRASS_DEPTH, total), Enum.Material.Sand)
+	-- Forest floor (dark Grass): the part of every plot's reserved square the player does not own yet, and the four
+	-- corners between the plots. Trees stand on it (see buildNature); the start land is painted bright on top of it.
+	local region = Plots.SIZE
+	for _, slot in Plots.LAYOUT do
+		terrain:FillBlock(CFrame.new(slot.x, -2 + drop, slot.z), Vector3.new(region - 0.5, 4, region - 0.5), Enum.Material.Grass)
+	end
+	local cornerCenter = Plots.INNER + region / 2
+	for _, sx in { 1, -1 } do
+		for _, sz in { 1, -1 } do
+			terrain:FillBlock(CFrame.new(sx * cornerCenter, -2 + drop, sz * cornerCenter), Vector3.new(region - 0.5, 4, region - 0.5), Enum.Material.Grass)
+		end
+	end
 	for _, slot in Plots.LAYOUT do
 		local frame = CFrame.new(slot.x, 0, slot.z) * CFrame.Angles(0, slot.yaw, 0)
-		-- 0.5 smaller than the cells it fills: the neighbouring cells' centers stay outside the block
 		terrain:FillBlock(
-			frame * CFrame.new(0, -2 + drop, 0),
+			frame * CFrame.new(0, -2 + drop, Land.CENTER_Z),
 			Vector3.new(Land.HALF * 2 - 0.5, 4, Land.HALF * 2 - 0.5),
 			Enum.Material.LeafyGrass
 		)
@@ -271,17 +270,20 @@ local function buildTerrain()
 	buildMountains(terrain)
 	print(`[MapService] mountains built in {string.format("%.2f", os.clock() - started)}s`)
 
-	local function riverBlock(top: number, bottom: number, material: Enum.Material)
-		terrain:FillBlock(
-			CFrame.new(0, (top + bottom) / 2 + drop, 0) * RIVER_ROT,
-			Vector3.new(river.LENGTH, top - bottom, river.WIDTH),
-			material
-		)
+	-- Town: a cobblestone disc out to RING_R (the ring road), then the canal is carved through its middle and the
+	-- island is filled back inside the canal.
+	terrain:FillCylinder(CFrame.new(0, -2 + drop, 0), 4, TOWN.RING_R, Enum.Material.Cobblestone)
+	local function disc(top: number, bottom: number, radius: number, material: Enum.Material)
+		terrain:FillCylinder(CFrame.new(0, (top + bottom) / 2 + drop, 0), top - bottom, radius, material)
 	end
-	riverBlock(0, -river.DEPTH, Enum.Material.Air)
+	disc(0, -river.DEPTH, TOWN.CANAL_R, Enum.Material.Air)
 	-- Water is the exception to the +2 rule (MEASURED: its surface is exactly the top of the block), so undo the drop.
-	riverBlock(river.WATER_Y - drop, -river.DEPTH, Enum.Material.Water)
-	riverBlock(-river.DEPTH, -river.DEPTH - river.BED, Enum.Material.Sand)
+	disc(river.WATER_Y - drop, -river.DEPTH, TOWN.CANAL_R, Enum.Material.Water)
+	disc(-river.DEPTH, -river.DEPTH - river.BED, TOWN.CANAL_R, Enum.Material.Sand)
+	-- Island: solid up to ground level, grass on top, a cobblestone plaza around the tree.
+	disc(0, -river.DEPTH, TOWN.ISLAND_R, Enum.Material.Sand)
+	terrain:FillCylinder(CFrame.new(0, -2 + drop, 0), 4, TOWN.ISLAND_R, Enum.Material.LeafyGrass)
+	terrain:FillCylinder(CFrame.new(0, -2 + drop, 0), 4, 40, Enum.Material.Cobblestone)
 
 	pcall(function()
 		terrain.Decoration = false -- no 3D grass blades anywhere
@@ -296,94 +298,76 @@ local function buildTerrain()
 	tint(Enum.Material.Ground, "GroundStylized", Farm.SOIL_DRY, Color3.fromRGB(150, 150, 140)) -- tilled soil (FarmService); the variant is bright orange-red, so tint it toward brown
 	terrain:SetMaterialColor(Enum.Material.Mud, Farm.SOIL_WET) -- watered soil
 	terrain:SetMaterialColor(Enum.Material.Sand, Map.SAND_COLOR)
+	terrain:SetMaterialColor(Enum.Material.Cobblestone, Map.COBBLE_COLOR)
+	tint(Enum.Material.Grass, "GrassStylized", Map.FOREST_COLOR, Color3.fromRGB(176, 206, 150)) -- forest floor: darker than the start land
 	tint(Enum.Material.Rock, "RockStylized", Color3.fromRGB(110, 102, 92), Color3.fromRGB(189, 189, 189)) -- mountain tops (white was too bright, 128/120/110 too dark)
 	terrain.WaterColor = Map.WATER_COLOR
-	terrain.WaterTransparency = 0.5 -- was 0.8: the sand bed showed through and the river looked muddy
+	terrain.WaterTransparency = 0.5 -- was 0.8: the sand bed showed through and the canal looked muddy
 	terrain.WaterReflectance = 0.2 -- less sky/white sheen, so the blue reads deeper
 	terrain.WaterWaveSize = 0.08
 	terrain.WaterWaveSpeed = 6
 end
 
--- Road ------------------------------------------------------------------------------------
+-- Roads -----------------------------------------------------------------------------------
+
+-- A world-space block along an axis direction: length along the axis, width across it.
+local function axisBlock(parent: Instance, name: string, dir: Vector3, from: number, to: number, width: number, y: number, thick: number, color: Color3, material: Enum.Material): Part
+	local length = to - from
+	local size = if dir.X ~= 0 then Vector3.new(length, thick, width) else Vector3.new(width, thick, length)
+	return block(parent, name, size, CFrame.new(dir * (from + length / 2) + Vector3.new(0, y, 0)), color, material)
+end
 
 local function buildRoad(map: Folder)
 	local road = folder(map, "Road")
 	local lamps = folder(map, "Lamps")
-	local startU = Map.BRIDGE.SPAN / 2 + Map.BRIDGE.RAMP
-	local halfLength = Map.ROAD.LENGTH / 2
-	local side = Vector3.new(1, 0, 1) / SQRT2 -- across the road
+	local half = Map.SIZE / 2
 
-	for _, sign in { 1, -1 } do
-		local length = halfLength - startU
-		local mid = sign * (startU + length / 2)
-		block(road, "Asphalt", Vector3.new(length, 0.3, Map.ROAD.WIDTH),
-			CFrame.new(roadPoint(mid) + Vector3.new(0, 0.15, 0)) * ROAD_ROT, C.ASPHALT, Enum.Material.Asphalt)
-
-		local u = startU + 8
-		while u < halfLength - 8 do
-			block(road, "Dash", Vector3.new(6, 0.1, 0.7),
-				CFrame.new(roadPoint(sign * u) + Vector3.new(0, 0.33, 0)) * ROAD_ROT, C.LINE)
-			u += 14
-		end
-
-		-- Lamps on both sides of the road.
-		local lampU = startU + 20
-		while lampU < Map.SIZE / 2 * SQRT2 - 30 do -- only inside the walls (the road itself runs on through the woods)
-			for _, s in { 1, -1 } do
-				local position = roadPoint(sign * lampU) + side * s * (Map.ROAD.WIDTH / 2 + 3)
-				lampPost(lamps, CFrame.new(position))
+	-- The four axis roads: dirt, from under the cobblestone ring to the walls.
+	for _, dir in AXES do
+		axisBlock(road, "Dirt", dir, TOWN.RING_R - 4, half, ROAD_HALF * 2, 0.15, 0.3, Map.DIRT_COLOR, Enum.Material.Sand)
+		-- Lamps on both sides, every 56 studs.
+		local perp = Vector3.new(-dir.Z, 0, dir.X)
+		local r = TOWN.RING_R + 24
+		while r < half - 20 do
+			for _, side in { 1, -1 } do
+				lampPost(lamps, CFrame.new(dir * r + perp * side * (ROAD_HALF + 3)))
 			end
-			lampU += 56
+			r += 56
+		end
+	end
+
+	-- Lamps around the ring road's outer edge, except where an axis road meets it.
+	local count = 24
+	for i = 0, count - 1 do
+		local angle = math.rad(i * 360 / count + 7.5)
+		local c, s = math.cos(angle), math.sin(angle)
+		if math.abs(c) < 0.97 and math.abs(s) < 0.97 then
+			lampPost(lamps, CFrame.new((TOWN.RING_R + 2) * c, 0, (TOWN.RING_R + 2) * s))
 		end
 	end
 end
 
--- Bridge + town ---------------------------------------------------------------------------
+-- Bridges + town island -------------------------------------------------------------------
 
-local function rampSlab(parent: Instance, sign: number, z: number, width: number, color: Color3, material: Enum.Material)
-	local b = Map.BRIDGE
-	local run, rise = b.RAMP, DECK_Y
-	local length = math.sqrt(run * run + rise * rise)
-	local phi = math.atan2(rise, run)
-	local thickness = 0.6
-	local theta = -sign * phi -- descends away from the deck
-	local up = Vector3.new(-math.sin(theta), math.cos(theta), 0)
-	local topMid = Vector3.new(sign * (b.SPAN / 2 + run / 2), rise / 2, z)
-	local center = topMid - up * (thickness / 2)
-	block(parent, "Ramp", Vector3.new(length + 0.5, thickness, width), BRIDGE_FRAME * CFrame.new(center) * CFrame.Angles(0, 0, theta), color, material)
-end
-
+-- Four plank bridges over the canal, along the axes, from the island to the ring road.
 local function buildBridge(map: Folder)
 	local b = Map.BRIDGE
 	local bridge = folder(map, "Bridge")
+	local fromR, toR = TOWN.ISLAND_R - 4, TOWN.CANAL_R + 4
+	local length = toR - fromR
 
-	block(bridge, "Deck", Vector3.new(b.SPAN, b.DECK_THICK, b.WIDTH), bridgeAt(0, DECK_Y - b.DECK_THICK / 2, 0), C.PLANK, Enum.Material.WoodPlanks)
-	block(bridge, "RoadSurface", Vector3.new(b.SPAN, 0.1, Map.ROAD.WIDTH), bridgeAt(0, DECK_Y + 0.05, 0), C.ASPHALT, Enum.Material.Asphalt)
-
-	-- Supports: stone abutments on both banks and two piers in the water.
-	for _, sign in { 1, -1 } do
-		block(bridge, "Abutment", Vector3.new(12, DECK_Y + 10, b.WIDTH), bridgeAt(sign * 30, (DECK_Y - 10) / 2, 0), C.STONE, Enum.Material.Cobblestone)
-	end
-	for _, sign in { 1, -1 } do
-		block(bridge, "Pier", Vector3.new(5, DECK_Y + 10, 5), bridgeAt(0, (DECK_Y - 10) / 2, sign * 22), C.STONE, Enum.Material.Cobblestone)
-	end
-
-	-- Ramps: asphalt in the middle (the road), plank strips on the sides.
-	local sideWidth = (b.WIDTH - Map.ROAD.WIDTH) / 2
-	for _, sign in { 1, -1 } do
-		rampSlab(bridge, sign, 0, Map.ROAD.WIDTH, C.ASPHALT, Enum.Material.Asphalt)
+	for _, dir in AXES do
+		local frame = CFrame.new(dir * ((fromR + toR) / 2)) * (if dir.X ~= 0 then CFrame.identity else CFrame.Angles(0, math.pi / 2, 0))
+		block(bridge, "Deck", Vector3.new(length, b.THICK, b.WIDTH), frame * CFrame.new(0, DECK_Y - b.THICK / 2, 0), C.PLANK, Enum.Material.WoodPlanks)
 		for _, zSign in { 1, -1 } do
-			rampSlab(bridge, sign, zSign * (Map.ROAD.WIDTH / 2 + sideWidth / 2), sideWidth, C.PLANK, Enum.Material.WoodPlanks)
-		end
-	end
-
-	-- Side rails over the water.
-	for _, zSign in { 1, -1 } do
-		local z = zSign * (b.WIDTH / 2 - 0.3)
-		block(bridge, "RailTop", Vector3.new(b.SPAN, 0.3, 0.3), bridgeAt(0, DECK_Y + 1.3, z), C.DARKWOOD, Enum.Material.Wood)
-		block(bridge, "RailMid", Vector3.new(b.SPAN, 0.2, 0.2), bridgeAt(0, DECK_Y + 0.7, z), C.DARKWOOD, Enum.Material.Wood)
-		for x = -36, 36, 6 do
-			block(bridge, "RailPost", Vector3.new(0.4, 1.4, 0.4), bridgeAt(x, DECK_Y + 0.7, z), C.DARKWOOD, Enum.Material.Wood)
+			local z = zSign * (b.WIDTH / 2 - 0.3)
+			block(bridge, "RailTop", Vector3.new(length, 0.3, 0.3), frame * CFrame.new(0, DECK_Y + 1.3, z), C.DARKWOOD, Enum.Material.Wood)
+			block(bridge, "RailMid", Vector3.new(length, 0.2, 0.2), frame * CFrame.new(0, DECK_Y + 0.7, z), C.DARKWOOD, Enum.Material.Wood)
+			local x = -length / 2 + 2
+			while x <= length / 2 - 2 do
+				block(bridge, "RailPost", Vector3.new(0.4, 1.4, 0.4), frame * CFrame.new(x, DECK_Y + 0.7, z), C.DARKWOOD, Enum.Material.Wood)
+				x += 6
+			end
 		end
 	end
 end
@@ -427,45 +411,79 @@ local function buildShop(parent: Instance, name: string, cf: CFrame, w: number, 
 	model.Parent = parent
 end
 
+-- A big banyan tree in the middle of the island (procedural: trunk, a crown of squashed spheres, aerial roots).
+local function buildBanyan(parent: Instance)
+	local tree = Instance.new("Model")
+	tree.Name = "Banyan"
+	local function cylinder(name: string, height: number, diameter: number, position: Vector3, color: Color3, collide: boolean)
+		local part = block(tree, name, Vector3.new(height, diameter, diameter), CFrame.new(position) * CFrame.Angles(0, 0, math.pi / 2), color, Enum.Material.Wood)
+		part.Shape = Enum.PartType.Cylinder
+		part.CanCollide = collide
+	end
+	local function crown(position: Vector3, size: Vector3, color: Color3)
+		local part = block(tree, "Crown", size, CFrame.new(position), color, Enum.Material.Grass)
+		part.CanCollide = false
+		local mesh = Instance.new("SpecialMesh")
+		mesh.MeshType = Enum.MeshType.Sphere
+		mesh.Parent = part
+	end
+
+	cylinder("Trunk", 18, 7, Vector3.new(0, 9, 0), C.DARKWOOD, true)
+	crown(Vector3.new(0, 28, 0), Vector3.new(34, 24, 34), C.LEAF)
+	for i = 0, 5 do
+		local angle = i * math.pi / 3
+		crown(Vector3.new(math.cos(angle) * 15, 24 + (i % 2) * 3, math.sin(angle) * 15), Vector3.new(20, 15, 20), if i % 2 == 0 then C.LEAF_DARK else C.LEAF)
+	end
+	-- Aerial roots hanging from the crown's edge.
+	for i = 0, 7 do
+		local angle = i * math.pi / 4 + 0.2
+		cylinder("Root", 18, 0.9, Vector3.new(math.cos(angle) * 12.5, 10, math.sin(angle) * 12.5), C.DARKWOOD, false)
+	end
+	tree.Parent = parent
+end
+
+local SHOP_DEFS = {
+	-- slot -> sign + colors. Slots 1-5 belong to NPCs (Config/Npcs), 6-8 are scenery.
+	{ text = "town.sign.bibit", wall = Color3.fromRGB(208, 190, 156), awning = C.DUSTY_BLUE, roof = C.TERRACOTTA },
+	{ text = "town.sign.ikan", wall = C.CREAM, awning = C.SAGE, roof = C.DARKWOOD },
+	{ text = "town.sign.tengkulak", wall = C.CREAM, awning = C.SAGE, roof = C.TERRACOTTA },
+	{ text = "town.sign.tukang", wall = C.SAGE, awning = C.MUSTARD, roof = C.DARKWOOD },
+	{ text = "town.sign.pancing", wall = Color3.fromRGB(208, 190, 156), awning = C.TERRACOTTA, roof = C.DARKWOOD },
+	{ text = "town.sign.roti", wall = C.CREAM, awning = C.TERRACOTTA, roof = C.TERRACOTTA },
+	{ text = "town.sign.jamu", wall = C.SAGE, awning = C.DUSTY_BLUE, roof = C.DARKWOOD },
+	{ text = "town.sign.kelontong", wall = Color3.fromRGB(208, 190, 156), awning = C.MUSTARD, roof = C.TERRACOTTA },
+}
+
 local function buildTown(map: Folder)
 	local town = folder(map, "Town")
-	local roofs = { C.TERRACOTTA, C.DARKWOOD, C.TERRACOTTA, C.DARKWOOD }
 
-	-- +Z strip: four shops facing the road (rotated half a turn so their front faces -Z).
-	local plusSide = {
-		{ x = -27, text = "town.sign.tengkulak", wall = C.CREAM, awning = C.SAGE },
-		{ x = -9, text = "town.sign.tukang", wall = C.SAGE, awning = C.MUSTARD },
-		{ x = 9, text = "town.sign.roti", wall = C.CREAM, awning = C.TERRACOTTA },
-		{ x = 27, text = "town.sign.bibit", wall = Color3.fromRGB(208, 190, 156), awning = C.DUSTY_BLUE },
-	}
-	for i, shop in plusSide do
-		local cf = bridgeAt(shop.x, DECK_Y, 24) * CFrame.Angles(0, math.pi, 0)
-		buildShop(town, `Shop{i}`, cf, 16, 12, 8, shop.wall, roofs[i], shop.awning, Locale.t(shop.text))
+	-- Eight shophouses on a circle, their fronts toward the tree (Map.SHOPS).
+	for slot, def in SHOP_DEFS do
+		local shop = Map.SHOPS[slot]
+		local cf = CFrame.new(shop.x, TOWN.GROUND_Y, shop.z) * CFrame.Angles(0, shop.yaw, 0)
+		buildShop(town, `Shop{slot}`, cf, 16, 12, 8, def.wall, def.roof, def.awning, Locale.t(def.text))
 	end
 
-	-- -Z strip: a shop at each end, the warung stall in the middle (built separately).
-	local minusSide = {
-		{ x = -28, text = "town.sign.pancing", wall = Color3.fromRGB(208, 190, 156), awning = C.TERRACOTTA },
-		{ x = 28, text = "town.sign.ikan", wall = C.CREAM, awning = C.SAGE },
-	}
-	for i, shop in minusSide do
-		buildShop(town, `Shop{i + 4}`, bridgeAt(shop.x, DECK_Y, -24), 16, 12, 8, shop.wall, C.DARKWOOD, shop.awning, Locale.t(shop.text))
+	buildBanyan(town)
+
+	-- Dirt paths from each bridge to the plaza.
+	for _, dir in AXES do
+		axisBlock(town, "Path", dir, 40, TOWN.ISLAND_R - 4, ROAD_HALF * 2, 0.15, 0.3, Map.DIRT_COLOR, Enum.Material.Sand)
 	end
 
-	-- Lamps on the deck.
+	-- Lamps on the island, behind the shops.
 	local lamps = map:FindFirstChild("Lamps") :: Folder
-	for _, x in { -18, 18 } do
-		for _, zSign in { 1, -1 } do
-			lampPost(lamps, bridgeAt(x, DECK_Y, zSign * 31))
-		end
+	for i = 0, 7 do
+		local angle = math.rad(22.5 + 45 * i)
+		lampPost(lamps, CFrame.new(math.cos(angle) * 78, 0, math.sin(angle) * 78))
 	end
 
-	-- Where players appear before their plot is assigned.
+	-- Where players appear before their plot is assigned: south of the warung, on the south path.
 	local townSpawn = Instance.new("SpawnLocation")
 	townSpawn.Name = "TownSpawn"
 	townSpawn.Anchored = true
 	townSpawn.Size = Vector3.new(8, 0.4, 8)
-	townSpawn.CFrame = bridgeAt(0, DECK_Y + 0.25, 0)
+	townSpawn.CFrame = CFrame.new(0, TOWN.GROUND_Y + 0.25, 56)
 	townSpawn.Neutral = true
 	townSpawn.Duration = 0
 	townSpawn.Transparency = 1
@@ -479,7 +497,7 @@ local function buildWarung()
 	local model = Instance.new("Model")
 	model.Name = "Warung"
 	-- Stall frame: floor center on the -Z strip, front (customers) faces local +Z.
-	local wf = bridgeAt(0, DECK_Y, -24)
+	local wf = CFrame.new(Map.WARUNG.x, TOWN.GROUND_Y, Map.WARUNG.z)
 
 	local template = getTemplate("Warung")
 	if template then
@@ -520,7 +538,7 @@ local function buildWarung()
 	model.Parent = Workspace
 end
 
--- Docks + fishing spots + river sound -----------------------------------------------------
+-- Docks + fishing spots + canal sound -----------------------------------------------------
 
 local function buildFishing(map: Folder)
 	local fishing = folder(Workspace, "Fishing")
@@ -559,16 +577,22 @@ local function buildFishing(map: Folder)
 		label.Parent = billboard
 	end
 
-	for _, entry in Map.RIVER_DOCKS do
-		for _, side in { 1, -1 } do
-			local origin = riverPoint(entry.t) + RIVER_SIDE * side * (Map.RIVER.WIDTH / 2)
-			dock(origin, -RIVER_SIDE * side, entry.location)
+	-- Outer bank = the ring road side (docks point in toward the island); inner bank = the island side (docks point out).
+	for _, entry in Map.DOCKS do
+		local angle = math.rad(entry.angle)
+		local radial = Vector3.new(math.cos(angle), 0, math.sin(angle))
+		if entry.bank == "outer" then
+			dock(radial * TOWN.CANAL_R, -radial, entry.location)
+		else
+			dock(radial * TOWN.ISLAND_R, radial, entry.location)
 		end
 	end
 
-	-- 3D river sound emitters (AudioController attaches the loop to parts with RiverSound = true).
-	for i, t in Map.RIVER_SOUND_T do
-		local emitter = block(fishing, `RiverSound{i}`, Vector3.new(2, 1, 2), CFrame.new(riverPoint(t) + Vector3.new(0, -1, 0)), C.STONE)
+	-- 3D water sound emitters (AudioController attaches the loop to parts with RiverSound = true).
+	local mid = (TOWN.ISLAND_R + TOWN.CANAL_R) / 2
+	for i, degrees in Map.CANAL_SOUND_ANGLES do
+		local angle = math.rad(degrees)
+		local emitter = block(fishing, `RiverSound{i}`, Vector3.new(2, 1, 2), CFrame.new(math.cos(angle) * mid, -1, math.sin(angle) * mid), C.STONE)
 		ghost(emitter)
 		emitter:SetAttribute("RiverSound", true)
 	end
@@ -657,11 +681,11 @@ end
 local function buildProceduralTrees(map: Folder)
 	local trees = folder(map, "Trees")
 	local random = Random.new(1127)
-	local riverClear = Map.RIVER.WIDTH / 2 + 12
-	local roadClear = Map.ROAD.WIDTH / 2 + 10
+	local roadClear = ROAD_HALF + 10
+	local townClear = TOWN.RING_R + 10
 
 	local function tree(x: number, z: number)
-		if math.abs(x - z) / SQRT2 < riverClear or math.abs(x + z) / SQRT2 < roadClear then
+		if math.abs(x) < roadClear or math.abs(z) < roadClear or x * x + z * z < townClear * townClear then
 			return
 		end
 		local trunkHeight = random:NextNumber(6, 9)
@@ -685,7 +709,7 @@ local function buildProceduralTrees(map: Folder)
 			s += step
 		end
 	end
-	ring(Map.SIZE / 2 - 3, 24) -- just inside the walls (land now reaches 8 studs from the wall)
+	ring(Map.SIZE / 2 - 3, 24) -- just inside the walls
 	ring(Map.SIZE / 2 + 22, 32) -- scenery outside
 end
 
@@ -734,8 +758,8 @@ end
 local function buildNature(map: Folder, trees: { Model }, bushes: { Model }, rocks: { Model }, giants: { Model })
 	local nature = folder(map, "Nature")
 	local random = Random.new(1127)
-	local riverClear = Map.RIVER.WIDTH / 2 + 12 -- trees stay this far from the river / road axes
-	local roadClear = Map.ROAD.WIDTH / 2 + 10
+	local roadClear = ROAD_HALF + 10 -- trees stay this far from the axis roads
+	local townClear = TOWN.RING_R + 10 -- ... and from the cobblestone ring road
 	local half = Map.SIZE / 2
 
 	-- Every plot's frame (world <- plot-local), to keep nature off the player lands.
@@ -753,8 +777,10 @@ local function buildNature(map: Folder, trees: { Model }, bushes: { Model }, roc
 		end
 		return false
 	end
-	local function nearAxes(x: number, z: number, river: number, road: number): boolean
-		return math.abs(x - z) / SQRT2 < river or math.abs(x + z) / SQRT2 < road
+	-- On an axis road, the ring road or the town.
+	local function nearPublic(x: number, z: number, clear: number): boolean
+		local reach = TOWN.RING_R + clear
+		return math.abs(x) < clear or math.abs(z) < clear or x * x + z * z < reach * reach
 	end
 
 	local groundParams = RaycastParams.new()
@@ -770,9 +796,10 @@ local function buildNature(map: Folder, trees: { Model }, bushes: { Model }, roc
 		return lowest
 	end
 
-	-- baseY = ground level under the thing (a rock in the river stands on the bed). Everything gets a random turn and
-	-- a slight lean (rocks more) so nothing looks stamped out in a row.
-	local function put(templates: { Model }, group: string, x: number, z: number, height: number, tint: boolean, baseY: number?)
+	-- baseY = ground level under the thing (a rock in the canal stands on the bed). Everything gets a random turn and
+	-- a slight lean (rocks more) so nothing looks stamped out in a row. expansionOf = plot number: tags the model so
+	-- the plot's ground can be cleared when the player buys it (R2b).
+	local function put(templates: { Model }, group: string, x: number, z: number, height: number, tint: boolean, baseY: number?, expansionOf: number?)
 		local template = templates[random:NextInteger(1, #templates)]
 		-- Never cover a player's land: the player must be able to place things on every grid cell. The footprint
 		-- radius is half of the model's widest side after scaling to `height`; if any of it would reach the land, skip.
@@ -783,13 +810,16 @@ local function buildNature(map: Folder, trees: { Model }, bushes: { Model }, roc
 		end
 		local lean = math.rad(if group == "Batu" then 14 elseif group == "Semak" then 5 else 3)
 		local rotation = CFrame.Angles(random:NextNumber(-lean, lean), random:NextNumber(0, math.pi * 2), random:NextNumber(-lean, lean))
-		-- Stand on the REAL terrain: the ground is not flat (river bank, foothills), so sample its height under the
+		-- Stand on the REAL terrain: the ground is not flat (canal bank, foothills), so sample its height under the
 		-- thing (center + 4 points around it) and rest on the LOWEST, so no side hovers; then sink it further because
 		-- trunk and rock bottoms are narrow and pointed and must be fully buried.
 		local ground = baseY or groundY(x, z, height * (if group == "Pohon" then 0.08 elseif group == "Semak" then 0.25 else 0.22))
 		local model = placeTemplate(template, nature, group, CFrame.new(x, ground, z) * rotation, height)
 		local sink = height * (if group == "Pohon" then 0.13 elseif group == "Semak" then 0.12 else 0.2)
 		model:PivotTo(model:GetPivot() - Vector3.new(0, sink, 0))
+		if expansionOf then
+			model:SetAttribute("ExpansionOf", expansionOf)
+		end
 		-- One tint per plant (the canopy mesh is one part) and one color per rock.
 		local leafColor = LEAF_TINTS[random:NextInteger(1, #LEAF_TINTS)]
 		local rockColor = ROCK_COLORS[random:NextInteger(1, #ROCK_COLORS)]
@@ -804,6 +834,20 @@ local function buildNature(map: Folder, trees: { Model }, bushes: { Model }, roc
 			elseif tint and descendant:IsA("SurfaceAppearance") and descendant.Parent and descendant.Parent.Name:find("Canopy") then
 				descendant.Color = leafColor
 			end
+		end
+	end
+
+	-- A mixed bit of forest at one spot: mostly trees, some bushes, a few rocks.
+	local function forestSpot(x: number, z: number, expansionOf: number?)
+		local roll = random:NextNumber()
+		if roll < 0.55 and #trees > 0 then
+			put(trees, "Pohon", x, z, random:NextNumber(16, 28), true, nil, expansionOf)
+		elseif roll < 0.82 and #bushes > 0 then
+			put(bushes, "Semak", x, z, random:NextNumber(4, 8), true, nil, expansionOf)
+		elseif #rocks > 0 then
+			put(rocks, "Batu", x, z, random:NextNumber(3, 8), false, nil, expansionOf)
+		elseif #trees > 0 then
+			put(trees, "Pohon", x, z, random:NextNumber(16, 28), true, nil, expansionOf)
 		end
 	end
 
@@ -826,7 +870,7 @@ local function buildNature(map: Folder, trees: { Model }, bushes: { Model }, roc
 				for _, spot in { { s, radius }, { s, -radius }, { radius, s }, { -radius, s } } do
 					local x = spot[1] + random:NextNumber(-6, 6)
 					local z = spot[2] + random:NextNumber(-6, 6)
-					if not nearAxes(x, z, riverClear, roadClear) then
+					if math.abs(x) >= roadClear and math.abs(z) >= roadClear then
 						treeAt(x, z, minHeight, maxHeight)
 					end
 				end
@@ -838,119 +882,119 @@ local function buildNature(map: Folder, trees: { Model }, bushes: { Model }, roc
 		ring(half + 44, 20, 28, 40)
 		ring(half + 68, 30, 30, 44)
 		ring(half + 96, 40, 34, 48)
+	end
 
-		-- Trees along the road verge (smaller, so their crowns stay off the land fences): both arms, not in town.
-		local verge = Map.ROAD.WIDTH / 2 + 7
-		local u = 130
-		while u < half * SQRT2 - 30 do
-			for _, sign in { 1, -1 } do
-				for _, side in { 1, -1 } do
-					local across = Vector3.new(1, 0, 1) / SQRT2
-					local point = roadPoint(sign * (u + random:NextNumber(-8, 8))) + across * side * (verge + random:NextNumber(-1.5, 1.5))
-					if math.abs(point.X) < half - 6 and math.abs(point.Z) < half - 6 and not onLand(point.X, point.Z, 4) then
-						put(trees, "Pohon", point.X, point.Z, random:NextNumber(11, 16), true)
+	-- 2. The part of every plot's reserved square that the player does not own yet (back and sides of the start
+	-- land) is forest. It is tagged ExpansionOf = plot number, so buying ground can clear it (R2b). Kept a few studs
+	-- off the road side so no crown hangs over the road.
+	if #trees > 0 or #bushes > 0 or #rocks > 0 then
+		for index = 1, #frames do
+			local frame = frames[index]
+			local region = Land.REGION_HALF
+			local x = -region + 4
+			while x <= region - 4 do
+				local z = -region + 4
+				while z <= Land.FRONT_Z - 10 do
+					local world = frame * Vector3.new(x + random:NextNumber(-3, 3), 0, z + random:NextNumber(-3, 3))
+					if math.abs(world.X) < half - 6 and math.abs(world.Z) < half - 6 then
+						forestSpot(world.X, world.Z, index)
+					end
+					z += 10
+				end
+				x += 10
+			end
+		end
+
+		-- 3. The four corners between the plot regions: dense forest (rice terraces can come later).
+		local corner0, corner1 = Plots.INNER + 4, half - 6
+		for _, sx in { 1, -1 } do
+			for _, sz in { 1, -1 } do
+				local x = corner0
+				while x <= corner1 do
+					local z = corner0
+					while z <= corner1 do
+						forestSpot(sx * (x + random:NextNumber(-5, 5)), sz * (z + random:NextNumber(-5, 5)), nil)
+						z += 12
+					end
+					x += 12
+				end
+			end
+		end
+
+		-- 4. Public ground between the ring road and the plots: scattered trees and bushes, never on a road.
+		local limit = Plots.INNER - 6
+		local x = -limit
+		while x <= limit do
+			local z = -limit
+			while z <= limit do
+				local px, pz = x + random:NextNumber(-8, 8), z + random:NextNumber(-8, 8)
+				if not nearPublic(px, pz, roadClear + 4) and math.abs(px) < limit and math.abs(pz) < limit then
+					if random:NextNumber() < 0.5 and #trees > 0 then
+						put(trees, "Pohon", px, pz, random:NextNumber(12, 19), true)
+					elseif #bushes > 0 then
+						put(bushes, "Semak", px, pz, random:NextNumber(4, 7), true)
 					end
 				end
+				z += 26
 			end
-			u += random:NextNumber(26, 40)
+			x += 26
 		end
 	end
 
-	-- 2. Bushes (and now and then a rock) hugging the outside of every land: sample along its back and side edges.
-	-- (Spots that fall on a neighbouring land are skipped by onLand.)
-	for index = 1, #frames do
-		local frame = frames[index]
-		local function scatter(localX: number, localZ: number)
-			local world = frame * Vector3.new(localX, 0, localZ)
-			if
-				not onLand(world.X, world.Z, 2)
-				and not nearAxes(world.X, world.Z, Map.RIVER.WIDTH / 2 + 3, Map.ROAD.WIDTH / 2 + 3)
-				and math.abs(world.X) < half - 4
-				and math.abs(world.Z) < half - 4
-			then
-				if #rocks > 0 and random:NextNumber() < 0.22 then
-					put(rocks, "Batu", world.X, world.Z, random:NextNumber(3, 7), false)
-				elseif #bushes > 0 then
-					put(bushes, "Semak", world.X, world.Z, random:NextNumber(4, 7.5), true)
-				end
-			end
-		end
-		local z = Land.BACK_Z
-		while z <= Land.FRONT_Z do
-			for _, side in { 1, -1 } do
-				scatter(side * (Land.HALF + random:NextNumber(3, 9)), z + random:NextNumber(-3, 3))
-			end
-			z += random:NextNumber(4.5, 8)
-		end
-		local x = -Land.HALF
-		while x <= Land.HALF do
-			scatter(x + random:NextNumber(-3, 3), Land.BACK_Z - random:NextNumber(3, 9))
-			x += random:NextNumber(4.5, 8)
-		end
-	end
-
-	-- 2b. River banks, irregular like a real stream: big boulders that stand in the water (on the river bed, tops
-	-- above the surface), groups of small stones on the bank, patches of bushes, and gaps. Not at docks or town.
+	-- 5. Canal banks, irregular like a real stream: big boulders that stand in the water (on the bed, tops above the
+	-- surface), groups of small stones on the bank, patches of bushes on the island side, and gaps. Not at docks or
+	-- bridges.
 	if #bushes > 0 or #rocks > 0 then
-		local waterEdge = Map.RIVER.WIDTH / 2
 		local bedY = -Map.RIVER.DEPTH
-		local function nearDock(t: number): boolean
-			for _, entry in Map.RIVER_DOCKS do
-				if math.abs(entry.t - t) < 10 then
+		local function nearDockOrBridge(degrees: number): boolean
+			if math.min(degrees % 90, 90 - degrees % 90) < 9 then
+				return true
+			end
+			for _, entry in Map.DOCKS do
+				local difference = math.abs(((entry.angle - degrees) + 180) % 360 - 180)
+				if difference < 5 then
 					return true
 				end
 			end
 			return false
 		end
-		local function bankPoint(t: number, side: number, distance: number): Vector3
-			return riverPoint(t) + RIVER_SIDE * side * distance
-		end
-		local function inside(point: Vector3): boolean
-			return math.abs(point.X) < half - 6 and math.abs(point.Z) < half - 6
+		local function polar(radius: number, degrees: number): Vector3
+			local angle = math.rad(degrees)
+			return Vector3.new(math.cos(angle) * radius, 0, math.sin(angle) * radius)
 		end
 
-		local t = 60
-		while t < half * SQRT2 - 20 do
-			for _, sign in { 1, -1 } do
-				for _, side in { 1, -1 } do
-					local tt = sign * t + random:NextNumber(-6, 6)
+		local degrees = 0
+		while degrees < 360 do
+			local at = degrees + random:NextNumber(-2, 2)
+			if not nearDockOrBridge(at) then
+				for _, bank in { "outer", "inner" } do
+					-- distance = how far from the water's edge toward the water (negative) or onto land (positive)
+					local edge = if bank == "outer" then TOWN.CANAL_R else TOWN.ISLAND_R
+					local inward = if bank == "outer" then -1 else 1 -- sign that moves from the edge into the water
 					local roll = random:NextNumber()
-					if not nearDock(tt) then
-						if roll < 0.22 and #rocks > 0 then
-							-- Boulder in (or against) the water: its bottom on the river bed, its top breaking the surface.
-							-- Centered in the water (the land starts 4 studs past the bank), so even a wide boulder stays off it.
-							local distance = waterEdge + random:NextNumber(-8, -1)
-							local point = bankPoint(tt, side, distance)
-							if inside(point) then
-								put(rocks, "Batu", point.X, point.Z, random:NextNumber(9, 16), false, bedY)
-							end
-						elseif roll < 0.42 and #rocks > 0 then
-							-- A few stones on the bank, small to medium, close together.
-							local base = bankPoint(tt, side, waterEdge + random:NextNumber(0.3, 1.8))
-							for _ = 1, random:NextInteger(1, 3) do
-								local point = base + Vector3.new(random:NextNumber(-3, 3), 0, random:NextNumber(-3, 3))
-								if inside(point) then
-									put(rocks, "Batu", point.X, point.Z, random:NextNumber(1.2, 3.2), false)
-								end
-							end
-						elseif roll < 0.72 and #bushes > 0 then
-							-- A patch of one to three bushes of different sizes.
-							local base = bankPoint(tt, side, waterEdge + random:NextNumber(1, 3.5))
-							for _ = 1, random:NextInteger(1, 3) do
-								local point = base + Vector3.new(random:NextNumber(-3, 3), 0, random:NextNumber(-3, 3))
-								if inside(point) then
-									put(bushes, "Semak", point.X, point.Z, random:NextNumber(2, 6), true)
-								end
-							end
+					if roll < 0.2 and #rocks > 0 then
+						local point = polar(edge + inward * random:NextNumber(1, 8), at)
+						put(rocks, "Batu", point.X, point.Z, random:NextNumber(9, 16), false, bedY)
+					elseif roll < 0.4 and #rocks > 0 then
+						local base = polar(edge - inward * random:NextNumber(0.3, 1.8), at)
+						for _ = 1, random:NextInteger(1, 3) do
+							local point = base + Vector3.new(random:NextNumber(-3, 3), 0, random:NextNumber(-3, 3))
+							put(rocks, "Batu", point.X, point.Z, random:NextNumber(1.2, 3.2), false)
+						end
+					elseif roll < 0.7 and bank == "inner" and #bushes > 0 then
+						local base = polar(edge - random:NextNumber(1, 3.5), at)
+						for _ = 1, random:NextInteger(1, 3) do
+							local point = base + Vector3.new(random:NextNumber(-3, 3), 0, random:NextNumber(-3, 3))
+							put(bushes, "Semak", point.X, point.Z, random:NextNumber(2, 6), true)
 						end
 					end
 				end
 			end
-			t += random:NextNumber(5, 15)
+			degrees += random:NextNumber(5, 14)
 		end
 	end
 
-	-- 3. Rocks scattered in the forest belt: single boulders and small groups of two or three.
+	-- 6. Rocks scattered in the forest belt: single boulders and small groups of two or three.
 	if #rocks > 0 then
 		for _ = 1, 90 do
 			local radius = half + random:NextNumber(10, 70)
@@ -960,7 +1004,7 @@ local function buildNature(map: Folder, trees: { Model }, bushes: { Model }, roc
 			if random:NextNumber() < 0.5 then
 				x, z = radius * sign, along -- ... or to the Z axis
 			end
-			if not nearAxes(x, z, riverClear, roadClear) then
+			if math.abs(x) >= roadClear and math.abs(z) >= roadClear then
 				put(rocks, "Batu", x, z, random:NextNumber(5, 11), false)
 				for _ = 1, random:NextInteger(0, 2) do
 					put(rocks, "Batu", x + random:NextNumber(-6, 6), z + random:NextNumber(-6, 6), random:NextNumber(2.5, 6), false)
@@ -969,7 +1013,7 @@ local function buildNature(map: Folder, trees: { Model }, bushes: { Model }, roc
 		end
 	end
 
-	-- 3b. Big boulders on the foothills' toes, where the woods meet the mountains.
+	-- 6b. Big boulders on the foothills' toes, where the woods meet the mountains.
 	if #rocks > 0 then
 		for _ = 1, 60 do
 			local radius = half + random:NextNumber(110, 150)
@@ -983,7 +1027,7 @@ local function buildNature(map: Folder, trees: { Model }, bushes: { Model }, roc
 		end
 	end
 
-	-- 4. Bushes in the forest belt, so the woods have an undergrowth.
+	-- 7. Bushes in the forest belt, so the woods have an undergrowth.
 	if #bushes > 0 then
 		for _ = 1, 160 do
 			local radius = half + random:NextNumber(4, 50)
@@ -993,7 +1037,7 @@ local function buildNature(map: Folder, trees: { Model }, bushes: { Model }, roc
 			if random:NextNumber() < 0.5 then
 				x, z = radius * sign, along
 			end
-			if not nearAxes(x, z, riverClear, roadClear) then
+			if math.abs(x) >= roadClear and math.abs(z) >= roadClear then
 				put(bushes, "Semak", x, z, random:NextNumber(5, 9), true)
 			end
 		end
@@ -1087,8 +1131,9 @@ function MapService.Start()
 	buildTrees(map)
 end
 
-function MapService.BridgeCFrame(x: number, y: number, z: number): CFrame
-	return bridgeAt(x, y, z)
+-- A world CFrame for a town position (the island is not rotated).
+function MapService.TownCFrame(x: number, y: number, z: number): CFrame
+	return CFrame.new(x, y, z)
 end
 
 return MapService

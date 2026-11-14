@@ -7,7 +7,7 @@
 - [ ] Studio uses `KampungTeduh_Studio` automatically, so it never touches live saves.
 
 ## Game settings (Creator Dashboard / Studio Game Settings)
-- [ ] Places → **Max Players = jumlah slot lahan** (8–10, sesuai peta cincin). Server fill: default.
+- [ ] Places → **Max Players = jumlah slot lahan** (**8**, sesuai peta cincin; `Config/Plots` `COUNT`). Server fill: default.
 - [ ] Avatar: R15 (emotes and Animate assume default animations).
 - [ ] **Devices:** Phone, Tablet, Computer (Console optional once tested).
 - [ ] **Experience Questionnaire** answered honestly: no violence, no gambling, no paid random items, social chat = Roblox default.
@@ -28,7 +28,7 @@
 - [ ] HUD fits a 360×640 phone: group Pesanan, Koleksi, Warga, Atur and Toko into a menu.
 
 ## Quality
-- [ ] Phone test (low-end Android): touch fishing, decor placement with Pasang/Putar, panels scroll, ≥ 30 FPS with 8–10 lahan terisi.
+- [ ] Phone test (low-end Android): touch fishing, decor placement with Pasang/Putar, panels scroll, ≥ 30 FPS with 8 lahan terisi.
 - [ ] Studio → Test → banyak pemain: Mampir, Suka, shared river/warung, plots assigned and freed correctly; pemain yang pindah server mendapat lahan dengan isi yang sama.
 - [ ] Kuota warung: jual sampai habis, lalu ke Bang Tarno 0,7×; reset 00:00 WIB.
 - [ ] Leave and rejoin mid-fishing, mid-growth, and right after a purchase; nothing is lost or duplicated.

@@ -89,5 +89,5 @@ order rewards → `Orders`; upgrade costs → `Shop`; decor prices/levels → `D
 
 - No data loss or errors in 3 playtest days (check the Error Report in the dashboard).
 - Funnel steps 1→4 at target.
-- Runs on at least one low-end phone at ≥ 30 FPS with 8–10 lahan terisi.
+- Runs on at least one low-end phone at ≥ 30 FPS with 8 lahan terisi.
 - Every Launch Checklist item ticked.

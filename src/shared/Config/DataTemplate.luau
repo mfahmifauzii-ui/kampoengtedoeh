@@ -7,7 +7,7 @@ local Economy = require(script.Parent.Economy)
 local Types = require(script.Parent.Parent.Types)
 
 local template: Types.PlayerData = {
-	version = 9,
+	version = 10,
 
 	koin = Economy.START_KOIN,
 	bunga = Economy.START_BUNGA,

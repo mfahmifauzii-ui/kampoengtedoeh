@@ -3,7 +3,7 @@
 -- To change the schema: add STEPS[n] (migrates v n -> n+1), bump CURRENT_VERSION
 -- and DataTemplate.version together.
 
-local CURRENT_VERSION = 9
+local CURRENT_VERSION = 10
 
 -- Farm beds moved to a wider grid (a path between beds): every tile keeps its crop and moves to the cell its old
 -- center falls in; if two tiles land in one cell, the later one takes the nearest free cell (a bed can shift a
@@ -150,6 +150,30 @@ local STEPS: { [number]: (data: any) -> () } = {
 				end
 			end
 			data.pond.list = kept
+		end
+	end,
+
+	-- v9 -> v10 (R2 ring map): a plot's coordinate frame moved. Before, the origin was the center of the 96 x 96 land
+	-- (x, z from -48 to 48). Now it is the center of the 192 x 192 reserved square and the 128 x 128 start land sits
+	-- flush with the road end (x -64 .. 64, z -32 .. 96). Everything keeps its place on the land by shifting 32 studs
+	-- along z: beds and ponds by 4 cells (8 studs each), decor by 40 cells in z (2 studs each, and the decor grid's
+	-- cell 0 moved from -48 to -96, which is +24 cells in x as well). Old land fits inside the new land.
+	[9] = function(data)
+		if data.farm and typeof(data.farm.tiles) == "table" then
+			for _, tile in data.farm.tiles do
+				tile.cz += 4
+			end
+		end
+		if data.pond and typeof(data.pond.list) == "table" then
+			for _, pond in data.pond.list do
+				pond.cz += 4
+			end
+		end
+		if data.decor and typeof(data.decor.placed) == "table" then
+			for _, entry in data.decor.placed do
+				entry.x += 24
+				entry.z += 40
+			end
 		end
 	end,
 }

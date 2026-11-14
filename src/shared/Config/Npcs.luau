@@ -1,8 +1,9 @@
 --!strict
--- Town NPCs. Each stands at a spot on the bridge and offers one dialogue: [Jual / Beli] [Sampai jumpa].
+-- Town NPCs. Each stands in front of a shophouse on the town island and offers one dialogue: [Jual / Beli] [Sampai jumpa].
 -- "Jual / Beli" opens that NPC's shop. Locale keys per NPC: npc.<id> (name), npc.<id>.role, npc.<id>.greet.
 --
--- stand : bridge-local studs (x along the road, z along the river). faceZ = +1 / -1: which way the NPC looks.
+-- stand : world studs on the town island (x, z) and the rig's yaw (a rig looks toward its local -Z, so yaw = pi looks
+--         toward +Z). Shop NPCs stand in front of their shop's door and face the island center (Config/Map SHOPS).
 -- buys  : item kind -> price multiplier (what the NPC pays you), see Modules/Trade.
 -- quota : the NPC buys each crop only up to a daily quota (QUOTA below); past it, sell to the next buyer.
 -- sells : what the NPC sells: seeds, seedsUnggul (faster-growing, pricier), rods, bait, upgrades, fish.
@@ -20,60 +21,68 @@ export type Sells = {
 
 export type Npc = {
 	id: string,
-	stand: { x: number, z: number, faceZ: number },
+	stand: { x: number, z: number, yaw: number },
 	look: { skin: Color3, shirt: Color3, pants: Color3 },
 	buys: { [string]: number },
 	sells: Sells,
 	quota: boolean?, -- buys each crop only up to the daily quota (Pak Darmo)
 }
 
+local Map = require(script.Parent.Map)
+
+-- Where the shopkeeper of shop slot `slot` stands (Map.SHOPS: 8 shophouses on a circle around the banyan tree).
+local function atShop(slot: number): { x: number, z: number, yaw: number }
+	local shop = Map.SHOPS[slot]
+	return { x = shop.standX, z = shop.standZ, yaw = shop.standYaw }
+end
+
 local list: { Npc } = {
 	{
 		-- Behind the counter of the Warung stall. Best price (1.0x), but only up to the daily quota per crop.
 		id = "pak_darmo",
-		stand = { x = 0, z = -25.2, faceZ = 1 },
+		stand = { x = Map.WARUNG.x, z = Map.WARUNG.z - 1.2, yaw = math.pi }, -- behind the counter, looking south
 		look = { skin = Color3.fromRGB(198, 148, 102), shirt = Color3.fromRGB(220, 206, 176), pants = Color3.fromRGB(96, 70, 50) },
 		buys = { crop = 1.0 },
 		sells = { seeds = true, upgrades = true },
 		quota = true,
 	},
 	{
-		-- Toko Bibit (shop 4)
+		-- Toko Bibit (shop slot 1)
 		id = "bu_wati",
-		stand = { x = 27, z = 15.5, faceZ = -1 },
+		stand = atShop(1), -- shop 1
 		look = { skin = Color3.fromRGB(190, 140, 98), shirt = Color3.fromRGB(150, 168, 128), pants = Color3.fromRGB(110, 84, 66) },
 		buys = {},
 		sells = { seedsUnggul = true },
 	},
 	{
-		-- Toko Pancing (shop 5)
+		-- Toko Pancing (shop slot 5)
 		id = "mas_joko",
-		stand = { x = -28, z = -15.5, faceZ = 1 },
+		stand = atShop(5), -- shop 5
 		look = { skin = Color3.fromRGB(176, 128, 90), shirt = Color3.fromRGB(122, 148, 164), pants = Color3.fromRGB(70, 76, 86) },
 		buys = {},
 		sells = { rods = true, bait = true },
 	},
 	{
-		-- Pasar Ikan (shop 6)
+		-- Pasar Ikan (shop slot 2)
 		id = "mbok_minah",
-		stand = { x = 28, z = -15.5, faceZ = 1 },
+		stand = atShop(2), -- shop 2
 		look = { skin = Color3.fromRGB(200, 152, 110), shirt = Color3.fromRGB(196, 120, 90), pants = Color3.fromRGB(96, 70, 50) },
 		buys = { fish = 1.0 },
 		sells = { fish = true },
 	},
 	{
-		-- Lapak Tarno (shop 1): the middleman. Pays 0.7x for crops with no limit: where you sell once
+		-- Lapak Tarno (shop slot 3): the middleman. Pays 0.7x for crops with no limit: where you sell once
 		-- Pak Darmo's daily quota for a crop is used up.
 		id = "bang_tarno",
-		stand = { x = -27, z = 15.5, faceZ = -1 },
+		stand = atShop(3), -- shop 3
 		look = { skin = Color3.fromRGB(168, 120, 84), shirt = Color3.fromRGB(176, 104, 74), pants = Color3.fromRGB(78, 70, 62) },
 		buys = { crop = 0.7 },
 		sells = {},
 	},
 	{
-		-- Toko Tukang (shop 2): the builder. Sells decor blueprints.
+		-- Toko Tukang (shop slot 4): the builder. Sells decor blueprints.
 		id = "mbak_arsi",
-		stand = { x = -9, z = 15.5, faceZ = -1 },
+		stand = atShop(4), -- shop 4
 		look = { skin = Color3.fromRGB(196, 146, 104), shirt = Color3.fromRGB(228, 176, 76), pants = Color3.fromRGB(86, 96, 120) },
 		buys = {},
 		sells = { blueprints = true },

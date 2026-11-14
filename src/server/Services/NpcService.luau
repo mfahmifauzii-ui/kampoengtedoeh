@@ -55,9 +55,8 @@ local function build(npc: Npcs.Npc)
 		humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
 	end
 
-	-- The rig looks toward -Z; turn it toward +Z when the NPC should face that way.
-	local yaw = if npc.stand.faceZ > 0 then math.pi else 0
-	model:PivotTo(MapService.BridgeCFrame(npc.stand.x, Map.BRIDGE.DECK_Y + 3, npc.stand.z) * CFrame.Angles(0, yaw, 0))
+	-- The rig looks toward its local -Z; stand.yaw turns it to face the way it should (Config/Npcs).
+	model:PivotTo(MapService.TownCFrame(npc.stand.x, Map.TOWN.GROUND_Y + 3, npc.stand.z) * CFrame.Angles(0, npc.stand.yaw, 0))
 	model.Parent = folder
 
 	local root = model:FindFirstChild("HumanoidRootPart")

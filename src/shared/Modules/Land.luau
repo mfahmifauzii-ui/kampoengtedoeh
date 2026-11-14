@@ -3,8 +3,9 @@
 -- and the client (previews). All coordinates are PLOT-LOCAL studs:
 --   x = to the plot's right,  z = toward the map center (the plot's front),  origin = the plot's center.
 --
--- R2a: the land is a square of Plots.SIZE (96) studs centered on the plot anchor: x and z both run -48 .. 48.
--- (R2b will make it grow from a 48 x 48 start by buying 16-stud chunks; this module is where that rule will live.)
+-- R2: every plot has a reserved REGION square (Plots.SIZE = 192: x and z from -96 to 96, +Z = toward the road). The
+-- player's land is the START x START (128) square inside it, flush with the road end: x -64 .. 64, z -32 .. 96.
+-- (R2b will let the land grow chunk by chunk into the rest of the region; this module is where that rule will live.)
 -- TERRAIN GRID (measured with Terrain:ReadVoxels): cells are 4 studs with their edges at multiples of 4, and a block
 -- paints a cell's material when the cell's CENTER lies inside the block. Plot anchors sit on multiples of 4, so in
 -- plot-local studs the land edges are multiples of 4 and a farm tile (8 studs) is exactly 2 x 2 cells. Paint blocks
@@ -28,12 +29,14 @@ Land.PITCH = PITCH
 Land.TILE_OFFSET = TILE_OFFSET
 Land.SURFACE_OFFSET = 2 -- measured: the visible terrain surface is this far above the top of a filled block
 Land.ROW = ROW
-Land.HALF = Plots.SIZE / 2
-Land.FRONT_Z = Plots.FRONT_Z
-Land.BACK_Z = -Plots.FRONT_Z
+Land.HALF = Plots.START_SIZE / 2 -- half width of the land (x runs -HALF .. HALF)
+Land.REGION_HALF = Plots.SIZE / 2 -- half of the reserved square
+Land.FRONT_Z = Plots.FRONT_Z -- the road end
+Land.BACK_Z = Plots.FRONT_Z - Plots.START_SIZE
+Land.CENTER_Z = (Land.FRONT_Z + Land.BACK_Z) / 2
 Land.ROWS = (Land.FRONT_Z - Land.BACK_Z) // ROW
 
--- Half width of the land in a 4-stud row (the same for every row now that the land is a square).
+-- Half width of the land in a 4-stud row (the same for every row: the land is a square).
 function Land.rowHalfWidth(_row: number): number
 	return Land.HALF
 end

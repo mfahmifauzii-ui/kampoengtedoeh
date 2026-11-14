@@ -1,14 +1,64 @@
 --!strict
--- Village map layout. All numbers in studs, origin (0,0,0) = bridge center.
---   Road  : SW -> NE diagonal.     River : NW -> SE diagonal.     They cross at the center bridge.
---   Plots : 10 lands in a square ring, 3 south / 3 north / 2 west / 2 east, all facing the town (see Config/Plots).
--- The river and the road split the ring into four sectors; a plot's corners stay >= 28 studs from both axes.
+-- Village map layout (R2 ring map). All numbers in studs, origin (0,0,0) = the middle of the town island.
+--
+--   CENTER : a round town island (banyan tree, warung, 8 shophouses) inside a circular canal, crossed by four plank
+--            bridges at north / south / east / west.  Around the canal: a cobblestone ring road.
+--   AXES   : a 24-stud dirt road runs from each bridge straight to the map edge (N / S / E / W).
+--   PLOTS  : 8 identical lands, two on each axis road, one on each side of it, all facing the road (see Config/Plots).
+--   CORNERS: the four diagonal corners are forest (rice terraces later); the part of each plot's reserved square that
+--            is not yet owned is forest too, cleared when the player buys it (R2b).
 -- MapService builds all of it at server start unless Workspace.Map already exists (hand-built map).
+--
+-- Scale history: v1 480; v2 720; R2a 608 (ten 96 lands); R2 ring 792 (eight lands, 128 start / 192 reserved).
+
+local TOWN = {
+	ISLAND_R = 90, -- the island (grass + plaza)
+	CANAL_R = 130, -- outer edge of the water: the canal is ISLAND_R .. CANAL_R (40 wide)
+	RING_R = 165, -- outer edge of the cobblestone ring road: the road is CANAL_R .. RING_R (35 wide)
+	GROUND_Y = 0, -- the island surface; NPCs stand on it
+	SHOP_RADIUS = 56, -- shophouse footprint centers (8 slots, two per quadrant)
+	STAND_RADIUS = 44, -- where the shopkeeper stands in front of the door
+}
+
+-- The warung stall in the middle of the island, south of the tree: customers come from the south bridge.
+-- Its counter faces local +Z (south); Pak Darmo stands behind it (see Config/Npcs).
+local WARUNG = { x = 0, z = 28 }
+
+export type Shop = { x: number, z: number, yaw: number, standX: number, standZ: number, standYaw: number }
+
+-- 8 shop slots at 22.5 + 45 * k degrees (angle measured from +X toward +Z): two per quadrant, so the four axis
+-- paths stay free. yaw = the shop's yaw so its front (local +Z) faces the island center; standYaw = the same
+-- direction for an NPC rig (a rig looks toward its local -Z, so the yaw is a half turn different).
+local SHOPS: { Shop } = {}
+for slot = 1, 8 do
+	local angle = math.rad(22.5 + 45 * (slot - 1))
+	local c, s = math.cos(angle), math.sin(angle)
+	table.insert(SHOPS, {
+		x = TOWN.SHOP_RADIUS * c,
+		z = TOWN.SHOP_RADIUS * s,
+		yaw = math.atan2(-c, -s),
+		standX = TOWN.STAND_RADIUS * c,
+		standZ = TOWN.STAND_RADIUS * s,
+		standYaw = math.atan2(c, s),
+	})
+end
+
+-- Fishing docks: both banks of the canal, 8 angles each (degrees from +X toward +Z), away from the bridges.
+-- West half of the canal = Sungai (Lv1), east half = Empang (Lv4): same water, same docks; only the fishing
+-- location differs.
+local DOCKS: { { angle: number, bank: string, location: string } } = {}
+for _, bank in { "outer", "inner" } do
+	for _, angle in { 27, 63, 117, 153, 207, 243, 297, 333 } do
+		table.insert(DOCKS, {
+			angle = angle,
+			bank = bank,
+			location = if math.cos(math.rad(angle)) < 0 then "sungai" else "empang",
+		})
+	end
+end
 
 return {
-	-- Scale history: v1 480; v2 720 (x1.5, four huge wedge lands); R2a 608 (ten 96 x 96 lands, Config/Plots).
-	-- River, road, bridge and town keep their real-world size.
-	SIZE = 608, -- playable square (±304); invisible walls sit on its edge. Plots end 16 studs inside it (back = 288)
+	SIZE = 792, -- playable square (±396); invisible walls sit on its edge. Plots end at the walls (back = 396)
 	MARGIN = 160, -- scenery ground outside the walls (woods + foothills; mountains rise behind it, see MapService)
 	GRASS_DEPTH = 16,
 	WALL_BOTTOM = -20,
@@ -18,50 +68,33 @@ return {
 	GRASS_COLOR = Color3.fromRGB(104, 156, 60),
 	SAND_COLOR = Color3.fromRGB(208, 180, 126),
 	WATER_COLOR = Color3.fromRGB(20, 110, 200),
+	COBBLE_COLOR = Color3.fromRGB(150, 140, 128),
+	DIRT_COLOR = Color3.fromRGB(176, 136, 94),
+	FOREST_COLOR = Color3.fromRGB(70, 120, 52), -- forest floor (the not-yet-owned ground and the corners)
 
+	TOWN = TOWN,
+	WARUNG = WARUNG,
+	SHOPS = SHOPS,
+
+	-- Water (the canal). PondService reuses WATER_Y for the player ponds.
 	RIVER = {
-		WIDTH = 48,
-		LENGTH = 1200, -- keeps the water inside the scenery ground at the corners
 		DEPTH = 8, -- below ground level (y = 0)
 		BED = 4, -- sand layer under the water
 		WATER_Y = -1, -- water surface; 1 stud below the bank so swimmers can climb out
 	},
 
-	ROAD = {
-		WIDTH = 28,
-		LENGTH = 1200,
-	},
+	-- Axis roads (from each bridge to the walls): HALF = half width, so the road is 24 wide. Plots start at HALF.
+	ROAD = { HALF = 12 },
 
-	-- Deck spans the river along the road direction; buildings (the town) stand on it.
-	BRIDGE = {
-		SPAN = 72, -- along the road
-		WIDTH = 64, -- along the river
-		DECK_Y = 5,
-		DECK_THICK = 1.5,
-		RAMP = 28, -- ramp length at each end
-	},
-
-	-- (Player land: Config/Plots + Modules/Land. Its corners keep >= 28 studs from both axes: river bank is 24 from
-	-- its axis and the road edge 14, so the public strip beside them is 4 / 14 studs.)
+	-- The four plank bridges over the canal, along the axes.
+	BRIDGE = { WIDTH = 24, DECK_Y = 0.6, THICK = 1 },
 
 	-- Rumah panggung on every plot, in plot-local studs (X right, Z toward the front/road). HALF = no-build half size.
-	HOUSE = { X = 30, Z = 24, HALF = 8, HEIGHT = 13 },
+	-- R2: the front of the 128 start land is at z = 96 (see Config/Plots), so the house sits just behind the road.
+	HOUSE = { X = 30, Z = 56, HALF = 8, HEIGHT = 13 },
 
 	DOCK = { LENGTH = 14, WIDTH = 5 },
-	-- Fishing docks: t = distance from the center along the river (negative = NW arm). Both banks get a dock.
-	-- Same river, same docks everywhere; only the fishing location differs: NW arm = Sungai (Lv1), SE arm = Empang (Lv4).
-	-- R2a: the map shrank to ±304, so the docks moved in (t / sqrt 2 + the bank offset must stay inside the walls).
-	RIVER_DOCKS = {
-		{ t = -350, location = "sungai" },
-		{ t = -290, location = "sungai" },
-		{ t = -230, location = "sungai" },
-		{ t = -170, location = "sungai" },
-		{ t = -110, location = "sungai" },
-		{ t = 110, location = "empang" },
-		{ t = 170, location = "empang" },
-		{ t = 230, location = "empang" },
-		{ t = 290, location = "empang" },
-		{ t = 350, location = "empang" },
-	} :: { { t: number, location: string } },
-	RIVER_SOUND_T = { -400, -320, -240, -160, -80, 80, 160, 240, 320, 400 },
+	DOCKS = DOCKS,
+	-- Water sound emitters along the canal (degrees from +X toward +Z), at the canal's mid radius.
+	CANAL_SOUND_ANGLES = { 0, 45, 90, 135, 180, 225, 270, 315 },
 }
