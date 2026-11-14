@@ -243,6 +243,7 @@ local function buildPicker(): ScreenGui
 			local index = pickerTileIndex
 			closePicker()
 			if index then
+				require(script.Parent.Parent.FarmFx).plant()
 				Net.Send("FarmPlant", index, crop.id)
 			end
 		end)
@@ -323,8 +324,10 @@ onTileTapped = function(part: BasePart)
 	if stage == 0 then
 		openPicker(index)
 	elseif stage == READY_STAGE then
+		require(script.Parent.Parent.FarmFx).harvest()
 		Net.Send("FarmHarvest", index)
 	elseif part:GetAttribute("Watered") ~= true then
+		require(script.Parent.Parent.FarmFx).water()
 		Net.Send("FarmWater", index)
 	else
 		openTilePanel(index)
