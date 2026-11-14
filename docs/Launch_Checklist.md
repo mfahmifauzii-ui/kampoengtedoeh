@@ -1,4 +1,4 @@
-# Launch Checklist — tick everything before public launch (~1 Feb 2027)
+# Launch Checklist — tick everything before public launch (tanpa tanggal; setelah Playtest #1 dan #2 lolos)
 
 ## Data (do these in order)
 - [ ] Playtest finished, no data errors in the dashboard Error Report.
@@ -7,7 +7,7 @@
 - [ ] Studio uses `KampungTeduh_Studio` automatically, so it never touches live saves.
 
 ## Game settings (Creator Dashboard / Studio Game Settings)
-- [ ] Places → **Max Players = 4** (matches the 4 plots of the X-shaped map). Server fill: default.
+- [ ] Places → **Max Players = jumlah slot lahan** (8–10, sesuai peta cincin). Server fill: default.
 - [ ] Avatar: R15 (emotes and Animate assume default animations).
 - [ ] **Devices:** Phone, Tablet, Computer (Console optional once tested).
 - [ ] **Experience Questionnaire** answered honestly: no violence, no gambling, no paid random items, social chat = Roblox default.
@@ -26,16 +26,15 @@
 - [ ] Placeholder buildings replaced by your models: plots, warung, river, empang, rumah. Names follow the contracts in each config header.
 - [ ] Designed UI hooked up; every placeholder panel name kept (see the controller headers).
 - [ ] HUD fits a 360×640 phone: group Pesanan, Koleksi, Warga, Atur and Toko into a menu.
-- [ ] Event dates checked: `Config/Events.luau` Lebaran dates after the official announcement.
 
 ## Quality
-- [ ] Phone test (low-end Android): touch fishing, decor placement with Pasang/Putar, panels scroll, ≥ 30 FPS with 4 players.
-- [ ] Studio → Test → 2–3 players: Mampir, Suka, shared river/warung, plots assigned and freed correctly.
+- [ ] Phone test (low-end Android): touch fishing, decor placement with Pasang/Putar, panels scroll, ≥ 30 FPS with 8–10 lahan terisi.
+- [ ] Studio → Test → banyak pemain: Mampir, Suka, shared river/warung, plots assigned and freed correctly; pemain yang pindah server mendapat lahan dengan isi yang sama.
+- [ ] Kuota warung: jual sampai habis, lalu ke Bang Tarno 0,7×; reset 00:00 WIB.
 - [ ] Leave and rejoin mid-fishing, mid-growth, and right after a purchase; nothing is lost or duplicated.
 - [ ] Output clean in a live server (Developer Console F9 → Server tab).
 - [ ] Microprofiler / Developer Console memory: no steady growth over 30 minutes.
 
 ## Launch day
-- [ ] Make public in the morning WIB (kids' after-school peak is ~15:00–21:00 WIB).
+- [ ] Make public in the morning WIB (peak malam hari ~15:00–22:00 WIB; pantau segera setelahnya).
 - [ ] Watch the funnel + Error Report on day 1; keep one hotfix slot free.
-- [ ] Announce the Ramadan & Lebaran event (starts ~8 Feb) as a calm "coming soon", with no countdown pressure.

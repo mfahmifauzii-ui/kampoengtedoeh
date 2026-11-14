@@ -1,6 +1,8 @@
-# Playtest Plan & Balance — Phase 10
+# Playtest Plan & Balance
 
-Closed playtest: **~18 Jan 2027** (friends + 5–10 players aged 9–15). Public launch: **~1 Feb 2027**.
+Tanpa tanggal. Playtest #1 dilakukan setelah tahap R2 (peta cincin + lahan chunk) di `Roadmap.md`, sebelum fitur baru apa pun. Peserta: **3–5 orang dari target (perempuan ±16+)**, ditambah **playtest AI persona** untuk menemukan kebingungan lebih dulu.
+Catatan: AI persona tidak bisa menilai "seru" dan cenderung sopan; ia hanya menemukan kebingungan dan bug. Rasa bosan dan senang hanya bisa dinilai orang asli.
+Angka di bagian 1 dihitung untuk desain lama (tanpa kuota warung); jalankan ulang `balance_sim.py` setelah R1.
 
 ---
 
@@ -29,7 +31,7 @@ The script copies numbers from `src/shared/Config` — update it when you change
 **Known imbalances (watch in playtest, fix post-launch)**
 1. **Koin piles up after ~day 10.** Once the farm is maxed and the Juragan rod is bought (≈26k Koin total), Koin only buys cheap decor.
    - The model shows 40k+ banked by day 14.
-   - Fix with **new Koin sinks** (v1.1: cooking/warung, house upgrades, more decor sets), not by cutting income.
+   - Fix with **new Koin sinks**, not by cutting income. Kuota harian Pak Darmo (R1), pembelian chunk lahan (R2), dan upgrade sudah jadi sink awal; masak + warung pemain, rumah, dan set hiasan baru menyusul.
 2. **Free Bunga ≈ 2/day early, ≈ 1/day after Lv30** (weekly order 5, visit day 7: 3, likes, Book). The design doc said 3–5/day.
    - It's still enough for a 50-Bunga gazebo within ~2 weeks.
    - If testers feel starved: +1 Bunga for finishing all 3 daily orders.
@@ -42,6 +44,7 @@ order rewards → `Orders`; upgrade costs → `Shop`; decor prices/levels → `D
 
 ## 2. Playtest goals
 
+0. **Apakah ini terasa seru?** Pertanyaan utama; tanpa jawaban ya, fitur lain tidak ditambah.
 1. **Can a new player get going without help?** Plant, harvest, sell, fish, deliver an order and place decor in the first session.
 2. **Is it calm?** No moment that feels like pressure, waiting walls, or "you must pay".
 3. **Does it run on phones?** Touch fishing, touch decor placement, FPS and memory on a low-end Android.
@@ -49,7 +52,7 @@ order rewards → `Orders`; upgrade costs → `Shop`; decor prices/levels → `D
 
 ## 3. Session script (for you as host)
 
-1. **Before:** set `DATA_STAGE = "playtest"` (already set). Publish. Share the private-server or friends-only link.
+1. **Before:** set `DATA_STAGE = "playtest"` (already set). Publish. Share the private-server or friends-only link. Pastikan Max Players sesuai jumlah slot lahan.
 2. **Say only:** "Mainkan seperti biasa, ngomong aja apa yang kamu pikirkan." Don't explain the controls.
 3. **Watch for 20 minutes and write down:**
    - the first moment they look lost
@@ -86,5 +89,5 @@ order rewards → `Orders`; upgrade costs → `Shop`; decor prices/levels → `D
 
 - No data loss or errors in 3 playtest days (check the Error Report in the dashboard).
 - Funnel steps 1→4 at target.
-- Runs on at least one low-end phone at ≥ 30 FPS with 4 players.
+- Runs on at least one low-end phone at ≥ 30 FPS with 8–10 lahan terisi.
 - Every Launch Checklist item ticked.

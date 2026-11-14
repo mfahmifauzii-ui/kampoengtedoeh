@@ -1,101 +1,90 @@
-# Live-Ops Plan — Phase 11 (first 6 months after launch)
+# Live-Ops — cara operasi setelah rilis
 
-Budget is **8 h/week, solo**. This plan uses about 6 h of it. The other ~2 h stay free for bugs and real life.
-**Rule: every update ships calm.** No countdown timers, no "last chance" copy, and seasonal items come back next year.
+Tanpa kalender dan tanpa rencana event. Pekerjaan solo, jadi ritme sengaja ringan.
+**Aturan: setiap update dirilis dengan tenang.** Tidak ada hitung mundur, tidak ada "kesempatan terakhir", dan tidak ada tekanan streak.
 
 ---
 
-## 1. Weekly rhythm (8 h)
+## 1. Ritme mingguan
 
-| When | Time | Work |
+| Kapan | Kerja |
+|---|---|
+| Awal minggu | **Tinjau metrik** (§4): tulis 3 baris di `docs/liveops_log.md`: apa yang berubah, kenapa, rencana. Baca komentar grup, tandai bug. |
+| Tengah minggu | Satu item konten atau perbaikan (config, model, UI). |
+| Akhir minggu | Tes di Studio (2+ pemain), `Monetization_Review.md` bila ada yang dijual, lalu rilis. |
+| Cadangan | Perbaikan darurat atau istirahat. |
+
+**Hari rilis:** sore WIB sebelum akhir pekan, jangan tepat sebelum kamu tidak bisa dihubungi.
+**Aturan hotfix:** bug data atau pembelian diperbaiki hari itu juga; sisanya menunggu jadwal rilis.
+Batas jam kerja per minggu adalah batas atas, bukan target. Kalau satu minggu hilang, rencana geser.
+
+---
+
+## 2. Arah konten
+
+Urutan bukan komitmen; datanya yang menentukan (lihat `Roadmap.md` bagian "Setelah playtest").
+Kandidat: mode foto, tujuan bersama kampung, peternakan (ayam dulu), warung pemain + masak, set hiasan baru, tanaman/ikan baru, rumah Tahap A/B.
+Event musiman **tidak** direncanakan sekarang. Kerangka `Config/Events` tetap di kode dan tidak dipakai.
+
+---
+
+## 3. Pipeline konten (yang cukup config)
+
+| Tambah | File | Kode? |
 |---|---|---|
-| Monday | 45 min | **Metrics review** (§4): write 3 lines in `docs/liveops_log.md`: what moved, why, what you'll do |
-| Monday | 15 min | Read the group wall / comments; tag bugs |
-| Tue–Thu | ~5 h | The current content item from §2 (config + model + UI) |
-| Friday | 1 h | Studio test (2 players), Monetization Review if anything is sold, publish |
-| Buffer | ~1 h | Hotfixes, or rest |
+| Hiasan / set | `Config/Decor.luau` + locale `decor.<id>` (+ model di `ReplicatedStorage/DecorModels`) | tidak. Set baru masuk Buku hanya bila `set`-nya ditambahkan ke filter di `Config/Book.luau` |
+| Tanaman / ikan | `Config/Crops` atau `Config/Fish` + locale | tidak (pesanan, Buku, dan unlock otomatis ikut) |
+| NPC pesanan | `Config/Orders.NPCS` + locale | tidak |
+| Hadiah level | `Progression.LEVEL_MILESTONES` | tidak |
+| Blueprint | `Config/Blueprints` | tidak |
+| Loop baru (ternak, masak) | service + remote + field data | **ya**: field data baru ke template; perubahan struktur butuh migrasi |
 
-**Publish day:** Friday afternoon WIB, before the weekend peak, never right before you're away.
-**Hotfix rule:** data or purchase bugs get fixed the same day. Everything else waits for Friday.
-
----
-
-## 2. Calendar (launch ~1 Feb 2027)
-
-| Window | Update | Type | Effort | Why |
-|---|---|---|---|---|
-| 1 Feb | **Launch** | – | – | – |
-| 8 Feb – 21 Mar | **Ramadan & Lebaran** (already built) | event | 0 h (check dates) | Early retention beat in week 2 |
-| Feb wk 3 | **v1.0.1: launch fixes** | patch | 6 h | Whatever the funnel and Error Report show |
-| Mar | **Set "Warung Kopi" decor** (8–10 items, Koin + 2 Bunga) | content, config-only | 10 h | Fresh decor goals; partial Koin sink |
-| Apr – mid May | **v1.1: Masak + Warung Pemain** | system | 35–40 h | **Main Koin sink** (Playtest_Plan imbalance #1); new daily loop |
-| May | **2 crops + 2 fish** (e.g. kacang panjang, kopi; patin, sepat) | content, config-only | 6 h | Keep the Book growing; Book % recalculates automatically |
-| ~21 Jun – mid Jul | **Libur sekolah: v1.2** (EN locale + photo mode) | system | 20 h | Biggest player peak of the year; EN opens new markets |
-| 10 – 24 Aug | **Agustusan event** (bendera, umbul-umbul, gapura, panjat pinang decor) | event, config-only | 8 h | National, inclusive, very Indonesian |
-| Sep – Oct | **v1.3: rumah interior** or cross-server visits (choose from data) | system | 30 h | Decor depth for late-game players |
-
-**Event inclusivity:** Lebaran is the first event. Add **Imlek** and **Natal & Tahun Baru** in the 2027–28 cycle, so every community sees its own season in the kampung. Keep each event focused on culture and decorations, with no religious practice as a game mechanic.
+**Sebelum tiap rilis:**
+- `py -3 tools/balance_sim.py` bila harga, XP, atau kuota berubah.
+- `docs/Monetization_Review.md` bila ada yang dijual.
+- Perubahan template data: hanya tambahan, atau tambah migrasi + bump `version` + uji dengan save lama.
 
 ---
 
-## 3. Content pipeline (what's config-only)
+## 4. Metrik mingguan (Creator Dashboard)
 
-| Add | Files | Code? |
+| Metrik | Sehat | Bila di bawah |
 |---|---|---|
-| Decor item / set | `Config/Decor.luau` + `decor.<id>` locale (+ model in `ReplicatedStorage/DecorModels`) | no. A new set enters the Book only if you add its `set` to the filter in `Config/Book.luau` |
-| Event | `Config/Events.luau` entry + `event.<id>` / `.desc` locale + decor with `event = "<id>"` | no |
-| Crop / fish | `Config/Crops` or `Config/Fish` + locale | no (orders, Book, unlocks pick them up) |
-| Order NPC | `Config/Orders.NPCS` + locale | no |
-| Level reward | `Progression.LEVEL_MILESTONES` | no |
-| New loop (cooking) | new service + remotes + data fields | **yes: add data fields to the template; restructures need a migration** |
+| Funnel 1→4 (tanam → jual) | ≥ 75% | Cek langkah yang putus; perbaiki teks tujuan atau petunjuk pertama |
+| Funnel 4→7 (tangkap → pesanan → hias) | ≥ 40% | Permudah pesanan pertama; beri satu hiasan gratis di pesanan pertama |
+| Retensi D1 | ≥ 25% | Pengait hari ke-2: hadiah kunjungan lebih terasa, tanaman siap "besok pagi" |
+| Retensi D7 | ≥ 8% | Pesanan mingguan lebih terlihat; tambah tujuan menengah |
+| Rata-rata sesi | ≥ 15 menit | Tanaman awal lebih pendek; ikan lebih beragam |
+| Sink / sumber Koin | ≥ 40% | Percepat sink berikutnya (warung pemain + masak, set hiasan, kapasitas warung) |
+| Bunga gratis / hari | 1–3 | <1: +1 Bunga bila ketiga pesanan harian selesai |
+| Konversi pembayar | 0,5–2% | Rendah: cek harga tampil dan Toko mudah ditemukan. **Jangan pernah** tambah popup |
+| Error Report | 0 error data/pembelian baru | Hotfix hari itu |
 
-**Before each publish:**
-- `py -3 tools/balance_sim.py` if prices or XP changed
-- `docs/Monetization_Review.md` if anything is sold
-- Data template changes are additive only (or add a migration and bump `version`)
-
----
-
-## 4. Weekly metrics (Creator Dashboard)
-
-| Metric | Healthy | If below → do this |
-|---|---|---|
-| Funnel step 1→4 (plant → sell) | ≥ 75% | Look at the first broken step; improve the goal chip text or the first-time hint |
-| Funnel 4→7 (catch → order → decor) | ≥ 40% | Make the first order easier; give one free decor in the first order |
-| D1 retention | ≥ 25% | Day-1 hook: stronger visit reward on day 2, or a crop ready "besok pagi" |
-| D7 retention | ≥ 8% | Weekly order more visible; add mid-level goals |
-| Avg session | ≥ 15 min | Shorter early crops; more fish variety at Sungai daytime |
-| Koin sinks / sources | ≥ 40% | Ship the next Koin sink sooner (v1.1) |
-| Bunga earned free / day | 1–3 | <1: +1 Bunga for finishing all 3 daily orders |
-| Payer conversion | 0.5–2% | Lower: check that prices show and the Toko is findable. **Never** add popups |
-| Error Report | 0 new data/purchase errors | Hotfix same day |
-
-**Compare week over week**, not against other games. One bad week means nothing. Act on a trend over 3 weeks.
+Bandingkan **minggu ke minggu**, bukan dengan game lain. Satu minggu buruk tidak berarti; bertindaklah pada tren 3 minggu.
 
 ---
 
-## 5. Monetization in live-ops
+## 5. Monetisasi
 
-- Event decor: mostly **Koin**, with at most 1–2 items for Bunga. Never Robux-only, and never random.
-- New passes only for convenience that's already fair without them. Candidates for v1.1+: Auto-Collect (pond + finished crops) and VIP Warung (cosmetic + sell anywhere).
-- Price changes: lower is fine; **never raise** a price on something players already see as normal.
-- Run `Monetization_Review.md` for every update that sells anything.
-
----
-
-## 6. Community (light)
-
-- **Roblox group "Kampung Teduh":** update notes (2–3 lines per update), and bug reports on the wall.
-- In the game description, keep a short "Update terbaru" line at the top.
-- Speak to a 9+ audience: friendly, short, Indonesian first.
-- Never promise dates you might miss. Say "segera" until the update is in Studio and tested.
+- Hiasan terbatas: utamanya **Koin**, paling banyak 1–2 item Bunga. Tidak pernah hanya-Robux, tidak pernah acak.
+- Pass baru hanya untuk kenyamanan yang sudah adil tanpa pass. Kandidat: Auto-Collect, VIP Warung.
+- Harga: turun boleh; **jangan naikkan** harga sesuatu yang sudah dianggap normal oleh pemain.
+- Jalankan `Monetization_Review.md` tiap update yang menjual sesuatu.
 
 ---
 
-## 7. Risks
+## 6. Komunitas (ringan)
 
-1. **Solo burnout:** 8 h/week is the ceiling, not the floor. If a week is lost, the calendar shifts; events (date-bound) still run because they are data.
-2. **Data:** any schema change after launch = migration + test with an old save (copy one from the playtest store).
-3. **Cultural events:** have someone from that community look at the decor and copy before release.
-4. **Platform policy changes** (ratings, monetization rules): check the Roblox DevForum announcements in the monthly review.
-5. **Koin inflation:** if v1.1 slips past May, add a temporary sink (expensive decor set) so late players still have goals.
+- **Grup Roblox "Kampung Teduh":** catatan update (2–3 baris), laporan bug di wall.
+- Deskripsi game: satu baris "Update terbaru" di paling atas.
+- Bahasa untuk pemain 16+: ramah, singkat, Indonesia dulu.
+- Jangan janji tanggal yang mungkin meleset; tulis "segera" sampai update sudah dites di Studio.
+
+---
+
+## 7. Risiko
+
+1. **Burnout solo:** ritme adalah batas atas; hari yang hilang tidak dikejar.
+2. **Data:** perubahan skema setelah rilis = migrasi + uji dengan save nyata (salin satu dari store playtest).
+3. **Perubahan kebijakan Roblox** (rating, monetisasi): cek pengumuman DevForum tiap bulan.
+4. **Inflasi Koin:** bila sink baru terlambat, tambah sink sementara (set hiasan mahal, upgrade Kapasitas Warung) supaya pemain akhir tetap punya tujuan.

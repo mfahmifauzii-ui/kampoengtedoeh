@@ -1,15 +1,15 @@
 # GUI: konsep, aturan mobile, dan kit ForgeGUI
 
-**Status (setelah Fase 16 + perombakan GUI):** kit bambu ForgeGUI terpasang dan **terlihat di game** (dites di Studio, viewport mirip HP landscape). Rencana GUI berikutnya ada di `Phase17_Status_Istirahat_Hadiah_Plan.md`. **Belum dites:** HP asli, joystick vs kartu status, dan apakah gambar milik akun pribadi (id 9416491408, bukan grup) tampil di game milik grup untuk pemain lain.
+**Status (setelah Fase 16 + perombakan GUI):** kit bambu ForgeGUI terpasang dan **terlihat di game** (dites di Studio, viewport mirip HP landscape). Rencana GUI berikutnya ada di `Roadmap.md` (tahap R3). **Belum dites:** HP asli, joystick vs kartu status, dan apakah gambar milik akun pribadi (id 9416491408, bukan grup) tampil di game milik grup untuk pemain lain.
 
 ## Konsep
-Mengikuti peta: hangat, jenuh, kampung tropis. Bahan visual **bambu, anyaman rotan, perkamen, daun**. Warna: perkamen krem (panel), bambu emas (bingkai, tombol), terakota (bahaya), hijau daun (pita judul, bar XP), oranye (stamina), tinta cokelat tua (teks). Font judul/angka/tombol **FredokaOne**; teks isi **GothamMedium**. Game dimainkan di **HP landscape**.
+Mengikuti peta: hangat, jenuh, kampung tropis. Bahan visual **bambu, anyaman rotan, perkamen, daun**. Warna: perkamen krem (panel), bambu emas (bingkai, tombol), terakota (bahaya), hijau daun (pita judul, bar XP), tinta cokelat tua (teks). Font judul/angka/tombol **FredokaOne**; teks isi **GothamMedium**. Game dimainkan di **HP landscape**.
 
 ## Tata letak HUD (landscape)
 - **Atas**, di kanan menu Roblox: chip **Koin** dan **Bunga** (hanya angka, ikon menjelaskan).
 - **Kanan atas**: tombol bulat Warga, Toko, Atur, Koleksi (+ caption kecil).
 - **Bawah tengah** (dock): Garap, Hias, Tas, Pesanan.
-- **Kiri bawah**: kartu status pemain = foto avatar + bintang level + nama + bar XP + bar stamina (stamina membaca atribut `Stamina` / `StaminaMax`; sistemnya belum ada).
+- **Kiri bawah**: kartu status pemain = foto avatar + bintang level + nama + bar XP. (Bar stamina yang sempat ada dibuang: tidak ada sistem stamina.)
 - Pandangan tengah dibiarkan kosong. Tidak ada chip "tujuan" lagi (dibuang karena memakan tempat).
 - HUD memakai `IgnoreGuiInset = true` + `ScreenInsets = DeviceSafeInsets`: bebas dari top bar Roblox, tetap menghindari notch.
 - Di layar portrait (tidak dipakai game, tapi ada cadangan) menu menjadi grid 2 kolom dan dock berupa kolom di kanan.
@@ -37,4 +37,4 @@ Ikon Tas dan Hias punya serpihan sprite tetangga di tepi kanan: sudah dibersihka
 ## Memasang gambar baru
 1. Potong ruang transparan dan perkecil (`assets/gui/ready`), lalu unggah (Studio `upload_image` lewat server HTTP lokal, atau Asset Manager).
 2. Isi id dan `slice` di `src/shared/Config/UiAssets.luau`. Id kosong = gaya flat yang sama (cadangan).
-3. Uji di Play: skin harus tampil tanpa kedip saat panel dibangun ulang (lihat catatan teknis di dokumen Fase 17).
+3. Uji di Play: skin harus tampil tanpa kedip saat panel dibangun ulang (lihat catatan teknis di `Roadmap.md`, bagian R3).

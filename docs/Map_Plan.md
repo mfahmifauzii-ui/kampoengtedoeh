@@ -1,82 +1,88 @@
-# Map — X-shaped village (4 players)
+# Map — desa cincin (8–10 pemain)
 
-Built by `src/server/Services/MapService.luau` from `Config/Map.luau` + `Config/Plots.luau` every time a server starts.
-Nothing to place by hand. Studio → **Play** to see it (the edit view stays empty).
+**Status:** rencana v4. Peta yang ada di kode masih **v3: desa bentuk X untuk 4 pemain** (lihat bagian "Kondisi sekarang"). Perubahan ke v4 dikerjakan di `Roadmap.md` tahap R2. Semua angka v4 adalah *asumsi* sampai dites di Studio.
+
+---
+
+## 1. Rencana v4: desa cincin
+
+**Tujuan:** 8–10 slot lahan identik, tertata rapi, tidak terasa kosong walau server belum penuh.
 
 ```
-              N  (Plot3)
-        river \   |   / road
-               \  |  /
-   W (Plot2)    [BRIDGE + TOWN]    E (Plot4)
-               /  |  \
-         road /   |   \ river
-              S  (Plot1)
+                  [Lahan 1] [Lahan 2] [Lahan 3]
+              [Lahan 10]   ╭──────────────╮   [Lahan 4]
+        sungai ═══════════ │ PLAZA + KOTA │ ═══════════ sungai
+              [Lahan 9]    ╰──────────────╯    [Lahan 5]
+                  [Lahan 8] [Lahan 7] [Lahan 6]
+                        (jalan cincin mengelilingi plaza)
 ```
 
-| Part | How it's built | Size |
+- **Pusat:** plaza dan kota (jembatan, warung, toko NPC, dermaga). Sungai tetap melintasi pusat.
+- **Jalan cincin** mengelilingi pusat; lahan tersusun di luar cincin dan **semua menghadap jalan**. Tiap slot identik, jadi tidak ada yang untung atau rugi posisi.
+- **Ukuran lahan:** maksimal 96×96, dibeli per chunk 16×16 mulai 3×3 (lihat `00_Design_Doc.md` §4). Peta mereservasi area maksimum tiap slot.
+- **Ukuran peta:** perkiraan 500–600 stud persegi (10 lahan × 96 stud butuh keliling ±1.000 di radius depan lahan ≥ ±160, lalu 96 stud kedalaman). **Lebih kecil dari v3 (720)** karena lahan dikecilkan. Hitung ulang saat membangun.
+- **Sungai membelah cincin:** pilihan terbuka: (a) dua jembatan kecil di titik jalan cincin memotong sungai, atau (b) lahan dibagi 5 di tiap sisi sungai. Putuskan saat R2.
+- **Slot kosong:** ditampilkan sebagai padang rumput dengan papan "Lahan kosong", bukan hilang. Server setengah penuh tetap terlihat hidup.
+- **Dermaga:** tetap 12 dermaga (6 Sungai, 6 Empang) di dua lengan sungai; jumlah bisa disesuaikan dengan jumlah pemain.
+
+### Pindah server dan slot
+- Tiap server adalah dunia terpisah; **posisi karakter tidak ikut**. Yang ikut adalah **data lahan** (di DataStore, lewat ProfileStore).
+- Data menyimpan `plotSlot` terakhir. Saat masuk, server mencoba menempatkan pemain di slot yang sama; kalau sudah terisi, ke slot kosong pertama. Lahan dibangun ulang dari data (tanah, tanaman, hiasan, kolam, chunk), jadi isinya selalu sama walau slotnya berbeda.
+- Tidak ada Mampir lintas-server (tidak direncanakan sekarang).
+
+### Syarat teknis R2
+- `Config/Map`, `Config/Plots`, `MapService`, `PlotService`, `Modules/Land` ditulis ulang untuk N slot (konfigurasi, bukan angka mati 4).
+- Lahan dari chunk: bentuk kotak, bukan baji. `Land` dan batas validasi garap, hias, dan kolam memakai daftar chunk milik pemain.
+- Streaming dan jumlah Part dicek di HP asli (10 lahan sekaligus).
+- `Max Players` di Game Settings diubah sesuai jumlah slot.
+
+---
+
+## 2. Kondisi sekarang (v3, di kode)
+
+Dibangun oleh `MapService` dari `Config/Map` + `Config/Plots` tiap server mulai. Studio → **Play** (tampilan edit kosong).
+
+| Bagian | Cara | Ukuran |
 |---|---|---|
-| Playable area | square, invisible solid walls on the edge, trees outside | **720 × 720 studs** (v1 was 480 × 480; ×1.5 on 14 Nov 2026) |
-| Ground + river | **Terrain**: flat leafy-grass slab (no 3D grass blades), river carved NW → SE (swimmable, 1 stud below the bank) | river 48 wide, 8 deep |
-| Road | asphalt strips SW → NE with dashed center line and lamps (lamps light up at night) | 28 wide |
-| Bridge | plank deck over the river, 2 stone abutments + 2 piers, ramps at both ends, rails over the water | 72 × 64, deck 5 studs up |
-| Town | 6 shophouses with signs (4 on the +Z strip, 2 on the −Z strip) + the **Warung** stall in the middle of the −Z strip | on the deck |
-| Warung + NPCs | `Workspace.Warung` is the stall (scenery). The 4 shopkeepers are rigs in `Workspace.Npcs` (`NpcService`, positions in `Config/Npcs`): Pak Darmo behind the Warung counter, Bu Wati at Toko Bibit, Mas Joko at Toko Pancing, Mbok Minah at Pasar Ikan, Bang Tarno (haggle: buys crops at 0.7x, you bargain the price up) at Lapak Tarno. Each has one "Ngobrol" prompt → dialogue → shop | — |
-| Fishing | 12 identical docks (both banks), each with an invisible spot and a small sign. **NW arm → `sungai`** (6 docks), **SE arm → `empang`** (6 docks) | — |
-| Player land | 4 identical **green wedges** (blueprint 1 = S, 2 = W, 3 = N, 4 = E): ≥ 28 studs from both the river and road axes (v3; was 32), painted green (LeafyGrass) on sandy public ground, edged by a low bamboo fence (not solid). Each has a **rumah panggung**; ponds are dug by the player (Garap → Kolam) | v3: the land reaches 8 studs from the map wall (BACK_DISTANCE 352) → about **228 deep × up to ~600 wide** (front now 124 studs from the center, FRONT_Z 104); v2 was 180 × 568 ≈ 70.500 studs², v1 120 × 344 ≈ 27.000 studs² |
-| Soil | **Terrain**, not parts: 8 × 8 grid tiles painted flat on the ground; dry = Ground, watered = Mud (edges are soft because Terrain blends materials). Details in `Phase12_Garap_NPC_Design.md` | — |
-| Spawn | `TownSpawn` on the bridge; PlotService moves the player to their plot right after | — |
+| Area bermain | persegi, dinding tak terlihat, pohon di luar | **720 × 720** stud |
+| Tanah + sungai | **Terrain**: slab rumput datar, sungai NW→SE (bisa direnangi, 1 stud di bawah tepi) | sungai lebar 48, dalam 8 |
+| Jalan | aspal SW→NE, garis putus-putus, lampu menyala malam | lebar 28 |
+| Jembatan | dek papan di atas sungai, 2 pangkal batu + 2 tiang, ramp, pagar | 72 × 64, dek 5 stud |
+| Kota | 6 ruko dengan papan (4 di sisi +Z, 2 di −Z) + **Warung** di tengah sisi −Z | di atas dek |
+| NPC | `Workspace.Npcs` (`NpcService`, posisi di `Config/Npcs`): Pak Darmo (Warung), Bu Wati (Toko Bibit), Mas Joko (Toko Pancing), Mbok Minah (Pasar Ikan), Bang Tarno (Lapak Tarno), Mbak Arsi (blueprint). Satu prompt "Ngobrol" → dialog → toko | – |
+| Memancing | 12 dermaga; **lengan NW → `sungai`** (6), **lengan SE → `empang`** (6) | – |
+| Lahan pemain | 4 **baji hijau** (1 = S, 2 = W, 3 = N, 4 = E), ≥ 28 stud dari sumbu sungai dan jalan, dipagari bambu rendah, masing-masing punya **rumah panggung** | sekitar 228 dalam × hingga ~600 lebar |
+| Tanah garap | **Terrain** (bukan Part): petak 8×8 dicat rata | – |
+| Spawn | `TownSpawn` di jembatan; `PlotService` memindahkan pemain ke lahannya | – |
 
-**Fish locations:** Lv1 *Sungai* (NW arm of the river), Lv4 *Empang* (SE arm, same river), Lv6 *Kolam* (ponds you dig on your own plot). Both arms are the same river with the same docks; only the sign and the fish table differ. The Empang spots are needed: Mujair, Bawal and Gurame only live there, and the Collection Book and orders expect them.
+Lahan v3 jauh lebih besar dari 96×96 yang direncanakan awal; itu yang diperbaiki di v4.
 
-## Models from ForgeGUI (already generated)
+### Model dari ForgeGUI
+File di `assets/models/` (±4,5 ribu segitiga, 1 mesh, tekstur PBR): `Warung.glb` (tinggi 11), `TokoKota.glb` (6 ruko, tinggi 14), `RumahPanggung.glb` (rumah tiap lahan, tinggi 13). Plus model tanaman di `assets/models/crops/`.
 
-Files in `assets/models/` (each ≈ 4.5k triangles, 1 mesh, PBR textures; well under Roblox's limit):
+**Impor (sekali, di Studio):**
+1. Asset Manager → Bulk Import → Import 3D, pilih file `.glb`.
+2. Di **ServerStorage** buat Folder `MapModels`; pindahkan hasil impor dan beri nama persis **`Warung`**, **`TokoKota`**, **`RumahPanggung`**.
+3. Tekan Play; placeholder diganti otomatis (skala ke tinggi di atas).
+4. Salah arah? Tambah atribut angka **`FrontYaw`** (90 / 180 / 270) pada model di `MapModels`.
 
-| File | Used for | Placed at |
-|---|---|---|
-| `Warung.glb` | the selling stall | `Workspace.Warung` (height 11 studs) |
-| `TokoKota.glb` | the 6 shophouses on the bridge | each shop (height 14 studs; same model, copied 6×) |
-| `RumahPanggung.glb` | the house on every plot | each plot (height 13 studs) |
+### Fakta Terrain (diukur di Studio, tertanam di `Modules/Land` dan `MapService`)
+- Permukaan Terrain terlihat **2 stud di atas** puncak blok terisi; `MapService` menurunkan tiap blok 2 stud agar tanah di **y = 0**. Air: permukaan tepat di puncak blok.
+- Sel Terrain **4 stud**, tepi di kelipatan 4. Blok mengecat material sel bila **pusat sel** ada di dalam blok, jadi blok cat 0,5 lebih kecil dari sel yang diisi.
+- "Bed" tipis di atas tanah tidak terlihat; mengecat ulang material sel atas yang terlihat, jadi tanah garap adalah cat rata.
+- Outline kuning di sekitar lahan adalah seleksi Studio, bukan kode game.
 
-**Import (once, in Studio):**
-1. **Asset Manager → Bulk Import → Import 3D** (or File → Import 3D), pick the 3 `.glb` files, and import. Each lands as a Model with 1 MeshPart.
-2. In **ServerStorage** create a Folder named exactly `MapModels`; move the 3 imported models into it and rename them exactly **`Warung`**, **`TokoKota`**, **`RumahPanggung`**.
-3. Press Play. The placeholders are replaced automatically (scaled to the heights above).
-4. Wrong way round? Select the model in `MapModels`, add a number attribute **`FrontYaw`** (degrees: 90, 180 or 270) so its front faces the road/plot front. No code change.
+### Daftar uji (Studio → Play)
+0. **Garap:** tekan Garap → arahkan mouse ke lahan hijau: kotak hijau mengikuti grid (merah = tidak boleh: di atas rumah, kolam, hiasan, di luar hijau). Ketuk → petak jadi tanah. Ratakan mengembalikan petak kosong. Ketuk tanah → pilih bibit → tanam → siram → panen. Rejoin: tanah dan tanaman tetap.
+1. Spawn di jembatan, lalu dipindahkan ke lahan sendiri.
+2. Jalan ke jembatan: ramp mulus, tanpa celah.
+3. Ngobrol dengan tiap NPC: dialog 2 pilihan; jauh dari NPC dagang ditolak server (>25 stud).
+4. Dermaga NW → Mancing; dermaga SE (Empang, Lv 4) → ikan empang.
+5. Lompat ke sungai: berenang dan bisa naik; tidak bisa keluar peta.
+6. Malam (`!time malam`): lampu jalan, jembatan, dan lentera Warung menyala.
+7. **Test → 2–4 pemain (kelak 8–10):** tiap pemain dapat lahan beda; Mampir dan Suka jalan antar lahan.
 
-Importing runs in your own Studio; nothing is published to Roblox from here (ForgeGUI has no Roblox connection set up).
+**Teruji (Play, 14 Nov 2026):** lahan hijau di keempat plot, tanah publik pasir, jalan menyambung, sungai y = −1 dan tepi 0, preview Garap, tilling, tanam, siram (tanah jadi Mud), panen, hiasan ditolak di atas tanah dan diterima di rumput bebas, stop/start menjaga semua petak. **Belum teruji:** 2+ pemain, sentuhan HP, panel NPC Warung, memancing dari dermaga baru.
 
-## Test checklist (Studio → Play)
-
-0. **Garap** (new): press **Garap** (left edge) → move the mouse over your green land: a green square follows the grid (red = not allowed, e.g. on the house, pond, decor, outside the green, or tile cap reached). Click/tap → the cell becomes brown soil (flat terrain paint). **Ratakan** removes an empty bed. Tap a soil tile (outside Garap mode) → seed picker → plant → water → harvest. Rejoin: soil and crops are still there.
-1. You spawn on the bridge, then are moved to your plot (Plot1, south). The plot's front (sign side) faces the town.
-2. Walk the road to the bridge: ramps are smooth, no gap or step.
-3. Walk up to an NPC and press **E** ("Ngobrol"): the dialogue shows two choices, **Jual / Beli** (opens that NPC's shop) and **Sampai jumpa**. Pak Darmo: buy seeds / upgrades, sell crops. Bu Wati: unggul seeds (grow 10% faster, 1.5× price). Mas Joko: rods + bait. Mbok Minah: sell and buy fish. Walk away: dialogue and shop close; server refuses trades beyond 25 studs.
-4. Dock on the NW arm → **Mancing**; catch a fish. Go to a dock on the SE arm (sign says Empang · Lv 4) and catch an empang fish.
-5. Jump in the river: you swim and can climb out. You can't leave the map edge.
-6. Night (`!time malam`): lamps along the road, on the bridge, and the Warung lantern glow.
-7. **Test → 2–4 players:** each gets a different plot; Mampir (Warga panel) and Suka work between plots.
-
-## Knobs (all in `Config/Map.luau` / `Config/Plots.luau`)
-
-River width/depth, road width, bridge size, dock positions and their location (`RIVER_DOCKS`), house position (`HOUSE`), land shape (`LAND.SETBACK`, `LAND.BACK_DISTANCE`) and the plot anchor (`Plots.DISTANCE`, `Plots.FRONT_Z`). `DISTANCE`, `FRONT_Z` and `DISTANCE − BACK_DISTANCE` must be multiples of 4 (terrain cells). The river, road, bridge and town were NOT scaled with the map; only the map, the land and the plot distance were. `tools/` geometry checks live in the session scratch (see Land.luau header for the rules).
-
-## Terrain facts (measured in Studio, all encoded in `Modules/Land.luau` and `MapService`)
-
-- The visible terrain surface is **2 studs above the top of a filled block**, so `MapService` lowers every block by 2 to get a ground at **y = 0**. (Water is the exception: its surface is exactly the block top.) Before this fix the whole terrain sat at y = 2, which buried the road, the plot slab and half of every dock.
-- Terrain cells are **4 studs, edges at multiples of 4**. A block paints a cell's material when the cell's **center** is inside the block, so paint blocks are 0.5 smaller than the cells they fill.
-- A thin raised "bed" on top of the ground does not show; repainting the top cells' material does, so soil is flat paint.
-- Studio's own selection outline (a thin box around the plot model when you hover/select it) is not game code; it looked like a yellow plot border.
-
-## Tested in Studio (Play, 14 Nov 2026)
-
-Verified by running the game: land is green at all four plots, public ground sand, road continuous with dashes and lamps, river surface at y = −1 and banks at 0, Garap preview (green / red / amber), till, level, plant, water (soil turns Mud), harvest (soil dry again), decor rejected on soil and accepted on free grass, and a stop/start cycle kept every tile, crop and soil state.
-Not yet tested: 2+ players, mobile touch, the Warung NPC panel, fishing from the new docks.
-
-## Known limits / next steps
-
-- **Not tested in Studio yet** — Studio tools were off this session. Geometry was checked with a script (plot clearance, docks, lamps, trees, ramp heights) and the project builds with Rojo, but Luau syntax/visuals need your first Play.
-- Terrain edges on the diagonal are voxel-soft (4 studs); bank docks hide most of it. A designed riverbank (rocks, reeds) is a UI/art pass for you.
-- Shopkeeper is a plain colored rig; swap for your designed NPC (anchored, facing the stall's +Z).
-- Existing saves with decor inside the new house area get it back in stock automatically on join.
-- `Max Players` must be **4** in Game Settings.
+### Knob (di `Config/Map` / `Config/Plots`)
+Lebar/kedalaman sungai, lebar jalan, ukuran jembatan, posisi dermaga (`RIVER_DOCKS`), posisi rumah (`HOUSE`), bentuk lahan (`LAND.SETBACK`, `LAND.BACK_DISTANCE`), jangkar lahan (`Plots.DISTANCE`, `Plots.FRONT_Z`). `DISTANCE`, `FRONT_Z`, dan `DISTANCE − BACK_DISTANCE` harus kelipatan 4 (sel Terrain). Seluruhnya akan diganti di R2.
