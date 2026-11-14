@@ -1,6 +1,7 @@
 --!strict
 -- STUDIO-ONLY test commands typed in chat. Does nothing in live servers.
 
+local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -8,6 +9,7 @@ local Workspace = game:GetService("Workspace")
 
 local Blueprints = require(ReplicatedStorage.Shared.Config.Blueprints)
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
+local Items = require(ReplicatedStorage.Shared.Modules.Items)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
@@ -20,7 +22,7 @@ local WorldService = require(script.Parent.WorldService)
 local MonetizationService = require(script.Parent.MonetizationService)
 local EventService = require(script.Parent.EventService)
 
-local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !orders, !grow, !time malam, !rain, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 6: !level 6),!inv, !pass backpack, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !quota reset, !blueprint all|taman|pondok_sawah"
+local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !orders, !grow, !time malam, !rain, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 6: !level 6),!inv, !pass backpack, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !give kangkung 30, !sales, !quota reset, !blueprint all|taman|pondok_sawah"
 
 local DevService = {}
 
@@ -44,6 +46,19 @@ local function onChatted(player: Player, message: string)
 	end
 	print(`[DevService] {player.Name}: {message}`)
 	local normalized = message:gsub("\u{2212}", "-") -- typographic minus from autocorrect
+
+	-- "!give kangkung 30": put items straight into the bag (any item id from Modules/Items).
+	local giveItem, giveCount = normalized:match("^!give%s+(%S+)%s*(%d*)%s*$")
+	if giveItem then
+		local count = tonumber(giveCount) or 1
+		if Items.info(giveItem) and InventoryService.CanAdd(player, giveItem, count) then
+			InventoryService.Add(player, giveItem, count)
+			print(`[DevService] gave {giveItem} x{count}`)
+		else
+			warn(`[DevService] !give: unknown item or bag full: {giveItem}`)
+		end
+		return
+	end
 
 	local command, arg = normalized:match("^!(%a+)%s*(%S*)%s*$")
 	local amount = tonumber(arg)
@@ -95,6 +110,12 @@ local function onChatted(player: Player, message: string)
 				end
 			end
 			InventoryService.Sync(player)
+		end
+	elseif command == "sales" then
+		-- Prints save version, Pak Darmo's quota record and the leftovers of the old systems (should be nil).
+		local data = DataService.Get(player)
+		if data then
+			print(`[DevService] version={data.version} sales={HttpService:JSONEncode(data.sales)} npc={tostring((data :: any).npc)} skills={tostring((data :: any).skills)} koin={data.koin}`)
 		end
 	elseif command == "quota" and arg == "reset" then
 		-- Gives Pak Darmo's daily crop quota back (for testing the sell-to-Bang-Tarno fallback).

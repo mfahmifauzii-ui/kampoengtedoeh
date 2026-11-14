@@ -17,7 +17,7 @@ Desain lengkap di `00_Design_Doc.md`, peta di `Map_Plan.md`.
 | 15 | Mbak Arsi + blueprint (**belum dites di Studio**) |
 | 16 | Model tanaman + kit GUI ForgeGUI, HUD baru |
 | 17 (sebagian) | Bar stamina di HUD ⛔ *(hanya tampilan, tidak ada sistem; dihapus di R1)* |
-| R1 | Kuota warung + penadah + pembersihan ✅ dikodekan (belum dites di Studio) |
+| R1 | Kuota warung + penadah + pembersihan ✅ dikodekan dan dites di Studio |
 | – | Repo git `kampoengtedoeh` (privat), docs dirapikan |
 
 **Dibatalkan:** stamina, istirahat, bonus bangku, tawar-menawar, kedekatan NPC, skill Tawar.
@@ -25,9 +25,13 @@ Desain lengkap di `00_Design_Doc.md`, peta di `Map_Plan.md`.
 
 ---
 
-## R1 — Pembersihan & kuota warung ✅ dikodekan, **belum dites di Studio**
+## R1 — Pembersihan & kuota warung ✅ selesai dan dites di Studio (14 Nov 2026)
 
-Mengubah desain NPC jual-beli dan membuang kode yang dibatalkan. Status: kode selesai, `rojo build` lolos, tapi Luau belum dijalankan (tidak ada type-check di luar Studio). Yang harus dites: lihat "Selesai bila" di bawah.
+Mengubah desain NPC jual-beli dan membuang kode yang dibatalkan.
+
+**Teruji di Studio (1 pemain, Play):** server start tanpa error baru; save masuk sebagai v8 dengan `npc`/`skills` nil; jual 20 kangkung ke Pak Darmo (+180), sisa ditolak dengan toast; jual sisa ke Bang Tarno 0,7× (+72); panel Pak Darmo dan Bang Tarno tampil benar (sisa kuota, tanpa tombol Tawar); upgrade Kapasitas Warung (kuota 20 → 25); harga beli di Mas Joko, Mbok Minah, Bu Wati, Mbak Arsi tanpa diskon; migrasi v7 → v8 dari save buatan dan pergantian hari pada kuota diuji lewat skrip.
+**Belum teruji:** 2+ pemain, HP asli, pergantian hari WIB sungguhan (hanya lewat skrip), save v7 asli dari DataStore, dan penolakan "terlalu jauh" dari NPC.
+Perintah dev baru: `!give <item> <n>`, `!sales`, `!quota reset`.
 
 Hasil simulasi (`balance_sim.py`, setelah R1): hari ke-42 Koin tertimbun ±162 ribu (sebelumnya ±205 ribu). **Kuota menurunkan pemasukan sekitar 20–25%, tapi tidak menyelesaikan penimbunan Koin.** Sink sebenarnya tetap harus datang dari chunk lahan (R2), upgrade, dan konten berikutnya.
 
