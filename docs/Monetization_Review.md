@@ -8,8 +8,8 @@ Tick every box. One "no" = fix before shipping.
 - [ ] No **popups**: the store / purchase prompts open only from a player tap.
 - [ ] No **fake urgency**: no countdowns on offers, no "only X left", no streak loss pressure.
 - [ ] Event bundles are **cosmetic** and are announced as returning in later years.
-- [ ] Kuota warung, chunk lahan, dan upgrade lain **selalu bisa dibeli dengan Koin**; tidak ada penghalang harian yang hanya bisa dilewati dengan Robux.
-- [ ] Pass "Diskon Lahan" hanya menurunkan harga chunk (−20%); semua pemain tetap berakhir dengan **lahan 192×192 yang sama** (tidak ada lahan ekstra yang hanya bisa dibeli dengan Robux).
+- [ ] Kuota warung, blok lahan, dan upgrade lain **selalu bisa dibeli dengan Koin**; tidak ada penghalang harian yang hanya bisa dilewati dengan Robux.
+- [ ] Pass "Diskon Lahan" hanya menurunkan harga blok (−20%); semua pemain tetap berakhir dengan **lahan 192×192 yang sama** (tidak ada lahan ekstra yang hanya bisa dibeli dengan Robux).
 - [ ] Tidak ada stamina, energi, lapar, atau haus yang menghalangi aksi (buff makanan boleh, penalti tidak).
 - [ ] Instant Grow is capped (**3/day**) and can't be stockpiled beyond today's cap.
 - [ ] Premium perks stay **small** (+10% order Koin, +1 reroll) and never required.

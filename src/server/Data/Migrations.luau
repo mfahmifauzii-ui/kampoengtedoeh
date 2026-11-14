@@ -3,7 +3,7 @@
 -- To change the schema: add STEPS[n] (migrates v n -> n+1), bump CURRENT_VERSION
 -- and DataTemplate.version together.
 
-local CURRENT_VERSION = 11
+local CURRENT_VERSION = 12
 
 -- Farm beds moved to a wider grid (a path between beds): every tile keeps its crop and moves to the cell its old
 -- center falls in; if two tiles land in one cell, the later one takes the nearest free cell (a bed can shift a
@@ -193,6 +193,21 @@ local STEPS: { [number]: (data: any) -> () } = {
 		end
 		data.land = { chunks = {} }
 		data.plotSlot = 0
+	end,
+
+	-- v11 -> v12: land is bought in 32 x 32 BLOCKS now, not 16 x 16 chunks (Config/Plots CHUNK.SIZE). Every block that
+	-- contains a chunk the player had bought is now theirs (a block is 2 x 2 old chunks, so it can be a little more
+	-- than they paid for; tilled beds, ponds and decor all stay valid). Old keys "ix,iz" become floor(ix / 2), floor(iz / 2).
+	[11] = function(data)
+		local old = if data.land and typeof(data.land.chunks) == "table" then data.land.chunks else {}
+		local blocks = {}
+		for key in old do
+			local ix, iz = string.match(key, "^(-?%d+),(-?%d+)$")
+			if ix and iz then
+				blocks[`{math.floor(tonumber(ix) / 2)},{math.floor(tonumber(iz) / 2)}`] = true
+			end
+		end
+		data.land = { chunks = blocks }
 	end,
 }
 

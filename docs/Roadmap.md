@@ -49,19 +49,19 @@ Perubahan terbesar. Detail di `Map_Plan.md`. Dipecah: **R2 (peta + lahan awal 12
 Versi pertama (R2a: 10 lahan 96×96 dalam cincin persegi dengan sungai X) **digantikan** setelah kamu menilai tidak adil dan terlalu kecil. Sekarang mengikuti konsep gambarmu: kanal bundar + pulau kota + cincin jalan batu + 4 jalan silang, **8 lahan identik**, awal **128×128** dalam kotak cadangan **192×192** berisi hutan perluasan. Migrasi v8 → v9 (lahan 96) dan v9 → v10 (kerangka koordinat baru). Detail dan screenshot di `Map_Plan.md`. Belum teruji: 2+ pemain, HP asli dan performa, memancing dari dermaga baru.
 
 ### R2b — beli chunk ✅ selesai dan dites di Studio (14 Nov 2026)
-- Lahan tumbuh dari 128×128 ke 192×192 dengan membeli chunk 16×16 yang **menempel** pada lahan milik (tombol **+** melayang di atas tiap chunk yang bisa dibeli, popup beli; lihat perombakan UI di bawah). `Modules/Land` memakai daftar chunk milik pemain; garap, kolam, dan hias memakai chunk yang sama.
-- Membeli chunk: hutan `ExpansionOf` di chunk itu disembunyikan, tanah dicat rumput terang, pagar bergeser keluar; data `land.chunks`. Harga `250 × 1,06ⁿ` (80 chunk ±437.000 Koin; sebelumnya `200 × 1,05ⁿ`).
+- Lahan tumbuh dari 128×128 ke 192×192 dengan membeli **blok 32×32** (20 blok) yang **menempel** pada lahan milik (tombol **+** melayang di atas tiap blok yang bisa dibeli, popup beli; lihat perombakan UI di bawah). `Modules/Land` memakai daftar blok milik pemain; garap, kolam, dan hias memakai daftar yang sama. *(Awalnya chunk 16×16 × 80; diperbesar setelah kamu menilai terlalu kecil dan pagarnya bergerigi: migrasi v11 → v12.)*
+- Membeli blok: hutan `ExpansionOf` di blok itu disembunyikan, tanah dicat rumput terang, pagar bergeser keluar; data `land.chunks`. Harga `1.500 × 1,2ⁿ` (20 blok ±280.000 Koin).
 - Batas jumlah petak tanam dihapus (katup pengaman 100); upgrade "Perluas Kebun" dihapus (refund lewat migrasi v10 → v11). Pass "Petak Ekstra" jadi **"Diskon Lahan"** (−20% harga chunk, ukuran akhir tetap sama untuk semua).
 - `plotSlot` tersimpan dan dicoba dipakai lagi saat masuk.
 - `LandService` baru; `MapService.SetChunkOwned` / `RebuildFence`.
 
-**Teruji (Studio, 1 pemain):** harga dan urutan 200 → 210 → 220 → 230 → 240 → 260; beli ditolak untuk chunk milik, tidak menempel, dan di luar kotak; Koin kurang ditolak; tanah jadi rumput terang, pohon di chunk disembunyikan, pagar bergeser; garap dan hias hanya di chunk milik dan ditolak di chunk yang belum dibeli; chunk, petak, dan hutan kembali benar setelah rejoin; UI "Beli Lahan" menampilkan harga dan penanda; migrasi v10 → v11 (refund 0–5 tingkat).
+**Teruji (Studio, 1 pemain):** harga dan urutan 2.590 → 3.110 → 3.730 → 4.480 (blok ke-4 sampai ke-7); beli ditolak untuk blok milik dan yang tidak menempel; Koin kurang ditolak; tanah jadi rumput terang, pohon di blok disembunyikan, pagar mengikuti tepi blok dengan rapi (bentuk L bersih); garap dan hias hanya di blok milik; blok, petak, dan hutan kembali benar setelah rejoin; UI popup menampilkan harga; migrasi v10 → v11 (refund) dan v11 → v12 (6 chunk lama jadi 3 blok).
 **Belum teruji:** reset lahan saat pemain keluar lalu pemain lain masuk (butuh 2 pemain), `plotSlot` dengan 2 pemain, klik langsung di dunia untuk membeli (jalur beli diuji lewat remote yang sama), HP asli, dan performa saat banyak chunk dibeli.
 ### Perombakan UI sebelum playtest ✅ dikodekan dan dites di Studio (14 Nov 2026)
 Detail dan screenshot di `GUI_Design.md`. Ringkas: menu kanan atas jadi kolom vertikal yang menciut di HP (animasi), uang di tengah atas, semua tombol bulat **tanpa caption** (tooltip hover), kartu pemain dengan bar XP ramping + **3 slot buff** (Segar Bertani, Umpan Wangi, Kenyang; efeknya belum dikodekan), menu Garap bambu gelap dengan badge tutup dan nama baru (**Cangkul, Hijaukan, Gali Kolam, Urug Kolam**), dan beli lahan dipindah ke tombol **+** melayang + popup. Harga chunk dinaikkan ke `250 × 1,06ⁿ`.
 **Belum teruji:** HP asli (menu menciut disimulasikan di PC dengan `CompactHud`), ketukan jari pada tombol **+** dan popup, dan tombol Menu bersama joystick/tombol lompat.
 
-**Risiko ekonomi:** tanpa batas petak, simulasi (dengan asumsi +1 petak per chunk) mencapai Lv 30 di hari ke-20 (dulu hari 31), dan 69 dari 80 chunk terbeli di hari 42, jadi chunk efektif menyerap Koin. Perlu data playtest, bukan tebakan.
+**Risiko ekonomi:** tanpa batas petak, simulasi (dengan asumsi +4 petak per blok) mencapai Lv 30 di hari ke-23 (dulu hari 31), dan 15 dari 20 blok terbeli di hari 42, jadi blok efektif menyerap Koin. Perlu data playtest, bukan tebakan.
 
 ## Gerbang: Playtest #1
 
@@ -99,7 +99,7 @@ Kandidat, bukan komitmen: **mode foto**, **tujuan bersama kampung**, **peternaka
 
 1. ~~Sungai di peta cincin~~ — selesai di R2: kanal bundar mengelilingi pulau kota, tidak ada lahan yang tersilang air.
 2. **Kuota Pak Darmo:** 20 per jenis cocok? Apakah kuota naik juga per level? (R1, simulasikan)
-3. **Harga chunk lahan:** kurva `250 × 1,06ⁿ` sudah dikunci sementara; cocok atau terlalu murah/mahal? (data playtest)
+3. **Harga blok lahan:** kurva `1.500 × 1,2ⁿ` sudah dikunci sementara; cocok atau terlalu murah/mahal? Ukuran blok 32 bisa diganti (mis. 64) di `Config/Plots` `CHUNK.SIZE`. (data playtest)
 8. **Buff:** efek tiga buff (tumbuh 10%, gigit 25%, XP +10%) dan sumbernya (makanan dari warung pemain, hadiah) belum dikodekan; ikon ForgeGUI (kosong + penuh) menunggu daftar buff final.
 4. **Kecepatan progres tanpa batas petak:** perlu dijinakkan (kuota, harga bibit, kurva XP) bila playtest menunjukkan terlalu cepat.
 5. **Kartu status vs joystick di HP:** pakai thumbstick Dynamic atau geser kartu ke kanan? (R4, tes di HP)

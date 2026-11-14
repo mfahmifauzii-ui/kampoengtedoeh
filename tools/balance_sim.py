@@ -25,11 +25,11 @@ CROPS = [  # id, unlock, seed, grow_s, sell, xp, harvests
     ("padi", 14, 80, 7200, 220, 35, 1),
     ("pisang", 18, 200, 28800, 120, 40, 3),
 ]
-# R2b: no more farm-expansion upgrades. Land is bought chunk by chunk (Config/Plots CHUNK): the n-th extra chunk costs
-# CHUNK_BASE * CHUNK_GROWTH ** n (rounded to 10), 80 chunks in all. How many tiles a player tills is limited by their
+# R2b: no more farm-expansion upgrades. Land is bought chunk by chunk (Config/Plots CHUNK, a block of 32 x 32): the n-th extra block costs
+# CHUNK_BASE * CHUNK_GROWTH ** n (rounded to 10), 20 blocks in all. How many tiles a player tills is limited by their
 # own time, not by a cap; the model ASSUMES one more tile per bought chunk (tune this once there is playtest data).
 FARM_START = 6
-CHUNK_BASE, CHUNK_GROWTH, CHUNK_COUNT, TILES_PER_CHUNK = 250, 1.06, 80, 1
+CHUNK_BASE, CHUNK_GROWTH, CHUNK_COUNT, TILES_PER_CHUNK = 1500, 1.2, 20, 4
 WATER = 0.8
 
 

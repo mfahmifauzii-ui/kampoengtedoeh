@@ -108,7 +108,7 @@ local function refreshPopup()
 	end
 	local price = snap.landPrice or Land.chunkPrice(0)
 	priceLabel.Text = Locale.t("land.price", { n = Locale.formatNumber(price) })
-	infoLabel.Text = Locale.t("land.popup_info", { n = snap.landExtra or 0, max = Land.EXTRA_CHUNKS })
+	infoLabel.Text = Locale.t("land.popup_info", { size = Land.CHUNK, n = snap.landExtra or 0, max = Land.EXTRA_CHUNKS })
 	local affordable = koin() >= price
 	buyButton.BackgroundColor3 = if affordable then UiKit.BUTTON else UiKit.BUTTON_MUTED
 	buyButton.Text = Locale.t(if affordable then "land.buy" else "land.short")

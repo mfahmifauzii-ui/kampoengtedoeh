@@ -7,7 +7,7 @@ local Economy = require(script.Parent.Economy)
 local Types = require(script.Parent.Parent.Types)
 
 local template: Types.PlayerData = {
-	version = 11,
+	version = 12,
 
 	koin = Economy.START_KOIN,
 	bunga = Economy.START_BUNGA,
@@ -71,7 +71,7 @@ local template: Types.PlayerData = {
 
 	titles = {}, -- [titleId] = true
 
-	land = { chunks = {} }, -- bought chunks of the plot (Modules/Land); the start land is always owned
+	land = { chunks = {} }, -- bought 32 x 32 blocks of the plot, "ix,iz" keys (Modules/Land); the start land is always owned
 	plotSlot = 0, -- last plot number (PlotService tries to give it back)
 	sales = { day = "", sold = {}, tier = 0 }, -- Pak Darmo's daily crop quota (Config/Npcs QUOTA) + Kapasitas Warung tier
 

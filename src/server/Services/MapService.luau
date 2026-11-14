@@ -643,8 +643,11 @@ local function buildBoundary(map: Folder)
 end
 
 -- A low bamboo fence around the land each player owns (not solid: visitors can walk in, you just see where the land
--- ends). It follows the owned chunks, so it moves out when the player buys one. The road side has a 32-stud gate in
+-- ends). It follows the owned blocks, so it moves out when the player buys one. The road side has a 32-stud gate in
 -- the middle. One folder per plot (Map.LandFences.Plot<n>); MapService.RebuildFence redoes a single plot.
+local FENCE_SEGMENT = 8 -- studs between posts
+local GATE_HALF = 16 -- no fence within this distance of the middle of the road side
+
 local function buildPlotFence(plotIndex: number, chunks: Land.Chunks?)
 	local root = fenceRoot :: Folder
 	local old = root:FindFirstChild(`Plot{plotIndex}`)
@@ -668,17 +671,20 @@ local function buildPlotFence(plotIndex: number, chunks: Land.Chunks?)
 		local part = block(fences, "Post", Vector3.new(0.5, 2.4, 0.5), CFrame.new(world(x, z) + Vector3.new(0, 1.2, 0)), C.BAMBOO, Enum.Material.Wood)
 		part.CanCollide = false
 	end
-	-- One chunk edge (16 studs) as two 8-stud rails between three posts.
-	local function edge(ax: number, az: number, bx: number, bz: number)
-		local mx, mz = (ax + bx) / 2, (az + bz) / 2
-		post(ax, az)
-		post(mx, mz)
-		post(bx, bz)
-		for _, seg in { { ax, az, mx, mz }, { mx, mz, bx, bz } } do
-			local from, to = world(seg[1], seg[2]), world(seg[3], seg[4])
-			local mid = (from + to) / 2 + Vector3.new(0, 1.7, 0)
-			local rail = block(fences, "Rail", Vector3.new(0.25, 0.25, (to - from).Magnitude), CFrame.lookAt(mid, mid + (to - from)), C.BAMBOO, Enum.Material.Wood)
-			rail.CanCollide = false
+	-- One edge of a block as FENCE_SEGMENT-long rails between posts. gate = leave the middle of the road side open.
+	local function edge(ax: number, az: number, bx: number, bz: number, gate: boolean)
+		local count = math.max(1, math.floor((math.abs(bx - ax) + math.abs(bz - az)) / FENCE_SEGMENT + 0.5))
+		for i = 0, count - 1 do
+			local x0, z0 = ax + (bx - ax) * i / count, az + (bz - az) * i / count
+			local x1, z1 = ax + (bx - ax) * (i + 1) / count, az + (bz - az) * (i + 1) / count
+			if not (gate and math.abs((x0 + x1) / 2) < GATE_HALF) then
+				post(x0, z0)
+				post(x1, z1)
+				local from, to = world(x0, z0), world(x1, z1)
+				local mid = (from + to) / 2 + Vector3.new(0, 1.7, 0)
+				local rail = block(fences, "Rail", Vector3.new(0.25, 0.25, (to - from).Magnitude), CFrame.lookAt(mid, mid + (to - from)), C.BAMBOO, Enum.Material.Wood)
+				rail.CanCollide = false
+			end
 		end
 	end
 
@@ -688,16 +694,16 @@ local function buildPlotFence(plotIndex: number, chunks: Land.Chunks?)
 			if Land.isOwned(ix, iz, chunks) then
 				local r = Land.chunkRect(ix, iz)
 				if not Land.isOwned(ix - 1, iz, chunks) then
-					edge(r.minX, r.minZ, r.minX, r.maxZ)
+					edge(r.minX, r.minZ, r.minX, r.maxZ, false)
 				end
 				if not Land.isOwned(ix + 1, iz, chunks) then
-					edge(r.maxX, r.minZ, r.maxX, r.maxZ)
+					edge(r.maxX, r.minZ, r.maxX, r.maxZ, false)
 				end
 				if not Land.isOwned(ix, iz - 1, chunks) then
-					edge(r.minX, r.minZ, r.maxX, r.minZ)
+					edge(r.minX, r.minZ, r.maxX, r.minZ, false)
 				end
-				if not Land.isOwned(ix, iz + 1, chunks) and not (iz == frontRow and (ix == -1 or ix == 0)) then
-					edge(r.minX, r.maxZ, r.maxX, r.maxZ)
+				if not Land.isOwned(ix, iz + 1, chunks) then
+					edge(r.minX, r.maxZ, r.maxX, r.maxZ, iz == frontRow)
 				end
 			end
 		end

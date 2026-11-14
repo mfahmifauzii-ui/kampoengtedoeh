@@ -35,7 +35,7 @@ Delapan lahan sama bentuk, sama ukuran, dan setara lewat rotasi + cermin: jarak 
 
 ## 2. Lahan: awal 128, cadangan 192
 
-Setiap lahan punya **kotak cadangan 192 × 192** miliknya sendiri. Pemain mulai dengan **lahan 128 × 128** di dalamnya, **menempel ke jalan**; sisanya (belakang dan samping) dibeli chunk demi chunk (✅ R2b) sampai 192 × 192. Karena tiap pemain punya kotak cadangan yang sama, awal dan akhir lahan **sama persis** untuk semua pemain.
+Setiap lahan punya **kotak cadangan 192 × 192** miliknya sendiri. Pemain mulai dengan **lahan 128 × 128** di dalamnya, **menempel ke jalan**; sisanya (belakang dan samping) dibeli **blok demi blok 32×32** (✅ R2b, 20 blok) sampai 192 × 192. Karena tiap pemain punya kotak cadangan yang sama, awal dan akhir lahan **sama persis** untuk semua pemain.
 
 ```
  plot-lokal (+Z = ke arah jalan, +X = kanan, titik 0 = pusat kotak cadangan)
@@ -44,7 +44,7 @@ Setiap lahan punya **kotak cadangan 192 × 192** miliknya sendiri. Pemain mulai 
  area perluasan : 192² − 128² = 20.480 stud² (belakang 64, samping 32 di tiap sisi)
 ```
 
-- **Area perluasan diisi hutan** (pohon, semak, batu di atas lantai rumput hijau tua), jadi tidak terlihat kosong. Tiap model hutan diberi atribut `ExpansionOf = <nomor plot>` supaya `MapService` bisa menyembunyikannya (dipindah ke `ServerStorage > ForestHidden`) saat chunk itu dibeli, dan mengembalikannya saat lahan dikembalikan ke lahan awal.
+- **Area perluasan diisi hutan** (pohon, semak, batu di atas lantai rumput hijau tua), jadi tidak terlihat kosong. Tiap model hutan diberi atribut `ExpansionOf = <nomor plot>` supaya `MapService` bisa menyembunyikannya (dipindah ke `ServerStorage > ForestHidden`) saat blok itu dibeli, dan mengembalikannya saat lahan dikembalikan ke lahan awal.
 - Lahan awal tampak terang (rumput cerah, berpagar bambu) dan jelas berbeda dari hutan di sekitarnya.
 - **Rumah panggung** berada di plot-lokal (30, 56), di dalam lahan awal. Titik muncul pemain (0, 4, 70).
 - Semua koordinat kelipatan 4 (sel Terrain), lahan sejajar sumbu (yaw kelipatan 90°) supaya cat tanah garap tetap rapi.

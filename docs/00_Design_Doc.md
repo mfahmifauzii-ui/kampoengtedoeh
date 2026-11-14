@@ -52,15 +52,15 @@ Dompet awal: 100 Koin, 10 Bunga. ✅
 
 ## 4. Lahan 🔧
 
-Lahan pemain tersusun dari **chunk 16×16 stud** (16 habis dibagi 2, 4, dan 8, jadi pas dengan grid hiasan 2 stud, sel Terrain 4 stud, dan petak tanam 8 stud). Semua pemain sama: **awal dan akhir lahan identik**.
+Lahan pemain tersusun dari **blok 32×32 stud** (di kode masih disebut "chunk"; 32 habis dibagi 2, 4, dan 8 dan pas dengan lahan awal 128 dan kotak 192, jadi cocok dengan grid hiasan 2 stud, sel Terrain 4 stud, dan petak tanam 8 stud). Awalnya 16×16, tapi terlalu kecil dan pagarnya bergerigi, jadi diubah (migrasi v12). Semua pemain sama: **awal dan akhir lahan identik**.
 
-- **Awal:** **128×128** (8×8 chunk, ✅ R2), menempel ke jalan. **Maksimal:** **192×192** (12×12 chunk, kotak cadangan tiap lahan). Ruang perluasan = belakang 64 stud dan samping 32 stud di tiap sisi (20.480 stud²).
-- ✅ (R2b) Chunk baru dibeli satu per satu: tombol **+** melayang di atas tiap chunk yang bisa dibeli (muncul saat karakter dekat) membuka popup beli, dan chunk **harus menempel** pada lahan yang sudah dimiliki. Harga chunk ke-n (n mulai 0) = `250 × 1,06ⁿ` dibulatkan ke 10: **#1 250, #5 320, #10 420, #20 760, #40 2.430, #60 7.780, #80 24.950**; **80 chunk seluruhnya ±437.000 Koin** *(asumsi, disimulasikan di `balance_sim.py`: 59 dari 80 chunk terbeli di hari 42 oleh pemain model)*. Pass "Diskon Lahan" memotong 20% dan **tidak mengubah ukuran akhir** (semua pemain tetap berakhir 192×192).
-- ✅ Area perluasan **diisi hutan** (pohon, semak, batu) yang dibersihkan saat chunk dibeli, jadi peta tidak terlihat kosong. Lahan awal tampak terang dan berpagar bambu.
+- **Awal:** **128×128** (4×4 blok, ✅ R2), menempel ke jalan. **Maksimal:** **192×192** (6×6 blok, kotak cadangan tiap lahan; **20 blok** bisa dibeli). Ruang perluasan = belakang 64 stud dan samping 32 stud di tiap sisi (20.480 stud²).
+- ✅ (R2b) **Blok** baru (32×32) dibeli satu per satu: tombol **+** melayang di atas tiap blok yang bisa dibeli (muncul saat karakter dekat, maksimal 3 sekaligus) membuka popup beli, dan blok **harus menempel** pada lahan yang sudah dimiliki. Harga blok ke-n (n mulai 0) = `1.500 × 1,2ⁿ` dibulatkan ke 10: **#1 1.500, #5 3.110, #10 7.740, #15 19.260, #20 47.920**; **20 blok seluruhnya ±280.000 Koin** *(asumsi, `balance_sim.py`: 15 dari 20 blok terbeli di hari 42 oleh pemain model)*. Pagar bambu mengikuti tepi blok yang dimiliki (segmen 8 stud, gerbang 32 stud di sisi jalan). Pass "Diskon Lahan" memotong 20% dan **tidak mengubah ukuran akhir** (semua pemain tetap berakhir 192×192).
+- ✅ Area perluasan **diisi hutan** (pohon, semak, batu) yang dibersihkan saat blok dibeli, jadi peta tidak terlihat kosong. Lahan awal tampak terang dan berpagar bambu.
 - Rumah panggung berada di dalam lahan awal (`Config/Map` `HOUSE`).
 - Pemain yang menjual chunk? Tidak ada. Lahan hanya bertambah.
 - ✅ **Batas jumlah petak tanam dihapus.** Luas lahan yang jadi batasnya (batas teknis 100 petak, hanya katup pengaman). Upgrade "Perluas Kebun" (300/800/2.000/5.000/12.000 Koin) dihapus; pemain yang sudah membelinya mendapat **refund penuh** lewat migrasi. ⚠️ Efek ekonomi: tanpa batas petak, pemasukan dan XP naik jauh (lihat `Playtest_Plan.md`); tuas penyeimbang: kuota Pak Darmo, harga bibit, kurva XP, dan harga chunk.
-- Saat pemain keluar, lahan di server kembali ke lahan awal (chunk dikembalikan jadi hutan) dan dibangun ulang dari data pemain berikutnya. Slot terakhir pemain (`plotSlot`) dicoba dipakai lagi saat masuk.
+- Saat pemain keluar, lahan di server kembali ke lahan awal (blok dikembalikan jadi hutan) dan dibangun ulang dari data pemain berikutnya. Slot terakhir pemain (`plotSlot`) dicoba dipakai lagi saat masuk.
 
 ### Garap ✅
 Rumput default hanya untuk hiasan. Petak **digarap** dulu jadi tanah (Terrain, 8×8 stud, kering = Ground, disiram = Mud), baru bisa ditanami. **Ratakan** mengembalikan petak kosong jadi rumput tanpa biaya. Tanah dan hiasan tidak boleh bertumpuk (server cek dua arah). Setelah panen, petak tetap tanah.
@@ -117,7 +117,7 @@ Niat desain: tanaman pendek untung lebih per menit (menghargai main aktif), tana
 **Umpan:** Cacing gratis tak terbatas. Pelet 5 Koin, gigit −30%.
 
 **Kolam:** Garap → *Kolam* menggali kolam 16×16 (air Terrain sungguhan, dalam 8 stud) di mana saja di lahan hijau; *Hapus Kolam* menimbun dan mengembalikan 50% harga (ikan belum diambil hilang). Maksimal 4 kolam; harga: pertama gratis, lalu 400 / 900 / 1.600 Koin (`Config/Fishing` POND.PRICES). Kolam menghasilkan 1 ikan Umum/Tak umum tiap 10 menit, maksimal **10 per kolam** (upgrade Koin naik ke 20 → 30; pass 2× Offline melipatgandakan). Ambil dengan satu ketukan.
-Kolam 16×16 pas dengan satu chunk lahan.
+Kolam 16×16 = seperempat blok lahan (32×32).
 
 ---
 
@@ -242,7 +242,7 @@ Kit bambu ForgeGUI terpasang, HUD baru jadi. Detail di `GUI_Design.md`. 🗓 Kom
 | Pass | Tas Besar (+40) | 99 |
 | Pass | Kapasitas Offline 2× | 149 |
 | Pass | Perluasan Hias (+100) | 149 |
-| Pass | Diskon Lahan (−20% harga chunk) | 199 ✅ *(menggantikan "Petak Ekstra"; tidak mengubah ukuran akhir)* |
+| Pass | Diskon Lahan (−20% harga blok) | 199 ✅ *(menggantikan "Petak Ekstra"; tidak mengubah ukuran akhir)* |
 | Produk | Bunga 50 / 120 / 300 | 49 / 99 / 229 |
 | Produk | Koin S / M / L | 25 / 75 / 199 |
 | Produk | Instant Grow (1 petak, maks 3/hari) | 15 |
@@ -273,7 +273,7 @@ src/
 ```
 hapus : skills, affinity (kedekatan NPC)
 tambah: upgrades[id] = tier   -- tas, kolam, kapasitasWarung (🗓 R3: UpgradeService umum)
-sudah : land = { chunks = { ["ix,iz"] = true } }, plotSlot = n   -- v11 (R2b)
+sudah : land = { chunks = { ["ix,iz"] = true } }, plotSlot = n   -- v12 (R2b; kuncinya sekarang blok 32×32)
         sales = { dayKey, sold = { [cropId] = count } }   -- kuota Pak Darmo
         rewards = { daily..., playtime = { dayKey, seconds, claimed } }
         book.claimed = {}
