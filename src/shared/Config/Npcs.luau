@@ -4,6 +4,7 @@
 --
 -- stand : bridge-local studs (x along the road, z along the river). faceZ = +1 / -1: which way the NPC looks.
 -- buys  : item kind -> price multiplier (what the NPC pays you), see Modules/Trade.
+-- quota : the NPC buys each crop only up to a daily quota (QUOTA below); past it, sell to the next buyer.
 -- sells : what the NPC sells: seeds, seedsUnggul (faster-growing, pricier), rods, bait, upgrades, fish.
 -- Prices live in Modules/Trade; trade rules are enforced by ServerScriptService ShopService.
 
@@ -23,17 +24,18 @@ export type Npc = {
 	look: { skin: Color3, shirt: Color3, pants: Color3 },
 	buys: { [string]: number },
 	sells: Sells,
-	haggle: boolean?, -- you can bargain with this NPC when selling (see HAGGLE below)
+	quota: boolean?, -- buys each crop only up to the daily quota (Pak Darmo)
 }
 
 local list: { Npc } = {
 	{
-		-- Behind the counter of the Warung stall.
+		-- Behind the counter of the Warung stall. Best price (1.0x), but only up to the daily quota per crop.
 		id = "pak_darmo",
 		stand = { x = 0, z = -25.2, faceZ = 1 },
 		look = { skin = Color3.fromRGB(198, 148, 102), shirt = Color3.fromRGB(220, 206, 176), pants = Color3.fromRGB(96, 70, 50) },
 		buys = { crop = 1.0 },
 		sells = { seeds = true, upgrades = true },
+		quota = true,
 	},
 	{
 		-- Toko Bibit (shop 4)
@@ -60,13 +62,13 @@ local list: { Npc } = {
 		sells = { fish = true },
 	},
 	{
-		-- Lapak Tarno (shop 1): a middleman. Pays 0.7x for crops, but you can bargain the price up.
+		-- Lapak Tarno (shop 1): the middleman. Pays 0.7x for crops with no limit: where you sell once
+		-- Pak Darmo's daily quota for a crop is used up.
 		id = "bang_tarno",
 		stand = { x = -27, z = 15.5, faceZ = -1 },
 		look = { skin = Color3.fromRGB(168, 120, 84), shirt = Color3.fromRGB(176, 104, 74), pants = Color3.fromRGB(78, 70, 62) },
 		buys = { crop = 0.7 },
 		sells = {},
-		haggle = true,
 	},
 	{
 		-- Toko Tukang (shop 2): the builder. Sells decor blueprints.
@@ -83,61 +85,15 @@ for _, npc in list do
 	byId[npc.id] = npc
 end
 
--- Kedekatan (affinity), 0..100 per NPC. Each tier gives a discount on what you BUY from every NPC and a bonus
--- to your haggling chance (percentage points).
-local TIERS = {
-	{ id = "asing", min = 0, discount = 0, haggleBonus = 0 },
-	{ id = "kenal", min = 20, discount = 0, haggleBonus = 5 },
-	{ id = "akrab", min = 50, discount = 0.05, haggleBonus = 10 },
-	{ id = "sahabat", min = 80, discount = 0.10, haggleBonus = 15 },
-}
-
-local function tierOf(points: number): number
-	local tier = 1
-	for index, entry in TIERS do
-		if points >= entry.min then
-			tier = index
-		end
-	end
-	return tier
-end
-
--- Bargaining offers: pct = how far above the NPC's base price you ask. Bigger asks need a closer relationship.
--- The best ask (+64% of Bang Tarno's 0.7x) lands at 1.15x Pak Darmo's price, never above (HAGGLE.CAP_MULT).
-local OFFERS: { { pct: number, minTier: number? } } = {
-	{ pct = 10 },
-	{ pct = 20 },
-	{ pct = 30 },
-	{ pct = 40, minTier = 2 },
-	{ pct = 50, minTier = 3 },
-	{ pct = 64, minTier = 4 },
-}
-
 return {
 	list = list,
 	byId = byId,
 
-	TIERS = TIERS,
-	tierOf = tierOf,
-	AFFINITY = {
-		MAX = 100,
-		TALK_GAIN = 2, -- first chat of the day
-		TRADE_GAIN = 1, -- each trade ...
-		TRADE_DAILY_CAP = 5, -- ... up to this much per NPC per day
-		HAGGLE_WIN = 1,
-		HAGGLE_LOSS = 1, -- never drops you below the tier you already reached
-	},
-
-	HAGGLE = {
-		OFFERS = OFFERS,
-		BASE_CHANCE = 70, -- percent, before the ask, affinity and skill
-		MIN_CHANCE = 5,
-		MAX_CHANCE = 95,
-		FAIL_STREAK = 2, -- this many failures in a row ...
-		PAUSE_SECONDS = 60, -- ... and the NPC won't bargain for this long (selling at the base price still works)
-		CAP_MULT = 1.15, -- a haggled price never exceeds this multiple of the item's full sell value
-		XP_WIN = 6, -- "tawar" skill XP
-		XP_LOSS = 2,
+	-- Pak Darmo's daily quota (WIB day): PER_CROP of each crop type at the start, +PER_TIER per "Kapasitas Warung"
+	-- upgrade (Config/Shop). Values are assumptions: simulate with tools/balance_sim.py before locking them.
+	QUOTA = {
+		PER_CROP = 20,
+		PER_TIER = 5,
 	},
 
 	TALK_DISTANCE = 10, -- studs: how close the "Ngobrol" prompt appears

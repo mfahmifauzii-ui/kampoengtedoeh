@@ -136,13 +136,14 @@ Kolam 16×16 pas dengan satu chunk lahan.
 | **Mbok Minah** | Beli dan jual ikan | beli 1,0×; jual ikan Kecil 1,3× (umum/langka biasa, supaya pesanan dan Buku tidak bergantung keberuntungan) |
 | **Mbak Arsi** | Jual blueprint | per set (lihat §9) |
 
-### Kuota harian Pak Darmo 🔧 *(angka asumsi)*
+### Kuota harian Pak Darmo ✅ *(dikodekan di R1, belum dites di Studio; angka asumsi)*
 - Pak Darmo membeli **sampai 20 butir per jenis tanaman per hari** di harga 1,0×. Reset 00:00 WIB.
 - Setelah kuota satu jenis habis, jenis itu hanya bisa dijual ke Bang Tarno (0,7×). **Tidak pernah ditolak.**
 - Kuota naik lewat upgrade **Kapasitas Warung** (Koin, +5 per tingkat) *(asumsi)*.
 - Kuota per jenis mendorong pemain menanam beragam, dan sekaligus jadi sink Koin yang dibutuhkan (lihat `Playtest_Plan.md`).
 - Panel menampilkan sisa kuota ("Sisa hari ini: 12/20"), supaya harga yang lebih rendah tidak terasa seperti hukuman.
-- Tawar-menawar, kedekatan NPC, diskon kedekatan, dan skill Tawar **dihapus** dari desain. Kode dan data lama dibersihkan lewat migrasi (lihat `Roadmap.md`).
+- Tawar-menawar, kedekatan NPC, diskon kedekatan, dan skill Tawar **dihapus** dari desain dan dari kode (migrasi data v7 → v8 membuang `npc` dan `skills`). Upgrade Kapasitas Warung: 600 / 2.000 / 5.000 / 12.000 Koin, buka Lv 3 *(asumsi)*.
+- Simulasi: kuota mengurangi pemasukan Koin ±20–25%, tapi tidak cukup untuk menghentikan penimbunan; sink lain tetap dibutuhkan.
 
 ---
 

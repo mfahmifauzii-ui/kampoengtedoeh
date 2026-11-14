@@ -13,10 +13,11 @@ Desain lengkap di `00_Design_Doc.md`, peta di `Map_Plan.md`.
 | 1–11 | Fondasi, bertani, memancing, tas/toko, hias, pesanan + Buku + level, siang-malam + hujan + audio, monetisasi + analitik, sosial ringan (Mampir, Suka), playtest plan, live-ops plan |
 | 12 | Lahan & **Garap** (tanah Terrain, simpan, migrasi) |
 | 13 | NPC & dialog (Pak Darmo, Bu Wati, Mas Joko, Mbok Minah); bibit jadi item |
-| 14 | Bang Tarno + tawar + kedekatan + skill ⛔ *(dibatalkan, akan dihapus di R1)* |
+| 14 | Bang Tarno + tawar + kedekatan + skill ⛔ *(dibatalkan; kode dihapus di R1, Bang Tarno tetap sebagai penadah)* |
 | 15 | Mbak Arsi + blueprint (**belum dites di Studio**) |
 | 16 | Model tanaman + kit GUI ForgeGUI, HUD baru |
 | 17 (sebagian) | Bar stamina di HUD ⛔ *(hanya tampilan, tidak ada sistem; dihapus di R1)* |
+| R1 | Kuota warung + penadah + pembersihan ✅ dikodekan (belum dites di Studio) |
 | – | Repo git `kampoengtedoeh` (privat), docs dirapikan |
 
 **Dibatalkan:** stamina, istirahat, bonus bangku, tawar-menawar, kedekatan NPC, skill Tawar.
@@ -24,9 +25,11 @@ Desain lengkap di `00_Design_Doc.md`, peta di `Map_Plan.md`.
 
 ---
 
-## R1 — Pembersihan & kuota warung
+## R1 — Pembersihan & kuota warung ✅ dikodekan, **belum dites di Studio**
 
-Mengubah desain NPC jual-beli dan membuang kode yang dibatalkan.
+Mengubah desain NPC jual-beli dan membuang kode yang dibatalkan. Status: kode selesai, `rojo build` lolos, tapi Luau belum dijalankan (tidak ada type-check di luar Studio). Yang harus dites: lihat "Selesai bila" di bawah.
+
+Hasil simulasi (`balance_sim.py`, setelah R1): hari ke-42 Koin tertimbun ±162 ribu (sebelumnya ±205 ribu). **Kuota menurunkan pemasukan sekitar 20–25%, tapi tidak menyelesaikan penimbunan Koin.** Sink sebenarnya tetap harus datang dari chunk lahan (R2), upgrade, dan konten berikutnya.
 
 - Hapus: `AffinityService`, `SkillService`, `Config/Skills`, tawar di `NpcService`/`ShopService`, sapaan berdasar kedekatan, diskon kedekatan, perintah dev `!affinity`, `!skill`, `!skillxp`, tampilan kedekatan di dialog, bar stamina di `HudController` dan atribut `Stamina`.
 - Migrasi data: buang `skills` dan data kedekatan (bumpkan versi; uji save lama).

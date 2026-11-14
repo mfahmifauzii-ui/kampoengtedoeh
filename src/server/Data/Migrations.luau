@@ -3,7 +3,7 @@
 -- To change the schema: add STEPS[n] (migrates v n -> n+1), bump CURRENT_VERSION
 -- and DataTemplate.version together.
 
-local CURRENT_VERSION = 7
+local CURRENT_VERSION = 8
 
 -- Farm beds moved to a wider grid (a path between beds): every tile keeps its crop and moves to the cell its old
 -- center falls in; if two tiles land in one cell, the later one takes the nearest free cell (a bed can shift a
@@ -109,6 +109,14 @@ local STEPS: { [number]: (data: any) -> () } = {
 	-- should look like; a spread-out 16-stud grid read like a chessboard.
 	[6] = function(data)
 		respaceTiles(data, 16, 8)
+	end,
+
+	-- v7 -> v8: haggling, NPC kedekatan and skills are gone (Pak Darmo now has a daily crop quota instead).
+	-- Nothing the player owns changes; only the old bookkeeping is dropped and `sales` starts empty.
+	[7] = function(data)
+		data.npc = nil
+		data.skills = nil
+		data.sales = { day = "", sold = {}, tier = 0 }
 	end,
 }
 

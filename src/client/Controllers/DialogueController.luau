@@ -50,19 +50,11 @@ local function close()
 	gui.Enabled = false
 end
 
--- Fills the box. Kedekatan is shown next to the role; friends (Akrab and up) get a warmer greeting.
--- Called again when a fresh snapshot arrives, because the "first chat of the day" bonus lands just after the dialogue opens.
+-- Fills the box: the NPC's name, role and greeting.
 local function refresh(npcId: string)
-	local snapshot = State.current :: any
-	local record = if snapshot and snapshot.npc then snapshot.npc[npcId] else nil
-	local points = if record then record.affinity else 0
-	local tier = Npcs.tierOf(points)
 	nameLabel.Text = Locale.t(`npc.{npcId}`)
-	local role = Locale.t(`npc.{npcId}.role`)
-	local tierName = Locale.t(`npc.tier.{Npcs.TIERS[tier].id}`)
-	roleLabel.Text = role .. "  ·  " .. Locale.t("affinity.line", { tier = tierName, n = points })
-	local friendKey = `npc.{npcId}.greet_friend`
-	lineLabel.Text = Locale.t(if tier >= 3 and Locale.has(friendKey) then friendKey else `npc.{npcId}.greet`)
+	roleLabel.Text = Locale.t(`npc.{npcId}.role`)
+	lineLabel.Text = Locale.t(`npc.{npcId}.greet`)
 end
 
 local function open(npcId: any)

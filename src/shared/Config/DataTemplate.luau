@@ -7,7 +7,7 @@ local Economy = require(script.Parent.Economy)
 local Types = require(script.Parent.Parent.Types)
 
 local template: Types.PlayerData = {
-	version = 7,
+	version = 8,
 
 	koin = Economy.START_KOIN,
 	bunga = Economy.START_BUNGA,
@@ -72,8 +72,7 @@ local template: Types.PlayerData = {
 
 	titles = {}, -- [titleId] = true
 
-	npc = {}, -- [npcId] = NpcRecord (created on first contact; see AffinityService)
-	skills = { tawar = { level = 1, xp = 0 } }, -- [skillId] = { level, xp } (Config/Skills)
+	sales = { day = "", sold = {}, tier = 0 }, -- Pak Darmo's daily crop quota (Config/Npcs QUOTA) + Kapasitas Warung tier
 
 	social = {
 		likes = 0, -- likes received on your plot (all time)

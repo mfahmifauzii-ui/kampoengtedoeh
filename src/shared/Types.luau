@@ -47,18 +47,6 @@ export type OrderEntry = {
 	done: boolean,
 }
 
--- Per-NPC relationship (Config/Npcs TIERS) and bargaining state.
-export type NpcRecord = {
-	affinity: number,
-	talkDay: string, -- WIB day of the last "first chat of the day" bonus
-	tradeDay: string,
-	tradeGain: number, -- affinity earned from trading on tradeDay
-	failStreak: number, -- consecutive failed haggles
-	pauseUntil: number, -- os.time until which the NPC won't haggle
-}
-
-export type SkillRecord = { level: number, xp: number }
-
 export type PlayerData = {
 	version: number,
 	koin: number,
@@ -112,8 +100,11 @@ export type PlayerData = {
 		claimed: { [string]: boolean },
 	},
 	titles: { [string]: boolean },
-	npc: { [string]: NpcRecord },
-	skills: { [string]: SkillRecord },
+	sales: {
+		day: string, -- WIB day key that `sold` belongs to
+		sold: { [string]: number }, -- [cropId] = how many Pak Darmo bought today (daily quota)
+		tier: number, -- "Kapasitas Warung" upgrade tier
+	},
 	social: {
 		likes: number,
 		milestones: { [string]: boolean },

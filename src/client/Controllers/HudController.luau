@@ -34,8 +34,6 @@ local levelLabel: TextLabel?
 local xpFill: Frame?
 local goalLabel: TextLabel?
 local levelBadge: TextLabel? -- level number on the photo's star
-local staminaFill: Frame?
-local staminaLabel: TextLabel?
 local toastLabel: TextLabel?
 local toastQueue: { string } = {}
 local toastRunning = false
@@ -73,8 +71,7 @@ local function buildPlaceholder(): ScreenGui
 	local bungaChip = bunga.Parent :: Frame
 	bungaChip.LayoutOrder = 2
 
-	-- BOTTOM LEFT: the player card = photo + level badge + name + XP bar + STAMINA bar. The stamina bar is ready for the
-	-- rest system: it reads the player attributes "Stamina" / "StaminaMax" (shows 100 / 100 until the server sets them).
+	-- BOTTOM LEFT: the player card = photo + level badge + name + XP bar.
 	local card = UiKit.pill(gui, "StatusCard", 214, 72)
 	card.AnchorPoint = Vector2.new(0, 1)
 	card.Position = UDim2.new(0, 8, 1, -6)
@@ -183,9 +180,6 @@ local function buildPlaceholder(): ScreenGui
 	xpBarFill.Name = "XPFill" -- contract names: XPFill (Frame) + LevelLabel (TextLabel)
 	xpBarFill.Size = UDim2.fromScale(0, 1)
 	xpBarLabel.Name = "LevelLabel"
-	local staminaFillBar, staminaCaption = makeBar("Stamina", 46, Color3.fromRGB(236, 158, 52))
-	staminaFill = staminaFillBar
-	staminaLabel = staminaCaption
 
 	-- Toast: one parchment pill, above the Garap bar so it never hides under it.
 	local toast = UiKit.chip(gui, "ToastLabel", nil, 360)
@@ -233,17 +227,6 @@ local function refresh()
 	end
 	if levelBadge and typeof(level) == "number" then
 		levelBadge.Text = tostring(level)
-	end
-
-	-- Stamina (rest system, coming): attributes Stamina / StaminaMax; a full 100 / 100 bar until the server sets them.
-	local stamina, staminaMax = player:GetAttribute("Stamina"), player:GetAttribute("StaminaMax")
-	local maxValue = if typeof(staminaMax) == "number" and staminaMax > 0 then staminaMax else 100
-	local value = if typeof(stamina) == "number" then math.clamp(stamina, 0, maxValue) else maxValue
-	if staminaFill then
-		staminaFill.Size = UDim2.fromScale(value / maxValue, 1)
-	end
-	if staminaLabel then
-		staminaLabel.Text = `Stamina {math.floor(value)}/{math.floor(maxValue)}`
 	end
 end
 
@@ -312,7 +295,7 @@ end
 
 function HudController.Start()
 	refresh()
-	for _, attribute in { "Koin", "Bunga", "Level", "XP", "XPNext", "Stamina", "StaminaMax" } do
+	for _, attribute in { "Koin", "Bunga", "Level", "XP", "XPNext" } do
 		player:GetAttributeChangedSignal(attribute):Connect(refresh)
 	end
 	Net.Listen("Notify", function(key: any, vars: any)

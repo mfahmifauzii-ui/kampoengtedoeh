@@ -19,10 +19,8 @@ local ProgressionService = require(script.Parent.ProgressionService)
 local WorldService = require(script.Parent.WorldService)
 local MonetizationService = require(script.Parent.MonetizationService)
 local EventService = require(script.Parent.EventService)
-local AffinityService = require(script.Parent.AffinityService)
-local SkillService = require(script.Parent.SkillService)
 
-local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !orders, !grow, !time malam, !rain, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 6: !level 6),!inv, !pass backpack, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !affinity bang_tarno 50, !skill tawar 5, !skillxp tawar 30, !blueprint all|taman|pondok_sawah"
+local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !orders, !grow, !time malam, !rain, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 6: !level 6),!inv, !pass backpack, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !quota reset, !blueprint all|taman|pondok_sawah"
 
 local DevService = {}
 
@@ -46,21 +44,6 @@ local function onChatted(player: Player, message: string)
 	end
 	print(`[DevService] {player.Name}: {message}`)
 	local normalized = message:gsub("\u{2212}", "-") -- typographic minus from autocorrect
-
-	-- Two-argument commands: "!affinity bang_tarno 50", "!skill tawar 5"
-	local twoCommand, first, second = normalized:match("^!(%a+)%s+(%S+)%s+(%S+)%s*$")
-	if twoCommand == "affinity" and tonumber(second) then
-		AffinityService.DevSet(player, first, tonumber(second) :: number)
-		print(`[DevService] affinity {first} = {AffinityService.Get(player, first)}`)
-		return
-	elseif twoCommand == "skillxp" and tonumber(second) then
-		SkillService.AddXp(player, first, tonumber(second) :: number)
-		return
-	elseif twoCommand == "skill" and tonumber(second) then
-		SkillService.DevSet(player, first, tonumber(second) :: number)
-		print(`[DevService] skill {first} = Lv {SkillService.Level(player, first)}`)
-		return
-	end
 
 	local command, arg = normalized:match("^!(%a+)%s*(%S*)%s*$")
 	local amount = tonumber(arg)
@@ -111,6 +94,13 @@ local function onChatted(player: Player, message: string)
 					data.decor.blueprints[blueprint.id] = true
 				end
 			end
+			InventoryService.Sync(player)
+		end
+	elseif command == "quota" and arg == "reset" then
+		-- Gives Pak Darmo's daily crop quota back (for testing the sell-to-Bang-Tarno fallback).
+		local data = DataService.Get(player)
+		if data then
+			data.sales.sold = {}
 			InventoryService.Sync(player)
 		end
 	elseif command == "pond" then

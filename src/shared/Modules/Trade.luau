@@ -1,9 +1,8 @@
 --!strict
--- Prices for NPC trading. Shared so the client shows exactly what the server will charge or pay.
+-- Prices and quotas for NPC trading. Shared so the client shows exactly what the server will charge or pay.
 
 local Crops = require(script.Parent.Parent.Config.Crops)
 local Npcs = require(script.Parent.Parent.Config.Npcs)
-local Skills = require(script.Parent.Parent.Config.Skills)
 local Items = require(script.Parent.Items)
 
 local Trade = {}
@@ -27,26 +26,15 @@ function Trade.fishPrice(sellPrice: number): number
 	return math.floor(sellPrice * Npcs.FISH_SELL_MULT + 0.5)
 end
 
--- Friendship discount on what YOU buy (tier = Npcs.tierOf(affinity)). Applied per unit, never below 1 Koin.
-function Trade.discount(price: number, tier: number): number
-	local off = Npcs.TIERS[tier].discount
-	return if off > 0 then math.max(1, math.floor(price * (1 - off) + 0.5)) else price
+-- Pak Darmo's daily quota per crop type at a "Kapasitas Warung" tier (0 = none bought).
+function Trade.quota(tier: number): number
+	return Npcs.QUOTA.PER_CROP + tier * Npcs.QUOTA.PER_TIER
 end
 
--- Chance (percent) that Bang Tarno accepts an ask of +pct%.
-function Trade.haggleChance(pct: number, tier: number, tawarLevel: number): number
-	local rules = Npcs.HAGGLE
-	local skill = Skills.byId.tawar
-	local chance = rules.BASE_CHANCE - pct + Npcs.TIERS[tier].haggleBonus + (tawarLevel - 1) * skill.chanceBonusPerLevel
-	return math.clamp(chance, rules.MIN_CHANCE, rules.MAX_CHANCE)
-end
-
--- What the whole stack pays if the haggle succeeds: base * count * (1 + pct%), rounded ONCE on the total (rounding
--- per unit would make +10% and +20% identical for cheap crops), capped at HAGGLE.CAP_MULT of the full sell value.
-function Trade.haggleTotal(base: number, count: number, info: Items.ItemInfo, pct: number): number
-	local asked = math.floor(base * count * (1 + pct / 100) + 0.5)
-	local cap = math.floor((info.sellPrice or base) * count * Npcs.HAGGLE.CAP_MULT + 0.5)
-	return math.min(asked, cap)
+-- How many more of a crop Pak Darmo will buy today. sales = data.sales (day = WIB day key of `sold`).
+function Trade.quotaLeft(sales: { day: string, sold: { [string]: number } }, tier: number, cropId: string, today: string): number
+	local sold = if sales.day == today then sales.sold[cropId] or 0 else 0
+	return math.max(0, Trade.quota(tier) - sold)
 end
 
 return Trade

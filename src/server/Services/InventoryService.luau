@@ -60,15 +60,6 @@ local function pondCells(data: Types.PlayerData)
 	return ponds
 end
 
--- What the client needs per NPC: kedekatan points and until when it won't haggle.
-local function npcSummary(data: Types.PlayerData)
-	local summary = {}
-	for npcId, record in data.npc do
-		summary[npcId] = { affinity = record.affinity, pauseUntil = record.pauseUntil }
-	end
-	return summary
-end
-
 local function buildSnapshot(player: Player, data: Types.PlayerData)
 	local passes = {}
 	for _, pass in Monetization.PASSES do
@@ -103,8 +94,8 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		book = data.book,
 		visits = data.visits.count,
 		titles = data.titles,
-		npc = npcSummary(data),
-		skills = data.skills,
+		sales = { day = data.sales.day, sold = table.clone(data.sales.sold) },
+		warungTier = data.sales.tier,
 		social = data.social,
 		settings = data.settings,
 	}

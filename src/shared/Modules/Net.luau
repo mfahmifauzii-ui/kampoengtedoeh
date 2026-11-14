@@ -26,7 +26,6 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	StateRequest = "Event", -- C->S () ask for a fresh snapshot
 	NpcTalk = "Event", -- S->C (npcId: string) the player pressed "Ngobrol": open the dialogue
 	Sell = "Event", -- C->S (npcId: string, itemId: string | "all")
-	Haggle = "Event", -- C->S (npcId: string, itemId: string, pct: number) offer the whole stack at base price +pct%
 	ShopBuy = "Event", -- C->S (npcId: string, kind: "rod"|"bait"|"upgrade"|"seed"|"seedx"|"fish", id: string, amount: number?)
 	ShopEquipRod = "Event", -- C->S (rodId: string)
 

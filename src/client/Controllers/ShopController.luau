@@ -1,15 +1,14 @@
 --!strict
 -- NPC shop panel: opened by the dialogue's [Jual / Beli] button. What it shows comes from the NPC's config
 -- (Config/Npcs): what it sells (seeds, rods, bait, upgrades, fish) and what it buys from you.
--- Kedekatan gives discounts on what you buy. Haggle NPCs (Bang Tarno) add a "Tawar" button to every item you can
--- sell: pick how much above the base price to ask; the panel shows your real chance.
--- Buttons only send requests; prices, levels, chances and stock are re-checked on the server.
+-- Pak Darmo buys each crop at full price only up to a daily quota; the panel shows what is left and the price of
+-- what he will actually take. Past the quota, Bang Tarno buys the rest at 0.7x with no limit.
+-- Buttons only send requests; prices, levels, quotas and stock are re-checked on the server.
 --
 -- UI CONTRACT: ScreenGui "ShopPanel" (UiKit.panel). The title is the NPC's name.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
 
 local Blueprints = require(ReplicatedStorage.Shared.Config.Blueprints)
 local Crops = require(ReplicatedStorage.Shared.Config.Crops)
@@ -21,6 +20,7 @@ local InventoryConfig = require(ReplicatedStorage.Shared.Config.Inventory)
 local Npcs = require(ReplicatedStorage.Shared.Config.Npcs)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
+local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local Trade = require(ReplicatedStorage.Shared.Modules.Trade)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
@@ -35,7 +35,6 @@ local panel: UiKit.Panel
 local sellAllButton: TextButton
 local currentNpc: string? = nil
 local amount = 1 -- how many seeds / bait / fish one tap buys
-local haggleItem: string? = nil -- the stack being bargained over (haggle NPCs)
 
 local function level(): number
 	local value = player:GetAttribute("Level")
@@ -56,6 +55,9 @@ local function upgradeInfo(upgradeId: string, snapshot: any): (number, string)
 		local tier = snapshot.pondTier
 		local nextCap = Fishing.POND.CAPS[tier + 2]
 		return tier, Locale.t("upgrade.pond.detail", { from = Fishing.POND.CAPS[tier + 1], to = nextCap or "-" })
+	elseif upgradeId == "warung" then
+		local tier = snapshot.warungTier or 0
+		return tier, Locale.t("upgrade.warung.detail", { from = Trade.quota(tier), to = Trade.quota(tier + 1) })
 	else
 		local tier = snapshot.farmExpansions
 		local tiles = Farm.START_TILES + tier * Farm.EXPANSION_TILES
@@ -76,66 +78,17 @@ local function render()
 	local npcId = npc.id
 	local items = snapshot.items
 	local playerLevel = level()
-	local record = if snapshot.npc then snapshot.npc[npcId] else nil
-	local tier = Npcs.tierOf(if record then record.affinity else 0)
-	local tawar = if snapshot.skills and snapshot.skills.tawar then snapshot.skills.tawar else { level = 1, xp = 0 }
 	local order = 0
 	local function nextOrder(): number
 		order += 1
 		return order
 	end
-	-- Friendship discount on every price you pay (the server applies the same).
-	local function pay(price: number): number
-		return Trade.discount(price, tier)
-	end
 
 	panel.title.Text = Locale.t(`npc.{npcId}`)
 	local sells = npc.sells
 	local buysSomething = next(npc.buys) ~= nil
-	sellAllButton.Visible = buysSomething and haggleItem == nil
-	panel.footerLabel.Text = if npc.haggle
-		then `{koin(player:GetAttribute("Koin") :: number? or 0)}  ·  {Locale.t("skill.tawar")} Lv {tawar.level}`
-		else koin(player:GetAttribute("Koin") :: number? or 0)
-
-	-- Bargaining view: the whole stack of one item, one row per ask.
-	local stack = haggleItem
-	if stack then
-		local info = Items.info(stack)
-		local base = if info then Trade.buyPrice(npc, info) else nil
-		local count = items[stack]
-		if not info or not base or not count then
-			haggleItem = nil -- sold out: fall back to the normal list below
-		else
-			local paused = if record then math.ceil(record.pauseUntil - Workspace:GetServerTimeNow()) else 0
-			UiKit.header(panel.list, Locale.t("haggle.header", { item = Items.displayName(info), n = count }), nextOrder())
-			UiKit.row(panel.list, nextOrder(), Locale.t("haggle.base"), koin(base * count), Locale.t("ui.sell"), true, function()
-				Net.Send("Sell", npcId, stack)
-			end)
-			if paused > 0 then
-				UiKit.header(panel.list, Locale.t("haggle.pause_info", { n = paused }), nextOrder())
-			end
-			for _, offer in Npcs.HAGGLE.OFFERS do
-				local minTier = offer.minTier or 1
-				if tier < minTier then
-					UiKit.row(panel.list, nextOrder(), `+{offer.pct}%`,
-						Locale.t("haggle.locked", { tier = Locale.t(`npc.tier.{Npcs.TIERS[minTier].id}`) }),
-						Locale.t("ui.haggle"), false)
-				else
-					local total = Trade.haggleTotal(base, count, info, offer.pct)
-					local chance = Trade.haggleChance(offer.pct, tier, tawar.level)
-					UiKit.row(panel.list, nextOrder(), `+{offer.pct}%  ·  {koin(total)}`,
-						Locale.t("haggle.chance", { n = chance }), Locale.t("ui.haggle"), paused <= 0, function()
-							Net.Send("Haggle", npcId, stack, offer.pct)
-						end)
-				end
-			end
-			UiKit.row(panel.list, nextOrder(), Locale.t("haggle.cancel"), nil, Locale.t("ui.back"), true, function()
-				haggleItem = nil
-				render()
-			end)
-			return
-		end
-	end
+	sellAllButton.Visible = buysSomething
+	panel.footerLabel.Text = koin(player:GetAttribute("Koin") :: number? or 0)
 
 	-- How many to buy per tap (seeds, bait, fish).
 	if sells.seeds or sells.seedsUnggul or sells.bait or sells.fish then
@@ -167,7 +120,7 @@ local function render()
 				local unlocked = playerLevel >= crop.unlockLevel
 				local owned = items[itemPrefix .. crop.id] or 0
 				UiKit.row(panel.list, nextOrder(), Locale.t(`crop.{crop.id}`),
-					`{koin(pay(Trade.seedPrice(crop, unggul)) * amount)}  ·  {Locale.t("ui.owned", { n = owned })}`,
+					`{koin(Trade.seedPrice(crop, unggul) * amount)}  ·  {Locale.t("ui.owned", { n = owned })}`,
 					if unlocked then Locale.t("ui.buy") else Locale.t("ui.locked", { level = crop.unlockLevel }),
 					unlocked, function()
 						Net.Send("ShopBuy", npcId, kind, crop.id, amount)
@@ -189,7 +142,7 @@ local function render()
 			if Npcs.FISH_FOR_SALE[fish.rarity] then
 				local owned = items[`{fish.id}@S`] or 0
 				UiKit.row(panel.list, nextOrder(), Locale.t(`fish.{fish.id}`),
-					`{koin(pay(Trade.fishPrice(fish.sellPrice)) * amount)}  ·  {Locale.t("ui.owned", { n = owned })}`,
+					`{koin(Trade.fishPrice(fish.sellPrice) * amount)}  ·  {Locale.t("ui.owned", { n = owned })}`,
 					Locale.t("ui.buy"), true, function()
 						Net.Send("ShopBuy", npcId, "fish", fish.id, amount)
 					end)
@@ -209,7 +162,7 @@ local function render()
 				end)
 			else
 				local unlocked = playerLevel >= rod.unlockLevel
-				UiKit.row(panel.list, nextOrder(), name, koin(pay(rod.price)),
+				UiKit.row(panel.list, nextOrder(), name, koin(rod.price),
 					if unlocked then Locale.t("ui.buy") else Locale.t("ui.locked", { level = rod.unlockLevel }),
 					unlocked, function()
 						Net.Send("ShopBuy", npcId, "rod", rod.id)
@@ -221,7 +174,7 @@ local function render()
 		UiKit.header(panel.list, Locale.t("shop.section.bait"), nextOrder())
 		local baitId = Fishing.BAIT.id
 		UiKit.row(panel.list, nextOrder(), Locale.t("shop.bait_pack", { item = Locale.t(`item.{baitId}`), n = amount }),
-			`{koin(pay(Fishing.BAIT.price) * amount)}  ·  {Locale.t("ui.owned", { n = items[baitId] or 0 })}`,
+			`{koin(Fishing.BAIT.price * amount)}  ·  {Locale.t("ui.owned", { n = items[baitId] or 0 })}`,
 			Locale.t("ui.buy"), true, function()
 				Net.Send("ShopBuy", npcId, "bait", baitId, amount)
 			end)
@@ -239,7 +192,7 @@ local function render()
 				UiKit.row(panel.list, nextOrder(), name, nil, Locale.t("ui.max"), false)
 			else
 				local unlocked = playerLevel >= config.unlockLevel
-				UiKit.row(panel.list, nextOrder(), name, `{detail}  ·  {koin(pay(cost))}`,
+				UiKit.row(panel.list, nextOrder(), name, `{detail}  ·  {koin(cost)}`,
 					if unlocked then Locale.t("ui.buy") else Locale.t("ui.locked", { level = config.unlockLevel }),
 					unlocked, function()
 						Net.Send("ShopBuy", npcId, "upgrade", upgradeId)
@@ -265,7 +218,7 @@ local function render()
 				UiKit.row(panel.list, nextOrder(), name, detail, Locale.t("blueprint.owned"), false)
 			else
 				local unlocked = playerLevel >= blueprint.unlockLevel
-				UiKit.row(panel.list, nextOrder(), name, `{koin(pay(blueprint.price))}  ·  {detail}`,
+				UiKit.row(panel.list, nextOrder(), name, `{koin(blueprint.price)}  ·  {detail}`,
 					if unlocked then Locale.t("ui.buy") else Locale.t("ui.locked", { level = blueprint.unlockLevel }),
 					unlocked, function()
 						Net.Send("ShopBuy", npcId, "blueprint", blueprint.id)
@@ -277,11 +230,18 @@ local function render()
 	-- What this NPC buys from you
 	if buysSomething then
 		UiKit.header(panel.list, Locale.t("shop.section.sell"), nextOrder())
+		if npc.quota then
+			UiKit.header(panel.list, Locale.t("sell.quota_info", { n = Trade.quota(snapshot.warungTier or 0) }), nextOrder())
+		elseif npc.buys.crop then
+			UiKit.header(panel.list, Locale.t("sell.overflow_info"), nextOrder())
+		end
 		local ids = {}
 		for itemId in items do
 			table.insert(ids, itemId)
 		end
 		Items.sortIds(ids)
+		local sales = snapshot.sales or { day = "", sold = {} }
+		local today = TimeKeys.day()
 		local shown = 0
 		for _, itemId in ids do
 			local info = Items.info(itemId)
@@ -289,12 +249,21 @@ local function render()
 			if info and unit then
 				shown += 1
 				local count = items[itemId]
-				UiKit.row(panel.list, nextOrder(), `{Items.displayName(info)}  ×{count}`, koin(unit * count), Locale.t("ui.sell"), true, function()
-					Net.Send("Sell", npcId, itemId)
-				end, if npc.haggle then Locale.t("ui.haggle") else nil, if npc.haggle then function()
-					haggleItem = itemId
-					render()
-				end else nil)
+				local name = `{Items.displayName(info)}  ×{count}`
+				if npc.quota and Crops.byId[itemId] then
+					-- Pak Darmo takes only what is left of today's quota for this crop.
+					local left = Trade.quotaLeft(sales, snapshot.warungTier or 0, itemId, today)
+					local taken = math.min(count, left)
+					UiKit.row(panel.list, nextOrder(), name,
+						`{koin(unit * taken)}  ·  {Locale.t("sell.quota_left", { left = left, max = Trade.quota(snapshot.warungTier or 0) })}`,
+						Locale.t(if taken > 0 then "ui.sell" else "sell.quota_out"), taken > 0, function()
+							Net.Send("Sell", npcId, itemId)
+						end)
+				else
+					UiKit.row(panel.list, nextOrder(), name, koin(unit * count), Locale.t("ui.sell"), true, function()
+						Net.Send("Sell", npcId, itemId)
+					end)
+				end
 			end
 		end
 		if shown == 0 then
@@ -305,14 +274,12 @@ end
 
 function ShopController.Open(npcId: string)
 	currentNpc = npcId
-	haggleItem = nil
 	panel.gui.Enabled = true
 	render()
 end
 
 function ShopController.Close()
 	currentNpc = nil
-	haggleItem = nil
 	panel.gui.Enabled = false
 end
 

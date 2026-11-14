@@ -13,7 +13,6 @@ local Npcs = require(ReplicatedStorage.Shared.Config.Npcs)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local MapService = require(script.Parent.MapService)
-local AffinityService = require(script.Parent.AffinityService)
 
 local NpcService = {}
 
@@ -97,7 +96,6 @@ local function build(npc: Npcs.Npc)
 	prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
 	prompt.Parent = root
 	prompt.Triggered:Connect(function(player: Player)
-		AffinityService.OnTalk(player, npc.id) -- first chat of the day builds kedekatan
 		Net.Fire("NpcTalk", player, npc.id)
 	end)
 end

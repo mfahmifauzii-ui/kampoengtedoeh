@@ -29,6 +29,12 @@ FARM_START, FARM_STEP, FARM_MAX = 6, 3, 21
 FARM_COSTS = [300, 800, 2000, 5000, 12000]
 WATER = 0.8
 
+# Pak Darmo's daily quota (Config/Npcs QUOTA, Config/Shop warung): full price up to the quota per crop, 0.7x above it.
+# These are ASSUMPTIONS (R1): tune them here and in the configs together.
+QUOTA_BASE, QUOTA_PER_TIER = 20, 5
+WARUNG_COSTS, WARUNG_UNLOCK_LV = [600, 2000, 5000, 12000], 3
+OVERFLOW_MULT = 0.7
+
 RODS = [("bambu", 0, 1, 1.0), ("rotan", 500, 5, 0.85), ("fiber", 2000, 10, 0.75), ("juragan", 6000, 18, 0.65)]
 FISH_XP = {"C": 3, "U": 6, "R": 15, "L": 40}
 # Average fish value / XP per catch by location for a mix of day phases (no rain), size mult ~1.2.
@@ -89,18 +95,21 @@ def best_offline_crop(level):
 
 def simulate(days=42):
     level, xp, koin, bunga = 1, 0, 100, 10
-    tiles, farm_step, rod_index = FARM_START, 0, 0
+    tiles, farm_step, rod_index, warung_tier = FARM_START, 0, 0, 0
     reached = {1: 0.0}
     log = []
     for day in range(1, days + 1):
         minutes = FIRST_SESSION_MIN if day == 1 else SESSION_MIN
         day_xp, day_koin = 0.0, 0.0
+        units = {}  # crop id -> units harvested today (sold with the quota rule at the end of the day)
+        seed_cost = 0.0
 
         # Offline: one harvest of long crops planted at the end of yesterday's session.
         if day > 1:
             crop = best_offline_crop(level)
             day_xp += crop[5] * tiles
-            day_koin += (crop[4] - crop[2]) * tiles
+            units[crop[0]] = units.get(crop[0], 0) + tiles
+            seed_cost += crop[2] * tiles
             if level >= KOLAM_LV:
                 day_koin += POND_CAP * 12  # common pond fish ~12 Koin
                 day_xp += POND_CAP * FISH_XP["C"]
@@ -128,7 +137,8 @@ def simulate(days=42):
                 crop = best_active_crop(level)
                 cycle = crop[3] * WATER + 20
                 per_min = tiles * 60 / cycle
-                day_koin += (crop[4] - crop[2]) * per_min
+                units[crop[0]] = units.get(crop[0], 0) + per_min
+                seed_cost += crop[2] * per_min
                 day_xp += crop[5] * per_min
             # level ups as XP arrives
             xp_total = xp + day_xp
@@ -138,6 +148,14 @@ def simulate(days=42):
                 level += 1
                 bunga += LEVEL_UP_BUNGA
                 reached.setdefault(level, day - 1 + (minute + 1) / minutes)
+
+        # Sell the day's harvest: full price up to Pak Darmo's quota per crop, the rest to Bang Tarno (0.7x).
+        quota = QUOTA_BASE + warung_tier * QUOTA_PER_TIER
+        crop_by_id = {c[0]: c for c in CROPS}
+        for cid, u in units.items():
+            sell = crop_by_id[cid][4]
+            day_koin += sell * (min(u, quota) + OVERFLOW_MULT * max(0.0, u - quota))
+        day_koin -= seed_cost
 
         xp += day_xp
         while level < MAX_LEVEL and xp >= xp_to_next(level):
@@ -155,8 +173,13 @@ def simulate(days=42):
             koin -= FARM_COSTS[farm_step]
             farm_step += 1
             tiles = min(FARM_MAX, tiles + FARM_STEP)
+        # Kapasitas Warung upgrades: raise the daily quota once affordable.
+        while (warung_tier < len(WARUNG_COSTS) and level >= WARUNG_UNLOCK_LV
+               and koin >= WARUNG_COSTS[warung_tier] * 1.5):
+            koin -= WARUNG_COSTS[warung_tier]
+            warung_tier += 1
 
-        log.append((day, level, int(koin), bunga, tiles, RODS[rod_index][0], int(day_koin), int(day_xp)))
+        log.append((day, level, int(koin), bunga, tiles, RODS[rod_index][0], int(day_koin), int(day_xp), warung_tier))
     return reached, log
 
 
@@ -165,9 +188,9 @@ if __name__ == "__main__":
     print("Level reached on day (fractional = during that day's session):")
     for lv in (5, 10, 15, 20, 25, 30):
         print(f"  Lv{lv:>2}: {reached.get(lv, 'not reached'):>}" if lv in reached else f"  Lv{lv:>2}: not reached in 42 days")
-    print("\nday  lv  koin  bunga tiles rod      koin/day xp/day")
+    print("\nday  lv  koin  bunga tiles rod      koin/day xp/day warung")
     for row in log:
         if row[0] in (1, 2, 3, 5, 7, 10, 14, 21, 28, 35, 42):
-            print(f"{row[0]:>3} {row[1]:>3} {row[2]:>6} {row[3]:>5} {row[4]:>5} {row[5]:<8} {row[6]:>7} {row[7]:>6}")
+            print(f"{row[0]:>3} {row[1]:>3} {row[2]:>6} {row[3]:>5} {row[4]:>5} {row[5]:<8} {row[6]:>7} {row[7]:>6} {row[8]:>5}")
     total = sum(xp_to_next(l) for l in range(1, MAX_LEVEL))
     print(f"\nTotal XP to Lv{MAX_LEVEL}: {total}")

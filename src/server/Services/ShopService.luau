@@ -3,8 +3,7 @@
 -- buys and sells comes from its config, prices from Modules/Trade. The client only sends requests.
 --   Sell(npcId, itemId | "all")                         NPC buys items from the player
 --   ShopBuy(npcId, kind, id, amount?)                   kind: rod | bait | upgrade | seed | seedx | fish | blueprint
---   Haggle(npcId, itemId, pct)                          bargain: the whole stack at base price +pct% (haggle NPCs)
--- Kedekatan: closer NPCs give a discount on everything you buy, every trade builds it (AffinityService).
+-- Pak Darmo (npc.quota) buys each crop only up to a daily quota; the rest stays in the bag for Bang Tarno (0.7x, no limit).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -16,9 +15,9 @@ local Npcs = require(ReplicatedStorage.Shared.Config.Npcs)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
+local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local Trade = require(ReplicatedStorage.Shared.Modules.Trade)
 local Types = require(ReplicatedStorage.Shared.Types)
-local AffinityService = require(script.Parent.AffinityService)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
 local FarmService = require(script.Parent.FarmService)
@@ -26,10 +25,8 @@ local FishService = require(script.Parent.FishService)
 local PondService = require(script.Parent.PondService)
 local InventoryService = require(script.Parent.InventoryService)
 local NpcService = require(script.Parent.NpcService)
-local SkillService = require(script.Parent.SkillService)
 
 local RATE = { rate = 4, burst = 8 }
-local RATE_HAGGLE = { rate = 3, burst = 6 }
 
 type UpgradeState = {
 	get: (data: Types.PlayerData) -> number,
@@ -55,9 +52,11 @@ local UPGRADE_STATE: { [string]: UpgradeState } = {
 		set = function(data, tier) data.farm.expansions = tier end,
 		after = function(player) FarmService.Rebuild(player) end,
 	},
+	warung = {
+		get = function(data) return data.sales.tier end,
+		set = function(data, tier) data.sales.tier = tier end,
+	},
 }
-
-local random = Random.new()
 
 local ShopService = {}
 
@@ -84,6 +83,15 @@ end
 
 -- Selling --------------------------------------------------------------------------
 
+-- Starts a new WIB day of quota counting when the day key changed.
+local function rollSalesDay(data: Types.PlayerData)
+	local today = TimeKeys.day()
+	if data.sales.day ~= today then
+		data.sales.day = today
+		data.sales.sold = {}
+	end
+end
+
 local function onSell(player: Player, npcId: any, target: any)
 	if typeof(target) ~= "string" then
 		return
@@ -93,6 +101,7 @@ local function onSell(player: Player, npcId: any, target: any)
 	if not npc or not data or next(npc.buys) == nil then
 		return
 	end
+	rollSalesDay(data)
 
 	-- Unit price this NPC pays for an item, nil if it doesn't buy it.
 	local function unitPrice(itemId: string): number?
@@ -112,92 +121,42 @@ local function onSell(player: Player, npcId: any, target: any)
 	end
 
 	local total = 0
+	local limited = false -- some crops were held back by the daily quota
 	for _, itemId in toSell do
 		local price = unitPrice(itemId) :: number
 		local count = data.inventory[itemId]
-		if count and InventoryService.Remove(player, itemId, count) then
+		if npc.quota and Crops.byId[itemId] then
+			local left = Trade.quotaLeft(data.sales, data.sales.tier, itemId, data.sales.day)
+			if count > left then
+				limited = true
+				count = left
+			end
+		end
+		if count and count > 0 and InventoryService.Remove(player, itemId, count) then
 			total += price * count
+			if npc.quota and Crops.byId[itemId] then
+				data.sales.sold[itemId] = (data.sales.sold[itemId] or 0) + count
+			end
 		end
 	end
 
 	if total > 0 then
 		EconomyService.Add(player, "koin", total, if target == "all" then "sell:all" else `sell:{target}`)
 		Net.Fire("Notify", player, "sell.sold", { n = total }) -- (AnalyticsHooks logs first_sell from the Koin gain)
-		AffinityService.OnTrade(player, npc.id)
-	else
+		InventoryService.Sync(player)
+	end
+	if limited then
+		Net.Fire("Notify", player, "sell.quota_full")
+		InventoryService.Sync(player)
+	elseif total == 0 then
 		Net.Fire("Notify", player, "sell.nothing")
-	end
-end
-
--- Haggling -------------------------------------------------------------------------
-
-local function offerFor(pct: number): { pct: number, minTier: number? }?
-	for _, offer in Npcs.HAGGLE.OFFERS do
-		if offer.pct == pct then
-			return offer
-		end
-	end
-	return nil
-end
-
-local function onHaggle(player: Player, npcId: any, itemId: any, pct: any)
-	if typeof(itemId) ~= "string" or typeof(pct) ~= "number" then
-		return
-	end
-	local npc = npcNear(player, npcId)
-	local data = DataService.Get(player)
-	if not npc or not npc.haggle or not data then
-		return
-	end
-	local offer = offerFor(pct)
-	local tier = AffinityService.Tier(player, npc.id)
-	if not offer or tier < (offer.minTier or 1) then
-		return
-	end
-	local info = Items.info(itemId)
-	local base = if info then Trade.buyPrice(npc, info) else nil
-	local count = data.inventory[itemId]
-	if not info or not base or not count then
-		Net.Fire("Notify", player, "sell.nothing")
-		return
-	end
-
-	local record = AffinityService.Record(player, npc.id) :: Types.NpcRecord
-	local now = os.time()
-	if now < record.pauseUntil then
-		Net.Fire("Notify", player, "haggle.pause", { n = record.pauseUntil - now })
-		return
-	end
-
-	local chance = Trade.haggleChance(offer.pct, tier, SkillService.Level(player, "tawar"))
-	if random:NextNumber() * 100 < chance then
-		local total = Trade.haggleTotal(base, count, info, offer.pct)
-		if InventoryService.Remove(player, itemId, count) then
-			EconomyService.Add(player, "koin", total, `sell:haggle:{itemId}`)
-			record.failStreak = 0
-			Net.Fire("Notify", player, "haggle.success", { n = total, pct = offer.pct })
-			AffinityService.OnHaggle(player, npc.id, true)
-			AffinityService.OnTrade(player, npc.id)
-			SkillService.AddXp(player, "tawar", Npcs.HAGGLE.XP_WIN)
-		end
-	else
-		record.failStreak += 1
-		Net.Fire("Notify", player, "haggle.fail", { npc = `npc.{npc.id}` })
-		if record.failStreak >= Npcs.HAGGLE.FAIL_STREAK then
-			record.failStreak = 0
-			record.pauseUntil = now + Npcs.HAGGLE.PAUSE_SECONDS
-			Net.Fire("Notify", player, "haggle.pause", { n = Npcs.HAGGLE.PAUSE_SECONDS })
-		end
-		AffinityService.OnHaggle(player, npc.id, false)
-		SkillService.AddXp(player, "tawar", Npcs.HAGGLE.XP_LOSS)
 	end
 end
 
 -- Buying ---------------------------------------------------------------------------
--- tier = the player's kedekatan tier with this NPC: Trade.discount lowers every unit price.
 -- Each function returns true when the purchase went through.
 
-local function buyRod(player: Player, data: Types.PlayerData, rodId: string, tier: number): boolean
+local function buyRod(player: Player, data: Types.PlayerData, rodId: string): boolean
 	local rod = Fishing.rods[rodId]
 	if not rod or rod.price <= 0 or data.fishing.ownedRods[rodId] then
 		return false
@@ -206,7 +165,7 @@ local function buyRod(player: Player, data: Types.PlayerData, rodId: string, tie
 		Net.Fire("Notify", player, "shop.locked", { level = rod.unlockLevel })
 		return false
 	end
-	if not EconomyService.TrySpend(player, "koin", Trade.discount(rod.price, tier), `rod:{rodId}`) then
+	if not EconomyService.TrySpend(player, "koin", rod.price, `rod:{rodId}`) then
 		notEnough(player)
 		return false
 	end
@@ -217,7 +176,7 @@ local function buyRod(player: Player, data: Types.PlayerData, rodId: string, tie
 	return true
 end
 
-local function buyBait(player: Player, baitId: string, amount: any, tier: number): boolean
+local function buyBait(player: Player, baitId: string, amount: any): boolean
 	if baitId ~= Fishing.BAIT.id or not validPack(amount) then
 		return false
 	end
@@ -225,7 +184,7 @@ local function buyBait(player: Player, baitId: string, amount: any, tier: number
 		Net.Fire("Notify", player, "inv.full")
 		return false
 	end
-	if not EconomyService.TrySpend(player, "koin", Trade.discount(Fishing.BAIT.price, tier) * amount, `bait:{baitId}`) then
+	if not EconomyService.TrySpend(player, "koin", Fishing.BAIT.price * amount, `bait:{baitId}`) then
 		notEnough(player)
 		return false
 	end
@@ -234,7 +193,7 @@ local function buyBait(player: Player, baitId: string, amount: any, tier: number
 	return true
 end
 
-local function buyUpgrade(player: Player, data: Types.PlayerData, upgradeId: string, tier: number): boolean
+local function buyUpgrade(player: Player, data: Types.PlayerData, upgradeId: string): boolean
 	local config = Shop.UPGRADES[upgradeId]
 	local state = UPGRADE_STATE[upgradeId]
 	if not config or not state then
@@ -250,7 +209,7 @@ local function buyUpgrade(player: Player, data: Types.PlayerData, upgradeId: str
 		Net.Fire("Notify", player, "shop.locked", { level = config.unlockLevel })
 		return false
 	end
-	if not EconomyService.TrySpend(player, "koin", Trade.discount(cost, tier), `upgrade:{upgradeId}:{current + 1}`) then
+	if not EconomyService.TrySpend(player, "koin", cost, `upgrade:{upgradeId}:{current + 1}`) then
 		notEnough(player)
 		return false
 	end
@@ -264,7 +223,7 @@ local function buyUpgrade(player: Player, data: Types.PlayerData, upgradeId: str
 end
 
 -- Mbak Arsi's blueprints: one purchase unlocks buying every decor item of that set (Config/Blueprints).
-local function buyBlueprint(player: Player, data: Types.PlayerData, blueprintId: string, tier: number): boolean
+local function buyBlueprint(player: Player, data: Types.PlayerData, blueprintId: string): boolean
 	local blueprint = Blueprints.byId[blueprintId]
 	if not blueprint or data.decor.blueprints[blueprintId] == true then
 		return false
@@ -273,7 +232,7 @@ local function buyBlueprint(player: Player, data: Types.PlayerData, blueprintId:
 		Net.Fire("Notify", player, "shop.locked", { level = blueprint.unlockLevel })
 		return false
 	end
-	if not EconomyService.TrySpend(player, "koin", Trade.discount(blueprint.price, tier), `blueprint:{blueprintId}`) then
+	if not EconomyService.TrySpend(player, "koin", blueprint.price, `blueprint:{blueprintId}`) then
 		notEnough(player)
 		return false
 	end
@@ -284,7 +243,7 @@ local function buyBlueprint(player: Player, data: Types.PlayerData, blueprintId:
 end
 
 -- Seeds go into the bag; planting uses them (FarmService). unggul = Bu Wati's faster, pricier kind.
-local function buySeed(player: Player, data: Types.PlayerData, cropId: string, amount: any, unggul: boolean, tier: number): boolean
+local function buySeed(player: Player, data: Types.PlayerData, cropId: string, amount: any, unggul: boolean): boolean
 	local crop = Crops.byId[cropId]
 	if not crop or not validPack(amount) then
 		return false
@@ -298,7 +257,7 @@ local function buySeed(player: Player, data: Types.PlayerData, cropId: string, a
 		Net.Fire("Notify", player, "inv.full")
 		return false
 	end
-	local cost = Trade.discount(Trade.seedPrice(crop, unggul), tier) * amount
+	local cost = Trade.seedPrice(crop, unggul) * amount
 	if not EconomyService.TrySpend(player, "koin", cost, `seed:{crop.id}`) then
 		notEnough(player)
 		return false
@@ -309,7 +268,7 @@ local function buySeed(player: Player, data: Types.PlayerData, cropId: string, a
 end
 
 -- Mbok Minah sells common/uncommon fish (size Kecil) so orders and the Book don't depend on luck.
-local function buyFish(player: Player, fishId: string, amount: any, tier: number): boolean
+local function buyFish(player: Player, fishId: string, amount: any): boolean
 	local fish = FishConfig.byId[fishId]
 	if not fish or not Npcs.FISH_FOR_SALE[fish.rarity] or not validPack(amount) then
 		return false
@@ -319,7 +278,7 @@ local function buyFish(player: Player, fishId: string, amount: any, tier: number
 		Net.Fire("Notify", player, "inv.full")
 		return false
 	end
-	local cost = Trade.discount(Trade.fishPrice(fish.sellPrice), tier) * amount
+	local cost = Trade.fishPrice(fish.sellPrice) * amount
 	if not EconomyService.TrySpend(player, "koin", cost, `fish:{fish.id}`) then
 		notEnough(player)
 		return false
@@ -338,25 +297,20 @@ local function onBuy(player: Player, npcId: any, kind: any, id: any, amount: any
 	if not npc or not data then
 		return
 	end
-	local tier = AffinityService.Tier(player, npc.id)
-	local bought = false
 	if kind == "rod" and npc.sells.rods then
-		bought = buyRod(player, data, id, tier)
+		buyRod(player, data, id)
 	elseif kind == "bait" and npc.sells.bait then
-		bought = buyBait(player, id, amount, tier)
+		buyBait(player, id, amount)
 	elseif kind == "upgrade" and npc.sells.upgrades then
-		bought = buyUpgrade(player, data, id, tier)
+		buyUpgrade(player, data, id)
 	elseif kind == "seed" and npc.sells.seeds then
-		bought = buySeed(player, data, id, amount, false, tier)
+		buySeed(player, data, id, amount, false)
 	elseif kind == "seedx" and npc.sells.seedsUnggul then
-		bought = buySeed(player, data, id, amount, true, tier)
+		buySeed(player, data, id, amount, true)
 	elseif kind == "fish" and npc.sells.fish then
-		bought = buyFish(player, id, amount, tier)
+		buyFish(player, id, amount)
 	elseif kind == "blueprint" and npc.sells.blueprints then
-		bought = buyBlueprint(player, data, id, tier)
-	end
-	if bought then
-		AffinityService.OnTrade(player, npc.id)
+		buyBlueprint(player, data, id)
 	end
 end
 
@@ -371,7 +325,6 @@ end
 function ShopService.Start()
 	Net.On("Sell", onSell, RATE)
 	Net.On("ShopBuy", onBuy, RATE)
-	Net.On("Haggle", onHaggle, RATE_HAGGLE)
 	Net.On("ShopEquipRod", onEquipRod, RATE)
 end
 

@@ -20,8 +20,6 @@ local ORDER = {
 	"FarmService",
 	"FishService",
 	"PondService", -- after FishService: gives each pond its fishing/collect spot
-	"AffinityService",
-	"SkillService",
 	"NpcService",
 	"ShopService",
 	"DecorService",
