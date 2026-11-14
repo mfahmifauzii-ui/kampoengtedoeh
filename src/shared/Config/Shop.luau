@@ -5,7 +5,7 @@
 return {
 	NPC_DISTANCE = 25, -- studs, server-checked for every buy/sell
 
-	PACKS = { 1, 10 }, -- amounts you can buy at once (seeds, bait, fish)
+	MAX_AMOUNT = 99, -- most you can buy or sell in one go (the number picker in the shop; the server re-checks)
 
 	UPGRADE_ORDER = { "backpack", "pond", "warung" },
 	UPGRADES = {

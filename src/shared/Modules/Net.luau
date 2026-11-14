@@ -25,7 +25,7 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	StateSync = "Event", -- S->C (snapshot: items, slots, tiers, rods) — see InventoryService
 	StateRequest = "Event", -- C->S () ask for a fresh snapshot
 	NpcTalk = "Event", -- S->C (npcId: string) the player pressed "Ngobrol": open the dialogue
-	Sell = "Event", -- C->S (npcId: string, itemId: string | "all")
+	Sell = "Event", -- C->S (npcId: string, itemId: string | "all", amount: number?)
 	ShopBuy = "Event", -- C->S (npcId: string, kind: "rod"|"bait"|"upgrade"|"seed"|"seedx"|"fish", id: string, amount: number?)
 	ShopEquipRod = "Event", -- C->S (rodId: string)
 

@@ -63,6 +63,10 @@ Detail dan screenshot di `GUI_Design.md`. Ringkas: menu kanan atas jadi kolom ve
 
 **Risiko ekonomi:** tanpa batas petak, simulasi (dengan asumsi +4 petak per blok) mencapai Lv 30 di hari ke-23 (dulu hari 31), dan 15 dari 20 blok terbeli di hari 42, jadi blok efektif menyerap Koin. Perlu data playtest, bukan tebakan.
 
+### Perbaikan dari playtest AI persona putaran 1 ✅ dites di Studio (14 Nov 2026)
+Temuan di `Playtest_AI_Persona_1.md`. Diperbaiki: Garap tidak lagi menelan ketukan petak; tanaman bisa diketuk langsung; **panduan pemain baru + jalur panah di tanah ke Pak Darmo** untuk 3 perjalanan jual pertama (`Config/Onboarding`, `data.guide.sells`, tanpa migrasi karena kunci baru ditambah Reconcile); toko NPC bertab Beli/Jual dengan number picker, total merah, slot gambar placeholder; modal konfirmasi standar (Batal kiri merah, Setuju kanan) untuk beli, Jual Semua, dan beli lahan; server menerima jumlah bebas 1–99 untuk beli dan jual (`Sell(npc, item, amount?)`, `Shop.MAX_AMOUNT` menggantikan `PACKS`).
+**Belum teruji:** HP asli (picker, tahan tombol, panah di tepi layar dengan joystick), 2+ pemain, toko NPC selain Pak Darmo (Bu Wati, Mas Joko, Mbok Minah, Mbak Arsi memakai kode yang sama tetapi belum dibuka satu per satu), tombol Jual satu item untuk NPC non-kuota. Temuan 6–9 di dokumen persona masih terbuka.
+
 ## Gerbang: Playtest #1
 
 Jangan tambah fitur baru sebelum ini. Isi: `Playtest_Plan.md`.

@@ -20,7 +20,7 @@ Screenshot: [HUD default](screenshots/UI_hud_default.jpg) · [menu Garap + toolt
 ## Menu melayang (bukan panel besar)
 - **Warna: bambu gelap** (`UiKit.DARK`, cokelat tua) dengan teks krem dan garis bambu emas, **bukan putih**. Dipakai untuk bar Garap, petunjuk di atas ("toast" Garap), tooltip, dan popup beli lahan.
 - **Menu Garap** (di atas dock): jumlah petak, 4 alat dalam grid 2×2, dan **badge tutup (X)** di pojok. Nama alat: **Cangkul** (jadikan tanah), **Hijaukan** (kembalikan jadi rumput), **Gali Kolam**, **Urug Kolam** (menggantikan "Garap / Ratakan / Kolam / Hapus Kolam"). **Beli Lahan tidak ada di sini lagi.**
-- **Beli lahan:** tombol bulat **+** dengan harga melayang di atas tiap blok lahan (32×32) yang bisa dibeli. Hanya muncul saat karakter dekat (≤ 50 stud, seperti proximity prompt), **maksimal 3 sekaligus (yang terdekat)** supaya layar tidak penuh, dan tersembunyi saat mode Garap terbuka. Ketuk → **popup kecil** ("Beli lahan ini?", info, harga, Beli / Batal, X); tombol Beli jadi "Koin kurang" bila Koin tidak cukup. Dibangun dari Frame ScreenGui yang mengikuti titik 3D tiap frame (billboard biasa di PlayerGui tidak bisa diuji di Studio dan kurang andal).
+- **Beli lahan:** tombol bulat **+** dengan harga melayang di atas tiap blok lahan (32×32) yang bisa dibeli. Hanya muncul saat karakter dekat (≤ 50 stud, seperti proximity prompt), **maksimal 3 sekaligus (yang terdekat)** supaya layar tidak penuh, dan tersembunyi saat mode Garap terbuka. Ketuk → **modal konfirmasi standar** ("Beli lahan ini?", info, total, Batal kiri merah / Beli kanan); harga merah dan Beli nonaktif bila Koin tidak cukup. Dibangun dari Frame ScreenGui yang mengikuti titik 3D tiap frame (billboard biasa di PlayerGui tidak bisa diuji di Studio dan kurang andal).
 - Nama kecil yang tampil saat hover sekarang tooltip, bukan caption tetap, supaya HP tidak penuh.
 
 ## Panel (semua lewat `UiKit.panel`)
@@ -28,6 +28,13 @@ Screenshot: [HUD default](screenshots/UI_hud_default.jpg) · [menu Garap + toolt
 - Tombol: plank bambu emas, teks krem berkontur gelap lewat label overlay (skin menutupi teks tombol aslinya). Tombol nonaktif: plank 45% transparan, teks ikut pudar.
 - Target sentuh minimal 50 px, baris 82 px, teks minimal 13 px (HUD kecil memakai 10–15 px khusus bar/chip).
 - `UiKit.autoScale()`: `UIScale` = tinggi layar / 560, dijepit **1–1,35** (HP tidak pernah diperkecil).
+
+## Toko NPC bertab dan modal konfirmasi (14 Nov 2026)
+- **Tab Beli / Jual** (`UiKit.tabs`) di atas daftar; tab terpilih plank terang, yang lain gelap dan pudar. NPC yang hanya menjual atau hanya membeli tidak menampilkan tab. Toko dibuka di tab Jual bila ada yang bisa dijual ke NPC itu.
+- **Baris dagang** (`UiKit.tradeRow`, tinggi 108): slot gambar kiri, nama + detail (harga satuan, jumlah yang dimiliki, sisa kuota), **number picker** `− 3 +` (tahan tombol untuk mengulang; maks 99, atau sisa kuota / jumlah di tas saat menjual), **total**, tombol Beli/Jual. Total **merah** dan tombol abu-abu bila Koin tidak cukup. Barang sekali beli (joran, upgrade, blueprint) tanpa picker. Jual satu item langsung jalan; **Beli** dan **Jual Semua** selalu lewat modal.
+- **Slot gambar** (`UiKit.thumb`): memakai bingkai kartu yang ada; gambar di dalamnya PNG berlatar transparan. Sampai model ada, tampil ikon placeholder yang dipudarkan. **Mengganti nanti: isi id di `UiAssets.THUMBS[itemId]`** (kunci: id item seperti `kangkung`, `seed_kangkung`, `nila@S`, id joran, `upgrade_<id>`, `blueprint_<id>`); semua baris item itu ikut berganti. PNG `assets/models/crops/*_thumb.png` belum diunggah.
+- **Modal konfirmasi standar** (`UiKit.confirm`, ScreenGui `ConfirmModal`, DisplayOrder 100): judul, teks, total, dua tombol. **Batal di kiri, warna merah (`UiKit.RED`); Setuju di kanan.** Mengetuk latar gelap = Batal. Berlaku untuk semua modal: beli di toko, Jual Semua, dan beli lahan (popup lama dihapus). Modal baru wajib lewat fungsi ini. *(Bar Pasang/Batal saat menghias bukan modal; tidak diubah.)*
+- Petunjuk pemain baru: lihat `Playtest_AI_Persona_1.md` (`GuideController`, ScreenGui `GuideUI`, di bawah HUD).
 
 ## Kit (assets/gui; versi siap upload di assets/gui/ready)
 | File | Isi | Dipakai sebagai |

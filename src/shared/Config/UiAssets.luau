@@ -45,6 +45,11 @@ return {
 	PLATE = { image = "rbxassetid://86005759010163", slice = Rect.new(0, 0, 0, 0), sliceScale = 1 } :: Skin, -- round menu plate (256), drawn Fit
 	CLOSE = { image = "rbxassetid://107235699931445", slice = Rect.new(0, 0, 0, 0), sliceScale = 1 } :: Skin, -- round red close badge (256), drawn Fit
 
+	-- Item pictures for the shop rows (UiKit.thumb): transparent PNGs of the crop / fish / rod models, keyed by item id
+	-- ("kangkung", "seed_kangkung", "nila@S", "bambu"...) or by crop id. Empty until the models exist: the row then shows the
+	-- dimmed placeholder icon instead. Fill an id here and every row of that item swaps its picture, nothing else to touch.
+	THUMBS = {} :: { [string]: string },
+
 	ICONS = {
 		koin = "rbxassetid://101824585231368", -- gold coin (Koin)
 		bunga = "rbxassetid://90836865320846", -- frangipani (Bunga)

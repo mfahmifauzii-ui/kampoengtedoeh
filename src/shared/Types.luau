@@ -118,6 +118,7 @@ export type PlayerData = {
 	passes: { [string]: boolean },
 	instantGrow: { tokens: number, day: string, usedToday: number },
 	onboarding: { [string]: boolean },
+	guide: { sells: number }, -- finished sale trips so far: the new-player guide (hints + NPC arrow) runs for Onboarding.TRIES of them
 	purchaseIdCache: { string },
 }
 

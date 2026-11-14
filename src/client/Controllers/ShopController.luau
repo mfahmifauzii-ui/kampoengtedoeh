@@ -1,8 +1,13 @@
 --!strict
 -- NPC shop panel: opened by the dialogue's [Jual / Beli] button. What it shows comes from the NPC's config
 -- (Config/Npcs): what it sells (seeds, rods, bait, upgrades, fish) and what it buys from you.
--- Pak Darmo buys each crop at full price only up to a daily quota; the panel shows what is left and the price of
--- what he will actually take. Past the quota, Bang Tarno buys the rest at 0.7x with no limit.
+--
+-- Two tabs, Beli and Jual (a tab only shows when the NPC does that at all). Every row has a picture slot (a placeholder
+-- icon until the model's image exists, see UiAssets.THUMBS), a number picker, the total and one button. A total the player
+-- cannot pay turns red and the button stays grey. Beli always asks first (UiKit.confirm, Batal left / Setuju right);
+-- so does Jual Semua. Jual of one item is a deliberate pick (item + number) and goes straight through.
+-- Pak Darmo buys each crop at full price only up to a daily quota; the row shows what is left. Past the quota, Bang Tarno
+-- buys the rest at 0.7x with no limit.
 -- Buttons only send requests; prices, levels, quotas and stock are re-checked on the server.
 --
 -- UI CONTRACT: ScreenGui "ShopPanel" (UiKit.panel). The title is the NPC's name.
@@ -30,14 +35,26 @@ local player = Players.LocalPlayer
 
 local ShopController = {}
 
+local TABS_HEIGHT = 46
+local LIST_TOP_PLAIN = 52 -- list top when there are no tabs (UiKit.panel default)
+local LIST_TOP_TABS = LIST_TOP_PLAIN + TABS_HEIGHT + 8
+
 local panel: UiKit.Panel
+local tabs: UiKit.Tabs
 local sellAllButton: TextButton
 local currentNpc: string? = nil
-local amount = 1 -- how many seeds / bait / fish one tap buys
+local tab = "buy" -- "buy" | "sell"
+local qtyBuy: { [string]: number } = {} -- picked amounts, kept across rebuilds (reset when a shop opens)
+local qtySell: { [string]: number } = {}
 
 local function level(): number
 	local value = player:GetAttribute("Level")
 	return if typeof(value) == "number" then value else 1
+end
+
+local function money(): number
+	local value = player:GetAttribute("Koin")
+	return if typeof(value) == "number" then value else 0
 end
 
 local function koin(n: number): string
@@ -60,66 +77,102 @@ local function upgradeInfo(upgradeId: string, snapshot: any): (number, string)
 	end
 end
 
-local function render()
-	if not panel.gui.Enabled or not currentNpc then
-		return
-	end
-	local npc = Npcs.byId[currentNpc]
-	local snapshot = State.current :: any
-	UiKit.clear(panel.list)
-	if not npc or not snapshot then
-		return
-	end
-	local npcId = npc.id
-	local items = snapshot.items
-	local playerLevel = level()
-	local order = 0
-	local function nextOrder(): number
-		order += 1
-		return order
-	end
+local UPGRADE_ICON = { backpack = "tas", pond = "kolam", warung = "toko" }
 
-	panel.title.Text = Locale.t(`npc.{npcId}`)
-	local sells = npc.sells
-	local buysSomething = next(npc.buys) ~= nil
-	sellAllButton.Visible = buysSomething
-	panel.footerLabel.Text = koin(player:GetAttribute("Koin") :: number? or 0)
+-- Asks "buy this?" with the total; Setuju sends the purchase. `amount` nil = a one-off purchase (rod, upgrade, blueprint).
+local function confirmBuy(npcId: string, kind: string, id: string, itemName: string, unitPrice: number, amount: number?)
+	local count = amount or 1
+	local total = unitPrice * count
+	UiKit.confirm({
+		title = Locale.t("confirm.buy_title"),
+		body = if amount then Locale.t("confirm.buy_body", { item = itemName, n = count }) else itemName,
+		totalText = koin(total),
+		totalRed = total > money(),
+		canConfirm = total <= money(),
+		onConfirm = function()
+			Net.Send("ShopBuy", npcId, kind, id, amount)
+		end,
+	})
+end
 
-	-- How many to buy per tap (seeds, bait, fish).
-	if sells.seeds or sells.seedsUnggul or sells.bait or sells.fish then
-		local row = Instance.new("Frame")
-		row.Name = "AmountRow"
-		row.LayoutOrder = nextOrder()
-		row.BackgroundTransparency = 1
-		row.Size = UDim2.new(1, -6, 0, 36)
-		row.Parent = panel.list
-		local layout = Instance.new("UIListLayout")
-		layout.FillDirection = Enum.FillDirection.Horizontal
-		layout.Padding = UDim.new(0, 6)
-		layout.Parent = row
-		for _, pack in Shop.PACKS do
-			local button = UiKit.button(row, `Pack{pack}`, `×{pack}`, if amount == pack then UiKit.BUTTON else UiKit.BUTTON_MUTED)
-			button.Size = UDim2.new(1 / #Shop.PACKS, -6, 1, 0)
-			button.Activated:Connect(function()
-				amount = pack
-				render()
-			end)
+-- Names (comma separated) of what unfinished orders still need and "Jual Semua" would sell away.
+local function neededByOrders(snapshot: any, sellable: { string }): string
+	local orders = snapshot.orders
+	local names: { string } = {}
+	local seen: { [string]: boolean } = {}
+	local function check(entry: any)
+		if typeof(entry) ~= "table" or entry.done or typeof(entry.items) ~= "table" then
+			return
+		end
+		for _, need in entry.items do
+			local base = need.item
+			for _, itemId in sellable do
+				if (itemId == base or itemId:match("^(.+)@%a$") == base) and not seen[base] then
+					seen[base] = true
+					local key = if Crops.byId[base] then `crop.{base}` else `fish.{base}`
+					table.insert(names, Locale.t(key))
+				end
+			end
 		end
 	end
+	if orders then
+		for _, entry in orders.daily or {} do
+			check(entry)
+		end
+		check(orders.weekly)
+	end
+	return table.concat(names, ", ")
+end
+
+-- Everything this NPC would buy from the bag right now.
+local function sellableIds(npc: Npcs.Npc, snapshot: any): { string }
+	local ids = {}
+	for itemId in snapshot.items do
+		local info = Items.info(itemId)
+		if info and Trade.buyPrice(npc, info) then
+			table.insert(ids, itemId)
+		end
+	end
+	return Items.sortIds(ids)
+end
+
+local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
+	local npcId = npc.id
+	local sells = npc.sells
+	local items = snapshot.items
+	local playerLevel = level()
+	local list = panel.list
+	local anything = false
 
 	-- Seeds (Pak Darmo) and faster seeds (Bu Wati)
 	local function seedSection(headerKey: string, itemPrefix: string, kind: string, unggul: boolean)
-		UiKit.header(panel.list, Locale.t(headerKey), nextOrder())
+		UiKit.header(list, Locale.t(headerKey), nextOrder())
 		for _, crop in Crops.list do
 			if crop.unlockLevel <= playerLevel + 5 then -- show only the next few locked crops
+				anything = true
 				local unlocked = playerLevel >= crop.unlockLevel
-				local owned = items[itemPrefix .. crop.id] or 0
-				UiKit.row(panel.list, nextOrder(), Locale.t(`crop.{crop.id}`),
-					`{koin(Trade.seedPrice(crop, unggul) * amount)}  ·  {Locale.t("ui.owned", { n = owned })}`,
-					if unlocked then Locale.t("ui.buy") else Locale.t("ui.locked", { level = crop.unlockLevel }),
-					unlocked, function()
-						Net.Send("ShopBuy", npcId, kind, crop.id, amount)
-					end)
+				local itemId = itemPrefix .. crop.id
+				local unit = Trade.seedPrice(crop, unggul)
+				local name = Locale.t(`crop.{crop.id}`)
+				UiKit.tradeRow(list, nextOrder(), {
+					name = name,
+					sub = `{Locale.t("shop.unit_price", { price = koin(unit) })}  ·  {Locale.t("ui.owned", { n = items[itemId] or 0 })}`,
+					thumbKey = itemId,
+					placeholderIcon = "bibit",
+					unitPrice = unit,
+					maxQty = if unlocked then Shop.MAX_AMOUNT else 0,
+					pickQty = true,
+					qty = qtyBuy[itemId],
+					money = money(),
+					actionText = Locale.t("ui.buy"),
+					disabledText = Locale.t("ui.locked", { level = crop.unlockLevel }),
+					onQty = function(n)
+						qtyBuy[itemId] = n
+					end,
+					onAction = function(n)
+						confirmBuy(npcId, kind, crop.id, name, unit, n)
+					end,
+				})
 			end
 		end
 	end
@@ -132,75 +185,147 @@ local function render()
 
 	-- Fish (Mbok Minah)
 	if sells.fish then
-		UiKit.header(panel.list, Locale.t("shop.section.fish"), nextOrder())
+		UiKit.header(list, Locale.t("shop.section.fish"), nextOrder())
 		for _, fish in FishConfig.list do
 			if Npcs.FISH_FOR_SALE[fish.rarity] then
-				local owned = items[`{fish.id}@S`] or 0
-				UiKit.row(panel.list, nextOrder(), Locale.t(`fish.{fish.id}`),
-					`{koin(Trade.fishPrice(fish.sellPrice) * amount)}  ·  {Locale.t("ui.owned", { n = owned })}`,
-					Locale.t("ui.buy"), true, function()
-						Net.Send("ShopBuy", npcId, "fish", fish.id, amount)
-					end)
+				anything = true
+				local itemId = `{fish.id}@S`
+				local unit = Trade.fishPrice(fish.sellPrice)
+				local name = Locale.t(`fish.{fish.id}`)
+				UiKit.tradeRow(list, nextOrder(), {
+					name = name,
+					sub = `{Locale.t("shop.unit_price", { price = koin(unit) })}  ·  {Locale.t("ui.owned", { n = items[itemId] or 0 })}`,
+					thumbKey = itemId,
+					placeholderIcon = "ikan",
+					unitPrice = unit,
+					maxQty = Shop.MAX_AMOUNT,
+					pickQty = true,
+					qty = qtyBuy[itemId],
+					money = money(),
+					actionText = Locale.t("ui.buy"),
+					onQty = function(n)
+						qtyBuy[itemId] = n
+					end,
+					onAction = function(n)
+						confirmBuy(npcId, "fish", fish.id, name, unit, n)
+					end,
+				})
 			end
 		end
 	end
 
 	-- Rods and bait (Mas Joko)
 	if sells.rods then
-		UiKit.header(panel.list, Locale.t("shop.section.rods"), nextOrder())
+		UiKit.header(list, Locale.t("shop.section.rods"), nextOrder())
 		for _, rod in Fishing.rodList do
+			anything = true
 			local name = Locale.t(`rod.{rod.id}`)
 			if snapshot.ownedRods[rod.id] == true then
 				local equipped = snapshot.rod == rod.id
-				UiKit.row(panel.list, nextOrder(), name, nil, Locale.t(if equipped then "ui.equipped" else "ui.equip"), not equipped, function()
-					Net.Send("ShopEquipRod", rod.id)
-				end)
+				UiKit.tradeRow(list, nextOrder(), {
+					name = name,
+					thumbKey = rod.id,
+					placeholderIcon = "pancing",
+					maxQty = if equipped then 0 else 1,
+					pickQty = false,
+					actionText = Locale.t("ui.equip"),
+					disabledText = Locale.t("ui.equipped"),
+					onAction = function()
+						Net.Send("ShopEquipRod", rod.id)
+					end,
+				})
 			else
 				local unlocked = playerLevel >= rod.unlockLevel
-				UiKit.row(panel.list, nextOrder(), name, koin(rod.price),
-					if unlocked then Locale.t("ui.buy") else Locale.t("ui.locked", { level = rod.unlockLevel }),
-					unlocked, function()
-						Net.Send("ShopBuy", npcId, "rod", rod.id)
-					end)
+				UiKit.tradeRow(list, nextOrder(), {
+					name = name,
+					thumbKey = rod.id,
+					placeholderIcon = "pancing",
+					unitPrice = rod.price,
+					maxQty = if unlocked then 1 else 0,
+					pickQty = false,
+					money = money(),
+					actionText = Locale.t("ui.buy"),
+					disabledText = Locale.t("ui.locked", { level = rod.unlockLevel }),
+					onAction = function()
+						confirmBuy(npcId, "rod", rod.id, name, rod.price, nil)
+					end,
+				})
 			end
 		end
 	end
 	if sells.bait then
-		UiKit.header(panel.list, Locale.t("shop.section.bait"), nextOrder())
+		UiKit.header(list, Locale.t("shop.section.bait"), nextOrder())
+		anything = true
 		local baitId = Fishing.BAIT.id
-		UiKit.row(panel.list, nextOrder(), Locale.t("shop.bait_pack", { item = Locale.t(`item.{baitId}`), n = amount }),
-			`{koin(Fishing.BAIT.price * amount)}  ·  {Locale.t("ui.owned", { n = items[baitId] or 0 })}`,
-			Locale.t("ui.buy"), true, function()
-				Net.Send("ShopBuy", npcId, "bait", baitId, amount)
-			end)
+		local name = Locale.t(`item.{baitId}`)
+		UiKit.tradeRow(list, nextOrder(), {
+			name = name,
+			sub = `{Locale.t("shop.unit_price", { price = koin(Fishing.BAIT.price) })}  ·  {Locale.t("ui.owned", { n = items[baitId] or 0 })}`,
+			thumbKey = baitId,
+			placeholderIcon = "pancing",
+			unitPrice = Fishing.BAIT.price,
+			maxQty = Shop.MAX_AMOUNT,
+			pickQty = true,
+			qty = qtyBuy[baitId],
+			money = money(),
+			actionText = Locale.t("ui.buy"),
+			onQty = function(n)
+				qtyBuy[baitId] = n
+			end,
+			onAction = function(n)
+				confirmBuy(npcId, "bait", baitId, name, Fishing.BAIT.price, n)
+			end,
+		})
 	end
 
 	-- Upgrades (Pak Darmo)
 	if sells.upgrades then
-		UiKit.header(panel.list, Locale.t("shop.section.upgrades"), nextOrder())
+		UiKit.header(list, Locale.t("shop.section.upgrades"), nextOrder())
 		for _, upgradeId in Shop.UPGRADE_ORDER do
+			anything = true
 			local config = Shop.UPGRADES[upgradeId]
 			local upgradeTier, detail = upgradeInfo(upgradeId, snapshot)
 			local cost = config.costs[upgradeTier + 1]
 			local name = Locale.t(`upgrade.{upgradeId}`)
 			if not cost then
-				UiKit.row(panel.list, nextOrder(), name, nil, Locale.t("ui.max"), false)
+				UiKit.tradeRow(list, nextOrder(), {
+					name = name,
+					sub = detail,
+					thumbKey = `upgrade_{upgradeId}`,
+					placeholderIcon = UPGRADE_ICON[upgradeId],
+					maxQty = 0,
+					pickQty = false,
+					actionText = Locale.t("ui.max"),
+					disabledText = Locale.t("ui.max"),
+					onAction = function() end,
+				})
 			else
 				local unlocked = playerLevel >= config.unlockLevel
-				UiKit.row(panel.list, nextOrder(), name, `{detail}  ·  {koin(cost)}`,
-					if unlocked then Locale.t("ui.buy") else Locale.t("ui.locked", { level = config.unlockLevel }),
-					unlocked, function()
-						Net.Send("ShopBuy", npcId, "upgrade", upgradeId)
-					end)
+				UiKit.tradeRow(list, nextOrder(), {
+					name = name,
+					sub = detail,
+					thumbKey = `upgrade_{upgradeId}`,
+					placeholderIcon = UPGRADE_ICON[upgradeId],
+					unitPrice = cost,
+					maxQty = if unlocked then 1 else 0,
+					pickQty = false,
+					money = money(),
+					actionText = Locale.t("ui.buy"),
+					disabledText = Locale.t("ui.locked", { level = config.unlockLevel }),
+					onAction = function()
+						confirmBuy(npcId, "upgrade", upgradeId, name, cost, nil)
+					end,
+				})
 			end
 		end
 	end
 
 	-- Decor blueprints (Mbak Arsi): each unlocks buying a whole set of decor.
 	if sells.blueprints then
-		UiKit.header(panel.list, Locale.t("shop.section.blueprints"), nextOrder())
+		UiKit.header(list, Locale.t("shop.section.blueprints"), nextOrder())
 		local owned = snapshot.decorBlueprints or {}
 		for _, blueprint in Blueprints.list do
+			anything = true
 			local names = {}
 			for _, item in Decor.list do
 				if item.blueprint == blueprint.id then
@@ -210,71 +335,203 @@ local function render()
 			local detail = Locale.t("blueprint.items", { items = table.concat(names, ", ") })
 			local name = Locale.t(`blueprint.{blueprint.id}`)
 			if owned[blueprint.id] == true then
-				UiKit.row(panel.list, nextOrder(), name, detail, Locale.t("blueprint.owned"), false)
+				UiKit.tradeRow(list, nextOrder(), {
+					name = name,
+					sub = detail,
+					thumbKey = `blueprint_{blueprint.id}`,
+					placeholderIcon = "pesanan",
+					maxQty = 0,
+					pickQty = false,
+					actionText = Locale.t("blueprint.owned"),
+					disabledText = Locale.t("blueprint.owned"),
+					onAction = function() end,
+				})
 			else
 				local unlocked = playerLevel >= blueprint.unlockLevel
-				UiKit.row(panel.list, nextOrder(), name, `{koin(blueprint.price)}  ·  {detail}`,
-					if unlocked then Locale.t("ui.buy") else Locale.t("ui.locked", { level = blueprint.unlockLevel }),
-					unlocked, function()
-						Net.Send("ShopBuy", npcId, "blueprint", blueprint.id)
-					end)
+				UiKit.tradeRow(list, nextOrder(), {
+					name = name,
+					sub = detail,
+					thumbKey = `blueprint_{blueprint.id}`,
+					placeholderIcon = "pesanan",
+					unitPrice = blueprint.price,
+					maxQty = if unlocked then 1 else 0,
+					pickQty = false,
+					money = money(),
+					actionText = Locale.t("ui.buy"),
+					disabledText = Locale.t("ui.locked", { level = blueprint.unlockLevel }),
+					onAction = function()
+						confirmBuy(npcId, "blueprint", blueprint.id, name, blueprint.price, nil)
+					end,
+				})
 			end
 		end
 	end
 
-	-- What this NPC buys from you
-	if buysSomething then
-		UiKit.header(panel.list, Locale.t("shop.section.sell"), nextOrder())
-		if npc.quota then
-			UiKit.header(panel.list, Locale.t("sell.quota_info", { n = Trade.quota(snapshot.warungTier or 0) }), nextOrder())
-		elseif npc.buys.crop then
-			UiKit.header(panel.list, Locale.t("sell.overflow_info"), nextOrder())
-		end
-		local ids = {}
-		for itemId in items do
-			table.insert(ids, itemId)
-		end
-		Items.sortIds(ids)
-		local sales = snapshot.sales or { day = "", sold = {} }
-		local today = TimeKeys.day()
-		local shown = 0
-		for _, itemId in ids do
-			local info = Items.info(itemId)
-			local unit = if info then Trade.buyPrice(npc, info) else nil
-			if info and unit then
-				shown += 1
-				local count = items[itemId]
-				local name = `{Items.displayName(info)}  ×{count}`
-				if npc.quota and Crops.byId[itemId] then
-					-- Pak Darmo takes only what is left of today's quota for this crop.
-					local left = Trade.quotaLeft(sales, snapshot.warungTier or 0, itemId, today)
-					local taken = math.min(count, left)
-					UiKit.row(panel.list, nextOrder(), name,
-						`{koin(unit * taken)}  ·  {Locale.t("sell.quota_left", { left = left, max = Trade.quota(snapshot.warungTier or 0) })}`,
-						Locale.t(if taken > 0 then "ui.sell" else "sell.quota_out"), taken > 0, function()
-							Net.Send("Sell", npcId, itemId)
-						end)
-				else
-					UiKit.row(panel.list, nextOrder(), name, koin(unit * count), Locale.t("ui.sell"), true, function()
-						Net.Send("Sell", npcId, itemId)
-					end)
-				end
+	if not anything then
+		UiKit.header(list, Locale.t("shop.empty_buy"), nextOrder())
+	end
+end
+
+local function renderSell(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
+	local npcId = npc.id
+	local list = panel.list
+	if npc.quota then
+		UiKit.header(list, Locale.t("sell.quota_info", { n = Trade.quota(snapshot.warungTier or 0) }), nextOrder())
+	elseif npc.buys.crop then
+		UiKit.header(list, Locale.t("sell.overflow_info"), nextOrder())
+	end
+	local sales = snapshot.sales or { day = "", sold = {} }
+	local today = TimeKeys.day()
+	local ids = sellableIds(npc, snapshot)
+	for _, itemId in ids do
+		local info = Items.info(itemId) :: Items.ItemInfo
+		local unit = Trade.buyPrice(npc, info) :: number
+		local count = snapshot.items[itemId]
+		local name = Items.displayName(info)
+		local maxQty = count
+		local sub = `{Locale.t("shop.unit_price", { price = koin(unit) })}  ·  {Locale.t("ui.owned", { n = count })}`
+		local disabledText: string? = nil
+		if npc.quota and Crops.byId[itemId] then
+			-- Pak Darmo takes only what is left of today's quota for this crop.
+			local left = Trade.quotaLeft(sales, snapshot.warungTier or 0, itemId, today)
+			maxQty = math.min(count, left)
+			sub ..= `\n{Locale.t("shop.quota_row", { left = left, max = Trade.quota(snapshot.warungTier or 0) })}`
+			if left <= 0 then
+				disabledText = Locale.t("sell.quota_out")
 			end
 		end
-		if shown == 0 then
-			UiKit.header(panel.list, Locale.t("shop.sell_empty"), nextOrder())
+		maxQty = math.min(maxQty, Shop.MAX_AMOUNT)
+		UiKit.tradeRow(list, nextOrder(), {
+			name = name,
+			sub = sub,
+			thumbKey = itemId,
+			placeholderIcon = if info.kind == "fish" then "ikan" elseif info.kind == "crop" then "bibit" else "pancing",
+			unitPrice = unit,
+			maxQty = maxQty,
+			pickQty = true,
+			qty = qtySell[itemId],
+			money = nil,
+			actionText = Locale.t("ui.sell"),
+			disabledText = disabledText,
+			onQty = function(n)
+				qtySell[itemId] = n
+			end,
+			onAction = function(n)
+				Net.Send("Sell", npcId, itemId, n)
+			end,
+		})
+	end
+	if #ids == 0 then
+		UiKit.header(list, Locale.t("shop.sell_none"), nextOrder())
+	end
+end
+
+local function render()
+	if not panel.gui.Enabled or not currentNpc then
+		return
+	end
+	local npc = Npcs.byId[currentNpc]
+	local snapshot = State.current :: any
+	UiKit.clear(panel.list)
+	if not npc or not snapshot then
+		return
+	end
+	local order = 0
+	local function nextOrder(): number
+		order += 1
+		return order
+	end
+
+	panel.title.Text = Locale.t(`npc.{npc.id}`)
+	local canBuy = next(npc.sells) ~= nil
+	local canSell = next(npc.buys) ~= nil
+
+	-- Tabs only when the NPC does both; a one-sided NPC shows just that list.
+	if not canBuy then
+		tab = "sell"
+	elseif not canSell then
+		tab = "buy"
+	end
+	local showTabs = canBuy and canSell
+	tabs.frame.Visible = showTabs
+	tabs.select(tab)
+	local top = if showTabs then LIST_TOP_TABS else LIST_TOP_PLAIN
+	panel.list.Position = UDim2.fromOffset(32, top)
+	panel.list.Size = UDim2.new(1, -64, 1, -(top + 26 + 56))
+
+	panel.footerLabel.Text = Locale.t("shop.you_have", { price = koin(money()) })
+	sellAllButton.Visible = canSell and tab == "sell" and #sellableIds(npc, snapshot) > 0
+
+	if tab == "sell" then
+		renderSell(npc, snapshot, nextOrder)
+	else
+		renderBuy(npc, snapshot, nextOrder)
+	end
+end
+
+local function onSellAll()
+	local npc = if currentNpc then Npcs.byId[currentNpc] else nil
+	local snapshot = State.current :: any
+	if not npc or not snapshot then
+		return
+	end
+	local ids = sellableIds(npc, snapshot)
+	if #ids == 0 then
+		return
+	end
+	-- What would actually be paid (Pak Darmo only takes what is left of each crop's quota).
+	local sales = snapshot.sales or { day = "", sold = {} }
+	local today = TimeKeys.day()
+	local total, kinds = 0, 0
+	for _, itemId in ids do
+		local info = Items.info(itemId) :: Items.ItemInfo
+		local unit = Trade.buyPrice(npc, info) :: number
+		local count = snapshot.items[itemId]
+		if npc.quota and Crops.byId[itemId] then
+			count = math.min(count, Trade.quotaLeft(sales, snapshot.warungTier or 0, itemId, today))
+		end
+		if count > 0 then
+			total += unit * count
+			kinds += 1
 		end
 	end
+	if kinds == 0 then
+		return
+	end
+	local body = Locale.t("confirm.sell_all_body", { n = kinds })
+	local needed = neededByOrders(snapshot, ids)
+	if needed ~= "" then
+		body ..= "\n" .. Locale.t("confirm.sell_all_orders", { items = needed })
+	end
+	local npcId = npc.id
+	UiKit.confirm({
+		title = Locale.t("confirm.sell_all_title"),
+		body = body,
+		totalText = koin(total),
+		onConfirm = function()
+			Net.Send("Sell", npcId, "all")
+		end,
+	})
 end
 
 function ShopController.Open(npcId: string)
 	currentNpc = npcId
+	table.clear(qtyBuy)
+	table.clear(qtySell)
+	-- Start where the player most likely wants to be: selling when there is something to sell here, else buying.
+	local npc = Npcs.byId[npcId]
+	local snapshot = State.current :: any
+	tab = "buy"
+	if npc and snapshot and next(npc.buys) ~= nil and #sellableIds(npc, snapshot) > 0 then
+		tab = "sell"
+	end
 	panel.gui.Enabled = true
 	render()
 end
 
 function ShopController.Close()
 	currentNpc = nil
+	UiKit.closeConfirm()
 	panel.gui.Enabled = false
 end
 
@@ -285,16 +542,24 @@ end
 
 function ShopController.Init()
 	panel = UiKit.panel("ShopPanel", Locale.t("ui.shop"), ShopController.Close)
+
+	tabs = UiKit.tabs(panel.gui:FindFirstChild("Panel") :: Instance, {
+		{ id = "buy", text = Locale.t("shop.tab.buy") },
+		{ id = "sell", text = Locale.t("shop.tab.sell") },
+	}, "buy", function(id)
+		tab = id
+		render()
+	end)
+	tabs.frame.Position = UDim2.fromOffset(32, LIST_TOP_PLAIN)
+	tabs.frame.Size = UDim2.new(1, -64, 0, TABS_HEIGHT)
+	tabs.frame.Visible = false
+
 	sellAllButton = UiKit.button(panel.footer, "SellAll", Locale.t("ui.sell_all"))
 	sellAllButton.AnchorPoint = Vector2.new(1, 0)
 	sellAllButton.Position = UDim2.fromScale(1, 0)
 	sellAllButton.Size = UDim2.new(0.45, 0, 1, 0)
 	sellAllButton.Visible = false
-	sellAllButton.Activated:Connect(function()
-		if currentNpc then
-			Net.Send("Sell", currentNpc, "all")
-		end
-	end)
+	sellAllButton.Activated:Connect(onSellAll)
 end
 
 function ShopController.Start()

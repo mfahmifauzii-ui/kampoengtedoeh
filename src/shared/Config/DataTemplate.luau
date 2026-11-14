@@ -87,6 +87,7 @@ local template: Types.PlayerData = {
 	passes = {}, -- [passKey] = true; cache of confirmed game pass ownership (fallback if API is down)
 	instantGrow = { tokens = 0, day = "", usedToday = 0 },
 	onboarding = {}, -- [stepNumber] = true (analytics funnel, logged once)
+	guide = { sells = 0 }, -- sale trips done (Config/Onboarding TRIES): the new-player guide stops after that many
 	purchaseIdCache = {}, -- last N dev product PurchaseIds (ProfileStore pattern; prevents double-grant)
 }
 

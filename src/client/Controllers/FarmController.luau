@@ -20,6 +20,7 @@ local State = require(script.Parent.Parent.State)
 local UiKit = require(script.Parent.Parent.UiKit)
 
 local openTilePanel: (index: number) -> ()
+local onTileTapped: (part: BasePart) -> ()
 
 local TILE_TAG = "FarmTile"
 local REFRESH_SECONDS = 0.5
@@ -86,6 +87,22 @@ local function formatRemaining(seconds: number): string
 	return string.format("%d:%02d", minutes, secs)
 end
 
+-- Makes a crop visual tappable. The bed is a flat, invisible target under the plant, so tapping the plant you SEE used to
+-- do nothing (new players tapped the ripe crop and nothing happened). A ClickDetector on the visual forwards to the same
+-- handler as the bed. The visual's parts must be queryable for the click to hit them.
+local function makeTappable(view: TileView, visual: Instance)
+	if not view.isMine then
+		return
+	end
+	local source = view.part:FindFirstChildOfClass("ClickDetector")
+	local detector = Instance.new("ClickDetector")
+	detector.MaxActivationDistance = if source then source.MaxActivationDistance else 32
+	detector.Parent = visual
+	detector.MouseClick:Connect(function()
+		onTileTapped(view.part)
+	end)
+end
+
 local function render(view: TileView)
 	local part = view.part
 	-- (The soil is terrain painted by the server; the tile part itself is invisible.)
@@ -128,7 +145,7 @@ local function render(view: TileView)
 			if descendant:IsA("BasePart") then
 				descendant.Anchored = true
 				descendant.CanCollide = false
-				descendant.CanQuery = false -- taps must reach the tile's ClickDetector
+				descendant.CanQuery = true -- taps hit the plant itself (makeTappable), not only the bed under it
 				descendant.CanTouch = false
 			end
 		end
@@ -142,6 +159,7 @@ local function render(view: TileView)
 		model:PivotTo(ground * pivotToBox:Inverse())
 		model.Name = "CropVisual"
 		model.Parent = part
+		makeTappable(view, model)
 		view.cropPart = model
 		return
 	end
@@ -151,7 +169,7 @@ local function render(view: TileView)
 	newPart.Shape = Enum.PartType.Ball
 	newPart.Anchored = true
 	newPart.CanCollide = false
-	newPart.CanQuery = false
+	newPart.CanQuery = true -- tappable: see makeTappable
 	newPart.CanTouch = false
 	newPart.CastShadow = false
 	newPart.Material = Enum.Material.SmoothPlastic
@@ -160,6 +178,7 @@ local function render(view: TileView)
 	newPart.Color = crop.color
 	newPart.CFrame = part.CFrame * CFrame.new(0, part.Size.Y / 2 + size / 2, 0)
 	newPart.Parent = part
+	makeTappable(view, newPart)
 	view.cropPart = newPart
 end
 
@@ -293,9 +312,11 @@ end
 
 -- Tile interaction -------------------------------------------------------------
 
-local function onTileTapped(part: BasePart)
+onTileTapped = function(part: BasePart)
 	local index = part:GetAttribute("Index")
-	if typeof(index) ~= "number" or GarapController.Active then -- Garap mode owns taps on the ground
+	-- Garap mode owns taps on the ground, except "till": there a tap on an existing bed is not a Garap action, so it plants,
+	-- waters or harvests like normal (it used to be swallowed, leaving a new player stuck right after the first bed).
+	if typeof(index) ~= "number" or (GarapController.Active and GarapController.Mode ~= "till") then
 		return
 	end
 	local stage = getStage(part)

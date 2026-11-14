@@ -33,7 +33,10 @@ local LEVEL_COLOR = Color3.fromRGB(226, 178, 96)
 local player = Players.LocalPlayer
 
 local GarapController = {}
-GarapController.Active = false -- FarmController ignores tile taps while true; LandController hides its "+" buttons
+GarapController.Active = false -- LandController hides its "+" buttons while true
+-- FarmController ignores tile taps while Garap is on, EXCEPT in "till" mode: there a tap on an existing bed does nothing here,
+-- so it goes through to the bed (plant / water / harvest) instead of being swallowed. "level" taps are Garap's own.
+GarapController.Mode = "till"
 
 local mode = "till" -- "till" | "level" | "pond" | "pondRemove"
 local gui: ScreenGui
@@ -282,7 +285,8 @@ end
 
 local function refreshHint()
 	if mode == "till" then
-		hintLabel.Text = Locale.t("garap.hint_till")
+		-- Once there is a bed, say what comes next (a new player used to be stuck here: the hint never changed).
+		hintLabel.Text = Locale.t(if #farmInfo() > 0 then "garap.hint_till_more" else "garap.hint_till")
 	elseif mode == "level" then
 		hintLabel.Text = Locale.t("garap.hint_level")
 	elseif mode == "pond" then
@@ -294,6 +298,7 @@ end
 
 local function setMode(newMode: string)
 	mode = newMode
+	GarapController.Mode = newMode
 	tillButton.BackgroundColor3 = if mode == "till" then UiKit.BUTTON else UiKit.BUTTON_MUTED
 	levelButton.BackgroundColor3 = if mode == "level" then UiKit.BUTTON else UiKit.BUTTON_MUTED
 	pondButton.BackgroundColor3 = if mode == "pond" then UiKit.BUTTON else UiKit.BUTTON_MUTED

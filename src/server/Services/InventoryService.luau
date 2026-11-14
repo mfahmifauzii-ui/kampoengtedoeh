@@ -100,6 +100,7 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		titles = data.titles,
 		sales = { day = data.sales.day, sold = table.clone(data.sales.sold) },
 		warungTier = data.sales.tier,
+		guideSells = data.guide.sells,
 		social = data.social,
 		settings = data.settings,
 	}

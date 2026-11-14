@@ -33,6 +33,8 @@ UiKit.BUTTON_MUTED = Color3.fromRGB(206, 196, 176) -- tan: secondary / inactive
 UiKit.BAMBOO = Color3.fromRGB(214, 164, 64)
 UiKit.BAMBOO_DARK = Color3.fromRGB(150, 104, 40)
 UiKit.TERRACOTTA = Color3.fromRGB(196, 100, 64)
+UiKit.RED = Color3.fromRGB(200, 64, 52) -- "Batal" in every modal, and a total the player cannot afford
+UiKit.RED_TEXT = Color3.fromRGB(196, 44, 36) -- red numbers on parchment
 UiKit.CREAM = Color3.fromRGB(255, 248, 232)
 UiKit.DARK = Color3.fromRGB(66, 46, 30) -- dark bamboo brown: floating menus, hints and tooltips (cream text on it)
 
@@ -204,6 +206,8 @@ local function imageTint(color: Color3): Color3
 		return Color3.fromRGB(238, 230, 216) -- barely darker than the gold: it multiplies, so anything stronger turns brown
 	elseif color == UiKit.TERRACOTTA then
 		return Color3.fromRGB(255, 176, 150)
+	elseif color == UiKit.RED then
+		return Color3.fromRGB(255, 112, 100) -- multiplies the golden plank into a clear red
 	end
 	return Color3.new(1, 1, 1)
 end
@@ -221,7 +225,7 @@ function UiKit.button(parent: Instance, name: string, text: string, color: Color
 	-- Flat look first; the bamboo image goes on top and takes over once it has LOADED (see skinPanel).
 	-- Consumers keep changing BackgroundColor3 to show state, so the image tint mirrors it.
 	local base = color or UiKit.BUTTON
-	local flatText = if base == UiKit.BUTTON or base == UiKit.TERRACOTTA then UiKit.CREAM else Color3.fromRGB(120, 104, 80)
+	local flatText = if base == UiKit.BUTTON or base == UiKit.TERRACOTTA or base == UiKit.RED then UiKit.CREAM else Color3.fromRGB(120, 104, 80)
 	button.BackgroundColor3 = base
 	button.TextColor3 = flatText
 	corner(button, 14)
@@ -464,6 +468,7 @@ function UiKit.header(list: ScrollingFrame, text: string, order: number)
 	label.LayoutOrder = order
 	label.BackgroundTransparency = 1
 	label.Size = UDim2.new(1, 0, 0, 34)
+	label.AutomaticSize = Enum.AutomaticSize.Y -- a long line wraps and grows instead of being cut off
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	label.TextColor3 = UiKit.HEADER_DARK
 	label.Font = UiKit.FONT
@@ -560,6 +565,479 @@ function UiKit.row(list: ScrollingFrame, order: number, text: string, subText: s
 		end
 	end
 	return row
+end
+
+-- Tabs, number picker, item picture, trade row, confirm modal --------------------------------------
+
+-- Greys a button out (or brings it back). Works before and after its image skin has loaded.
+local function setButtonEnabled(button: TextButton, enabled: boolean)
+	button.BackgroundColor3 = if enabled then UiKit.BUTTON else UiKit.BUTTON_MUTED
+	button.AutoButtonColor = enabled and BUTTON.image == ""
+	button.TextTransparency = if enabled then 0 else 0.45
+	local plank = button:FindFirstChild("Skin")
+	if plank and plank:IsA("ImageLabel") then
+		plank.ImageTransparency = if enabled then 0 else 0.45
+	end
+	local shade = button:FindFirstChildOfClass("UIGradient")
+	if shade then
+		shade.Enabled = enabled
+	end
+end
+
+export type Tabs = { frame: Frame, buttons: { [string]: TextButton }, select: (id: string) -> () }
+
+-- A row of tab buttons filling the width. The selected tab is green, the others tan. `onSelect(id)` runs on a tap.
+function UiKit.tabs(parent: Instance, defs: { { id: string, text: string } }, selected: string, onSelect: (id: string) -> ()): Tabs
+	local frame = Instance.new("Frame")
+	frame.Name = "Tabs"
+	frame.BackgroundTransparency = 1
+	frame.Parent = parent
+	local layout = Instance.new("UIListLayout")
+	layout.FillDirection = Enum.FillDirection.Horizontal
+	layout.Padding = UDim.new(0, 8)
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Parent = frame
+
+	local buttons: { [string]: TextButton } = {}
+	-- The chosen tab is the bright plank; the others are clearly darker and dimmer (the plain muted tint is too close to tell).
+	local function select(id: string)
+		for tabId, button in buttons do
+			local on = tabId == id
+			button.BackgroundColor3 = if on then UiKit.BUTTON else UiKit.BUTTON_MUTED
+			local plank = button:FindFirstChild("Skin")
+			if plank and plank:IsA("ImageLabel") then
+				plank.ImageColor3 = if on then Color3.new(1, 1, 1) else Color3.fromRGB(168, 150, 120)
+			end
+			button.TextTransparency = if on then 0 else 0.25
+		end
+	end
+	for order, def in defs do
+		local button = UiKit.button(frame, `Tab_{def.id}`, def.text, if def.id == selected then UiKit.BUTTON else UiKit.BUTTON_MUTED)
+		button.LayoutOrder = order
+		button.Size = UDim2.new(1 / #defs, -8 * (#defs - 1) / #defs, 1, 0)
+		button.TextSize = 21
+		button.Activated:Connect(function()
+			select(def.id)
+			onSelect(def.id)
+		end)
+		buttons[def.id] = button
+	end
+	select(selected)
+	return { frame = frame, buttons = buttons, select = select }
+end
+
+-- Number picker: [ - ] 3 [ + ]. Holding a button repeats. `onChange(n)` runs after every change; the picker keeps its own
+-- value, so a caller only has to update what depends on it (a total), not rebuild the panel.
+function UiKit.stepper(parent: Instance, value: number, minValue: number, maxValue: number, onChange: (n: number) -> ()): Frame
+	local frame = Instance.new("Frame")
+	frame.Name = "Stepper"
+	frame.BackgroundTransparency = 1
+	frame.Size = UDim2.fromOffset(150, 38)
+	frame.Parent = parent
+
+	local current = math.clamp(value, minValue, maxValue)
+	local label = Instance.new("TextLabel")
+	label.Name = "Value"
+	label.BackgroundTransparency = 1
+	label.AnchorPoint = Vector2.new(0.5, 0.5)
+	label.Position = UDim2.fromScale(0.5, 0.5)
+	label.Size = UDim2.new(1, -84, 1, 0)
+	label.TextColor3 = UiKit.TEXT
+	label.Font = UiKit.FONT
+	label.TextSize = 22
+	label.Text = tostring(current)
+	label.Parent = frame
+
+	local function set(n: number)
+		n = math.clamp(n, minValue, maxValue)
+		if n ~= current then
+			current = n
+			label.Text = tostring(n)
+			onChange(n)
+		end
+	end
+
+	local function make(name: string, text: string, delta: number, anchorX: number)
+		local button = UiKit.button(frame, name, text, UiKit.BUTTON_MUTED)
+		button.AnchorPoint = Vector2.new(anchorX, 0.5)
+		button.Position = UDim2.new(anchorX, 0, 0.5, 0)
+		button.Size = UDim2.fromOffset(40, 38)
+		button.TextSize = 26
+		local token = 0
+		button.MouseButton1Down:Connect(function()
+			token += 1
+			local mine = token
+			set(current + delta)
+			task.spawn(function()
+				task.wait(0.4)
+				while token == mine and frame.Parent do
+					set(current + delta)
+					task.wait(0.07)
+				end
+			end)
+		end)
+		local function release()
+			token += 1
+		end
+		button.MouseButton1Up:Connect(release)
+		button.MouseLeave:Connect(release)
+	end
+	make("Minus", "-", -1, 0)
+	make("Plus", "+", 1, 1)
+	return frame
+end
+
+-- Item picture slot: the card frame with a transparent picture inside. The picture is UiAssets.THUMBS[key] once the model's
+-- image exists; until then a dimmed icon (`placeholderIcon`, an icon key) stands in, so the layout never changes later.
+function UiKit.thumb(parent: Instance, size: number, thumbKey: string?, placeholderIcon: string?): Frame
+	local slot = Instance.new("Frame")
+	slot.Name = "Thumb"
+	slot.BackgroundColor3 = Color3.fromRGB(240, 226, 190)
+	slot.Size = UDim2.fromOffset(size, size)
+	slot.Parent = parent
+	corner(slot, 14)
+	local slotBorder = stroke(slot, Color3.fromRGB(214, 190, 140), 2)
+	local skin = attachSkin(slot, CARD, function()
+		slot.BackgroundTransparency = 1
+		slotBorder.Enabled = false
+		local round = slot:FindFirstChildOfClass("UICorner")
+		if round then
+			round:Destroy()
+		end
+	end)
+	if skin then
+		skin.ImageColor3 = Color3.fromRGB(240, 226, 190) -- a touch darker than the row card behind it
+	end
+
+	local picture = Instance.new("ImageLabel")
+	picture.Name = "Picture"
+	picture.BackgroundTransparency = 1 -- the picture has a transparent background: the frame shows through
+	picture.AnchorPoint = Vector2.new(0.5, 0.5)
+	picture.Position = UDim2.fromScale(0.5, 0.5)
+	picture.Size = UDim2.new(1, -16, 1, -16)
+	picture.ScaleType = Enum.ScaleType.Fit
+	picture.ZIndex = 2
+	local real = if thumbKey then UiAssets.THUMBS[thumbKey] else nil
+	if real and real ~= "" then
+		picture.Image = real
+	else
+		picture.Image = UiKit.iconId(placeholderIcon or "")
+		picture.ImageTransparency = 0.4 -- placeholder: visibly "not the final picture"
+		picture.ImageColor3 = Color3.fromRGB(170, 150, 118)
+	end
+	picture.Parent = slot
+	return slot
+end
+
+export type TradeRow = {
+	name: string,
+	sub: string?,
+	thumbKey: string?,
+	placeholderIcon: string?,
+	unitPrice: number?, -- Koin for ONE unit; nil = no price shown (e.g. "Pakai" a rod you own)
+	maxQty: number, -- 0 = nothing to pick, the row is inactive
+	pickQty: boolean, -- show the number picker
+	qty: number?, -- starting quantity (kept by the caller across rebuilds)
+	money: number?, -- the player's Koin: a total above it turns red and blocks the button (buying). nil = selling
+	actionText: string,
+	disabledText: string?, -- shown on the button when maxQty is 0 (e.g. "Lv 3", "Kuota habis")
+	onQty: ((n: number) -> ())?,
+	onAction: (qty: number) -> (),
+}
+
+-- One shop row: picture slot, name + detail, number picker, total, action button. The total is red when the player cannot
+-- pay it. Picking a number only updates the row's own total and button (no rebuild, so holding + keeps repeating).
+function UiKit.tradeRow(list: ScrollingFrame, order: number, def: TradeRow): Frame
+	local row = Instance.new("Frame")
+	row.Name = "TradeRow"
+	row.LayoutOrder = order
+	row.BackgroundColor3 = UiKit.ROW
+	row.Size = UDim2.new(1, 0, 0, 108)
+	row.Parent = list
+	corner(row, 16)
+	local rowBorder = stroke(row, Color3.fromRGB(228, 208, 164), 2)
+	attachSkin(row, CARD, function()
+		row.BackgroundTransparency = 1
+		rowBorder.Enabled = false
+		local round = row:FindFirstChildOfClass("UICorner")
+		if round then
+			round:Destroy()
+		end
+	end)
+
+	local thumb = UiKit.thumb(row, 76, def.thumbKey, def.placeholderIcon)
+	thumb.AnchorPoint = Vector2.new(0, 0.5)
+	thumb.Position = UDim2.new(0, 18, 0.5, 0)
+
+	local label = Instance.new("TextLabel")
+	label.Name = "Name"
+	label.BackgroundTransparency = 1
+	label.Position = UDim2.fromOffset(106, 14)
+	label.Size = UDim2.new(1, -106 - 214, 0, 28)
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.TextYAlignment = Enum.TextYAlignment.Top
+	label.TextColor3 = UiKit.TEXT
+	label.Font = UiKit.FONT
+	label.TextSize = 19
+	label.TextWrapped = true
+	label.TextTruncate = Enum.TextTruncate.AtEnd
+	label.Text = def.name
+	label.Parent = row
+	if def.sub then
+		local sub = label:Clone()
+		sub.Name = "Sub"
+		sub.Position = UDim2.fromOffset(106, 46)
+		sub.Size = UDim2.new(1, -106 - 214, 0, 50)
+		sub.Font = UiKit.FONT_BODY
+		sub.TextSize = 14
+		sub.TextColor3 = Color3.fromRGB(128, 100, 66)
+		sub.Text = def.sub
+		sub.Parent = row
+	end
+
+	-- Right block: picker on top, total + button below.
+	local right = Instance.new("Frame")
+	right.Name = "Right"
+	right.BackgroundTransparency = 1
+	right.AnchorPoint = Vector2.new(1, 0.5)
+	right.Position = UDim2.new(1, -16, 0.5, 0)
+	right.Size = UDim2.fromOffset(196, 92)
+	right.Parent = row
+
+	local active = def.maxQty >= 1
+	local qty = math.clamp(def.qty or 1, 1, math.max(def.maxQty, 1))
+
+	local total = Instance.new("TextLabel")
+	total.Name = "Total"
+	total.BackgroundTransparency = 1
+	total.AnchorPoint = Vector2.new(0, 1)
+	total.Position = UDim2.fromScale(0, 1)
+	total.Size = UDim2.new(1, -92, 0, 40)
+	total.TextXAlignment = Enum.TextXAlignment.Left
+	total.TextColor3 = UiKit.TEXT
+	total.Font = UiKit.FONT
+	total.TextSize = 17
+	total.TextWrapped = true
+	total.Parent = right
+
+	local action = UiKit.button(right, "Action", if active then def.actionText else (def.disabledText or def.actionText), UiKit.BUTTON)
+	action.AnchorPoint = Vector2.new(1, 1)
+	action.Position = UDim2.fromScale(1, 1)
+	action.Size = UDim2.fromOffset(86, 42)
+	action.TextSize = if not active and #(def.disabledText or "") > 7 then 14 else 18 -- "Kuota habis" must fit the button
+	action.TextWrapped = true
+
+	local function refresh()
+		local sum = if def.unitPrice then def.unitPrice * qty else nil
+		local short = sum ~= nil and def.money ~= nil and sum > def.money
+		total.Visible = sum ~= nil and (active or def.money ~= nil) -- selling: no total on a row you cannot sell from
+		if sum then
+			total.Text = Locale.t("ui.koin", { n = Locale.formatNumber(sum) })
+			total.TextColor3 = if short then UiKit.RED_TEXT else UiKit.TEXT
+		end
+		setButtonEnabled(action, active and not short)
+	end
+	refresh()
+
+	if active and def.pickQty and def.maxQty > 1 then
+		local stepper = UiKit.stepper(right, qty, 1, def.maxQty, function(n)
+			qty = n
+			refresh()
+			if def.onQty then
+				def.onQty(n)
+			end
+		end)
+		stepper.AnchorPoint = Vector2.new(1, 0)
+		stepper.Position = UDim2.fromScale(1, 0)
+		stepper.Size = UDim2.fromOffset(196, 38)
+	end
+
+	action.Activated:Connect(function()
+		local sum = if def.unitPrice then def.unitPrice * qty else 0
+		if active and not (def.money ~= nil and sum > def.money) then
+			def.onAction(qty)
+		end
+	end)
+	return row
+end
+
+-- Confirm modal (the ONE modal look for the whole game): dim backdrop, a bamboo panel, title, text, an optional total and two
+-- buttons: Batal on the LEFT (red), Setuju on the RIGHT (green). Tapping outside the panel is Batal.
+export type Confirm = {
+	title: string,
+	body: string?,
+	totalText: string?, -- e.g. "1.500 Koin"
+	totalRed: boolean?, -- the player cannot pay it
+	confirmText: string?, -- default "Setuju"
+	canConfirm: boolean?, -- false greys Setuju out
+	onConfirm: () -> (),
+	onCancel: (() -> ())?,
+}
+
+local confirmGui: ScreenGui? = nil
+local confirmParts: { title: TextLabel, body: TextLabel, totalRow: Frame, totalValue: TextLabel, no: TextButton, yes: TextButton }? = nil
+local confirmCurrent: Confirm? = nil
+
+function UiKit.closeConfirm()
+	confirmCurrent = nil
+	if confirmGui then
+		confirmGui.Enabled = false
+	end
+end
+
+local function buildConfirm()
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "ConfirmModal"
+	gui.ResetOnSpawn = false
+	gui.Enabled = false
+	gui.IgnoreGuiInset = true
+	gui.DisplayOrder = 100 -- above every panel
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+	local function cancel()
+		local current = confirmCurrent
+		UiKit.closeConfirm()
+		if current and current.onCancel then
+			current.onCancel()
+		end
+	end
+
+	local backdrop = Instance.new("TextButton")
+	backdrop.Name = "Backdrop"
+	backdrop.Text = ""
+	backdrop.AutoButtonColor = false
+	backdrop.BackgroundColor3 = Color3.fromRGB(30, 20, 10)
+	backdrop.BackgroundTransparency = 0.45
+	backdrop.BorderSizePixel = 0
+	backdrop.Size = UDim2.fromScale(1, 1)
+	backdrop.Parent = gui
+	backdrop.Activated:Connect(cancel)
+
+	local box = Instance.new("Frame")
+	box.Name = "Box"
+	box.AnchorPoint = Vector2.new(0.5, 0.5)
+	box.Position = UDim2.fromScale(0.5, 0.5)
+	box.Size = UDim2.fromOffset(400, 0)
+	box.AutomaticSize = Enum.AutomaticSize.Y
+	box.Active = true -- taps on the box must not reach the backdrop
+	box.Parent = gui
+	skinPanel(box)
+	local limit = Instance.new("UISizeConstraint")
+	limit.MaxSize = Vector2.new(460, 480)
+	limit.Parent = box
+
+	-- The content sits in its own frame: the panel skin is a child of `box`, and a layout on `box` itself would line the
+	-- skin up like one more row.
+	local content = Instance.new("Frame")
+	content.Name = "Content"
+	content.BackgroundTransparency = 1
+	content.Size = UDim2.new(1, 0, 0, 0)
+	content.AutomaticSize = Enum.AutomaticSize.Y
+	content.ZIndex = 2
+	content.Parent = box
+	local pad = Instance.new("UIPadding")
+	pad.PaddingTop, pad.PaddingBottom = UDim.new(0, 42), UDim.new(0, 40)
+	pad.PaddingLeft, pad.PaddingRight = UDim.new(0, 44), UDim.new(0, 44)
+	pad.Parent = content
+	local layout = Instance.new("UIListLayout")
+	layout.Padding = UDim.new(0, 10)
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	layout.Parent = content
+
+	local function text(name: string, order: number, font: Enum.Font, size: number, color: Color3): TextLabel
+		local label = Instance.new("TextLabel")
+		label.Name = name
+		label.LayoutOrder = order
+		label.BackgroundTransparency = 1
+		label.Size = UDim2.new(1, 0, 0, 0)
+		label.AutomaticSize = Enum.AutomaticSize.Y
+		label.TextWrapped = true
+		label.TextColor3 = color
+		label.Font = font
+		label.TextSize = size
+		label.Parent = content
+		return label
+	end
+	local title = text("Title", 1, UiKit.FONT, 26, UiKit.TEXT)
+	local body = text("Body", 2, UiKit.FONT_BODY, 16, UiKit.TEXT)
+
+	local totalRow = Instance.new("Frame")
+	totalRow.Name = "TotalRow"
+	totalRow.LayoutOrder = 3
+	totalRow.BackgroundTransparency = 1
+	totalRow.Size = UDim2.new(1, 0, 0, 38)
+	totalRow.Parent = content
+	local totalLabel = Instance.new("TextLabel")
+	totalLabel.BackgroundTransparency = 1
+	totalLabel.Size = UDim2.fromScale(0.4, 1)
+	totalLabel.TextXAlignment = Enum.TextXAlignment.Left
+	totalLabel.TextColor3 = Color3.fromRGB(128, 100, 66)
+	totalLabel.Font = UiKit.FONT
+	totalLabel.TextSize = 18
+	totalLabel.Text = Locale.t("confirm.total")
+	totalLabel.Parent = totalRow
+	local totalValue = Instance.new("TextLabel")
+	totalValue.Name = "Value"
+	totalValue.BackgroundTransparency = 1
+	totalValue.AnchorPoint = Vector2.new(1, 0)
+	totalValue.Position = UDim2.fromScale(1, 0)
+	totalValue.Size = UDim2.fromScale(0.6, 1)
+	totalValue.TextXAlignment = Enum.TextXAlignment.Right
+	totalValue.Font = UiKit.FONT
+	totalValue.TextSize = 28
+	totalValue.Parent = totalRow
+
+	-- Batal (left, red) and Setuju (right, green): the same on every modal.
+	local buttons = Instance.new("Frame")
+	buttons.Name = "Buttons"
+	buttons.LayoutOrder = 4
+	buttons.BackgroundTransparency = 1
+	buttons.Size = UDim2.new(1, 0, 0, 56)
+	buttons.Parent = content
+	local no = UiKit.button(buttons, "Cancel", Locale.t("confirm.no"), UiKit.RED)
+	no.Position = UDim2.fromScale(0, 0)
+	no.Size = UDim2.new(0.5, -6, 1, 0)
+	no.TextSize = 22
+	no.Activated:Connect(cancel)
+	local yes = UiKit.button(buttons, "Confirm", Locale.t("confirm.yes"), UiKit.BUTTON)
+	yes.AnchorPoint = Vector2.new(1, 0)
+	yes.Position = UDim2.fromScale(1, 0)
+	yes.Size = UDim2.new(0.5, -6, 1, 0)
+	yes.TextSize = 22
+	yes.Activated:Connect(function()
+		local current = confirmCurrent
+		if current and current.canConfirm ~= false then
+			UiKit.closeConfirm()
+			current.onConfirm()
+		end
+	end)
+
+	gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+	confirmGui = gui
+	confirmParts = { title = title, body = body, totalRow = totalRow, totalValue = totalValue, no = no, yes = yes }
+end
+
+-- Shows the modal, or refreshes it when it is already open (a caller may call this again when the Koin changes).
+function UiKit.confirm(opts: Confirm)
+	if not confirmGui or not confirmParts then
+		buildConfirm()
+	end
+	local parts = confirmParts :: any
+	confirmCurrent = opts
+	parts.title.Text = opts.title
+	parts.body.Text = opts.body or ""
+	parts.body.Visible = opts.body ~= nil
+	parts.totalRow.Visible = opts.totalText ~= nil
+	parts.totalValue.Text = opts.totalText or ""
+	parts.totalValue.TextColor3 = if opts.totalRed then UiKit.RED_TEXT else UiKit.TEXT
+	parts.yes.Text = opts.confirmText or Locale.t("confirm.yes")
+	setButtonEnabled(parts.yes, opts.canConfirm ~= false)
+	;(confirmGui :: ScreenGui).Enabled = true
+end
+
+function UiKit.confirmOpen(): boolean
+	return confirmGui ~= nil and confirmGui.Enabled
 end
 
 -- HUD: stat chips and the menu bar --------------------------------------------------------------
@@ -1063,3 +1541,4 @@ function UiKit.autoScale()
 end
 
 return UiKit
+

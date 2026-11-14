@@ -2,13 +2,12 @@
 -- Buying land (R2b), the client side. Every chunk you can buy (touching your land, see Modules/Land) gets a small round
 -- "+" button with its price floating above it. It only shows while your CHARACTER is within NEAR_DISTANCE of the chunk,
 -- like a proximity prompt (the camera may be far away, so the camera distance is no use).
--- Tap it and a small popup asks "Beli lahan ini?" with the price; Beli sends LandBuy, the server validates everything
--- again (adjacent chunk, price, Koin). The "+" buttons hide while Garap mode is open.
+-- Tap it and the standard confirm modal (UiKit.confirm) asks "Beli lahan ini?" with the price; Setuju sends LandBuy, the
+-- server validates everything again (adjacent chunk, price, Koin). The "+" buttons hide while Garap mode is open.
 -- The buttons are plain ScreenGui frames that follow an invisible client-side anchor part in the world: every frame
 -- the anchor is projected to the screen (WorldToViewportPoint), so they behave like billboards but are always tappable.
 --
--- UI CONTRACT (replace with your designed UI, keep the names):
---   ScreenGui "LandPopup" > Frame "Box" (TextLabel "Title", "Info", "Price"; TextButton "BuyButton", "CancelButton").
+-- UI CONTRACT: the modal is UiKit's ScreenGui "ConfirmModal" (shared by every confirmation); the "+" buttons live in "LandMarks".
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -37,10 +36,6 @@ local marks: ScreenGui
 local anchorsFolder: Folder? = nil
 local signature = ""
 
-local popup: ScreenGui
-local infoLabel: TextLabel
-local priceLabel: TextLabel
-local buyButton: TextButton
 local selected: { ix: number, iz: number }? = nil
 local ghost: Part? = nil
 
@@ -92,27 +87,37 @@ end
 
 local function closePopup()
 	selected = nil
-	popup.Enabled = false
+	UiKit.closeConfirm()
 	hideGhost()
 end
 
--- Price, how many you own, and whether you can afford it.
+-- The standard confirm modal (UiKit.confirm: Batal left in red, Setuju right): price in red when you cannot pay it.
 local function refreshPopup()
 	local snap = snapshot()
-	if not selected or not snap then
+	local pick = selected
+	if not pick or not snap then
 		return
 	end
-	if not Land.canBuyChunk(selected.ix, selected.iz, snap.landChunks) then
+	if not Land.canBuyChunk(pick.ix, pick.iz, snap.landChunks) then
 		closePopup() -- bought meanwhile, or no longer touching your land
 		return
 	end
 	local price = snap.landPrice or Land.chunkPrice(0)
-	priceLabel.Text = Locale.t("land.price", { n = Locale.formatNumber(price) })
-	infoLabel.Text = Locale.t("land.popup_info", { size = Land.CHUNK, n = snap.landExtra or 0, max = Land.EXTRA_CHUNKS })
 	local affordable = koin() >= price
-	buyButton.BackgroundColor3 = if affordable then UiKit.BUTTON else UiKit.BUTTON_MUTED
-	buyButton.Text = Locale.t(if affordable then "land.buy" else "land.short")
-	buyButton.Active = affordable
+	UiKit.confirm({
+		title = Locale.t("land.popup_title"),
+		body = Locale.t("land.popup_info", { size = Land.CHUNK, n = snap.landExtra or 0, max = Land.EXTRA_CHUNKS }),
+		totalText = Locale.t("land.price", { n = Locale.formatNumber(price) }),
+		totalRed = not affordable,
+		canConfirm = affordable,
+		confirmText = Locale.t("land.buy"),
+		onConfirm = function()
+			Net.Send("LandBuy", pick.ix, pick.iz)
+			selected = nil
+			hideGhost()
+		end,
+		onCancel = closePopup,
+	})
 end
 
 local function openPopup(ix: number, iz: number)
@@ -122,7 +127,6 @@ local function openPopup(ix: number, iz: number)
 	end
 	selected = { ix = ix, iz = iz }
 	showGhost(plot, ix, iz)
-	popup.Enabled = true
 	refreshPopup()
 end
 
@@ -247,85 +251,6 @@ function LandController.Init()
 	marks:SetAttribute("NoScale", true) -- UiKit.autoScale must not scale it: offsets here are real pixels
 	marks.DisplayOrder = -1 -- under the HUD and the popups
 	marks.Parent = playerGui
-
-	popup = Instance.new("ScreenGui")
-	popup.Name = "LandPopup"
-	popup.ResetOnSpawn = false
-	popup.Enabled = false
-
-	local box = Instance.new("Frame")
-	box.Name = "Box"
-	box.AnchorPoint = Vector2.new(0.5, 0.5)
-	box.Position = UDim2.fromScale(0.5, 0.5)
-	box.Size = UDim2.fromOffset(330, 214)
-	box.BackgroundColor3 = UiKit.DARK
-	box.BackgroundTransparency = 0.05
-	box.Active = true -- taps on the box do not reach the world
-	box.Parent = popup
-	local boxRound = Instance.new("UICorner")
-	boxRound.CornerRadius = UDim.new(0, 18)
-	boxRound.Parent = box
-	local boxBorder = Instance.new("UIStroke")
-	boxBorder.Color = UiKit.BAMBOO
-	boxBorder.Thickness = 3
-	boxBorder.Parent = box
-
-	local title = Instance.new("TextLabel")
-	title.Name = "Title"
-	title.BackgroundTransparency = 1
-	title.Position = UDim2.fromOffset(16, 12)
-	title.Size = UDim2.new(1, -64, 0, 30)
-	title.TextXAlignment = Enum.TextXAlignment.Left
-	title.TextColor3 = UiKit.CREAM
-	title.Font = UiKit.FONT
-	title.TextSize = 24
-	title.Text = Locale.t("land.popup_title")
-	title.Parent = box
-
-	infoLabel = Instance.new("TextLabel")
-	infoLabel.Name = "Info"
-	infoLabel.BackgroundTransparency = 1
-	infoLabel.Position = UDim2.fromOffset(16, 46)
-	infoLabel.Size = UDim2.new(1, -32, 0, 40)
-	infoLabel.TextXAlignment = Enum.TextXAlignment.Left
-	infoLabel.TextYAlignment = Enum.TextYAlignment.Top
-	infoLabel.TextWrapped = true
-	infoLabel.TextColor3 = Color3.fromRGB(226, 214, 190)
-	infoLabel.Font = UiKit.FONT_BODY
-	infoLabel.TextSize = 14
-	infoLabel.Parent = box
-
-	priceLabel = Instance.new("TextLabel")
-	priceLabel.Name = "Price"
-	priceLabel.BackgroundTransparency = 1
-	priceLabel.Position = UDim2.fromOffset(16, 88)
-	priceLabel.Size = UDim2.new(1, -32, 0, 34)
-	priceLabel.TextXAlignment = Enum.TextXAlignment.Left
-	priceLabel.TextColor3 = Color3.fromRGB(240, 196, 92)
-	priceLabel.Font = UiKit.FONT
-	priceLabel.TextSize = 28
-	priceLabel.Parent = box
-
-	buyButton = UiKit.button(box, "BuyButton", Locale.t("land.buy"), UiKit.BUTTON)
-	buyButton.Position = UDim2.fromOffset(14, 144)
-	buyButton.Size = UDim2.new(0.5, -20, 0, 52)
-	buyButton.Activated:Connect(function()
-		local pick = selected
-		local snap = snapshot()
-		if pick and snap and koin() >= (snap.landPrice or 0) then
-			Net.Send("LandBuy", pick.ix, pick.iz)
-			closePopup()
-		end
-	end)
-
-	local cancel = UiKit.button(box, "CancelButton", Locale.t("land.cancel"), UiKit.BUTTON_MUTED)
-	cancel.AnchorPoint = Vector2.new(1, 0)
-	cancel.Position = UDim2.new(1, -14, 0, 144)
-	cancel.Size = UDim2.new(0.5, -20, 0, 52)
-	cancel.Activated:Connect(closePopup)
-
-	UiKit.closeBadge(box, 40, closePopup)
-	popup.Parent = playerGui
 end
 
 function LandController.Start()

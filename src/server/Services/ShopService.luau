@@ -1,7 +1,7 @@
 --!strict
 -- Trading with town NPCs. Every request names an NPC (Config/Npcs) and is distance-checked to it; what an NPC
 -- buys and sells comes from its config, prices from Modules/Trade. The client only sends requests.
---   Sell(npcId, itemId | "all")                         NPC buys items from the player
+--   Sell(npcId, itemId | "all", amount?)                NPC buys items from the player (amount: whole number 1-99, one item only)
 --   ShopBuy(npcId, kind, id, amount?)                   kind: rod | bait | upgrade | seed | seedx | fish | blueprint
 -- Pak Darmo (npc.quota) buys each crop only up to a daily quota; the rest stays in the bag for Bang Tarno (0.7x, no limit).
 
@@ -67,8 +67,9 @@ local function npcNear(player: Player, npcId: any): Npcs.Npc?
 	return nil
 end
 
+-- A whole number from 1 to Shop.MAX_AMOUNT (the shop's number picker).
 local function validPack(amount: any): boolean
-	return typeof(amount) == "number" and table.find(Shop.PACKS, amount) ~= nil
+	return typeof(amount) == "number" and amount == math.floor(amount) and amount >= 1 and amount <= Shop.MAX_AMOUNT
 end
 
 local function notEnough(player: Player)
@@ -86,9 +87,17 @@ local function rollSalesDay(data: Types.PlayerData)
 	end
 end
 
-local function onSell(player: Player, npcId: any, target: any)
+local function onSell(player: Player, npcId: any, target: any, amount: any)
 	if typeof(target) ~= "string" then
 		return
+	end
+	-- Optional amount (the number picker): sell only that many of one item. "all" ignores it.
+	local wanted: number? = nil
+	if amount ~= nil then
+		if not validPack(amount) then
+			return
+		end
+		wanted = amount
 	end
 	local npc = npcNear(player, npcId)
 	local data = DataService.Get(player)
@@ -119,6 +128,9 @@ local function onSell(player: Player, npcId: any, target: any)
 	for _, itemId in toSell do
 		local price = unitPrice(itemId) :: number
 		local count = data.inventory[itemId]
+		if wanted and target ~= "all" then
+			count = math.min(count, wanted)
+		end
 		if npc.quota and Crops.byId[itemId] then
 			local left = Trade.quotaLeft(data.sales, data.sales.tier, itemId, data.sales.day)
 			if count > left then
@@ -135,6 +147,7 @@ local function onSell(player: Player, npcId: any, target: any)
 	end
 
 	if total > 0 then
+		data.guide.sells += 1 -- one finished sale trip for the new-player guide (Config/Onboarding)
 		EconomyService.Add(player, "koin", total, if target == "all" then "sell:all" else `sell:{target}`)
 		Net.Fire("Notify", player, "sell.sold", { n = total }) -- (AnalyticsHooks logs first_sell from the Koin gain)
 		InventoryService.Sync(player)

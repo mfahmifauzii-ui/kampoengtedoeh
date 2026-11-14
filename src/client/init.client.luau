@@ -12,6 +12,7 @@ local ORDER = {
 	"GarapController",
 	"LandController", -- after Garap: its "+" buttons hide while Garap mode is open
 	"FarmController",
+	"GuideController", -- after Garap: stays quiet while Garap mode shows its own hint
 	"FishingController",
 	"InventoryController",
 	"ShopController",
