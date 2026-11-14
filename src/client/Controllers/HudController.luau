@@ -78,7 +78,8 @@ local function buildPlaceholder(): ScreenGui
 	bungaChip.LayoutOrder = 2
 
 	-- BOTTOM LEFT: the player card = photo + level star + name + a slim XP bar, and under it the three buff slots.
-	local card = UiKit.pill(gui, "StatusCard", 214, 84)
+	-- The bamboo frame of the card is thick, so everything inside keeps a 14 px inset from its edges (nothing touches it).
+	local card = UiKit.pill(gui, "StatusCard", 232, 92)
 	card.AnchorPoint = Vector2.new(0, 1)
 	card.Position = UDim2.new(0, 8, 1, -6)
 
@@ -87,15 +88,15 @@ local function buildPlaceholder(): ScreenGui
 	ring.BackgroundTransparency = 1
 	ring.Image = UiAssets.PLATE.image
 	ring.ScaleType = Enum.ScaleType.Fit
-	ring.Size = UDim2.fromOffset(54, 54)
-	ring.Position = UDim2.fromOffset(8, 12)
+	ring.Size = UDim2.fromOffset(46, 46)
+	ring.Position = UDim2.fromOffset(14, 23)
 	ring.ZIndex = 2
 	ring.Parent = card
 	local photo = Instance.new("ImageLabel")
 	photo.Name = "Photo"
 	photo.BackgroundColor3 = UiKit.ROW
-	photo.Size = UDim2.fromOffset(38, 38)
-	photo.Position = UDim2.fromOffset(16, 20)
+	photo.Size = UDim2.fromOffset(32, 32)
+	photo.Position = UDim2.fromOffset(21, 30)
 	photo.ZIndex = 3
 	photo.Parent = card
 	local photoRound = Instance.new("UICorner")
@@ -113,8 +114,8 @@ local function buildPlaceholder(): ScreenGui
 	local badge = Instance.new("TextLabel") -- level star on the photo's corner
 	badge.Name = "LevelBadge"
 	badge.BackgroundTransparency = 1
-	badge.Size = UDim2.fromOffset(24, 24)
-	badge.Position = UDim2.fromOffset(2, 50)
+	badge.Size = UDim2.fromOffset(22, 22)
+	badge.Position = UDim2.fromOffset(8, 52)
 	badge.ZIndex = 5
 	badge.Font = UiKit.FONT
 	badge.TextSize = 12
@@ -123,9 +124,9 @@ local function buildPlaceholder(): ScreenGui
 	badge.TextStrokeTransparency = 0.2
 	badge.Text = "1"
 	badge.Parent = card
-	local star = UiKit.icon(card, "bintang", 26)
+	local star = UiKit.icon(card, "bintang", 22)
 	if star then
-		star.Position = UDim2.fromOffset(1, 49)
+		star.Position = UDim2.fromOffset(8, 52)
 		star.ZIndex = 4
 	end
 	levelBadge = badge
@@ -133,11 +134,11 @@ local function buildPlaceholder(): ScreenGui
 	local nameLabel = Instance.new("TextLabel")
 	nameLabel.Name = "PlayerName"
 	nameLabel.BackgroundTransparency = 1
-	nameLabel.Position = UDim2.fromOffset(68, 8)
-	nameLabel.Size = UDim2.new(1, -80, 0, 16)
+	nameLabel.Position = UDim2.fromOffset(68, 12)
+	nameLabel.Size = UDim2.new(1, -84, 0, 14)
 	nameLabel.TextXAlignment = Enum.TextXAlignment.Left
 	nameLabel.Font = UiKit.FONT
-	nameLabel.TextSize = 13
+	nameLabel.TextSize = 12
 	nameLabel.TextColor3 = UiKit.TEXT
 	nameLabel.TextTruncate = Enum.TextTruncate.AtEnd
 	nameLabel.Text = player.DisplayName
@@ -148,8 +149,8 @@ local function buildPlaceholder(): ScreenGui
 	local track = Instance.new("Frame")
 	track.Name = "XPTrack"
 	track.BackgroundColor3 = Color3.fromRGB(150, 118, 76)
-	track.Position = UDim2.fromOffset(68, 28)
-	track.Size = UDim2.new(1, -82, 0, 14)
+	track.Position = UDim2.fromOffset(68, 30)
+	track.Size = UDim2.new(1, -84, 0, 12)
 	track.ZIndex = 2
 	track.Parent = card
 	local trackRound = Instance.new("UICorner")
@@ -174,7 +175,7 @@ local function buildPlaceholder(): ScreenGui
 	xpBarLabel.Size = UDim2.fromScale(1, 1)
 	xpBarLabel.ZIndex = 4
 	xpBarLabel.Font = UiKit.FONT
-	xpBarLabel.TextSize = 10
+	xpBarLabel.TextSize = 9
 	xpBarLabel.TextColor3 = UiKit.CREAM
 	xpBarLabel.TextStrokeColor3 = Color3.fromRGB(60, 36, 14)
 	xpBarLabel.TextStrokeTransparency = 0.25
@@ -186,8 +187,8 @@ local function buildPlaceholder(): ScreenGui
 		slot.Name = `Buff_{def.id}`
 		slot.BackgroundColor3 = UiKit.DARK
 		slot.BackgroundTransparency = 0.3
-		slot.Position = UDim2.fromOffset(68 + (index - 1) * 34, 48)
-		slot.Size = UDim2.fromOffset(30, 30)
+		slot.Position = UDim2.fromOffset(68 + (index - 1) * 27, 49)
+		slot.Size = UDim2.fromOffset(23, 23)
 		slot.ZIndex = 2
 		slot.Parent = card
 		local slotRound = Instance.new("UICorner")
@@ -195,19 +196,19 @@ local function buildPlaceholder(): ScreenGui
 		slotRound.Parent = slot
 		local slotStroke = Instance.new("UIStroke")
 		slotStroke.Color = Color3.fromRGB(150, 118, 76)
-		slotStroke.Thickness = 2
+		slotStroke.Thickness = 1.5
 		slotStroke.Parent = slot
 
-		-- 22 x 22 art box in the middle of the slot: the empty icon (a dark silhouette) under a clipped full icon.
+		-- 16 x 16 art box in the middle of the slot: the empty icon (a dark silhouette) under a clipped full icon.
 		local box = Instance.new("Frame")
 		box.Name = "Box"
 		box.BackgroundTransparency = 1
 		box.AnchorPoint = Vector2.new(0.5, 0.5)
 		box.Position = UDim2.fromScale(0.5, 0.5)
-		box.Size = UDim2.fromOffset(22, 22)
+		box.Size = UDim2.fromOffset(16, 16)
 		box.ZIndex = 3
 		box.Parent = slot
-		local empty = UiKit.icon(box, def.icon, 22)
+		local empty = UiKit.icon(box, def.icon, 16)
 		if empty then
 			empty.Name = "Empty"
 			empty.ImageColor3 = Color3.new(0, 0, 0)
@@ -223,7 +224,7 @@ local function buildPlaceholder(): ScreenGui
 		clip.Size = UDim2.fromScale(1, 0)
 		clip.ZIndex = 4
 		clip.Parent = box
-		local full = UiKit.icon(clip, def.icon, 22)
+		local full = UiKit.icon(clip, def.icon, 16)
 		if full then
 			full.Name = "Full"
 			full.AnchorPoint = Vector2.new(0, 1)

@@ -23,7 +23,8 @@ local State = require(script.Parent.Parent.State)
 local UiKit = require(script.Parent.Parent.UiKit)
 
 local VALID_COLOR = Color3.fromRGB(150, 196, 120)
-local NEAR_DISTANCE = 80 -- studs from the character to the chunk's center: closer shows the "+", farther hides it
+local NEAR_DISTANCE = 50 -- studs from the character to the chunk's center: closer shows the "+", farther hides it
+local MAX_SHOWN = 3 -- at most this many "+" at once (the nearest ones), so the screen never fills with prompts
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
@@ -348,16 +349,26 @@ function LandController.Start()
 		local hidden = GarapController.Active
 		local character = player.Character
 		local root = character and character:FindFirstChild("HumanoidRootPart")
+		local candidates: { { entry: Entry, distance: number } } = {}
 		for _, entry in entries do
-			local show = false
-			if camera and not hidden and root and root:IsA("BasePart") and (root.Position - entry.anchor.Position).Magnitude <= NEAR_DISTANCE then
-				local point, onScreen = camera:WorldToViewportPoint(entry.anchor.Position)
-				if onScreen and point.Z > 0 then
-					entry.gui.Position = UDim2.fromOffset(point.X, point.Y)
-					show = true
+			entry.gui.Visible = false
+			if camera and not hidden and root and root:IsA("BasePart") then
+				local distance = (root.Position - entry.anchor.Position).Magnitude
+				if distance <= NEAR_DISTANCE then
+					table.insert(candidates, { entry = entry, distance = distance })
 				end
 			end
-			entry.gui.Visible = show
+		end
+		table.sort(candidates, function(a, b)
+			return a.distance < b.distance
+		end)
+		for index = 1, math.min(#candidates, MAX_SHOWN) do
+			local entry = candidates[index].entry
+			local point, onScreen = (camera :: Camera):WorldToViewportPoint(entry.anchor.Position)
+			if onScreen and point.Z > 0 then
+				entry.gui.Position = UDim2.fromOffset(point.X, point.Y)
+				entry.gui.Visible = true
+			end
 		end
 		if hidden and selected then
 			closePopup()
