@@ -1,16 +1,14 @@
 --!strict
 -- The shape of a player's land and the farm-tile grid. Shared by the server (validation, terrain painting)
 -- and the client (previews). All coordinates are PLOT-LOCAL studs:
---   x = to the plot's right,  z = toward the map center (the plot's front),  origin = the plot anchor.
+--   x = to the plot's right,  z = toward the map center (the plot's front),  origin = the plot's center.
 --
--- The land is the green wedge of the blueprint: every point at least SETBACK studs from BOTH the river axis and the
--- road axis, cut at the front (FRONT_Z) and the back (BACK_Z). Its slanted edges are a 4-stud staircase, exactly
--- the terrain cell size, so what you can build on is what is painted green.
+-- R2a: the land is a square of Plots.SIZE (96) studs centered on the plot anchor: x and z both run -48 .. 48.
+-- (R2b will make it grow from a 48 x 48 start by buying 16-stud chunks; this module is where that rule will live.)
 -- TERRAIN GRID (measured with Terrain:ReadVoxels): cells are 4 studs with their edges at multiples of 4, and a block
 -- paints a cell's material when the cell's CENTER lies inside the block. Plot anchors sit on multiples of 4, so in
--- plot-local studs BACK_Z / FRONT_Z are multiples of 4, row half widths are multiples of 4, and a farm tile
--- (8 studs) is exactly 2 x 2 cells. Paint blocks are 0.5 smaller than the cells they fill: that keeps the centers of
--- the neighbouring cells outside the block.
+-- plot-local studs the land edges are multiples of 4 and a farm tile (8 studs) is exactly 2 x 2 cells. Paint blocks
+-- are 0.5 smaller than the cells they fill: that keeps the centers of the neighbouring cells outside the block.
 -- Rows are 4 studs tall, row 0 starts at BACK_Z.
 
 local Fishing = require(script.Parent.Parent.Config.Fishing)
@@ -19,12 +17,10 @@ local Plots = require(script.Parent.Parent.Config.Plots)
 
 export type Rect = { minX: number, minZ: number, maxX: number, maxZ: number }
 
-local SQRT2 = math.sqrt(2)
 local TILE = 8 -- farm bed size = 2 x 2 terrain cells (also the pond grid)
 local PITCH = 8 -- farm beds sit side by side on the grid (the small visible gap is the bed Part being 1 stud smaller than its cell, see Farm.BED_SIZE)
 local TILE_OFFSET = 0 -- tiles already line up with the cell edges (multiples of 4)
 local ROW = 4 -- terrain cell size
-local APEX = Map.LAND.SETBACK * SQRT2 -- slanted edge: u >= |x| + APEX, with u = distance from the map center along the axis
 
 local Land = {}
 Land.TILE = TILE
@@ -32,44 +28,27 @@ Land.PITCH = PITCH
 Land.TILE_OFFSET = TILE_OFFSET
 Land.SURFACE_OFFSET = 2 -- measured: the visible terrain surface is this far above the top of a filled block
 Land.ROW = ROW
-Land.APEX = APEX
+Land.HALF = Plots.SIZE / 2
 Land.FRONT_Z = Plots.FRONT_Z
-Land.BACK_Z = Plots.DISTANCE - Map.LAND.BACK_DISTANCE
+Land.BACK_Z = -Plots.FRONT_Z
 Land.ROWS = (Land.FRONT_Z - Land.BACK_Z) // ROW
 
--- Half width of the land in a 4-stud row: the narrowest edge of the row, rounded down to whole cells.
-function Land.rowHalfWidth(row: number): number
-	local zNear = Land.BACK_Z + ROW * (row + 1)
-	local width = Plots.DISTANCE - zNear - APEX
-	return math.max(0, math.floor(width / ROW) * ROW)
+-- Half width of the land in a 4-stud row (the same for every row now that the land is a square).
+function Land.rowHalfWidth(_row: number): number
+	return Land.HALF
 end
 
-Land.MAX_HALF_WIDTH = Land.rowHalfWidth(0)
+Land.MAX_HALF_WIDTH = Land.HALF
 
 -- Smooth point test (for "am I standing on this plot?"). margin grows the land outward.
 function Land.contains(x: number, z: number, margin: number?): boolean
 	local m = margin or 0
-	if z > Land.FRONT_Z + m or z < Land.BACK_Z - m then
-		return false
-	end
-	local u = Plots.DISTANCE - z
-	return u >= math.abs(x) + APEX - m * SQRT2
+	return math.abs(x) <= Land.HALF + m and z >= Land.BACK_Z - m and z <= Land.FRONT_Z + m
 end
 
--- Exact staircase test: is the whole rectangle painted-green land?
+-- Is the whole rectangle land?
 function Land.rectInside(rect: Rect): boolean
-	if rect.minZ < Land.BACK_Z or rect.maxZ > Land.FRONT_Z then
-		return false
-	end
-	local widest = math.max(math.abs(rect.minX), math.abs(rect.maxX))
-	local first = math.floor((rect.minZ - Land.BACK_Z) / ROW)
-	local last = math.ceil((rect.maxZ - Land.BACK_Z) / ROW) - 1
-	for row = first, last do
-		if Land.rowHalfWidth(row) < widest then
-			return false
-		end
-	end
-	return true
+	return rect.minX >= -Land.HALF and rect.maxX <= Land.HALF and rect.minZ >= Land.BACK_Z and rect.maxZ <= Land.FRONT_Z
 end
 
 function Land.rectsOverlap(a: Rect, b: Rect): boolean

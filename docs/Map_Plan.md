@@ -1,44 +1,51 @@
-# Map — desa cincin (8–10 pemain)
+# Map — cincin persegi (10 pemain)
 
-**Status:** rencana v4. Peta yang ada di kode masih **v3: desa bentuk X untuk 4 pemain** (lihat bagian "Kondisi sekarang"). Perubahan ke v4 dikerjakan di `Roadmap.md` tahap R2. Semua angka v4 adalah *asumsi* sampai dites di Studio.
+**Status:** **R2a selesai dan dites di Studio (14 Nov 2026).** Peta di kode sekarang adalah v4 di bawah. Lahan masih **persegi 96×96 penuh**; pembelian chunk (mulai 3×3) menyusul di R2b. Bagian "Kondisi sebelum R2a" di bawah hanya catatan sejarah.
+
+Screenshot: [tampak atas](screenshots/R2a_map_topdown.jpg) · [deretan lahan selatan](screenshots/R2a_south_row_of_plots.jpg) · [kota, jembatan, sungai](screenshots/R2a_town_bridge_river.jpg)
 
 ---
 
-## 1. Rencana v4: desa cincin
-
-**Tujuan:** 8–10 slot lahan identik, tertata rapi, tidak terasa kosong walau server belum penuh.
+## 1. Peta sekarang (v4, R2a)
 
 ```
-                  [Lahan 1] [Lahan 2] [Lahan 3]
-              [Lahan 10]   ╭──────────────╮   [Lahan 4]
-        sungai ═══════════ │ PLAZA + KOTA │ ═══════════ sungai
-              [Lahan 9]    ╰──────────────╯    [Lahan 5]
-                  [Lahan 8] [Lahan 7] [Lahan 6]
-                        (jalan cincin mengelilingi plaza)
+                [N1 mid] [N2 kiri] [N3 kanan]          (utara: 3 lahan)
+       sungai \                                  / jalan
+              \                                 /
+   [W: 2 lahan]        KOTA + JEMBATAN        [E: 2 lahan]
+              /                                 \
+       jalan /                                   \ sungai
+                [S1 mid] [S2 kiri] [S3 kanan]          (selatan: 3 lahan)
 ```
 
-- **Pusat:** plaza dan kota (jembatan, warung, toko NPC, dermaga). Sungai tetap melintasi pusat.
-- **Jalan cincin** mengelilingi pusat; lahan tersusun di luar cincin dan **semua menghadap jalan**. Tiap slot identik, jadi tidak ada yang untung atau rugi posisi.
-- **Ukuran lahan:** maksimal 96×96, dibeli per chunk 16×16 mulai 3×3 (lihat `00_Design_Doc.md` §4). Peta mereservasi area maksimum tiap slot.
-- **Ukuran peta:** perkiraan 500–600 stud persegi (10 lahan × 96 stud butuh keliling ±1.000 di radius depan lahan ≥ ±160, lalu 96 stud kedalaman). **Lebih kecil dari v3 (720)** karena lahan dikecilkan. Hitung ulang saat membangun.
-- **Sungai membelah cincin:** pilihan terbuka: (a) dua jembatan kecil di titik jalan cincin memotong sungai, atau (b) lahan dibagi 5 di tiap sisi sungai. Putuskan saat R2.
-- **Slot kosong:** ditampilkan sebagai padang rumput dengan papan "Lahan kosong", bukan hilang. Server setengah penuh tetap terlihat hidup.
-- **Dermaga:** tetap 12 dermaga (6 Sungai, 6 Empang) di dua lengan sungai; jumlah bisa disesuaikan dengan jumlah pemain.
+- **Bentuknya cincin persegi, bukan lingkaran.** Alasan teknis: tanah garap dicat per sel Terrain 4 stud, dan itu hanya rapi kalau lahan sejajar sumbu (yaw kelipatan 90°). Lahan di sudut sembarang akan merusak penyelarasan itu, jadi lahan berderet di empat sisi peta, semuanya menghadap kota.
+- **Pusat:** kota di atas jembatan (6 ruko, warung, NPC) tidak diubah. Sungai NW→SE dan jalan SW→NE tetap menyilang dan membagi cincin jadi empat sektor. Pertanyaan "dua jembatan atau 5 + 5" **tidak perlu**: lahan sudah tersusun di dalam sektor, tidak ada yang tersilang sungai.
+- **10 slot:** selatan 3, utara 3, barat 2, timur 2. Jumlah per sisi diatur di `SIDES` pada `Config/Plots`; kalau mau 8 pemain, ubah jadi 2 per sisi (peta tetap jalan). Atur juga **Max Players** di Game Settings sama dengan jumlah slot (10).
+- **Ukuran lahan:** 96×96, pusat 240 dari tengah peta, jarak antar-pusat 104 (celah 8 stud). Semua koordinat kelipatan 4. Sudut lahan paling dekat 28,28 stud dari sumbu sungai/jalan (diverifikasi dengan skrip).
+- **Ukuran peta:** **608 × 608** (sebelumnya 720). Lahan berakhir 16 stud di dalam dinding.
+- **Urutan slot:** pemain pertama di selatan-tengah (Plot1), berikutnya utara-tengah, barat, timur, lalu lahan samping, jadi server yang belum penuh tersebar rata.
+- **Slot kosong:** tampil sebagai lahan rumput dengan papan **"Lahan kosong"**, rumah tetap ada. Server setengah penuh tetap terlihat hidup.
+- **Dermaga:** 10 dermaga (5 Sungai di lengan NW, 5 Empang di lengan SE), di kedua tepi sungai; posisinya digeser masuk karena peta mengecil.
+- **Catatan jujur dari screenshot:** bagian tengah antara kota dan lahan adalah pasir kosong yang luas. Peta terasa lapang; isi (pohon, bangku, taman publik) itu pekerjaan seni/UI-mu atau tahap konten nanti.
 
 ### Pindah server dan slot
 - Tiap server adalah dunia terpisah; **posisi karakter tidak ikut**. Yang ikut adalah **data lahan** (di DataStore, lewat ProfileStore).
-- Data menyimpan `plotSlot` terakhir. Saat masuk, server mencoba menempatkan pemain di slot yang sama; kalau sudah terisi, ke slot kosong pertama. Lahan dibangun ulang dari data (tanah, tanaman, hiasan, kolam, chunk), jadi isinya selalu sama walau slotnya berbeda.
+- 🗓 (R2b) Data akan menyimpan `plotSlot` terakhir. Saat masuk, server mencoba menempatkan pemain di slot yang sama; kalau sudah terisi, ke slot kosong pertama. **Sekarang** (R2a) pemain selalu dapat slot kosong pertama menurut urutan di atas. Lahan dibangun ulang dari data, jadi isinya sama walau slotnya berbeda.
 - Tidak ada Mampir lintas-server (tidak direncanakan sekarang).
 
-### Syarat teknis R2
-- `Config/Map`, `Config/Plots`, `MapService`, `PlotService`, `Modules/Land` ditulis ulang untuk N slot (konfigurasi, bukan angka mati 4).
-- Lahan dari chunk: bentuk kotak, bukan baji. `Land` dan batas validasi garap, hias, dan kolam memakai daftar chunk milik pemain.
-- Streaming dan jumlah Part dicek di HP asli (10 lahan sekaligus).
-- `Max Players` di Game Settings diubah sesuai jumlah slot.
+### Yang berubah di kode (R2a)
+- `Config/Plots`: `LAYOUT` dihasilkan dari `SIDES` (posisi dunia langsung); `COUNT` otomatis. `Config/Map`: `SIZE` 608, `LAND` dihapus, dermaga digeser.
+- `Modules/Land`: baji diganti persegi 96×96 dengan API yang sama (`contains`, `rectInside`, `canTill`, `canPond`...), jadi garap, hias, kolam, dan sosial tetap jalan tanpa diubah.
+- `MapService`: cat tanah, pagar, semak, dan penempatan lahan dibuat ulang untuk persegi; lampu jalan hanya di dalam dinding. `PlotService`: label "Lahan kosong".
+- **Migrasi data v8 → v9:** petak garap dan kolam di luar lahan 96×96 baru dibuang (kolam dikembalikan 50% harganya); hiasan di luar lahan dikembalikan ke stok saat masuk. Dites dengan save buatan.
+
+### Teruji di Studio (R2a, 1 pemain)
+Server start tanpa error; 10 Plot terbentuk; pemain masuk Plot1; label kosong/terisi benar; geometri (tanpa tumpang tindih, di dalam dinding, ≥ 28 stud dari sumbu); garap diterima di dalam dan di sudut lahan, ditolak di luar batas dan di atas rumah; validasi hias benar di semua sudut dan di luar batas; migrasi v8 → v9 benar.
+**Belum teruji:** 2+ pemain sekaligus (penugasan slot dan Mampir antar lahan), HP asli dan performa 10 lahan terisi, memancing dari dermaga baru, dan save v8 asli dari DataStore dengan petak di luar batas.
 
 ---
 
-## 2. Kondisi sekarang (v3, di kode)
+## 2. Kondisi sebelum R2a (v3, hanya sejarah)
 
 Dibangun oleh `MapService` dari `Config/Map` + `Config/Plots` tiap server mulai. Studio → **Play** (tampilan edit kosong).
 

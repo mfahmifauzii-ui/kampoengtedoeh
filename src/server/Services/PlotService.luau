@@ -25,8 +25,8 @@ local function buildPlaceholderPlots(): Folder
 
 	for i = 1, PlotsConfig.COUNT do
 		local slot = PlotsConfig.LAYOUT[i]
-		local x = slot.x * PlotsConfig.DISTANCE
-		local z = slot.z * PlotsConfig.DISTANCE
+		local x = slot.x
+		local z = slot.z
 		-- Local +Z (spawn side) faces the map center (the bridge town).
 		local rotation = CFrame.Angles(0, slot.yaw, 0)
 
@@ -69,7 +69,7 @@ local function buildPlaceholderPlots(): Folder
 		label.TextStrokeTransparency = 0.6
 		label.Font = Enum.Font.GothamMedium
 		label.TextSize = 20
-		label.Text = ""
+		label.Text = Locale.t("plot.empty")
 		label.Parent = billboard
 
 		MapService.AddHouse(model)
@@ -123,7 +123,7 @@ local function release(player: Player)
 	ownerOf[plot] = nil
 	plot:SetAttribute("OwnerUserId", nil)
 	plot:SetAttribute("Likes", nil)
-	setOwnerLabel(plot, "")
+	setOwnerLabel(plot, Locale.t("plot.empty"))
 end
 
 function PlotService.GetPlot(player: Player): Model?

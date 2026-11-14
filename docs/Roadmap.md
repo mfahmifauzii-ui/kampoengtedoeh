@@ -53,6 +53,9 @@ Perubahan terbesar. Detail di `Map_Plan.md` §1.
 - Uji 2+ pemain di Studio (Test → banyak pemain); uji performa dengan 10 lahan.
 - Dipecah: R2a peta + slot, R2b chunk + migrasi, R2c kolam/hias/garap di lahan baru.
 
+### R2a — peta cincin + 10 slot ✅ selesai dan dites di Studio (14 Nov 2026)
+Cincin **persegi** (bukan lingkaran, karena tanah garap Terrain harus sejajar sumbu): 10 lahan 96×96 di empat sisi, peta 608×608, slot kosong berlabel "Lahan kosong", migrasi v8 → v9. Detail dan screenshot di `Map_Plan.md`. Lahan masih penuh 96×96; chunk menyusul di R2b. Belum teruji: 2+ pemain dan HP asli.
+
 ## Gerbang: Playtest #1
 
 Jangan tambah fitur baru sebelum ini. Isi: `Playtest_Plan.md`.
@@ -87,7 +90,7 @@ Kandidat, bukan komitmen: **mode foto**, **tujuan bersama kampung**, **peternaka
 
 ## Keputusan terbuka
 
-1. **Sungai di peta cincin:** dua jembatan kecil, atau lahan dibagi 5 + 5? (R2a)
+1. ~~Sungai di peta cincin~~ — selesai di R2a: tidak perlu jembatan tambahan, lahan tersusun di dalam sektor sungai/jalan.
 2. **Kuota Pak Darmo:** 20 per jenis cocok? Apakah kuota naik juga per level? (R1, simulasikan)
 3. **Harga chunk lahan:** kurva harga dan jumlah chunk awal. (R2b)
 4. **Pass Petak Ekstra:** diganti apa? (R2b)

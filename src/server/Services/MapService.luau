@@ -1,5 +1,5 @@
 --!strict
--- Builds the village map at server start (X-shaped map, see Config/Map and docs/Map_Plan.md):
+-- Builds the village map at server start (river + road crossing at the town, ten plots in a ring; see Config/Map and docs/Map_Plan.md):
 -- terrain + river + round Empang pool, road, bridge with the town on it, warung + NPC, docks with
 -- fishing spots, lamps, edge trees and invisible walls.
 -- If Workspace.Map already exists (hand-built map), nothing is generated.
@@ -249,19 +249,13 @@ local function buildTerrain()
 	local drop = -Land.SURFACE_OFFSET
 	terrain:FillBlock(CFrame.new(0, -Map.GRASS_DEPTH / 2 + drop, 0), Vector3.new(total, Map.GRASS_DEPTH, total), Enum.Material.Sand)
 	for _, slot in Plots.LAYOUT do
-		local frame = CFrame.new(slot.x * Plots.DISTANCE, 0, slot.z * Plots.DISTANCE) * CFrame.Angles(0, slot.yaw, 0)
-		for row = 0, Land.ROWS - 1 do
-			local half = Land.rowHalfWidth(row)
-			if half > 0 then
-				local z = Land.BACK_Z + row * Land.ROW + Land.ROW / 2
-				-- 0.5 smaller than the cells it fills: the neighbouring cells' centers stay outside the block
-				terrain:FillBlock(
-					frame * CFrame.new(0, -2 + drop, z),
-					Vector3.new(half * 2 - 0.5, 4, Land.ROW - 0.5),
-					Enum.Material.LeafyGrass
-				)
-			end
-		end
+		local frame = CFrame.new(slot.x, 0, slot.z) * CFrame.Angles(0, slot.yaw, 0)
+		-- 0.5 smaller than the cells it fills: the neighbouring cells' centers stay outside the block
+		terrain:FillBlock(
+			frame * CFrame.new(0, -2 + drop, 0),
+			Vector3.new(Land.HALF * 2 - 0.5, 4, Land.HALF * 2 - 0.5),
+			Enum.Material.LeafyGrass
+		)
 	end
 
 	-- Village woods: the scenery ground outside the walls is grass too (a 4-stud top layer, same recipe as the lands).
@@ -334,7 +328,7 @@ local function buildRoad(map: Folder)
 
 		-- Lamps on both sides of the road.
 		local lampU = startU + 20
-		while lampU < halfLength - 120 do
+		while lampU < Map.SIZE / 2 * SQRT2 - 30 do -- only inside the walls (the road itself runs on through the woods)
 			for _, s in { 1, -1 } do
 				local position = roadPoint(sign * lampU) + side * s * (Map.ROAD.WIDTH / 2 + 3)
 				lampPost(lamps, CFrame.new(position))
@@ -595,14 +589,13 @@ local function buildBoundary(map: Folder)
 	end
 end
 
--- A low bamboo fence on the slanted edges and the front of each land (not solid: visitors can walk in, you just
--- see where your land ends). The front has a gap in the middle.
+-- A low bamboo fence around each land (not solid: visitors can walk in, you just see where your land ends).
+-- The front has a gap in the middle.
 local function buildLandFences(map: Folder)
 	local fences = folder(map, "LandFences")
-	local distance = Plots.DISTANCE
 
 	for _, slot in Plots.LAYOUT do
-		local frame = CFrame.new(slot.x * distance, 0, slot.z * distance) * CFrame.Angles(0, slot.yaw, 0)
+		local frame = CFrame.new(slot.x, 0, slot.z) * CFrame.Angles(0, slot.yaw, 0)
 		local function at(x: number, z: number): Vector3
 			return (frame * CFrame.new(x, 0, z)).Position
 		end
@@ -620,27 +613,41 @@ local function buildLandFences(map: Folder)
 			end
 		end
 
-		-- Slanted side edges, from the front to the back row (x follows the middle of the 4-stud staircase).
+		local half = Land.HALF
+
+		-- Side edges, from the front corner to the back corner.
 		for _, side in { 1, -1 } do
 			local points: { Vector3 } = {}
 			local z = Land.FRONT_Z
-			while z >= Land.BACK_Z do
-				table.insert(points, at(side * (distance - z - Land.APEX - 2), z))
+			while z > Land.BACK_Z do
+				table.insert(points, at(side * half, z))
 				z -= 12
 			end
+			table.insert(points, at(side * half, Land.BACK_Z))
+			line(points)
+		end
+
+		-- Back edge.
+		do
+			local points: { Vector3 } = {}
+			local x = -half
+			while x < half do
+				table.insert(points, at(x, Land.BACK_Z))
+				x += 12
+			end
+			table.insert(points, at(half, Land.BACK_Z))
 			line(points)
 		end
 
 		-- Front edge, with a 16-stud gap in the middle.
-		local frontHalf = distance - Land.FRONT_Z - Land.APEX - 2
 		for _, side in { 1, -1 } do
 			local points: { Vector3 } = {}
 			local x = 8
-			while x <= frontHalf do
+			while x < half do
 				table.insert(points, at(side * x, Land.FRONT_Z))
 				x += 12
 			end
-			table.insert(points, at(side * frontHalf, Land.FRONT_Z))
+			table.insert(points, at(side * half, Land.FRONT_Z))
 			line(points)
 		end
 	end
@@ -734,7 +741,7 @@ local function buildNature(map: Folder, trees: { Model }, bushes: { Model }, roc
 	-- Every plot's frame (world <- plot-local), to keep nature off the player lands.
 	local frames: { CFrame } = {}
 	for _, slot in Plots.LAYOUT do
-		table.insert(frames, CFrame.new(slot.x * Plots.DISTANCE, 0, slot.z * Plots.DISTANCE) * CFrame.Angles(0, slot.yaw, 0))
+		table.insert(frames, CFrame.new(slot.x, 0, slot.z) * CFrame.Angles(0, slot.yaw, 0))
 	end
 	local function onLand(x: number, z: number, margin: number): boolean
 		local point = Vector3.new(x, 0, z)
@@ -849,29 +856,36 @@ local function buildNature(map: Folder, trees: { Model }, bushes: { Model }, roc
 		end
 	end
 
-	-- 2. Bushes (and now and then a rock) hugging the outside of every land: sample along its slanted sides.
+	-- 2. Bushes (and now and then a rock) hugging the outside of every land: sample along its back and side edges.
+	-- (Spots that fall on a neighbouring land are skipped by onLand.)
 	for index = 1, #frames do
 		local frame = frames[index]
+		local function scatter(localX: number, localZ: number)
+			local world = frame * Vector3.new(localX, 0, localZ)
+			if
+				not onLand(world.X, world.Z, 2)
+				and not nearAxes(world.X, world.Z, Map.RIVER.WIDTH / 2 + 3, Map.ROAD.WIDTH / 2 + 3)
+				and math.abs(world.X) < half - 4
+				and math.abs(world.Z) < half - 4
+			then
+				if #rocks > 0 and random:NextNumber() < 0.22 then
+					put(rocks, "Batu", world.X, world.Z, random:NextNumber(3, 7), false)
+				elseif #bushes > 0 then
+					put(bushes, "Semak", world.X, world.Z, random:NextNumber(4, 7.5), true)
+				end
+			end
+		end
 		local z = Land.BACK_Z
 		while z <= Land.FRONT_Z do
 			for _, side in { 1, -1 } do
-				local edge = Plots.DISTANCE - z - Land.APEX
-				local localX = side * (edge + random:NextNumber(3, 9))
-				local world = frame * Vector3.new(localX, 0, z + random:NextNumber(-3, 3))
-				if
-					not onLand(world.X, world.Z, 2)
-					and not nearAxes(world.X, world.Z, Map.RIVER.WIDTH / 2 + 3, Map.ROAD.WIDTH / 2 + 3)
-					and math.abs(world.X) < half - 4
-					and math.abs(world.Z) < half - 4
-				then
-					if #rocks > 0 and random:NextNumber() < 0.22 then
-						put(rocks, "Batu", world.X, world.Z, random:NextNumber(3, 7), false)
-					elseif #bushes > 0 then
-						put(bushes, "Semak", world.X, world.Z, random:NextNumber(4, 7.5), true)
-					end
-				end
+				scatter(side * (Land.HALF + random:NextNumber(3, 9)), z + random:NextNumber(-3, 3))
 			end
 			z += random:NextNumber(4.5, 8)
+		end
+		local x = -Land.HALF
+		while x <= Land.HALF do
+			scatter(x + random:NextNumber(-3, 3), Land.BACK_Z - random:NextNumber(3, 9))
+			x += random:NextNumber(4.5, 8)
 		end
 	end
 

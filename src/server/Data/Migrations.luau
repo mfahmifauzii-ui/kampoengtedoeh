@@ -3,7 +3,7 @@
 -- To change the schema: add STEPS[n] (migrates v n -> n+1), bump CURRENT_VERSION
 -- and DataTemplate.version together.
 
-local CURRENT_VERSION = 8
+local CURRENT_VERSION = 9
 
 -- Farm beds moved to a wider grid (a path between beds): every tile keeps its crop and moves to the cell its old
 -- center falls in; if two tiles land in one cell, the later one takes the nearest free cell (a bed can shift a
@@ -117,6 +117,40 @@ local STEPS: { [number]: (data: any) -> () } = {
 		data.npc = nil
 		data.skills = nil
 		data.sales = { day = "", sold = {}, tier = 0 }
+	end,
+
+	-- v8 -> v9 (R2a): the land is now a 96 x 96 square (plot-local x and z from -48 to 48) instead of the huge wedge.
+	-- Farm beds and ponds that fall outside it are dropped (crops on them are lost; a pond refunds
+	-- Fishing.POND.REFUND_RATE of what it cost, as if it had been removed). Decor outside the land is put back in stock
+	-- when the player joins (DecorService), so nothing placed is lost. Beds are 8 studs (cell * 8), ponds 16.
+	[8] = function(data)
+		local Fishing = require(game:GetService("ReplicatedStorage").Shared.Config.Fishing)
+		local pondCells = Fishing.POND.SIZE // 8
+		local function inside(cell: number, cells: number): boolean
+			return cell >= -6 and cell + cells <= 6
+		end
+
+		if data.farm and typeof(data.farm.tiles) == "table" then
+			local kept = {}
+			for _, tile in data.farm.tiles do
+				if inside(tile.cx, 1) and inside(tile.cz, 1) then
+					table.insert(kept, tile)
+				end
+			end
+			data.farm.tiles = kept
+		end
+
+		if data.pond and typeof(data.pond.list) == "table" then
+			local kept = {}
+			for _, pond in data.pond.list do
+				if inside(pond.cx, pondCells) and inside(pond.cz, pondCells) then
+					table.insert(kept, pond)
+				elseif typeof(pond.paid) == "number" and pond.paid > 0 then
+					data.koin = (data.koin or 0) + math.floor(pond.paid * Fishing.POND.REFUND_RATE)
+				end
+			end
+			data.pond.list = kept
+		end
 	end,
 }
 

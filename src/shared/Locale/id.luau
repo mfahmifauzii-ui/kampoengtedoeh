@@ -339,6 +339,7 @@ return {
 	["town.sign.roti"] = "Toko Roti",
 
 	-- Plots
+	["plot.empty"] = "Lahan kosong",
 	["plot.owner"] = "Kebun {name}",
 	["plot.owner_likes"] = "Kebun {name} · ♥ {likes}",
 

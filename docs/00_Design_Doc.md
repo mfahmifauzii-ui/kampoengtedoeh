@@ -16,7 +16,7 @@ Rencana pengerjaan ada di `Roadmap.md`. Tidak ada tanggal atau jadwal di dokumen
 Game cozy, tanpa fail state, di kampung Indonesia. Pemain bertani, memancing, menghias lahan, dan lama-lama membangun rumah serta beternak.
 
 - **Target:** perempuan sekitar 16+, suka personalisasi dan estetika. Cek kebijakan rating & usia Roblox yang terbaru langsung dari sumbernya sebelum mengunci target ini.
-- **Server:** **8–10 pemain**, tiap pemain punya satu lahan. Bentuk peta: lihat `Map_Plan.md`.
+- **Server:** **10 pemain** (10 slot lahan, ✅ R2a), tiap pemain punya satu lahan. Bentuk peta: cincin persegi, lihat `Map_Plan.md`. Jumlah slot bisa diubah di `Config/Plots`.
 - **Platform:** HP landscape dulu, UI berbahasa Indonesia.
 - **Pilar:** Bertani · Mancing · Menghias. Menyusul: Beternak, Rumah, Warung pemain.
 
