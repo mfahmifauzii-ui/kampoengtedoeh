@@ -1,0 +1,138 @@
+--!strict
+-- Upgrades old saves step by step. Runs BEFORE Reconcile.
+-- To change the schema: add STEPS[n] (migrates v n -> n+1), bump CURRENT_VERSION
+-- and DataTemplate.version together.
+
+local CURRENT_VERSION = 7
+
+-- Farm beds moved to a wider grid (a path between beds): every tile keeps its crop and moves to the cell its old
+-- center falls in; if two tiles land in one cell, the later one takes the nearest free cell (a bed can shift a
+-- little, nothing is lost). oldPitch / newPitch = studs between bed corners; the bed itself is 8 studs.
+local function respaceTiles(data: any, oldPitch: number, newPitch: number)
+	local tiles = if data.farm and typeof(data.farm.tiles) == "table" then data.farm.tiles else {}
+	local taken: { [string]: boolean } = {}
+	for _, tile in tiles do
+		local cx = math.floor((tile.cx * oldPitch + 4) / newPitch)
+		local cz = math.floor((tile.cz * oldPitch + 4) / newPitch)
+		local radius = 0
+		while taken[`{cx},{cz}`] do
+			radius += 1
+			local found = false
+			for dx = -radius, radius do
+				for dz = -radius, radius do
+					if not found and (math.abs(dx) == radius or math.abs(dz) == radius) and not taken[`{cx + dx},{cz + dz}`] then
+						cx, cz, found = cx + dx, cz + dz, true
+					end
+				end
+			end
+		end
+		taken[`{cx},{cz}`] = true
+		tile.cx, tile.cz = cx, cz
+	end
+end
+
+local STEPS: { [number]: (data: any) -> () } = {
+	-- v1 -> v2: farm tiles had a fixed layout (3 columns, by array index). Free-form farming stores a cell
+	-- per tile instead. Old tiles keep their crops and move onto a 3-wide block of cells near the plot center-left.
+	[1] = function(data)
+		local old = if data.farm and typeof(data.farm.tiles) == "table" then data.farm.tiles else {}
+		local tiles = {}
+		local nextUid = 1
+		for index, oldTile in old do
+			local tile: any = { uid = nextUid, cx = -5 + (index - 1) % 3, cz = -5 + (index - 1) // 3 }
+			for _, field in { "crop", "plantedAt", "readyAt", "watered", "harvestsLeft" } do
+				tile[field] = oldTile[field]
+			end
+			table.insert(tiles, tile)
+			nextUid += 1
+		end
+		data.farm = data.farm or {}
+		data.farm.tiles = tiles
+		data.farm.nextUid = nextUid
+	end,
+
+	-- v2 -> v3: the fixed plot pond is gone; ponds are built by the player (list). The capacity tier is kept,
+	-- the old single pond's timer (lastCollect) and any uncollected fish are dropped.
+	[2] = function(data)
+		local old = if typeof(data.pond) == "table" then data.pond else {}
+		data.pond = {
+			tier = if typeof(old.tier) == "number" then old.tier else 0,
+			list = {},
+			nextUid = 1,
+		}
+	end,
+
+	-- v3 -> v4: decor is unlocked by blueprints instead of item levels. Anyone who already owns decor of a
+	-- blueprint (placed or in stock) gets that blueprint, so nobody loses access to what they were using.
+	[3] = function(data)
+		data.decor = data.decor or {}
+		local owned = {}
+		local oldBlueprints = {
+			bale_bambu = "pondok_sawah",
+			meja_kayu = "pondok_sawah",
+			lampu_teplok = "pondok_sawah",
+			orang_orangan_sawah = "pondok_sawah",
+			gentong_air = "pondok_sawah",
+			jemuran = "pondok_sawah",
+			sepeda_onthel = "pondok_sawah",
+			pohon_pisang = "taman",
+			rumpun_bambu = "taman",
+			bangku_kayu = "taman",
+			bunga_kertas = "taman",
+		}
+		for _, entry in if typeof(data.decor.placed) == "table" then data.decor.placed else {} do
+			local blueprint = oldBlueprints[entry.id]
+			if blueprint then
+				owned[blueprint] = true
+			end
+		end
+		for itemId, count in if typeof(data.decor.stock) == "table" then data.decor.stock else {} do
+			local blueprint = oldBlueprints[itemId]
+			if blueprint and count > 0 then
+				owned[blueprint] = true
+			end
+		end
+		data.decor.blueprints = owned
+	end,
+
+	-- v4 -> v5: farm beds moved from the 8-stud grid (beds touching) to a 12-stud grid.
+	[4] = function(data)
+		respaceTiles(data, 8, 12)
+	end,
+
+	-- v5 -> v6: 12 was too tight (the smooth terrain filled the 4-stud path); the grid is now 16 studs.
+	[5] = function(data)
+		respaceTiles(data, 12, 16)
+	end,
+
+	-- v6 -> v7: beds are adjacent again (8-stud grid) with a crisp slab and a thin furrow, which is what a farm
+	-- should look like; a spread-out 16-stud grid read like a chessboard.
+	[6] = function(data)
+		respaceTiles(data, 16, 8)
+	end,
+}
+
+local Migrations = {}
+Migrations.CURRENT_VERSION = CURRENT_VERSION
+
+export type Result = "ok" | "newer" -- "newer" = save was written by a newer server build
+
+function Migrations.Run(data: any): Result
+	local version = if typeof(data.version) == "number" then data.version else 1
+
+	if version > CURRENT_VERSION then
+		return "newer"
+	end
+
+	while version < CURRENT_VERSION do
+		local step = STEPS[version]
+		assert(step, `[Migrations] Missing step for v{version}`)
+		step(data)
+		version += 1
+	end
+
+	data.version = CURRENT_VERSION
+	return "ok"
+end
+
+return Migrations

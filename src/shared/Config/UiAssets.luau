@@ -1,0 +1,66 @@
+--!strict
+-- ForgeGUI kit (assets/gui/*.png) as Roblox image ids. Upload the PNGs (Studio > Asset Manager > Bulk Import, or
+-- Creator Hub > Assets > Image), copy each id here as "rbxassetid://<id>". An empty string = not uploaded yet: the UI
+-- then draws the same look with flat parts (see client/UiKit), so nothing breaks while ids are missing.
+--
+-- Files and what they are:
+--   panel.png  1024 x 569  bamboo frame + rattan corners + parchment center  (9-slice: PANEL.slice)
+--   button.png 1024 x 307  golden bamboo plank button with rattan ends       (9-slice: BUTTON.slice; tinted in code)
+--   icon_<name>.png 256 x 256 transparent icons
+
+export type Skin = { image: string, slice: Rect, sliceScale: number }
+
+return {
+	PANEL = {
+		image = "rbxassetid://96943091231295",
+		slice = Rect.new(145, 145, 879, 424), -- corners/border of ready/panel_v1.png (1024 x 569, trimmed)
+		sliceScale = 0.22, -- on screen the 150px corners become about 33px
+	} :: Skin,
+
+	BUTTON = {
+		image = "rbxassetid://131104053141394",
+		slice = Rect.new(70, 40, 698, 190), -- ready/button_v1.png (768 x 230, trimmed)
+		sliceScale = 0.22,
+	} :: Skin,
+
+	-- v2 pieces (assets/gui/ready/*.png). An empty id would make UiKit draw the flat look instead.
+	RIBBON = { -- green title ribbon (768 x 144), hung over the panel's top edge; the tails are the slice's left/right
+		image = "rbxassetid://137179097497084",
+		slice = Rect.new(140, 40, 628, 104),
+		sliceScale = 0.42,
+	} :: Skin,
+
+	CARD = { -- list-row card (1024 x 245): thin bamboo border, parchment center
+		image = "rbxassetid://126654733622214",
+		slice = Rect.new(80, 60, 944, 185),
+		sliceScale = 0.17,
+	} :: Skin,
+
+	CHIP = { -- HUD capsule (768 x 200)
+		image = "rbxassetid://74349249580321",
+		slice = Rect.new(110, 60, 658, 140),
+		sliceScale = 0.22,
+	} :: Skin,
+
+	PLATE = { image = "rbxassetid://86005759010163", slice = Rect.new(0, 0, 0, 0), sliceScale = 1 } :: Skin, -- round menu plate (256), drawn Fit
+	CLOSE = { image = "rbxassetid://107235699931445", slice = Rect.new(0, 0, 0, 0), sliceScale = 1 } :: Skin, -- round red close badge (256), drawn Fit
+
+	ICONS = {
+		koin = "rbxassetid://101824585231368", -- gold coin (Koin)
+		bunga = "rbxassetid://90836865320846", -- frangipani (Bunga)
+		bintang = "rbxassetid://134712616101726", -- star (level)
+		hati = "rbxassetid://79367834392412", -- heart (likes)
+		tas = "rbxassetid://80416344488435", -- rattan backpack (Tas)
+		toko = "rbxassetid://103505311440410", -- market stall (Toko / store)
+		pesanan = "rbxassetid://75505775146460", -- scroll with ribbon (Pesanan)
+		koleksi = "rbxassetid://89497146008393", -- open book (Koleksi)
+		hias = "rbxassetid://72035103405556", -- bench + plant (Hias)
+		garap = "rbxassetid://91497454790525", -- hoe + shovel (Garap)
+		warga = "rbxassetid://78674819082714", -- two villagers (Warga / social)
+		atur = "rbxassetid://78453068752330", -- wooden gear (Atur / settings)
+		ikan = "rbxassetid://114859572668416", -- fish
+		pancing = "rbxassetid://133616022513657", -- fishing rod
+		bibit = "rbxassetid://85277378514415", -- seed packet
+		kolam = "rbxassetid://123008103858779", -- pond with a drop
+	} :: { [string]: string },
+}

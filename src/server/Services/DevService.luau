@@ -1,0 +1,146 @@
+--!strict
+-- STUDIO-ONLY test commands typed in chat. Does nothing in live servers.
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+
+local Blueprints = require(ReplicatedStorage.Shared.Config.Blueprints)
+local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
+local Net = require(ReplicatedStorage.Shared.Modules.Net)
+local DataService = require(script.Parent.DataService)
+local EconomyService = require(script.Parent.EconomyService)
+local FarmService = require(script.Parent.FarmService)
+local FishService = require(script.Parent.FishService)
+local InventoryService = require(script.Parent.InventoryService)
+local OrderService = require(script.Parent.OrderService)
+local ProgressionService = require(script.Parent.ProgressionService)
+local WorldService = require(script.Parent.WorldService)
+local MonetizationService = require(script.Parent.MonetizationService)
+local EventService = require(script.Parent.EventService)
+local AffinityService = require(script.Parent.AffinityService)
+local SkillService = require(script.Parent.SkillService)
+
+local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !orders, !grow, !time malam, !rain, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 6: !level 6),!inv, !pass backpack, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !affinity bang_tarno 50, !skill tawar 5, !skillxp tawar 30, !blueprint all|taman|pondok_sawah"
+
+local DevService = {}
+
+local function currencyCommand(player: Player, currency: any, amount: number)
+	local currencyName = `currency.{currency}`
+	if amount > 0 then
+		EconomyService.Add(player, currency, amount, "dev")
+		Net.Fire("Notify", player, "notify.gain", { n = amount, currency = currencyName })
+	elseif amount < 0 then
+		if EconomyService.TrySpend(player, currency, -amount, "dev") then
+			Net.Fire("Notify", player, "notify.spent", { n = -amount, currency = currencyName })
+		else
+			Net.Fire("Notify", player, "notify.not_enough", { currency = currencyName })
+		end
+	end
+end
+
+local function onChatted(player: Player, message: string)
+	if message:sub(1, 1) ~= "!" then
+		return
+	end
+	print(`[DevService] {player.Name}: {message}`)
+	local normalized = message:gsub("\u{2212}", "-") -- typographic minus from autocorrect
+
+	-- Two-argument commands: "!affinity bang_tarno 50", "!skill tawar 5"
+	local twoCommand, first, second = normalized:match("^!(%a+)%s+(%S+)%s+(%S+)%s*$")
+	if twoCommand == "affinity" and tonumber(second) then
+		AffinityService.DevSet(player, first, tonumber(second) :: number)
+		print(`[DevService] affinity {first} = {AffinityService.Get(player, first)}`)
+		return
+	elseif twoCommand == "skillxp" and tonumber(second) then
+		SkillService.AddXp(player, first, tonumber(second) :: number)
+		return
+	elseif twoCommand == "skill" and tonumber(second) then
+		SkillService.DevSet(player, first, tonumber(second) :: number)
+		print(`[DevService] skill {first} = Lv {SkillService.Level(player, first)}`)
+		return
+	end
+
+	local command, arg = normalized:match("^!(%a+)%s*(%S*)%s*$")
+	local amount = tonumber(arg)
+
+	if (command == "koin" or command == "bunga") and amount then
+		currencyCommand(player, command, amount)
+	elseif command == "level" and amount and amount >= 1 then
+		ProgressionService.DevSetLevel(player, amount)
+	elseif command == "xp" and amount and amount > 0 then
+		ProgressionService.AddXp(player, amount, "dev")
+	elseif command == "pass" then
+		MonetizationService.DevTogglePass(player, arg)
+	elseif command == "receipt" then
+		-- "!receipt bunga_s" twice with the same fake id must grant only once.
+		print(`[DevService] receipt #1: {MonetizationService.DevReceipt(player, arg, "dev-test-1")}`)
+		print(`[DevService] receipt #2 (same id): {MonetizationService.DevReceipt(player, arg, "dev-test-1")}`)
+	elseif command == "event" and arg ~= "" then
+		EventService.DevSet(arg)
+	elseif command == "likes" and amount and amount >= 0 then
+		-- Sets your received likes (milestones pay on the next real like or rejoin).
+		local data = DataService.Get(player)
+		if data then
+			data.social.likes = math.floor(amount)
+			print(`[DevService] likes = {data.social.likes}`)
+		end
+	elseif command == "orders" then
+		OrderService.DevNewOrders(player)
+	elseif command == "grow" then
+		FarmService.DevFinishAll(player)
+	elseif command == "time" and table.find({ "pagi", "siang", "sore", "malam" }, arg) then
+		WorldService.DevSetPhase(arg)
+	elseif command == "rain" then
+		WorldService.DevToggleRain()
+		print(`[DevService] Raining = {Workspace:GetAttribute("Raining")}`)
+	elseif command == "rod" and Fishing.rods[arg] then
+		local data = DataService.Get(player)
+		if data then
+			data.fishing.ownedRods[arg] = true
+			data.fishing.rod = arg
+			InventoryService.Sync(player)
+		end
+	elseif command == "blueprint" then
+		-- "!blueprint all" or "!blueprint taman": own a blueprint without buying it.
+		local data = DataService.Get(player)
+		if data then
+			for _, blueprint in Blueprints.list do
+				if arg == "all" or arg == blueprint.id then
+					data.decor.blueprints[blueprint.id] = true
+				end
+			end
+			InventoryService.Sync(player)
+		end
+	elseif command == "pond" then
+		FishService.DevFillPond(player)
+	elseif command == "inv" then
+		local data = DataService.Get(player)
+		if data then
+			for itemId, count in data.inventory do
+				print(`[DevService] {itemId} x{count}`)
+			end
+		end
+	else
+		warn(`[DevService] Unknown command. Use: {HELP}`)
+	end
+end
+
+function DevService.Start()
+	if not RunService:IsStudio() then
+		return
+	end
+	local function hook(player: Player)
+		player.Chatted:Connect(function(message)
+			onChatted(player, message)
+		end)
+	end
+	Players.PlayerAdded:Connect(hook)
+	for _, player in Players:GetPlayers() do
+		hook(player)
+	end
+	print(`[DevService] Studio commands: {HELP}`)
+end
+
+return DevService

@@ -1,0 +1,477 @@
+--!strict
+-- Free-form farming. The player tills (garap) grass cells of their land into soil tiles, then plants,
+-- waters and harvests them.
+--   * Soil is TERRAIN: a raised Ground (dry) / Mud (wet) bed, never a Part. The only Parts are invisible
+--     click targets, one per tile, that carry the tile's state as attributes for the client.
+--   * Tile state lives in data.farm.tiles (saved by ProfileStore) and is rebuilt on join, so the farm is
+--     exactly as the player left it. Growth is timestamp-based (os.time): it continues offline.
+--   * Tiles are addressed by uid (stable), never by array index.
+
+local CollectionService = game:GetService("CollectionService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+
+local Crops = require(ReplicatedStorage.Shared.Config.Crops)
+local Farm = require(ReplicatedStorage.Shared.Config.Farm)
+local DecorGrid = require(ReplicatedStorage.Shared.Modules.DecorGrid)
+local Land = require(ReplicatedStorage.Shared.Modules.Land)
+local Net = require(ReplicatedStorage.Shared.Modules.Net)
+local Types = require(ReplicatedStorage.Shared.Types)
+local DataService = require(script.Parent.DataService)
+local InventoryService = require(script.Parent.InventoryService)
+local PlotService = require(script.Parent.PlotService)
+local ProgressionService = require(script.Parent.ProgressionService)
+local BookService = require(script.Parent.BookService)
+local WorldService = require(script.Parent.WorldService)
+local MonetizationService = require(script.Parent.MonetizationService)
+local AnalyticsHooks = require(script.Parent.AnalyticsHooks)
+
+local TILE_TAG = "FarmTile"
+local RATE = { rate = 8, burst = 12 }
+local RATE_TILL = { rate = 10, burst = 20 }
+local MAX_CELL = 40 -- sanity bound for requested cells (the land is about ±36 cells wide)
+
+local FarmService = {}
+
+local soilState: { [BasePart]: string } = {} -- "dry" | "wet": what is painted in the terrain right now
+
+-- Terrain soil ----------------------------------------------------------------------------
+
+-- Ground-level center of a tile cell, in world space.
+local function tileCFrame(origin: BasePart, cx: number, cz: number): CFrame
+	local x, z = Land.tileCenter(cx, cz)
+	return origin.CFrame * CFrame.new(x, origin.Size.Y / 2, z)
+end
+
+-- A tilled bed is a low mound: the 2 x 2 terrain cells under the tile get a higher occupancy (Farm.BED_OCCUPANCY)
+-- instead of the grass layer's 0.5, which raises the surface about Farm.BED_RAISE studs at the center and slopes
+-- softly to the ground (MEASURED with raycasts: occupancy 0.85 -> 1.4 studs, linear in between). FillBlock can't do
+-- this (it only fills whole cells), so the cells are written with WriteVoxels.
+--   "none" = grass again (0.5), "dry" = Ground, "wet" = Mud.
+-- Tiles line up with the terrain cells (Land) and plots sit on multiples of 4 and turn in quarter turns, so the
+-- tile's world box is already cell-aligned and the top layer is the one just under the ground.
+local function paintSoil(origin: BasePart, cx: number, cz: number, state: string)
+	local center = tileCFrame(origin, cx, cz).Position
+	local half = Land.TILE / 2
+	-- Snap to the 4-stud grid: the plot's rotation leaves tiny float errors (7.9999995), and a region that starts a
+	-- hair below a cell edge is rounded DOWN a whole cell (measured: beds painted 4 studs off).
+	local centerX, centerZ = math.round(center.X / 4) * 4, math.round(center.Z / 4) * 4
+	local top = math.round(center.Y / 4) * 4
+	local region = Region3.new(Vector3.new(centerX - half, top - 4, centerZ - half), Vector3.new(centerX + half, top, centerZ + half))
+	local terrain = Workspace.Terrain
+	local materials, occupancy = terrain:ReadVoxels(region, 4)
+	local material = if state == "none"
+		then Enum.Material.LeafyGrass
+		elseif state == "wet" then Enum.Material.Mud
+		else Enum.Material.Ground
+	local fill = if state == "none" then Farm.GROUND_OCCUPANCY else Farm.BED_OCCUPANCY
+	local size = materials.Size
+	for x = 1, size.X do
+		for y = 1, size.Y do
+			for z = 1, size.Z do
+				materials[x][y][z] = material
+				occupancy[x][y][z] = fill
+			end
+		end
+	end
+	terrain:WriteVoxels(region, 4, materials, occupancy)
+end
+
+-- Tiles ------------------------------------------------------------------------------------
+
+local function findTile(data: Types.PlayerData, uid: number): (Types.FarmTile?, number?)
+	for index, tile in data.farm.tiles do
+		if tile.uid == uid then
+			return tile, index
+		end
+	end
+	return nil, nil
+end
+
+local function getTilePart(player: Player, uid: number): BasePart?
+	local plot = PlotService.GetPlot(player)
+	local folder = plot and plot:FindFirstChild("Farm")
+	local part = folder and folder:FindFirstChild(`Tile{uid}`)
+	return if part and part:IsA("BasePart") then part else nil
+end
+
+-- Mirrors tile state to its click-target attributes and repaints the soil when wet/dry changes.
+local function sync(player: Player, tile: Types.FarmTile)
+	local plot = PlotService.GetPlot(player)
+	local origin = plot and plot.PrimaryPart
+	local part = getTilePart(player, tile.uid)
+	if not part or not origin then
+		return
+	end
+	part:SetAttribute("Crop", tile.crop)
+	part:SetAttribute("PlantedAt", tile.plantedAt)
+	part:SetAttribute("ReadyAt", tile.readyAt)
+	part:SetAttribute("Watered", tile.watered)
+
+	local state = if tile.crop ~= nil and tile.watered == true then "wet" else "dry"
+	if soilState[part] ~= state then
+		soilState[part] = state
+		paintSoil(origin, tile.cx, tile.cz, state)
+		part.Color = if state == "wet" then Farm.BED_COLOR_WET else Farm.BED_COLOR_DRY
+	end
+end
+
+local function makeTilePart(player: Player, folder: Folder, origin: BasePart, tile: Types.FarmTile)
+	local part = Instance.new("Part")
+	part.Name = `Tile{tile.uid}`
+	part.Anchored = true
+	part.CanCollide = false
+	-- The visible bed: a low soil slab, 1 stud smaller than its grid cell so neighbouring beds show a thin furrow.
+	part.Size = Vector3.new(Farm.BED_SIZE, Farm.TILE_HEIGHT, Farm.BED_SIZE)
+	part.CFrame = tileCFrame(origin, tile.cx, tile.cz) * CFrame.new(0, Farm.TILE_HEIGHT / 2, 0)
+	-- Sand material: the GroundStylized override (MapService) applies to every Ground / Mud part too and renders
+	-- almost black on a Part (measured), while Sand has no override and takes its Color as is.
+	part.Material = Enum.Material.Sand
+	part.Color = Farm.BED_COLOR_DRY
+	part.TopSurface = Enum.SurfaceType.Smooth
+	part.BottomSurface = Enum.SurfaceType.Smooth
+	part:SetAttribute("Owner", player.UserId)
+	part:SetAttribute("Index", tile.uid) -- the client sends this uid back
+	part:SetAttribute("Cx", tile.cx)
+	part:SetAttribute("Cz", tile.cz)
+
+	local detector = Instance.new("ClickDetector")
+	detector.MaxActivationDistance = Farm.INTERACT_DISTANCE
+	detector.Parent = part
+
+	part.Parent = folder
+	CollectionService:AddTag(part, TILE_TAG)
+end
+
+local function getFarmFolder(plot: Model): Folder
+	local existing = plot:FindFirstChild("Farm")
+	if existing and existing:IsA("Folder") then
+		return existing
+	end
+	local folder = Instance.new("Folder")
+	folder.Name = "Farm"
+	folder.Parent = plot
+	return folder
+end
+
+-- Removes the soil of every tile on a plot (terrain back to grass) and its click targets.
+local function clearPlot(plot: Model)
+	local origin = plot.PrimaryPart
+	local folder = plot:FindFirstChild("Farm")
+	if not folder then
+		return
+	end
+	for _, part in folder:GetChildren() do
+		local cx, cz = part:GetAttribute("Cx"), part:GetAttribute("Cz")
+		if origin and typeof(cx) == "number" and typeof(cz) == "number" then
+			paintSoil(origin, cx, cz, "none")
+		end
+		if part:IsA("BasePart") then
+			soilState[part] = nil
+		end
+	end
+	folder:ClearAllChildren()
+end
+
+-- Rebuilds the whole farm from saved data (on join).
+local function buildTiles(player: Player, plot: Model)
+	local data = DataService.Get(player)
+	local origin = plot.PrimaryPart
+	if not data or not origin then
+		return
+	end
+	clearPlot(plot)
+	local folder = getFarmFolder(plot)
+	for _, tile in data.farm.tiles do
+		makeTilePart(player, folder, origin, tile)
+		sync(player, tile)
+	end
+end
+
+-- How many tiles this player may have tilled.
+function FarmService.Cap(player: Player, data: Types.PlayerData): number
+	return Farm.cap(data.farm.expansions, MonetizationService.HasPass(player, "plots"))
+end
+
+local function characterDistance(player: Player, position: Vector3): number?
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if root and root:IsA("BasePart") then
+		return (root.Position - position).Magnitude
+	end
+	return nil
+end
+
+local function isCell(value: any): boolean
+	return typeof(value) == "number" and value % 1 == 0 and math.abs(value) <= MAX_CELL
+end
+
+-- Rectangles tilling must avoid: placed decor and ponds.
+local function decorRects(data: Types.PlayerData): { Land.Rect }
+	local rects: { Land.Rect } = Land.pondRects(data.pond.list)
+	for _, entry in data.decor.placed do
+		local rect = DecorGrid.entryRect(entry)
+		if rect then
+			table.insert(rects, rect)
+		end
+	end
+	return rects
+end
+
+-- Garap / Ratakan ------------------------------------------------------------------------
+
+local function onTill(player: Player, cx: any, cz: any)
+	if not isCell(cx) or not isCell(cz) then
+		return
+	end
+	local data = DataService.Get(player)
+	local plot = PlotService.GetPlot(player)
+	local origin = plot and plot.PrimaryPart
+	if not data or not plot or not origin then
+		return
+	end
+	local cap = FarmService.Cap(player, data)
+	if #data.farm.tiles >= cap then
+		Net.Fire("Notify", player, "farm.till_full", { max = cap })
+		return
+	end
+	local distance = characterDistance(player, tileCFrame(origin, cx, cz).Position)
+	if not distance or distance > Farm.TILL_DISTANCE then
+		Net.Fire("Notify", player, "farm.till_far")
+		return
+	end
+	if not Land.canTill(cx, cz, data.farm.tiles, decorRects(data)) then
+		Net.Fire("Notify", player, "farm.till_invalid")
+		return
+	end
+
+	local tile: Types.FarmTile = { uid = data.farm.nextUid, cx = cx, cz = cz }
+	data.farm.nextUid += 1
+	table.insert(data.farm.tiles, tile)
+	makeTilePart(player, getFarmFolder(plot), origin, tile)
+	sync(player, tile)
+	InventoryService.Sync(player)
+	Net.Fire("Notify", player, "farm.tilled")
+end
+
+local function onLevel(player: Player, uid: any)
+	if typeof(uid) ~= "number" then
+		return
+	end
+	local data = DataService.Get(player)
+	local plot = PlotService.GetPlot(player)
+	local origin = plot and plot.PrimaryPart
+	if not data or not plot or not origin then
+		return
+	end
+	local tile, index = findTile(data, uid)
+	if not tile or not index then
+		return
+	end
+	if tile.crop ~= nil then
+		Net.Fire("Notify", player, "farm.level_busy")
+		return
+	end
+	local distance = characterDistance(player, tileCFrame(origin, tile.cx, tile.cz).Position)
+	if not distance or distance > Farm.TILL_DISTANCE then
+		Net.Fire("Notify", player, "farm.till_far")
+		return
+	end
+
+	table.remove(data.farm.tiles, index)
+	local part = getTilePart(player, uid)
+	if part then
+		soilState[part] = nil
+		part:Destroy()
+	end
+	paintSoil(origin, tile.cx, tile.cz, "none")
+	InventoryService.Sync(player)
+	Net.Fire("Notify", player, "farm.leveled")
+end
+
+-- Plant / water / harvest ---------------------------------------------------------------
+
+-- Shared validation for every tile request: the uid must be a tile of THIS player and their character close to it.
+local function getValidTile(player: Player, uid: any): (Types.PlayerData?, Types.FarmTile?)
+	if typeof(uid) ~= "number" or uid % 1 ~= 0 then
+		return nil, nil
+	end
+	local data = DataService.Get(player)
+	local tile = data and findTile(data, uid)
+	local part = tile and getTilePart(player, uid)
+	if not data or not tile or not part then
+		return nil, nil
+	end
+	local distance = characterDistance(player, part.Position)
+	if not distance or distance > Farm.INTERACT_DISTANCE + 10 then
+		return nil, nil
+	end
+	return data, tile
+end
+
+-- Applies the watering bonus once per growth. Returns true if the tile changed.
+local function waterTile(tile: Types.FarmTile, now: number): boolean
+	if tile.crop == nil or tile.watered == true then
+		return false
+	end
+	local readyAt = tile.readyAt :: number
+	if now >= readyAt then
+		return false
+	end
+	tile.readyAt = now + math.ceil((readyAt - now) * (1 - Farm.WATER_REDUCTION))
+	tile.watered = true
+	return true
+end
+
+local function clearCrop(tile: Types.FarmTile)
+	tile.crop = nil
+	tile.fast = nil
+	tile.plantedAt = nil
+	tile.readyAt = nil
+	tile.watered = nil
+	tile.harvestsLeft = nil
+end
+
+local function onPlant(player: Player, uid: any, cropId: any)
+	if typeof(cropId) ~= "string" then
+		return
+	end
+	local crop = Crops.byId[cropId]
+	local data, tile = getValidTile(player, uid)
+	if not crop or not data or not tile or tile.crop ~= nil then
+		return
+	end
+	if data.level < crop.unlockLevel then
+		Net.Fire("Notify", player, "farm.locked", { level = crop.unlockLevel })
+		return
+	end
+	-- Planting uses a seed from the bag: the faster "unggul" kind first, else a normal one.
+	local unggul = InventoryService.Remove(player, `seedx_{crop.id}`, 1)
+	if not unggul and not InventoryService.Remove(player, `seed_{crop.id}`, 1) then
+		Net.Fire("Notify", player, "farm.no_seed", { crop = `crop.{crop.id}` })
+		return
+	end
+
+	local now = os.time()
+	tile.crop = crop.id
+	tile.fast = if unggul then true else nil
+	tile.plantedAt = now
+	tile.readyAt = now + math.floor(crop.growSeconds * (if unggul then Farm.SEED_UNGGUL_GROW_MULT else 1))
+	tile.watered = false
+	tile.harvestsLeft = crop.regrows
+	if WorldService.IsRaining() then
+		waterTile(tile, now)
+	end
+	sync(player, tile)
+	AnalyticsHooks.Step(player, "first_plant")
+end
+
+local function onWater(player: Player, uid: any)
+	local _, tile = getValidTile(player, uid)
+	if tile and waterTile(tile, os.time()) then
+		sync(player, tile)
+	end
+end
+
+-- Rain waters every growing crop of every player in the server.
+local function waterAllForRain()
+	local now = os.time()
+	for _, player in Players:GetPlayers() do
+		local data = DataService.Get(player)
+		if data then
+			for _, tile in data.farm.tiles do
+				if waterTile(tile, now) then
+					sync(player, tile)
+				end
+			end
+		end
+	end
+end
+
+local function onHarvest(player: Player, uid: any)
+	local _, tile = getValidTile(player, uid)
+	if not tile or tile.crop == nil then
+		return
+	end
+	local now = os.time()
+	if now < (tile.readyAt :: number) then
+		return
+	end
+	local crop = Crops.byId[tile.crop :: string]
+	if not crop or not InventoryService.Add(player, crop.id, crop.yield) then
+		return
+	end
+
+	local harvestsLeft = tile.harvestsLeft or 0
+	if harvestsLeft > 0 then
+		tile.harvestsLeft = harvestsLeft - 1
+		tile.plantedAt = now
+		tile.readyAt = now + math.floor(crop.growSeconds * (if tile.fast then Farm.SEED_UNGGUL_GROW_MULT else 1))
+		tile.watered = false
+	else
+		clearCrop(tile) -- the tile itself (uid, cell) stays: the soil stays tilled
+	end
+	sync(player, tile)
+	Net.Fire("Notify", player, "farm.harvested", { n = crop.yield, item = `crop.{crop.id}` })
+	ProgressionService.AddXp(player, crop.xp, `harvest:{crop.id}`)
+	AnalyticsHooks.Step(player, "first_harvest")
+	BookService.RecordCrop(player, crop.id)
+end
+
+-- Instant Grow: finishes one growing tile using a token (daily cap in MonetizationService).
+local function onInstantGrow(player: Player, uid: any)
+	local _, tile = getValidTile(player, uid)
+	if not tile or tile.crop == nil or os.time() >= (tile.readyAt :: number) then
+		return
+	end
+	if not MonetizationService.TryUseInstantGrow(player) then
+		Net.Fire("Notify", player, "store.instant_none")
+		return
+	end
+	tile.readyAt = os.time()
+	sync(player, tile)
+end
+
+-- The tile cap changed (farm expansion / pass): the client snapshot shows it.
+function FarmService.Rebuild(player: Player)
+	InventoryService.Sync(player)
+end
+
+-- Studio testing only (called by DevService).
+function FarmService.DevFinishAll(player: Player)
+	local data = DataService.Get(player)
+	if not data then
+		return
+	end
+	local now = os.time()
+	for _, tile in data.farm.tiles do
+		if tile.crop then
+			tile.readyAt = now
+			sync(player, tile)
+		end
+	end
+end
+
+function FarmService.Init()
+	WorldService.RainChanged:Connect(function(raining: boolean)
+		if raining then
+			waterAllForRain()
+		end
+	end)
+	PlotService.Assigned:Connect(buildTiles)
+	PlotService.Released:Connect(function(_player: Player, plot: Model)
+		clearPlot(plot) -- the next owner of this plot must not inherit the soil
+	end)
+end
+
+function FarmService.Start()
+	Net.On("FarmPlant", onPlant, RATE)
+	Net.On("FarmWater", onWater, RATE)
+	Net.On("FarmHarvest", onHarvest, RATE)
+	Net.On("FarmInstantGrow", onInstantGrow, { rate = 1, burst = 2 })
+	Net.On("FarmTill", onTill, RATE_TILL)
+	Net.On("FarmLevel", onLevel, RATE_TILL)
+end
+
+return FarmService

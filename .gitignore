@@ -1,0 +1,16 @@
+# Rojo / Roblox
+*.rbxl.lock
+*.rbxlx.lock
+sourcemap.json
+Packages/
+ServerPackages/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Claude local
+.claude/settings.local.json
