@@ -52,6 +52,35 @@ local C = {
 local MapService = {}
 local builtMap: Folder? = nil -- set by Init when this service generated the map (not a hand-built Workspace.Map)
 
+-- Land you can buy (R2b). The forest on a plot's not-yet-owned ground is tagged ExpansionOf = plot number and indexed
+-- here by plot and chunk key; buying a chunk hides the trees on it (parked in ServerStorage > ForestHidden) and paints
+-- it bright grass, giving the chunk back un-owns it again (a new player may get this plot next).
+local forestByPlot: { [number]: { [string]: { Model } } } = {}
+local chunkOwned: { [number]: { [string]: boolean } } = {}
+local natureFolder: Folder? = nil
+local hiddenFolder: Folder? = nil
+local fenceRoot: Folder? = nil
+
+local function setForestHidden(plotIndex: number, key: string, hidden: boolean)
+	local byKey = forestByPlot[plotIndex]
+	local list = byKey and byKey[key]
+	if not list or not natureFolder or not hiddenFolder then
+		return
+	end
+	for _, model in list do
+		model.Parent = if hidden then hiddenFolder else natureFolder
+	end
+end
+
+-- Hides the forest on chunks that were bought before the trees existed (a player can join while the map is still building).
+local function applyForestVisibility()
+	for plotIndex, states in chunkOwned do
+		for key in states do
+			setForestHidden(plotIndex, key, true)
+		end
+	end
+end
+
 
 -- Helpers ---------------------------------------------------------------------------------
 
@@ -613,67 +642,72 @@ local function buildBoundary(map: Folder)
 	end
 end
 
--- A low bamboo fence around each land (not solid: visitors can walk in, you just see where your land ends).
--- The front has a gap in the middle.
-local function buildLandFences(map: Folder)
-	local fences = folder(map, "LandFences")
+-- A low bamboo fence around the land each player owns (not solid: visitors can walk in, you just see where the land
+-- ends). It follows the owned chunks, so it moves out when the player buys one. The road side has a 32-stud gate in
+-- the middle. One folder per plot (Map.LandFences.Plot<n>); MapService.RebuildFence redoes a single plot.
+local function buildPlotFence(plotIndex: number, chunks: Land.Chunks?)
+	local root = fenceRoot :: Folder
+	local old = root:FindFirstChild(`Plot{plotIndex}`)
+	if old then
+		old:Destroy()
+	end
+	local slot = Plots.LAYOUT[plotIndex]
+	local fences = folder(root, `Plot{plotIndex}`)
+	local frame = CFrame.new(slot.x, 0, slot.z) * CFrame.Angles(0, slot.yaw, 0)
+	local posts: { [string]: boolean } = {}
 
-	for _, slot in Plots.LAYOUT do
-		local frame = CFrame.new(slot.x, 0, slot.z) * CFrame.Angles(0, slot.yaw, 0)
-		local function at(x: number, z: number): Vector3
-			return (frame * CFrame.new(x, 0, z)).Position
+	local function world(x: number, z: number): Vector3
+		return (frame * CFrame.new(x, 0, z)).Position
+	end
+	local function post(x: number, z: number)
+		local key = `{x},{z}`
+		if posts[key] then
+			return
 		end
-		local function line(points: { Vector3 })
-			for i, point in points do
-				local post = block(fences, "Post", Vector3.new(0.5, 2.4, 0.5), CFrame.new(point + Vector3.new(0, 1.2, 0)), C.BAMBOO, Enum.Material.Wood)
-				post.CanCollide = false
-				local nextPoint = points[i + 1]
-				if nextPoint then
-					local mid = (point + nextPoint) / 2 + Vector3.new(0, 1.7, 0)
-					local rail = block(fences, "Rail", Vector3.new(0.25, 0.25, (nextPoint - point).Magnitude),
-						CFrame.lookAt(mid, mid + (nextPoint - point)), C.BAMBOO, Enum.Material.Wood)
-					rail.CanCollide = false
+		posts[key] = true
+		local part = block(fences, "Post", Vector3.new(0.5, 2.4, 0.5), CFrame.new(world(x, z) + Vector3.new(0, 1.2, 0)), C.BAMBOO, Enum.Material.Wood)
+		part.CanCollide = false
+	end
+	-- One chunk edge (16 studs) as two 8-stud rails between three posts.
+	local function edge(ax: number, az: number, bx: number, bz: number)
+		local mx, mz = (ax + bx) / 2, (az + bz) / 2
+		post(ax, az)
+		post(mx, mz)
+		post(bx, bz)
+		for _, seg in { { ax, az, mx, mz }, { mx, mz, bx, bz } } do
+			local from, to = world(seg[1], seg[2]), world(seg[3], seg[4])
+			local mid = (from + to) / 2 + Vector3.new(0, 1.7, 0)
+			local rail = block(fences, "Rail", Vector3.new(0.25, 0.25, (to - from).Magnitude), CFrame.lookAt(mid, mid + (to - from)), C.BAMBOO, Enum.Material.Wood)
+			rail.CanCollide = false
+		end
+	end
+
+	local frontRow = Land.FRONT_Z // Land.CHUNK - 1
+	for ix = Land.CHUNK_MIN, Land.CHUNK_MAX do
+		for iz = Land.CHUNK_MIN, Land.CHUNK_MAX do
+			if Land.isOwned(ix, iz, chunks) then
+				local r = Land.chunkRect(ix, iz)
+				if not Land.isOwned(ix - 1, iz, chunks) then
+					edge(r.minX, r.minZ, r.minX, r.maxZ)
+				end
+				if not Land.isOwned(ix + 1, iz, chunks) then
+					edge(r.maxX, r.minZ, r.maxX, r.maxZ)
+				end
+				if not Land.isOwned(ix, iz - 1, chunks) then
+					edge(r.minX, r.minZ, r.maxX, r.minZ)
+				end
+				if not Land.isOwned(ix, iz + 1, chunks) and not (iz == frontRow and (ix == -1 or ix == 0)) then
+					edge(r.minX, r.maxZ, r.maxX, r.maxZ)
 				end
 			end
 		end
+	end
+end
 
-		local half = Land.HALF
-
-		-- Side edges, from the front corner to the back corner.
-		for _, side in { 1, -1 } do
-			local points: { Vector3 } = {}
-			local z = Land.FRONT_Z
-			while z > Land.BACK_Z do
-				table.insert(points, at(side * half, z))
-				z -= 12
-			end
-			table.insert(points, at(side * half, Land.BACK_Z))
-			line(points)
-		end
-
-		-- Back edge.
-		do
-			local points: { Vector3 } = {}
-			local x = -half
-			while x < half do
-				table.insert(points, at(x, Land.BACK_Z))
-				x += 12
-			end
-			table.insert(points, at(half, Land.BACK_Z))
-			line(points)
-		end
-
-		-- Front edge, with a 16-stud gap in the middle.
-		for _, side in { 1, -1 } do
-			local points: { Vector3 } = {}
-			local x = 8
-			while x < half do
-				table.insert(points, at(side * x, Land.FRONT_Z))
-				x += 12
-			end
-			table.insert(points, at(side * half, Land.FRONT_Z))
-			line(points)
-		end
+local function buildLandFences(map: Folder)
+	fenceRoot = folder(map, "LandFences")
+	for index = 1, #Plots.LAYOUT do
+		buildPlotFence(index, nil)
 	end
 end
 
@@ -757,6 +791,14 @@ end
 
 local function buildNature(map: Folder, trees: { Model }, bushes: { Model }, rocks: { Model }, giants: { Model })
 	local nature = folder(map, "Nature")
+	natureFolder = nature
+	local parked = ServerStorage:FindFirstChild("ForestHidden")
+	if not parked then
+		parked = Instance.new("Folder")
+		parked.Name = "ForestHidden"
+		parked.Parent = ServerStorage
+	end
+	hiddenFolder = parked :: Folder
 	local random = Random.new(1127)
 	local roadClear = ROAD_HALF + 10 -- trees stay this far from the axis roads
 	local townClear = TOWN.RING_R + 10 -- ... and from the cobblestone ring road
@@ -771,7 +813,7 @@ local function buildNature(map: Folder, trees: { Model }, bushes: { Model }, roc
 		local point = Vector3.new(x, 0, z)
 		for _, frame in frames do
 			local localPoint = frame:PointToObjectSpace(point)
-			if Land.contains(localPoint.X, localPoint.Z, margin) then
+			if Land.startContains(localPoint.X, localPoint.Z, margin) then
 				return true
 			end
 		end
@@ -819,6 +861,20 @@ local function buildNature(map: Folder, trees: { Model }, bushes: { Model }, roc
 		model:PivotTo(model:GetPivot() - Vector3.new(0, sink, 0))
 		if expansionOf then
 			model:SetAttribute("ExpansionOf", expansionOf)
+			-- Index it by the chunk its center is in, so buying that chunk can clear it.
+			local localPoint = frames[expansionOf]:PointToObjectSpace(Vector3.new(x, 0, z))
+			local key = Land.chunkKey(localPoint.X // Land.CHUNK, localPoint.Z // Land.CHUNK)
+			local byKey = forestByPlot[expansionOf]
+			if not byKey then
+				byKey = {}
+				forestByPlot[expansionOf] = byKey
+			end
+			local list = byKey[key]
+			if not list then
+				list = {}
+				byKey[key] = list
+			end
+			table.insert(list, model)
 		end
 		-- One tint per plant (the canopy mesh is one part) and one color per rock.
 		local leafColor = LEAF_TINTS[random:NextInteger(1, #LEAF_TINTS)]
@@ -1042,6 +1098,8 @@ local function buildNature(map: Folder, trees: { Model }, bushes: { Model }, roc
 			end
 		end
 	end
+
+	applyForestVisibility()
 end
 
 local function buildTrees(map: Folder)
@@ -1051,6 +1109,44 @@ local function buildTrees(map: Folder)
 		return
 	end
 	buildNature(map, trees, bushes, rocks, natureTemplates("Pohon", true))
+end
+
+-- Land you own (called by LandService) -----------------------------------------------------
+
+-- Gives a chunk of plot `plotIndex` to its player (owned = true: bright grass, forest cleared) or takes it back
+-- (false: forest floor, forest returns). Only the 80 extra chunks can change; the start land is always owned.
+function MapService.SetChunkOwned(plotIndex: number, ix: number, iz: number, owned: boolean)
+	local slot = Plots.LAYOUT[plotIndex]
+	if not slot or not Land.inRegion(ix, iz) or Land.isStartChunk(ix, iz) then
+		return
+	end
+	local key = Land.chunkKey(ix, iz)
+	local states = chunkOwned[plotIndex]
+	if not states then
+		states = {}
+		chunkOwned[plotIndex] = states
+	end
+	if (states[key] == true) == owned then
+		return
+	end
+	states[key] = if owned then true else nil
+
+	-- Same paint recipe as the start land (see buildTerrain): a 4-stud top layer, 0.5 smaller than the cells it fills.
+	local frame = CFrame.new(slot.x, 0, slot.z) * CFrame.Angles(0, slot.yaw, 0)
+	local rect = Land.chunkRect(ix, iz)
+	Workspace.Terrain:FillBlock(
+		frame * CFrame.new((rect.minX + rect.maxX) / 2, -2 - Land.SURFACE_OFFSET, (rect.minZ + rect.maxZ) / 2),
+		Vector3.new(Land.CHUNK - 0.5, 4, Land.CHUNK - 0.5),
+		if owned then Enum.Material.LeafyGrass else Enum.Material.Grass
+	)
+	setForestHidden(plotIndex, key, owned)
+end
+
+-- Rebuilds the fence of one plot around its owned chunks (chunks = the player's bought chunks, {} = none).
+function MapService.RebuildFence(plotIndex: number, chunks: Land.Chunks?)
+	if fenceRoot and Plots.LAYOUT[plotIndex] then
+		buildPlotFence(plotIndex, chunks)
+	end
 end
 
 -- Plot house ------------------------------------------------------------------------------

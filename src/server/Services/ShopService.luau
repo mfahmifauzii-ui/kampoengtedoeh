@@ -20,7 +20,6 @@ local Trade = require(ReplicatedStorage.Shared.Modules.Trade)
 local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
-local FarmService = require(script.Parent.FarmService)
 local FishService = require(script.Parent.FishService)
 local PondService = require(script.Parent.PondService)
 local InventoryService = require(script.Parent.InventoryService)
@@ -46,11 +45,6 @@ local UPGRADE_STATE: { [string]: UpgradeState } = {
 			FishService.RefreshPond(player)
 			PondService.RefreshLook(player)
 		end,
-	},
-	farm = {
-		get = function(data) return data.farm.expansions end,
-		set = function(data, tier) data.farm.expansions = tier end,
-		after = function(player) FarmService.Rebuild(player) end,
 	},
 	warung = {
 		get = function(data) return data.sales.tier end,

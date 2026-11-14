@@ -43,15 +43,112 @@ end
 
 Land.MAX_HALF_WIDTH = Land.HALF
 
--- Smooth point test (for "am I standing on this plot?"). margin grows the land outward.
+-- Smooth point test (for "am I standing on this plot?"): the whole reserved square, owned or not. margin grows it.
 function Land.contains(x: number, z: number, margin: number?): boolean
+	local m = margin or 0
+	return math.abs(x) <= Land.REGION_HALF + m and math.abs(z) <= Land.REGION_HALF + m
+end
+
+-- The START land only (nature placement keeps trees off it when the map is built).
+function Land.startContains(x: number, z: number, margin: number?): boolean
 	local m = margin or 0
 	return math.abs(x) <= Land.HALF + m and z >= Land.BACK_Z - m and z <= Land.FRONT_Z + m
 end
 
--- Is the whole rectangle land?
-function Land.rectInside(rect: Rect): boolean
-	return rect.minX >= -Land.HALF and rect.maxX <= Land.HALF and rect.minZ >= Land.BACK_Z and rect.maxZ <= Land.FRONT_Z
+-- Chunks ------------------------------------------------------------------------------------
+-- The reserved square is CHUNK x CHUNK squares: chunk (ix, iz) covers x ix*16 .. ix*16 + 16 and z iz*16 .. iz*16 + 16.
+-- The start land is the chunks ix -4 .. 3 and iz -2 .. 5; the others (80) are bought. Owned extra chunks are kept
+-- as a set of "ix,iz" keys (data.land.chunks on the server, snapshot.landChunks on the client).
+local CH = Plots.CHUNK.SIZE
+Land.CHUNK = CH
+Land.CHUNK_MIN = -Land.REGION_HALF // CH -- -6
+Land.CHUNK_MAX = Land.REGION_HALF // CH - 1 -- 5
+local START_IX0, START_IX1 = -Land.HALF // CH, Land.HALF // CH - 1
+local START_IZ0, START_IZ1 = Land.BACK_Z // CH, Land.FRONT_Z // CH - 1
+Land.START_CHUNKS = (START_IX1 - START_IX0 + 1) * (START_IZ1 - START_IZ0 + 1)
+Land.EXTRA_CHUNKS = (Land.CHUNK_MAX - Land.CHUNK_MIN + 1) ^ 2 - Land.START_CHUNKS
+
+export type Chunks = { [string]: boolean }
+
+function Land.chunkKey(ix: number, iz: number): string
+	return `{ix + 0},{iz + 0}` -- (+ 0 turns a floating-point -0 into 0)
+end
+
+function Land.chunkRect(ix: number, iz: number): Rect
+	return { minX = ix * CH, minZ = iz * CH, maxX = ix * CH + CH, maxZ = iz * CH + CH }
+end
+
+function Land.inRegion(ix: number, iz: number): boolean
+	return ix >= Land.CHUNK_MIN and ix <= Land.CHUNK_MAX and iz >= Land.CHUNK_MIN and iz <= Land.CHUNK_MAX
+end
+
+function Land.isStartChunk(ix: number, iz: number): boolean
+	return ix >= START_IX0 and ix <= START_IX1 and iz >= START_IZ0 and iz <= START_IZ1
+end
+
+function Land.isOwned(ix: number, iz: number, chunks: Chunks?): boolean
+	if not Land.inRegion(ix, iz) then
+		return false
+	end
+	return Land.isStartChunk(ix, iz) or (chunks ~= nil and chunks[Land.chunkKey(ix, iz)] == true)
+end
+
+local NEIGHBOURS = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } }
+
+-- Can the player buy this chunk now? In the square, not owned, and touching an owned chunk.
+function Land.canBuyChunk(ix: number, iz: number, chunks: Chunks?): boolean
+	if not Land.inRegion(ix, iz) or Land.isOwned(ix, iz, chunks) then
+		return false
+	end
+	for _, step in NEIGHBOURS do
+		if Land.isOwned(ix + step[1], iz + step[2], chunks) then
+			return true
+		end
+	end
+	return false
+end
+
+-- Every chunk the player could buy right now.
+function Land.buyableChunks(chunks: Chunks?): { { ix: number, iz: number } }
+	local list = {}
+	for ix = Land.CHUNK_MIN, Land.CHUNK_MAX do
+		for iz = Land.CHUNK_MIN, Land.CHUNK_MAX do
+			if Land.canBuyChunk(ix, iz, chunks) then
+				table.insert(list, { ix = ix, iz = iz })
+			end
+		end
+	end
+	return list
+end
+
+function Land.extraCount(chunks: Chunks?): number
+	local n = 0
+	for _ in chunks or {} do
+		n += 1
+	end
+	return n
+end
+
+-- Price of the next chunk when the player already owns `extraOwned` bought chunks. discount: 0..1 (game pass).
+function Land.chunkPrice(extraOwned: number, discount: number?): number
+	local price = Plots.CHUNK.PRICE_BASE * Plots.CHUNK.PRICE_GROWTH ^ extraOwned
+	price = math.floor(price * (1 - (discount or 0)) / 10 + 0.5) * 10
+	return math.max(10, price)
+end
+
+-- Is the whole rectangle owned land? chunks = the bought chunks (nil = only the start land).
+function Land.rectInside(rect: Rect, chunks: Chunks?): boolean
+	if rect.minX < -Land.REGION_HALF or rect.maxX > Land.REGION_HALF or rect.minZ < -Land.REGION_HALF or rect.maxZ > Land.REGION_HALF then
+		return false
+	end
+	for ix = rect.minX // CH, math.ceil(rect.maxX / CH) - 1 do
+		for iz = rect.minZ // CH, math.ceil(rect.maxZ / CH) - 1 do
+			if not Land.isOwned(ix, iz, chunks) then
+				return false
+			end
+		end
+	end
+	return true
 end
 
 function Land.rectsOverlap(a: Rect, b: Rect): boolean
@@ -94,9 +191,9 @@ function Land.pondRects(ponds: { { cx: number, cz: number } }): { Rect }
 end
 
 -- Can a pond be dug with its min corner at tile cell (cx, cz)? tiles = farm tiles, ponds = existing ponds.
-function Land.canPond(cx: number, cz: number, tiles: { { cx: number, cz: number } }, ponds: { { cx: number, cz: number } }, extraRects: { Rect }): boolean
+function Land.canPond(cx: number, cz: number, tiles: { { cx: number, cz: number } }, ponds: { { cx: number, cz: number } }, extraRects: { Rect }, chunks: Chunks?): boolean
 	local rect = Land.pondRect(cx, cz)
-	if not Land.rectInside(rect) then
+	if not Land.rectInside(rect, chunks) then
 		return false
 	end
 	for _, other in Land.fixedRects() do
@@ -134,9 +231,9 @@ function Land.fixedRects(): { Rect }
 end
 
 -- Can a grass cell be tilled? tiles = the player's existing tiles, extraRects = e.g. placed decor.
-function Land.canTill(cx: number, cz: number, tiles: { { cx: number, cz: number } }, extraRects: { Rect }): boolean
+function Land.canTill(cx: number, cz: number, tiles: { { cx: number, cz: number } }, extraRects: { Rect }, chunks: Chunks?): boolean
 	local rect = Land.tileRect(cx, cz)
-	if not Land.rectInside(rect) then
+	if not Land.rectInside(rect, chunks) then
 		return false
 	end
 	for _, other in fixed do

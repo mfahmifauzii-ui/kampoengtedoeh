@@ -14,7 +14,9 @@ export type Snapshot = {
 	pondTier: number,
 	ponds: { { uid: number, cx: number, cz: number } },
 	quests: { active: { [string]: { step: number, count: number } }, done: { [string]: boolean } },
-	farmExpansions: number,
+	landChunks: { [string]: boolean }, -- bought chunks of your plot ("ix,iz" keys, Modules/Land)
+	landExtra: number, -- how many chunks you bought
+	landPrice: number, -- price of the next chunk (with the game pass discount)
 	rod: string,
 	ownedRods: { [string]: boolean },
 	decorStock: { [string]: number },

@@ -3,7 +3,7 @@
 -- To change the schema: add STEPS[n] (migrates v n -> n+1), bump CURRENT_VERSION
 -- and DataTemplate.version together.
 
-local CURRENT_VERSION = 10
+local CURRENT_VERSION = 11
 
 -- Farm beds moved to a wider grid (a path between beds): every tile keeps its crop and moves to the cell its old
 -- center falls in; if two tiles land in one cell, the later one takes the nearest free cell (a bed can shift a
@@ -175,6 +175,24 @@ local STEPS: { [number]: (data: any) -> () } = {
 				entry.z += 40
 			end
 		end
+	end,
+
+	-- v10 -> v11 (R2b): land is bought chunk by chunk, so the tile cap and the "Perluas Kebun" upgrade are gone.
+	-- Whatever a player paid for farm expansions (300 / 800 / 2000 / 5000 / 12000 Koin per tier) is refunded in full.
+	-- New fields: land.chunks (none bought yet) and plotSlot.
+	[10] = function(data)
+		local costs = { 300, 800, 2000, 5000, 12000 }
+		local tiers = if data.farm and typeof(data.farm.expansions) == "number" then data.farm.expansions else 0
+		local refund = 0
+		for tier = 1, math.min(tiers, #costs) do
+			refund += costs[tier]
+		end
+		data.koin = (data.koin or 0) + refund
+		if data.farm then
+			data.farm.expansions = nil
+		end
+		data.land = { chunks = {} }
+		data.plotSlot = 0
 	end,
 }
 

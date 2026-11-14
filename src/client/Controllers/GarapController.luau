@@ -1,5 +1,6 @@
 --!strict
--- "Garap" mode: till grass cells of your land into soil tiles, or level empty tiles back to grass.
+-- "Garap" mode: till grass cells of your land into soil tiles, level empty tiles back to grass, dig ponds, and buy
+-- more land ("Lahan": tap a forest chunk that touches your land).
 -- UI contract (replace with your designed UI, keep the names):
 --   ScreenGui "GarapUI" > TextButton "GarapButton" (toggle), Frame "Bar" (TextLabel "Count",
 --   TextButton "TillButton", TextButton "LevelButton"), TextLabel "Hint".
@@ -40,7 +41,9 @@ local tillButton: TextButton
 local levelButton: TextButton
 local pondButton: TextButton
 local pondRemoveButton: TextButton
+local landButton: TextButton
 local ghost: Part? = nil
+local markers: { Part } = {} -- "Lahan" mode: one soft square on every chunk you can buy
 
 -- Helpers ------------------------------------------------------------------------------------
 
@@ -101,7 +104,7 @@ local function cellState(plot: Model, cx: number, cz: number): string
 	for _, rect in Land.pondRects(if snapshot and snapshot.ponds then snapshot.ponds else {}) do
 		table.insert(blockers, rect)
 	end
-	return if Land.canTill(cx, cz, tiles, blockers) then "valid" else "invalid"
+	return if Land.canTill(cx, cz, tiles, blockers, if snapshot then snapshot.landChunks else nil) then "valid" else "invalid"
 end
 
 -- Plot-local point under a camera ray (the ground plane of the plot).
@@ -156,12 +159,64 @@ end
 local function pondBuildValid(plot: Model, cx: number, cz: number): boolean
 	local tiles = farmInfo()
 	local ponds = pondsInfo()
-	return #ponds < Fishing.POND.MAX_PONDS and Land.canPond(cx, cz, tiles, ponds, decorRects(plot))
+	local snapshot = State.current :: any
+	return #ponds < Fishing.POND.MAX_PONDS and Land.canPond(cx, cz, tiles, ponds, decorRects(plot), if snapshot then snapshot.landChunks else nil)
 end
 
 local function pondPriceText(): string
 	local price = Fishing.POND.PRICES[math.min(#pondsInfo() + 1, #Fishing.POND.PRICES)]
 	return if price <= 0 then Locale.t("garap.price_free") else Locale.t("garap.price", { n = price })
+end
+
+-- Land ------------------------------------------------------------------------------------
+
+local function landChunks(): { [string]: boolean }
+	local snapshot = State.current :: any
+	return if snapshot and snapshot.landChunks then snapshot.landChunks else {}
+end
+
+local function landHint(): string
+	local snapshot = State.current :: any
+	local price = if snapshot and snapshot.landPrice then snapshot.landPrice else Land.chunkPrice(0)
+	local owned = if snapshot and snapshot.landExtra then snapshot.landExtra else 0
+	if owned >= Land.EXTRA_CHUNKS then
+		return Locale.t("garap.hint_land_max")
+	end
+	return Locale.t("garap.hint_land", { price = Locale.t("garap.price", { n = Locale.formatNumber(price) }), n = owned, max = Land.EXTRA_CHUNKS })
+end
+
+local function clearMarkers()
+	for _, part in markers do
+		part:Destroy()
+	end
+	table.clear(markers)
+end
+
+-- A soft green square on every chunk you can buy right now (the ones touching your land).
+local function refreshMarkers()
+	clearMarkers()
+	local plot = myPlot()
+	if mode ~= "land" or not GarapController.Active or not plot then
+		return
+	end
+	local origin = plot.PrimaryPart :: BasePart
+	for _, chunk in Land.buyableChunks(landChunks()) do
+		local rect = Land.chunkRect(chunk.ix, chunk.iz)
+		local part = Instance.new("Part")
+		part.Name = "LandMarker"
+		part.Anchored = true
+		part.CanCollide = false
+		part.CanQuery = false
+		part.CanTouch = false
+		part.CastShadow = false
+		part.Material = Enum.Material.Neon
+		part.Color = VALID_COLOR
+		part.Transparency = 0.8
+		part.Size = Vector3.new(Land.CHUNK - 1, 0.2, Land.CHUNK - 1)
+		part.CFrame = origin.CFrame * CFrame.new((rect.minX + rect.maxX) / 2, origin.Size.Y / 2 + 0.25, (rect.minZ + rect.maxZ) / 2)
+		part.Parent = Workspace
+		table.insert(markers, part)
+	end
 end
 
 -- Preview ------------------------------------------------------------------------------------
@@ -178,6 +233,35 @@ local function showGhost(plot: Model?, cx: number?, cz: number?, point: Vector3?
 		return
 	end
 	local origin = plot.PrimaryPart :: BasePart
+
+	-- Land mode: the 16 x 16 chunk under the pointer, green when you can buy it.
+	if mode == "land" then
+		local ix, iz = math.floor(point.X / Land.CHUNK), math.floor(point.Z / Land.CHUNK)
+		if not Land.inRegion(ix, iz) then
+			hideGhost()
+			return
+		end
+		local rect = Land.chunkRect(ix, iz)
+		if not ghost then
+			local part = Instance.new("Part")
+			part.Name = "GarapGhost"
+			part.Anchored = true
+			part.CanCollide = false
+			part.CanQuery = false
+			part.CanTouch = false
+			part.CastShadow = false
+			part.Material = Enum.Material.Neon
+			part.Parent = Workspace
+			ghost = part
+		end
+		local preview = ghost :: Part
+		preview.Shape = Enum.PartType.Block
+		preview.Size = Vector3.new(Land.CHUNK - 0.4, 0.2, Land.CHUNK - 0.4)
+		preview.Transparency = 0.45
+		preview.Color = if Land.canBuyChunk(ix, iz, landChunks()) then VALID_COLOR else INVALID_COLOR
+		preview.CFrame = origin.CFrame * CFrame.new((rect.minX + rect.maxX) / 2, origin.Size.Y / 2 + 0.3, (rect.minZ + rect.maxZ) / 2)
+		return
+	end
 
 	-- Pond modes: a 16 x 16 square (the whole pond when removing).
 	if mode == "pond" or mode == "pondRemove" then
@@ -256,7 +340,12 @@ local function act(ray: Ray)
 		return
 	end
 	showGhost(plot, cx, cz, point)
-	if mode == "pond" then
+	if mode == "land" then
+		local ix, iz = math.floor(point.X / Land.CHUNK), math.floor(point.Z / Land.CHUNK)
+		if Land.canBuyChunk(ix, iz, landChunks()) then
+			Net.Send("LandBuy", ix, iz)
+		end
+	elseif mode == "pond" then
 		local pcx, pcz = pondCorner(point)
 		if pondBuildValid(plot, pcx, pcz) then
 			Net.Send("PondBuild", pcx, pcz)
@@ -279,8 +368,8 @@ local function act(ray: Ray)
 end
 
 local function refreshCount()
-	local tiles, cap = farmInfo()
-	countLabel.Text = Locale.t("garap.count", { n = #tiles, max = cap })
+	local tiles = farmInfo()
+	countLabel.Text = Locale.t("garap.count", { n = #tiles })
 end
 
 local function refreshHint()
@@ -290,6 +379,8 @@ local function refreshHint()
 		hintLabel.Text = Locale.t("garap.hint_level")
 	elseif mode == "pond" then
 		hintLabel.Text = Locale.t("garap.hint_pond", { price = pondPriceText() })
+	elseif mode == "land" then
+		hintLabel.Text = landHint()
 	else
 		hintLabel.Text = Locale.t("garap.hint_pond_remove")
 	end
@@ -301,7 +392,9 @@ local function setMode(newMode: string)
 	levelButton.BackgroundColor3 = if mode == "level" then UiKit.BUTTON else UiKit.BUTTON_MUTED
 	pondButton.BackgroundColor3 = if mode == "pond" then UiKit.BUTTON else UiKit.BUTTON_MUTED
 	pondRemoveButton.BackgroundColor3 = if mode == "pondRemove" then UiKit.BUTTON else UiKit.BUTTON_MUTED
+	landButton.BackgroundColor3 = if mode == "land" then UiKit.BUTTON else UiKit.BUTTON_MUTED
 	refreshHint()
+	refreshMarkers()
 	hideGhost()
 end
 
@@ -315,6 +408,7 @@ local function setActive(on: boolean)
 		refreshCount()
 	else
 		hideGhost()
+		clearMarkers()
 	end
 end
 
@@ -347,8 +441,8 @@ function GarapController.Init()
 	bar = Instance.new("Frame")
 	bar.Name = "Bar"
 	bar.AnchorPoint = Vector2.new(0.5, 1)
-	bar.Position = UDim2.new(0.5, 0, 1, -16)
-	bar.Size = UDim2.fromOffset(330, 160)
+	bar.Position = UDim2.new(0.5, 0, 1, -84) -- above the dock
+	bar.Size = UDim2.fromOffset(330, 216)
 	bar.BackgroundColor3 = UiKit.BG
 	bar.BackgroundTransparency = 0.15
 	bar.Visible = false
@@ -395,6 +489,13 @@ function GarapController.Init()
 		setMode("pondRemove")
 	end)
 
+	landButton = UiKit.button(bar, "LandButton", Locale.t("garap.land"), UiKit.BUTTON_MUTED)
+	landButton.Position = UDim2.fromOffset(12, 152)
+	landButton.Size = UDim2.new(1, -24, 0, 48)
+	landButton.Activated:Connect(function()
+		setMode("land")
+	end)
+
 	toggleButton.Activated:Connect(function()
 		setActive(not GarapController.Active)
 	end)
@@ -406,7 +507,10 @@ function GarapController.Start()
 	State.Changed:Connect(function()
 		if GarapController.Active then
 			refreshCount()
-			refreshHint() -- the price of the next pond changes with every pond built
+			refreshHint() -- the price of the next pond / chunk changes with every one bought
+			if mode == "land" then
+				refreshMarkers()
+			end
 		end
 	end)
 

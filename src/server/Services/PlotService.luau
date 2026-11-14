@@ -97,20 +97,36 @@ local function spawnAtPlot(player: Player)
 	character:PivotTo(origin.CFrame * CFrame.new(PlotsConfig.SPAWN_OFFSET))
 end
 
+-- Gives the player their last plot if it is free, else the first free one, and remembers it (data.plotSlot).
 local function assign(player: Player)
-	for _, plot in plots do
-		if ownerOf[plot] == nil then
-			ownerOf[plot] = player
-			plotOf[player] = plot
-			plot:SetAttribute("OwnerUserId", player.UserId)
-			player:SetAttribute("PlotName", plot.Name)
-			setOwnerLabel(plot, Locale.t("plot.owner", { name = player.DisplayName }))
-			spawnAtPlot(player)
-			PlotService.Assigned:Fire(player, plot)
-			return
+	local data = DataService.Get(player)
+	local target: Model? = nil
+	local preferred = if data then plots[data.plotSlot] else nil
+	if preferred and ownerOf[preferred] == nil then
+		target = preferred
+	else
+		for _, plot in plots do
+			if ownerOf[plot] == nil then
+				target = plot
+				break
+			end
 		end
 	end
-	warn(`[PlotService] No free plot for {player.Name}. Is Max Players > {#plots}?`)
+	if not target then
+		warn(`[PlotService] No free plot for {player.Name}. Is Max Players > {#plots}?`)
+		return
+	end
+	local plot = target :: Model
+	ownerOf[plot] = player
+	plotOf[player] = plot
+	if data then
+		data.plotSlot = table.find(plots, plot) :: number
+	end
+	plot:SetAttribute("OwnerUserId", player.UserId)
+	player:SetAttribute("PlotName", plot.Name)
+	setOwnerLabel(plot, Locale.t("plot.owner", { name = player.DisplayName }))
+	spawnAtPlot(player)
+	PlotService.Assigned:Fire(player, plot)
 end
 
 local function release(player: Player)
@@ -128,6 +144,11 @@ end
 
 function PlotService.GetPlot(player: Player): Model?
 	return plotOf[player]
+end
+
+-- The plot's number (1 .. Plots.COUNT), the index into Config/Plots LAYOUT.
+function PlotService.PlotIndex(plot: Model): number?
+	return table.find(plots, plot)
 end
 
 function PlotService.GetOwner(plot: Model): Player?

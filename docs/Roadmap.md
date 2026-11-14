@@ -48,12 +48,16 @@ Perubahan terbesar. Detail di `Map_Plan.md`. Dipecah: **R2 (peta + lahan awal 12
 ### R2 — peta cincin ✅ selesai dan dites di Studio (14 Nov 2026)
 Versi pertama (R2a: 10 lahan 96×96 dalam cincin persegi dengan sungai X) **digantikan** setelah kamu menilai tidak adil dan terlalu kecil. Sekarang mengikuti konsep gambarmu: kanal bundar + pulau kota + cincin jalan batu + 4 jalan silang, **8 lahan identik**, awal **128×128** dalam kotak cadangan **192×192** berisi hutan perluasan. Migrasi v8 → v9 (lahan 96) dan v9 → v10 (kerangka koordinat baru). Detail dan screenshot di `Map_Plan.md`. Belum teruji: 2+ pemain, HP asli dan performa, memancing dari dermaga baru.
 
-### R2b — beli chunk (berikutnya)
-- Lahan tumbuh dari 128×128 ke 192×192 dengan membeli chunk 16×16 yang **menempel** pada lahan milik; `Modules/Land` memakai daftar chunk milik pemain (bukan satu persegi tetap).
-- Membeli chunk: membersihkan hutan `ExpansionOf` di chunk itu, mengecat rumput terang, memperbarui pagar; data `land.chunks`.
-- Hapus batas jumlah petak tanam (luas lahan yang membatasi); garap, kolam, dan hias memakai chunk.
-- `plotSlot` tersimpan dan dicoba dipakai lagi saat masuk; harga chunk; pass "Petak Ekstra" diganti bentuk (Design Doc §16).
-- Uji 2+ pemain di Studio dan performa di HP asli dengan 8 lahan terisi.
+### R2b — beli chunk ✅ selesai dan dites di Studio (14 Nov 2026)
+- Lahan tumbuh dari 128×128 ke 192×192 dengan membeli chunk 16×16 yang **menempel** pada lahan milik (mode **Beli Lahan** di bar Garap, dengan penanda hijau di semua chunk yang bisa dibeli dan harga di petunjuk). `Modules/Land` memakai daftar chunk milik pemain; garap, kolam, dan hias memakai chunk yang sama.
+- Membeli chunk: hutan `ExpansionOf` di chunk itu disembunyikan, tanah dicat rumput terang, pagar bergeser keluar; data `land.chunks`. Harga `200 × 1,05ⁿ` (80 chunk ±195.000 Koin).
+- Batas jumlah petak tanam dihapus (katup pengaman 100); upgrade "Perluas Kebun" dihapus (refund lewat migrasi v10 → v11). Pass "Petak Ekstra" jadi **"Diskon Lahan"** (−20% harga chunk, ukuran akhir tetap sama untuk semua).
+- `plotSlot` tersimpan dan dicoba dipakai lagi saat masuk.
+- `LandService` baru; `MapService.SetChunkOwned` / `RebuildFence`.
+
+**Teruji (Studio, 1 pemain):** harga dan urutan 200 → 210 → 220 → 230 → 240 → 260; beli ditolak untuk chunk milik, tidak menempel, dan di luar kotak; Koin kurang ditolak; tanah jadi rumput terang, pohon di chunk disembunyikan, pagar bergeser; garap dan hias hanya di chunk milik dan ditolak di chunk yang belum dibeli; chunk, petak, dan hutan kembali benar setelah rejoin; UI "Beli Lahan" menampilkan harga dan penanda; migrasi v10 → v11 (refund 0–5 tingkat).
+**Belum teruji:** reset lahan saat pemain keluar lalu pemain lain masuk (butuh 2 pemain), `plotSlot` dengan 2 pemain, klik langsung di dunia untuk membeli (jalur beli diuji lewat remote yang sama), HP asli, dan performa saat banyak chunk dibeli.
+**Risiko ekonomi:** tanpa batas petak, simulasi (dengan asumsi +1 petak per chunk) mencapai Lv 30 di hari ke-20 (dulu hari 31), dan 69 dari 80 chunk terbeli di hari 42, jadi chunk efektif menyerap Koin. Perlu data playtest, bukan tebakan.
 
 ## Gerbang: Playtest #1
 
@@ -91,8 +95,8 @@ Kandidat, bukan komitmen: **mode foto**, **tujuan bersama kampung**, **peternaka
 
 1. ~~Sungai di peta cincin~~ — selesai di R2: kanal bundar mengelilingi pulau kota, tidak ada lahan yang tersilang air.
 2. **Kuota Pak Darmo:** 20 per jenis cocok? Apakah kuota naik juga per level? (R1, simulasikan)
-3. **Harga chunk lahan:** kurva harga dan jumlah chunk awal. (R2b)
-4. **Pass Petak Ekstra:** diganti apa? (R2b)
+3. **Harga chunk lahan:** kurva 200 × 1,05ⁿ sudah dikunci sementara; cocok atau terlalu murah/mahal? (data playtest)
+4. **Kecepatan progres tanpa batas petak:** perlu dijinakkan (kuota, harga bibit, kurva XP) bila playtest menunjukkan terlalu cepat.
 5. **Kartu status vs joystick di HP:** pakai thumbstick Dynamic atau geser kartu ke kanan? (R4, tes di HP)
 6. **Peta cincin:** apakah 8 slot cukup, atau perlu 12 (3 per jalan)? (setelah Playtest #1 melihat jumlah pemain sebenarnya)
 7. **Teras sawah di pojok peta** (ada di konsep): dibuat sekarang atau nanti? Pojok saat ini berupa hutan.

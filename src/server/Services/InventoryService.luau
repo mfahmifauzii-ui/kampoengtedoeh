@@ -10,6 +10,8 @@ local InventoryConfig = require(ReplicatedStorage.Shared.Config.Inventory)
 local Monetization = require(ReplicatedStorage.Shared.Config.Monetization)
 local OrdersConfig = require(ReplicatedStorage.Shared.Config.Orders)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
+local Land = require(ReplicatedStorage.Shared.Modules.Land)
+local Plots = require(ReplicatedStorage.Shared.Config.Plots)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
@@ -73,8 +75,10 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		pondTier = data.pond.tier,
 		ponds = pondCells(data),
 		quests = { active = table.clone(data.quests.active), done = table.clone(data.quests.done) },
-		farmExpansions = data.farm.expansions,
-		farm = { tiles = farmTiles(data), cap = FarmConfig.cap(data.farm.expansions, passes.plots == true) },
+		farm = { tiles = farmTiles(data), cap = FarmConfig.MAX_TILES },
+		landChunks = table.clone(data.land.chunks),
+		landExtra = Land.extraCount(data.land.chunks),
+		landPrice = Land.chunkPrice(Land.extraCount(data.land.chunks), if passes.plots == true then Plots.CHUNK.PASS_DISCOUNT else 0),
 		rod = data.fishing.rod,
 		ownedRods = table.clone(data.fishing.ownedRods),
 		decorStock = table.clone(data.decor.stock),

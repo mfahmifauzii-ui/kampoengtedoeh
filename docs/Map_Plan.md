@@ -1,6 +1,6 @@
 # Map — peta cincin (8 lahan identik)
 
-**Status:** R2 (peta cincin) **selesai dan dites di Studio (14 Nov 2026)**. Lahan masih **128×128 tetap**; membeli chunk sampai 192×192 itu R2b. Peta ini mengikuti konsep gambar di `references/` (3 gambar buatan Gemini/Meta).
+**Status:** R2 (peta cincin) dan **R2b (beli chunk)** **selesai dan dites di Studio (14 Nov 2026)**. Peta ini mengikuti konsep gambar di `references/` (3 gambar buatan Gemini/Meta).
 
 Screenshot: [tampak atas](screenshots/R2_ring_map_topdown.jpg) · [pulau kota](screenshots/R2_town_island.jpg) · [lahan + hutan perluasan](screenshots/R2_plot_with_forest.jpg)
 
@@ -35,7 +35,7 @@ Delapan lahan sama bentuk, sama ukuran, dan setara lewat rotasi + cermin: jarak 
 
 ## 2. Lahan: awal 128, cadangan 192
 
-Setiap lahan punya **kotak cadangan 192 × 192** miliknya sendiri. Pemain mulai dengan **lahan 128 × 128** di dalamnya, **menempel ke jalan**; sisanya (belakang dan samping) boleh dibeli chunk demi chunk di R2b sampai 192 × 192. Karena tiap pemain punya kotak cadangan yang sama, awal dan akhir lahan **sama persis** untuk semua pemain.
+Setiap lahan punya **kotak cadangan 192 × 192** miliknya sendiri. Pemain mulai dengan **lahan 128 × 128** di dalamnya, **menempel ke jalan**; sisanya (belakang dan samping) dibeli chunk demi chunk (✅ R2b) sampai 192 × 192. Karena tiap pemain punya kotak cadangan yang sama, awal dan akhir lahan **sama persis** untuk semua pemain.
 
 ```
  plot-lokal (+Z = ke arah jalan, +X = kanan, titik 0 = pusat kotak cadangan)
@@ -44,14 +44,14 @@ Setiap lahan punya **kotak cadangan 192 × 192** miliknya sendiri. Pemain mulai 
  area perluasan : 192² − 128² = 20.480 stud² (belakang 64, samping 32 di tiap sisi)
 ```
 
-- **Area perluasan diisi hutan** (pohon, semak, batu di atas lantai rumput hijau tua), jadi tidak terlihat kosong. Tiap model hutan diberi atribut `ExpansionOf = <nomor plot>` supaya R2b bisa membersihkannya saat tanah dibeli.
+- **Area perluasan diisi hutan** (pohon, semak, batu di atas lantai rumput hijau tua), jadi tidak terlihat kosong. Tiap model hutan diberi atribut `ExpansionOf = <nomor plot>` supaya `MapService` bisa menyembunyikannya (dipindah ke `ServerStorage > ForestHidden`) saat chunk itu dibeli, dan mengembalikannya saat lahan dikembalikan ke lahan awal.
 - Lahan awal tampak terang (rumput cerah, berpagar bambu) dan jelas berbeda dari hutan di sekitarnya.
 - **Rumah panggung** berada di plot-lokal (30, 56), di dalam lahan awal. Titik muncul pemain (0, 4, 70).
 - Semua koordinat kelipatan 4 (sel Terrain), lahan sejajar sumbu (yaw kelipatan 90°) supaya cat tanah garap tetap rapi.
 
 ### Pindah server dan slot
 - Tiap server dunia terpisah; **posisi karakter tidak ikut**, data lahan ikut (ProfileStore). Saat masuk, pemain dapat slot kosong pertama menurut urutan di atas dan lahannya dibangun ulang dari data.
-- 🗓 (R2b) Simpan `plotSlot` terakhir dan coba slot yang sama dulu.
+- ✅ (R2b) `plotSlot` terakhir disimpan di data dan dicoba dipakai lagi; kalau sudah terisi, slot kosong pertama.
 
 ---
 

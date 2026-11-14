@@ -7,7 +7,7 @@ local Economy = require(script.Parent.Economy)
 local Types = require(script.Parent.Parent.Types)
 
 local template: Types.PlayerData = {
-	version = 10,
+	version = 11,
 
 	koin = Economy.START_KOIN,
 	bunga = Economy.START_BUNGA,
@@ -25,7 +25,6 @@ local template: Types.PlayerData = {
 
 	farm = {
 		tiles = {}, -- tilled soil tiles { uid, cx, cz, crop?... }; a new player tills their own (Garap)
-		expansions = 0, -- raises the tile cap (Farm.cap)
 		nextUid = 1,
 	},
 
@@ -72,6 +71,8 @@ local template: Types.PlayerData = {
 
 	titles = {}, -- [titleId] = true
 
+	land = { chunks = {} }, -- bought chunks of the plot (Modules/Land); the start land is always owned
+	plotSlot = 0, -- last plot number (PlotService tries to give it back)
 	sales = { day = "", sold = {}, tier = 0 }, -- Pak Darmo's daily crop quota (Config/Npcs QUOTA) + Kapasitas Warung tier
 
 	social = {

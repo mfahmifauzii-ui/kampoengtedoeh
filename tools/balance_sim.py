@@ -25,9 +25,17 @@ CROPS = [  # id, unlock, seed, grow_s, sell, xp, harvests
     ("padi", 14, 80, 7200, 220, 35, 1),
     ("pisang", 18, 200, 28800, 120, 40, 3),
 ]
-FARM_START, FARM_STEP, FARM_MAX = 6, 3, 21
-FARM_COSTS = [300, 800, 2000, 5000, 12000]
+# R2b: no more farm-expansion upgrades. Land is bought chunk by chunk (Config/Plots CHUNK): the n-th extra chunk costs
+# CHUNK_BASE * CHUNK_GROWTH ** n (rounded to 10), 80 chunks in all. How many tiles a player tills is limited by their
+# own time, not by a cap; the model ASSUMES one more tile per bought chunk (tune this once there is playtest data).
+FARM_START = 6
+CHUNK_BASE, CHUNK_GROWTH, CHUNK_COUNT, TILES_PER_CHUNK = 200, 1.05, 80, 1
 WATER = 0.8
+
+
+def chunk_price(n):
+    return max(10, int(round(CHUNK_BASE * CHUNK_GROWTH ** n / 10.0)) * 10)
+
 
 # Pak Darmo's daily quota (Config/Npcs QUOTA, Config/Shop warung): full price up to the quota per crop, 0.7x above it.
 # These are ASSUMPTIONS (R1): tune them here and in the configs together.
@@ -95,7 +103,7 @@ def best_offline_crop(level):
 
 def simulate(days=42):
     level, xp, koin, bunga = 1, 0, 100, 10
-    tiles, farm_step, rod_index, warung_tier = FARM_START, 0, 0, 0
+    tiles, chunks, rod_index, warung_tier = FARM_START, 0, 0, 0
     reached = {1: 0.0}
     log = []
     for day in range(1, days + 1):
@@ -165,21 +173,21 @@ def simulate(days=42):
             reached.setdefault(level, day)
         koin += day_koin * (1 - DECOR_SHARE)
 
-        # Spend on progress: next rod, then farm expansion.
+        # Spend on progress: next rod, then land chunks.
         while rod_index + 1 < len(RODS) and RODS[rod_index + 1][2] <= level and koin >= RODS[rod_index + 1][1]:
             rod_index += 1
             koin -= RODS[rod_index][1]
-        while farm_step < len(FARM_COSTS) and koin >= FARM_COSTS[farm_step] * 1.5:
-            koin -= FARM_COSTS[farm_step]
-            farm_step += 1
-            tiles = min(FARM_MAX, tiles + FARM_STEP)
+        while chunks < CHUNK_COUNT and koin >= chunk_price(chunks) * 1.5:
+            koin -= chunk_price(chunks)
+            chunks += 1
+            tiles = FARM_START + chunks * TILES_PER_CHUNK
         # Kapasitas Warung upgrades: raise the daily quota once affordable.
         while (warung_tier < len(WARUNG_COSTS) and level >= WARUNG_UNLOCK_LV
                and koin >= WARUNG_COSTS[warung_tier] * 1.5):
             koin -= WARUNG_COSTS[warung_tier]
             warung_tier += 1
 
-        log.append((day, level, int(koin), bunga, tiles, RODS[rod_index][0], int(day_koin), int(day_xp), warung_tier))
+        log.append((day, level, int(koin), bunga, tiles, RODS[rod_index][0], int(day_koin), int(day_xp), warung_tier, chunks))
     return reached, log
 
 
@@ -188,9 +196,9 @@ if __name__ == "__main__":
     print("Level reached on day (fractional = during that day's session):")
     for lv in (5, 10, 15, 20, 25, 30):
         print(f"  Lv{lv:>2}: {reached.get(lv, 'not reached'):>}" if lv in reached else f"  Lv{lv:>2}: not reached in 42 days")
-    print("\nday  lv  koin  bunga tiles rod      koin/day xp/day warung")
+    print("\nday  lv  koin  bunga tiles rod      koin/day xp/day warung chunks")
     for row in log:
         if row[0] in (1, 2, 3, 5, 7, 10, 14, 21, 28, 35, 42):
-            print(f"{row[0]:>3} {row[1]:>3} {row[2]:>6} {row[3]:>5} {row[4]:>5} {row[5]:<8} {row[6]:>7} {row[7]:>6} {row[8]:>5}")
+            print(f"{row[0]:>3} {row[1]:>3} {row[2]:>6} {row[3]:>5} {row[4]:>5} {row[5]:<8} {row[6]:>7} {row[7]:>6} {row[8]:>5} {row[9]:>5}")
     total = sum(xp_to_next(l) for l in range(1, MAX_LEVEL))
     print(f"\nTotal XP to Lv{MAX_LEVEL}: {total}")

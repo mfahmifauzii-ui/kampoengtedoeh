@@ -118,7 +118,7 @@ local function refreshGhost()
 		if snapshot and snapshot.farm then snapshot.farm.tiles else nil,
 		Land.pondRects(if snapshot and snapshot.ponds then snapshot.ponds else {})
 	)
-	state.valid = DecorGrid.isValid(state.item, state.x, state.z, state.r, occupied, state.uid)
+	state.valid = DecorGrid.isValid(state.item, state.x, state.z, state.r, occupied, state.uid, if snapshot then snapshot.landChunks else nil)
 	if highlight then
 		highlight.FillColor = if state.valid then VALID_COLOR else INVALID_COLOR
 	end

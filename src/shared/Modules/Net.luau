@@ -44,6 +44,8 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	FarmTill = "Event", -- C->S (cx: number, cz: number) turn a grass cell of your land into soil
 	FarmLevel = "Event", -- C->S (tileUid: number) turn an empty soil tile back into grass
 
+	LandBuy = "Event", -- C->S (ix: number, iz: number) buy the 16 x 16 chunk (plot-local chunk indices, Modules/Land)
+
 	PondBuild = "Event", -- C->S (cx: number, cz: number) dig a pond with its min corner at this tile cell
 	PondRemove = "Event", -- C->S (uid: number) fill a pond back in (refund)
 

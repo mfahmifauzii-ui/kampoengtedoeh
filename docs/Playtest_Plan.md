@@ -31,7 +31,8 @@ The script copies numbers from `src/shared/Config` — update it when you change
 **Known imbalances (watch in playtest, fix post-launch)**
 1. **Koin piles up after ~day 10.** Once the farm is maxed and the Juragan rod is bought (≈26k Koin total), Koin only buys cheap decor.
    - The model shows 40k+ banked by day 14.
-   - Fix with **new Koin sinks**, not by cutting income. Kuota harian Pak Darmo (R1), pembelian chunk lahan (R2), dan upgrade sudah jadi sink awal; masak + warung pemain, rumah, dan set hiasan baru menyusul.
+   - Fix with **new Koin sinks**, not by cutting income. Kuota harian Pak Darmo (R1), pembelian chunk lahan (R2b, ±195.000 Koin untuk 80 chunk), dan upgrade sudah jadi sink awal; masak + warung pemain, rumah, dan set hiasan baru menyusul.
+   - **R2b menghapus batas petak tanam.** Simulasi (asumsi +1 petak per chunk) menunjukkan Lv 30 di hari ke-20 dan 69/80 chunk terbeli di hari 42. Angka ini bergantung asumsi; **ukur di playtest**: berapa petak dipakai pemain nyata, seberapa cepat naik level, dan kapan Koin habis ke chunk.
 2. **Free Bunga ≈ 2/day early, ≈ 1/day after Lv30** (weekly order 5, visit day 7: 3, likes, Book). The design doc said 3–5/day.
    - It's still enough for a 50-Bunga gazebo within ~2 weeks.
    - If testers feel starved: +1 Bunga for finishing all 3 daily orders.

@@ -62,7 +62,6 @@ export type PlayerData = {
 	backpackTier: number,
 	farm: {
 		tiles: { FarmTile },
-		expansions: number,
 		nextUid: number,
 	},
 	fishing: {
@@ -100,6 +99,10 @@ export type PlayerData = {
 		claimed: { [string]: boolean },
 	},
 	titles: { [string]: boolean },
+	land: {
+		chunks: { [string]: boolean }, -- bought 16 x 16 chunks of the plot, "ix,iz" keys (Modules/Land)
+	},
+	plotSlot: number, -- the plot number this player had last time (0 = none): tried first when they join
 	sales: {
 		day: string, -- WIB day key that `sold` belongs to
 		sold: { [string]: number }, -- [cropId] = how many Pak Darmo bought today (daily quota)

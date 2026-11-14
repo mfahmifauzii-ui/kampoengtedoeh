@@ -189,9 +189,9 @@ local function buildTiles(player: Player, plot: Model)
 	end
 end
 
--- How many tiles this player may have tilled.
-function FarmService.Cap(player: Player, data: Types.PlayerData): number
-	return Farm.cap(data.farm.expansions, MonetizationService.HasPass(player, "plots"))
+-- How many tiles this player may have tilled (only a safety valve: the land you own is the real limit).
+function FarmService.Cap(_player: Player, _data: Types.PlayerData): number
+	return Farm.MAX_TILES
 end
 
 local function characterDistance(player: Player, position: Vector3): number?
@@ -241,7 +241,7 @@ local function onTill(player: Player, cx: any, cz: any)
 		Net.Fire("Notify", player, "farm.till_far")
 		return
 	end
-	if not Land.canTill(cx, cz, data.farm.tiles, decorRects(data)) then
+	if not Land.canTill(cx, cz, data.farm.tiles, decorRects(data), data.land.chunks) then
 		Net.Fire("Notify", player, "farm.till_invalid")
 		return
 	end

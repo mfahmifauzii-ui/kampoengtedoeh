@@ -13,7 +13,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Blueprints = require(ReplicatedStorage.Shared.Config.Blueprints)
 local Crops = require(ReplicatedStorage.Shared.Config.Crops)
 local Decor = require(ReplicatedStorage.Shared.Config.Decor)
-local Farm = require(ReplicatedStorage.Shared.Config.Farm)
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
 local InventoryConfig = require(ReplicatedStorage.Shared.Config.Inventory)
@@ -55,13 +54,9 @@ local function upgradeInfo(upgradeId: string, snapshot: any): (number, string)
 		local tier = snapshot.pondTier
 		local nextCap = Fishing.POND.CAPS[tier + 2]
 		return tier, Locale.t("upgrade.pond.detail", { from = Fishing.POND.CAPS[tier + 1], to = nextCap or "-" })
-	elseif upgradeId == "warung" then
+	else
 		local tier = snapshot.warungTier or 0
 		return tier, Locale.t("upgrade.warung.detail", { from = Trade.quota(tier), to = Trade.quota(tier + 1) })
-	else
-		local tier = snapshot.farmExpansions
-		local tiles = Farm.START_TILES + tier * Farm.EXPANSION_TILES
-		return tier, Locale.t("upgrade.farm.detail", { from = tiles, to = tiles + Farm.EXPANSION_TILES })
 	end
 end
 

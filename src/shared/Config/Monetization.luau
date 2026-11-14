@@ -14,7 +14,7 @@ return {
 		{ key = "backpack", id = 0, priceDraft = 99 }, -- +40 bag slots
 		{ key = "offline", id = 0, priceDraft = 149 }, -- 2× pond capacity
 		{ key = "decor", id = 0, priceDraft = 149 }, -- +100 decor limit
-		{ key = "plots", id = 0, priceDraft = 199 }, -- +4 farm tiles
+		{ key = "plots", id = 0, priceDraft = 199 }, -- 20% off every land chunk (Plots.CHUNK.PASS_DISCOUNT); never changes the final size
 	} :: { Pass },
 
 	PRODUCTS = {
@@ -31,7 +31,6 @@ return {
 	BACKPACK_BONUS_SLOTS = 40,
 	OFFLINE_POND_MULT = 2,
 	DECOR_BONUS = 100,
-	PLOT_BONUS_TILES = 4, -- must match Farm.PASS_EXTRA_TILES
 
 	-- Instant Grow: finish one growing tile. Token use is capped per WIB day,
 	-- and you can't buy more than you could use today.

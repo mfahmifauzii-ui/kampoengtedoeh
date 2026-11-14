@@ -278,7 +278,7 @@ local function onBuild(player: Player, cx: any, cz: any)
 		Net.Fire("Notify", player, "farm.till_far")
 		return
 	end
-	if not Land.canPond(cx, cz, data.farm.tiles, data.pond.list, decorRects(data)) then
+	if not Land.canPond(cx, cz, data.farm.tiles, data.pond.list, decorRects(data), data.land.chunks) then
 		Net.Fire("Notify", player, "pond.invalid")
 		return
 	end

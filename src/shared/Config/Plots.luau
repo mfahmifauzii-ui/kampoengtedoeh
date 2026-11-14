@@ -45,6 +45,12 @@ return {
 	-- World position and yaw of every plot (the plot's local +Z points at its road).
 	LAYOUT = LAYOUT,
 
+	-- Buying land (R2b): the player grows from the START land into the rest of the reserved square, one CHUNK x CHUNK
+	-- square at a time. A chunk must touch land the player already owns. Price of the n-th extra chunk (n = 0 for the
+	-- first one): PRICE_BASE * PRICE_GROWTH ^ n, rounded to 10. The whole 80 chunks cost about 195.000 Koin
+	-- (assumption: check with tools/balance_sim.py). The game pass "plots" gives PASS_DISCOUNT off every chunk.
+	CHUNK = { SIZE = 16, PRICE_BASE = 200, PRICE_GROWTH = 1.05, PASS_DISCOUNT = 0.2 },
+
 	SPAWN_OFFSET = Vector3.new(0, 4, 70), -- relative to Origin; inside the start land, in front of the house
 	GROUND_COLOR = Color3.fromRGB(134, 150, 104),
 }

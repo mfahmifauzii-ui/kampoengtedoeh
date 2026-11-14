@@ -16,13 +16,13 @@ local Land = require(script.Parent.Land)
 type Item = Decor.Item
 
 local CELL = Decor.CELL
--- Cell (0,0) stays at plot-local (-HALF, -HALF) so saved decor keeps its place; cells may now be negative
--- or larger than the old 48, as long as they are on the land (see Land).
+-- Cell (0,0) is plot-local (-HALF, -HALF): the corner of the plot's whole reserved square. A cell is valid only when
+-- it lies on land the player owns (see Land: the start land plus the chunks they bought).
 local HALF = PlotsConfig.SIZE / 2
-local X_MIN = math.floor((-Land.MAX_HALF_WIDTH + HALF) / CELL)
-local X_MAX = math.ceil((Land.MAX_HALF_WIDTH + HALF) / CELL) -- exclusive
-local Z_MIN = math.floor((Land.BACK_Z + HALF) / CELL)
-local Z_MAX = math.ceil((Land.FRONT_Z + HALF) / CELL) -- exclusive
+local X_MIN = 0
+local X_MAX = PlotsConfig.SIZE // CELL -- exclusive
+local Z_MIN = 0
+local Z_MAX = PlotsConfig.SIZE // CELL -- exclusive
 
 local DecorGrid = {}
 DecorGrid.X_MIN, DecorGrid.X_MAX, DecorGrid.Z_MIN, DecorGrid.Z_MAX = X_MIN, X_MAX, Z_MIN, Z_MAX
@@ -43,7 +43,7 @@ local function blockedRects(): { Land.Rect }
 	return rects
 end
 
--- Cells that are off the land (staircase edge) or on a fixed rectangle can never hold decor.
+-- Cells on a fixed rectangle (the house) can never hold decor. Whether a cell is owned land depends on the player.
 local blocked: { [number]: boolean } = {}
 do
 	local rects = blockedRects()
@@ -55,13 +55,11 @@ do
 				maxX = -HALF + (x + 1) * CELL,
 				maxZ = -HALF + (z + 1) * CELL,
 			}
-			local isBlocked = not Land.rectInside(cell)
-			if not isBlocked then
-				for _, rect in rects do
-					if Land.rectsOverlap(cell, rect) then
-						isBlocked = true
-						break
-					end
+			local isBlocked = false
+			for _, rect in rects do
+				if Land.rectsOverlap(cell, rect) then
+					isBlocked = true
+					break
 				end
 			end
 			if isBlocked then
@@ -125,9 +123,19 @@ function DecorGrid.occupancy(entries: { Types.DecorEntry }, tiles: { { cx: numbe
 end
 
 -- ignoreUid lets an item being moved overlap its own old cells.
-function DecorGrid.isValid(item: Item, x: number, z: number, r: number, occupied: { [number]: number }, ignoreUid: number?): boolean
+-- chunks = the player's bought chunks (Land.Chunks): the footprint must lie on owned land.
+function DecorGrid.isValid(item: Item, x: number, z: number, r: number, occupied: { [number]: number }, ignoreUid: number?, chunks: Land.Chunks?): boolean
 	local w, d = DecorGrid.footprint(item, r)
 	if x < X_MIN or z < Z_MIN or x + w > X_MAX or z + d > Z_MAX then
+		return false
+	end
+	local footprint: Land.Rect = {
+		minX = -HALF + x * CELL,
+		minZ = -HALF + z * CELL,
+		maxX = -HALF + (x + w) * CELL,
+		maxZ = -HALF + (z + d) * CELL,
+	}
+	if not Land.rectInside(footprint, chunks) then
 		return false
 	end
 	for cx = x, x + w - 1 do
