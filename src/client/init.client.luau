@@ -10,6 +10,7 @@ local Controllers = script.Controllers
 local ORDER = {
 	"HudController",
 	"GarapController",
+	"LandController", -- after Garap: its "+" buttons hide while Garap mode is open
 	"FarmController",
 	"FishingController",
 	"InventoryController",

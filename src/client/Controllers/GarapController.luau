@@ -1,9 +1,13 @@
 --!strict
--- "Garap" mode: till grass cells of your land into soil tiles, level empty tiles back to grass, dig ponds, and buy
--- more land ("Lahan": tap a forest chunk that touches your land).
+-- "Garap" mode (the Garap button in the dock): work your land with four tools.
+--   Cangkul      turn a grass cell of your land into soil (a farm bed)
+--   Hijaukan     turn an EMPTY soil bed back into grass
+--   Gali Kolam   dig a 16 x 16 pond
+--   Urug Kolam   fill a pond back in (50% refund)
+-- Buying more land is NOT here: LandController floats a "+" over every chunk you can buy.
 -- UI contract (replace with your designed UI, keep the names):
---   ScreenGui "GarapUI" > TextButton "GarapButton" (toggle), Frame "Bar" (TextLabel "Count",
---   TextButton "TillButton", TextButton "LevelButton"), TextLabel "Hint".
+--   ScreenGui "GarapUI" > Frame "Bar" (TextLabel "Count", TextButton "TillButton", "LevelButton", "PondButton",
+--   "PondRemoveButton", the round close badge "Close"), TextLabel "Hint".
 -- The preview square is a transient client Part; the soil itself is terrain created by the server.
 -- All checks here are only for the preview: the server validates every request again.
 
@@ -22,16 +26,16 @@ local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local State = require(script.Parent.Parent.State)
 local UiKit = require(script.Parent.Parent.UiKit)
 
-local VALID_COLOR =Color3.fromRGB(150, 196, 120)
+local VALID_COLOR = Color3.fromRGB(150, 196, 120)
 local INVALID_COLOR = Color3.fromRGB(200, 96, 80)
 local LEVEL_COLOR = Color3.fromRGB(226, 178, 96)
 
 local player = Players.LocalPlayer
 
 local GarapController = {}
-GarapController.Active = false -- FarmController ignores tile taps while true
+GarapController.Active = false -- FarmController ignores tile taps while true; LandController hides its "+" buttons
 
-local mode = "till" -- "till" | "level"
+local mode = "till" -- "till" | "level" | "pond" | "pondRemove"
 local gui: ScreenGui
 local toggleButton: GuiButton
 local bar: Frame
@@ -41,9 +45,7 @@ local tillButton: TextButton
 local levelButton: TextButton
 local pondButton: TextButton
 local pondRemoveButton: TextButton
-local landButton: TextButton
 local ghost: Part? = nil
-local markers: { Part } = {} -- "Lahan" mode: one soft square on every chunk you can buy
 
 -- Helpers ------------------------------------------------------------------------------------
 
@@ -168,57 +170,6 @@ local function pondPriceText(): string
 	return if price <= 0 then Locale.t("garap.price_free") else Locale.t("garap.price", { n = price })
 end
 
--- Land ------------------------------------------------------------------------------------
-
-local function landChunks(): { [string]: boolean }
-	local snapshot = State.current :: any
-	return if snapshot and snapshot.landChunks then snapshot.landChunks else {}
-end
-
-local function landHint(): string
-	local snapshot = State.current :: any
-	local price = if snapshot and snapshot.landPrice then snapshot.landPrice else Land.chunkPrice(0)
-	local owned = if snapshot and snapshot.landExtra then snapshot.landExtra else 0
-	if owned >= Land.EXTRA_CHUNKS then
-		return Locale.t("garap.hint_land_max")
-	end
-	return Locale.t("garap.hint_land", { price = Locale.t("garap.price", { n = Locale.formatNumber(price) }), n = owned, max = Land.EXTRA_CHUNKS })
-end
-
-local function clearMarkers()
-	for _, part in markers do
-		part:Destroy()
-	end
-	table.clear(markers)
-end
-
--- A soft green square on every chunk you can buy right now (the ones touching your land).
-local function refreshMarkers()
-	clearMarkers()
-	local plot = myPlot()
-	if mode ~= "land" or not GarapController.Active or not plot then
-		return
-	end
-	local origin = plot.PrimaryPart :: BasePart
-	for _, chunk in Land.buyableChunks(landChunks()) do
-		local rect = Land.chunkRect(chunk.ix, chunk.iz)
-		local part = Instance.new("Part")
-		part.Name = "LandMarker"
-		part.Anchored = true
-		part.CanCollide = false
-		part.CanQuery = false
-		part.CanTouch = false
-		part.CastShadow = false
-		part.Material = Enum.Material.Neon
-		part.Color = VALID_COLOR
-		part.Transparency = 0.8
-		part.Size = Vector3.new(Land.CHUNK - 1, 0.2, Land.CHUNK - 1)
-		part.CFrame = origin.CFrame * CFrame.new((rect.minX + rect.maxX) / 2, origin.Size.Y / 2 + 0.25, (rect.minZ + rect.maxZ) / 2)
-		part.Parent = Workspace
-		table.insert(markers, part)
-	end
-end
-
 -- Preview ------------------------------------------------------------------------------------
 
 local function hideGhost()
@@ -227,41 +178,28 @@ local function hideGhost()
 	end
 end
 
+local function ensureGhost(): Part
+	if not ghost then
+		local part = Instance.new("Part")
+		part.Name = "GarapGhost"
+		part.Anchored = true
+		part.CanCollide = false
+		part.CanQuery = false
+		part.CanTouch = false
+		part.CastShadow = false
+		part.Material = Enum.Material.Neon
+		part.Parent = Workspace
+		ghost = part
+	end
+	return ghost :: Part
+end
+
 local function showGhost(plot: Model?, cx: number?, cz: number?, point: Vector3?)
 	if not plot or not cx or not cz or not point then
 		hideGhost()
 		return
 	end
 	local origin = plot.PrimaryPart :: BasePart
-
-	-- Land mode: the 16 x 16 chunk under the pointer, green when you can buy it.
-	if mode == "land" then
-		local ix, iz = math.floor(point.X / Land.CHUNK), math.floor(point.Z / Land.CHUNK)
-		if not Land.inRegion(ix, iz) then
-			hideGhost()
-			return
-		end
-		local rect = Land.chunkRect(ix, iz)
-		if not ghost then
-			local part = Instance.new("Part")
-			part.Name = "GarapGhost"
-			part.Anchored = true
-			part.CanCollide = false
-			part.CanQuery = false
-			part.CanTouch = false
-			part.CastShadow = false
-			part.Material = Enum.Material.Neon
-			part.Parent = Workspace
-			ghost = part
-		end
-		local preview = ghost :: Part
-		preview.Shape = Enum.PartType.Block
-		preview.Size = Vector3.new(Land.CHUNK - 0.4, 0.2, Land.CHUNK - 0.4)
-		preview.Transparency = 0.45
-		preview.Color = if Land.canBuyChunk(ix, iz, landChunks()) then VALID_COLOR else INVALID_COLOR
-		preview.CFrame = origin.CFrame * CFrame.new((rect.minX + rect.maxX) / 2, origin.Size.Y / 2 + 0.3, (rect.minZ + rect.maxZ) / 2)
-		return
-	end
 
 	-- Pond modes: a 16 x 16 square (the whole pond when removing).
 	if mode == "pond" or mode == "pondRemove" then
@@ -282,19 +220,7 @@ local function showGhost(plot: Model?, cx: number?, cz: number?, point: Vector3?
 			hideGhost()
 			return
 		end
-		if not ghost then
-			local part = Instance.new("Part")
-			part.Name = "GarapGhost"
-			part.Anchored = true
-			part.CanCollide = false
-			part.CanQuery = false
-			part.CanTouch = false
-			part.CastShadow = false
-			part.Material = Enum.Material.Neon
-			part.Parent = Workspace
-			ghost = part
-		end
-		local preview = ghost :: Part
+		local preview = ensureGhost()
 		preview.Shape = Enum.PartType.Block
 		preview.Size = Vector3.new(rect.maxX - rect.minX - 0.4, 0.2, rect.maxZ - rect.minZ - 0.4)
 		preview.Transparency = 0.55
@@ -308,20 +234,7 @@ local function showGhost(plot: Model?, cx: number?, cz: number?, point: Vector3?
 		then (if state == "valid" then VALID_COLOR else INVALID_COLOR)
 		else (if state == "tile" then LEVEL_COLOR else INVALID_COLOR)
 
-	if not ghost then
-		local part = Instance.new("Part")
-		part.Name = "GarapGhost"
-		part.Anchored = true
-		part.CanCollide = false
-		part.CanQuery = false
-		part.CanTouch = false
-		part.CastShadow = false
-		part.Material = Enum.Material.Neon
-		part.Size = Vector3.new(Land.TILE - 0.4, 0.2, Land.TILE - 0.4)
-		part.Parent = Workspace
-		ghost = part
-	end
-	local preview = ghost :: Part
+	local preview = ensureGhost()
 	-- The bed is a crisp slab of Farm.BED_SIZE, so the preview is exactly that square.
 	preview.Shape = Enum.PartType.Block
 	preview.Size = Vector3.new(Farm.BED_SIZE, 0.2, Farm.BED_SIZE)
@@ -340,12 +253,7 @@ local function act(ray: Ray)
 		return
 	end
 	showGhost(plot, cx, cz, point)
-	if mode == "land" then
-		local ix, iz = math.floor(point.X / Land.CHUNK), math.floor(point.Z / Land.CHUNK)
-		if Land.canBuyChunk(ix, iz, landChunks()) then
-			Net.Send("LandBuy", ix, iz)
-		end
-	elseif mode == "pond" then
+	if mode == "pond" then
 		local pcx, pcz = pondCorner(point)
 		if pondBuildValid(plot, pcx, pcz) then
 			Net.Send("PondBuild", pcx, pcz)
@@ -379,8 +287,6 @@ local function refreshHint()
 		hintLabel.Text = Locale.t("garap.hint_level")
 	elseif mode == "pond" then
 		hintLabel.Text = Locale.t("garap.hint_pond", { price = pondPriceText() })
-	elseif mode == "land" then
-		hintLabel.Text = landHint()
 	else
 		hintLabel.Text = Locale.t("garap.hint_pond_remove")
 	end
@@ -392,9 +298,7 @@ local function setMode(newMode: string)
 	levelButton.BackgroundColor3 = if mode == "level" then UiKit.BUTTON else UiKit.BUTTON_MUTED
 	pondButton.BackgroundColor3 = if mode == "pond" then UiKit.BUTTON else UiKit.BUTTON_MUTED
 	pondRemoveButton.BackgroundColor3 = if mode == "pondRemove" then UiKit.BUTTON else UiKit.BUTTON_MUTED
-	landButton.BackgroundColor3 = if mode == "land" then UiKit.BUTTON else UiKit.BUTTON_MUTED
 	refreshHint()
-	refreshMarkers()
 	hideGhost()
 end
 
@@ -403,64 +307,75 @@ local function setActive(on: boolean)
 	bar.Visible = on
 	hintLabel.Visible = on
 	UiKit.setMenuLabel(toggleButton, Locale.t(if on then "garap.done" else "ui.garap"))
+	UiKit.setMenuActive(toggleButton, on)
 	if on then
 		setMode("till")
 		refreshCount()
 	else
 		hideGhost()
-		clearMarkers()
 	end
 end
 
 -- UI -----------------------------------------------------------------------------------------
+
+-- A dark bamboo-brown rounded box with a bamboo outline: the Garap bar and its hint (cream text on it).
+local function darkBox(frame: GuiObject)
+	frame.BackgroundColor3 = UiKit.DARK
+	frame.BackgroundTransparency = 0.08
+	local round = Instance.new("UICorner")
+	round.CornerRadius = UDim.new(0, 16)
+	round.Parent = frame
+	local border = Instance.new("UIStroke")
+	border.Color = UiKit.BAMBOO
+	border.Thickness = 3
+	border.Parent = frame
+end
 
 function GarapController.Init()
 	gui = Instance.new("ScreenGui")
 	gui.Name = "GarapUI"
 	gui.ResetOnSpawn = false
 
-	-- Garap lives in the right-hand dock with the other everyday buttons (UiKit.menuItem), not floating on the left.
+	-- Garap lives in the dock with the other everyday buttons (UiKit.menuItem), not floating on the left.
 	local hud = player:WaitForChild("PlayerGui"):WaitForChild("HUD", 5)
 	toggleButton = UiKit.menuItem(hud :: Instance, "GarapButton", Locale.t("ui.garap"), 1) :: GuiButton
 
 	hintLabel = Instance.new("TextLabel")
 	hintLabel.Name = "Hint"
 	hintLabel.AnchorPoint = Vector2.new(0.5, 0)
-	hintLabel.Position = UDim2.new(0.5, 0, 0, 12)
-	hintLabel.Size = UDim2.new(0.6, 0, 0, 34)
-	hintLabel.BackgroundColor3 = UiKit.BG
-	hintLabel.BackgroundTransparency = 0.2
-	hintLabel.TextColor3 = UiKit.TEXT
-	hintLabel.Font = Enum.Font.GothamMedium
-	hintLabel.TextSize = 14
+	hintLabel.Position = UDim2.new(0.5, 0, 0, 56)
+	hintLabel.Size = UDim2.new(0.6, 0, 0, 36)
+	hintLabel.TextColor3 = UiKit.CREAM
+	hintLabel.Font = UiKit.FONT_BODY
+	hintLabel.TextSize = 15
 	hintLabel.TextWrapped = true
 	hintLabel.Visible = false
 	hintLabel.Parent = gui
-	Instance.new("UICorner").Parent = hintLabel
+	darkBox(hintLabel)
 
+	-- The tool bar sits above the dock: a count, a 2 x 2 grid of tools and a round close badge on its corner.
 	bar = Instance.new("Frame")
 	bar.Name = "Bar"
 	bar.AnchorPoint = Vector2.new(0.5, 1)
-	bar.Position = UDim2.new(0.5, 0, 1, -84) -- above the dock
-	bar.Size = UDim2.fromOffset(330, 216)
-	bar.BackgroundColor3 = UiKit.BG
-	bar.BackgroundTransparency = 0.15
+	bar.Position = UDim2.new(0.5, 0, 1, -84)
+	bar.Size = UDim2.fromOffset(330, 150)
 	bar.Visible = false
 	bar.Parent = gui
-	Instance.new("UICorner").Parent = bar
+	darkBox(bar)
 
 	countLabel = Instance.new("TextLabel")
 	countLabel.Name = "Count"
 	countLabel.BackgroundTransparency = 1
-	countLabel.Position = UDim2.fromOffset(12, 6)
-	countLabel.Size = UDim2.new(1, -24, 0, 24)
-	countLabel.TextColor3 = UiKit.TEXT
-	countLabel.Font = Enum.Font.GothamMedium
+	countLabel.Position = UDim2.fromOffset(14, 6)
+	countLabel.Size = UDim2.new(1, -60, 0, 24)
+	countLabel.TextXAlignment = Enum.TextXAlignment.Left
+	countLabel.TextColor3 = UiKit.CREAM
+	countLabel.Font = UiKit.FONT
 	countLabel.TextSize = 16
 	countLabel.Parent = bar
 
 	tillButton = UiKit.button(bar, "TillButton", Locale.t("garap.till"), UiKit.BUTTON)
-	tillButton.Position = UDim2.fromOffset(12, 40)
+	tillButton.Position = UDim2.fromOffset(12, 36)
 	tillButton.Size = UDim2.new(0.5, -18, 0, 48)
 	tillButton.Activated:Connect(function()
 		setMode("till")
@@ -468,14 +383,14 @@ function GarapController.Init()
 
 	levelButton = UiKit.button(bar, "LevelButton", Locale.t("garap.level"), UiKit.BUTTON_MUTED)
 	levelButton.AnchorPoint = Vector2.new(1, 0)
-	levelButton.Position = UDim2.new(1, -12, 0, 40)
+	levelButton.Position = UDim2.new(1, -12, 0, 36)
 	levelButton.Size = UDim2.new(0.5, -18, 0, 48)
 	levelButton.Activated:Connect(function()
 		setMode("level")
 	end)
 
 	pondButton = UiKit.button(bar, "PondButton", Locale.t("garap.pond"), UiKit.BUTTON_MUTED)
-	pondButton.Position = UDim2.fromOffset(12, 96)
+	pondButton.Position = UDim2.fromOffset(12, 92)
 	pondButton.Size = UDim2.new(0.5, -18, 0, 48)
 	pondButton.Activated:Connect(function()
 		setMode("pond")
@@ -483,17 +398,14 @@ function GarapController.Init()
 
 	pondRemoveButton = UiKit.button(bar, "PondRemoveButton", Locale.t("garap.pond_remove"), UiKit.BUTTON_MUTED)
 	pondRemoveButton.AnchorPoint = Vector2.new(1, 0)
-	pondRemoveButton.Position = UDim2.new(1, -12, 0, 96)
+	pondRemoveButton.Position = UDim2.new(1, -12, 0, 92)
 	pondRemoveButton.Size = UDim2.new(0.5, -18, 0, 48)
 	pondRemoveButton.Activated:Connect(function()
 		setMode("pondRemove")
 	end)
 
-	landButton = UiKit.button(bar, "LandButton", Locale.t("garap.land"), UiKit.BUTTON_MUTED)
-	landButton.Position = UDim2.fromOffset(12, 152)
-	landButton.Size = UDim2.new(1, -24, 0, 48)
-	landButton.Activated:Connect(function()
-		setMode("land")
+	UiKit.closeBadge(bar, 40, function()
+		setActive(false)
 	end)
 
 	toggleButton.Activated:Connect(function()
@@ -507,10 +419,7 @@ function GarapController.Start()
 	State.Changed:Connect(function()
 		if GarapController.Active then
 			refreshCount()
-			refreshHint() -- the price of the next pond / chunk changes with every one bought
-			if mode == "land" then
-				refreshMarkers()
-			end
+			refreshHint() -- the price of the next pond changes with every pond built
 		end
 	end)
 

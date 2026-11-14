@@ -5,14 +5,23 @@
 ## Konsep
 Mengikuti peta: hangat, jenuh, kampung tropis. Bahan visual **bambu, anyaman rotan, perkamen, daun**. Warna: perkamen krem (panel), bambu emas (bingkai, tombol), terakota (bahaya), hijau daun (pita judul, bar XP), tinta cokelat tua (teks). Font judul/angka/tombol **FredokaOne**; teks isi **GothamMedium**. Game dimainkan di **HP landscape**.
 
-## Tata letak HUD (landscape)
-- **Atas**, di kanan menu Roblox: chip **Koin** dan **Bunga** (hanya angka, ikon menjelaskan).
-- **Kanan atas**: tombol bulat Warga, Toko, Atur, Koleksi (+ caption kecil).
-- **Bawah tengah** (dock): Garap, Hias, Tas, Pesanan.
-- **Kiri bawah**: kartu status pemain = foto avatar + bintang level + nama + bar XP. (Bar stamina yang sempat ada dibuang: tidak ada sistem stamina.)
-- Pandangan tengah dibiarkan kosong. Tidak ada chip "tujuan" lagi (dibuang karena memakan tempat).
+## Tata letak HUD (landscape) — diperbarui setelah perombakan UI 14 Nov 2026
+Screenshot: [HUD default](screenshots/UI_hud_default.jpg) · [menu Garap + tooltip buff](screenshots/UI_garap_menu_buff_tooltip.jpg) · [popup beli lahan](screenshots/UI_popup_beli_lahan.jpg) · [menu HP terbuka](screenshots/UI_menu_hp_terbuka.jpg)
+
+- **Atas tengah:** chip **Koin** dan **Bunga** berdampingan (hanya angka, ikon menjelaskan).
+- **Kanan atas:** kolom **vertikal** tombol bulat Warga, Toko, Atur, Koleksi. **Tanpa caption**: nama muncul sebagai tooltip saat mouse di atasnya (di HP tidak ada tooltip, ikon harus cukup jelas).
+  - **Di HP (layar sentuh):** kolom menciut di balik satu tombol bulat **Menu** (hamburger). Ketuk → item meluncur turun dengan animasi (±0,28 d) dan hamburger berputar seperempat; setelah memilih sesuatu menu menutup lagi. Di PC kolom selalu terbuka. Uji di PC: `player:SetAttribute("CompactHud", true)`.
+- **Bawah tengah (dock):** Garap, Hias, Tas, Pesanan; bulat, **tanpa caption**, tombol Garap diberi cincin hijau saat mode Garap aktif.
+- **Kiri bawah:** kartu pemain = foto + bintang level + nama + **bar XP ramping** (14 px, angka di dalamnya) dan di bawahnya **3 slot buff**.
+  - Slot buff: ikon **kosong** (siluet gelap) bila tidak aktif; bila aktif, ikon **penuh** yang **terkuras dari atas ke bawah** seiring waktu, dengan cincin hijau. Hover (mouse) atau ketuk (HP) menampilkan nama, sisa waktu, dan efeknya. Tiga slot = satu per jenis (`Config/Buffs`): **Segar Bertani** (tanaman baru tumbuh 10% lebih cepat), **Umpan Wangi** (ikan menggigit 25% lebih cepat), **Kenyang** (XP +10%). **Efeknya belum dikodekan**; tampilan sudah (uji: ketik `!buff tani 60` di chat Studio). Ikon sementara memakai ikon yang ada (bibit, pancing, bintang) sampai ikon ForgeGUI (kosong + penuh) dibuat.
+- Pandangan tengah dibiarkan kosong. Tidak ada chip "tujuan" lagi.
 - HUD memakai `IgnoreGuiInset = true` + `ScreenInsets = DeviceSafeInsets`: bebas dari top bar Roblox, tetap menghindari notch.
-- Di layar portrait (tidak dipakai game, tapi ada cadangan) menu menjadi grid 2 kolom dan dock berupa kolom di kanan.
+
+## Menu melayang (bukan panel besar)
+- **Warna: bambu gelap** (`UiKit.DARK`, cokelat tua) dengan teks krem dan garis bambu emas, **bukan putih**. Dipakai untuk bar Garap, petunjuk di atas ("toast" Garap), tooltip, dan popup beli lahan.
+- **Menu Garap** (di atas dock): jumlah petak, 4 alat dalam grid 2×2, dan **badge tutup (X)** di pojok. Nama alat: **Cangkul** (jadikan tanah), **Hijaukan** (kembalikan jadi rumput), **Gali Kolam**, **Urug Kolam** (menggantikan "Garap / Ratakan / Kolam / Hapus Kolam"). **Beli Lahan tidak ada di sini lagi.**
+- **Beli lahan:** tombol bulat **+** dengan harga melayang di atas tiap chunk yang bisa dibeli. Hanya muncul saat karakter dekat (≤ 80 stud, seperti proximity prompt) dan tersembunyi saat mode Garap terbuka. Ketuk → **popup kecil** ("Beli lahan ini?", info, harga, Beli / Batal, X); tombol Beli jadi "Koin kurang" bila Koin tidak cukup. Dibangun dari Frame ScreenGui yang mengikuti titik 3D tiap frame (billboard biasa di PlayerGui tidak bisa diuji di Studio dan kurang andal).
+- Nama kecil yang tampil saat hover sekarang tooltip, bukan caption tetap, supaya HP tidak penuh.
 
 ## Panel (semua lewat `UiKit.panel`)
 - Modal di tengah (96% × 92%, maks 620 × 700) dengan **bingkai bambu** (9-slice), **pita judul hijau** di atas, **badge tutup** merah di pojok, baris berupa **kartu**, tombol plank bambu. Muncul meluncur dari bawah; mengetuk area gelap di luar menutupnya.

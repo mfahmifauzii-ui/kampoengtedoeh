@@ -8,6 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Blueprints = require(ReplicatedStorage.Shared.Config.Blueprints)
+local Buffs = require(ReplicatedStorage.Shared.Config.Buffs)
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
@@ -22,7 +23,7 @@ local WorldService = require(script.Parent.WorldService)
 local MonetizationService = require(script.Parent.MonetizationService)
 local EventService = require(script.Parent.EventService)
 
-local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !orders, !grow, !time malam, !rain, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 6: !level 6),!inv, !pass backpack, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !give kangkung 30, !sales, !quota reset, !blueprint all|taman|pondok_sawah"
+local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !orders, !grow, !time malam, !rain, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 6: !level 6),!inv, !pass backpack, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !buff tani 60 (UI test only: no effect yet), !give kangkung 30, !sales, !quota reset, !blueprint all|taman|pondok_sawah"
 
 local DevService = {}
 
@@ -46,6 +47,20 @@ local function onChatted(player: Player, message: string)
 	end
 	print(`[DevService] {player.Name}: {message}`)
 	local normalized = message:gsub("\u{2212}", "-") -- typographic minus from autocorrect
+
+	-- "!buff tani 60": lights a buff slot on the player card for 60 seconds (0 = off). Display only, the effect is not coded.
+	local buffId, buffSeconds = normalized:match("^!buff%s+(%a+)%s*(%d*)%s*$")
+	if buffId then
+		local seconds = tonumber(buffSeconds) or 60
+		for _, def in Buffs.SLOTS do
+			if def.id == buffId then
+				player:SetAttribute(`Buff_{def.id}_Dur`, math.max(seconds, 1))
+				player:SetAttribute(`Buff_{def.id}_End`, Workspace:GetServerTimeNow() + seconds)
+				print(`[DevService] buff {def.id} for {seconds}s (display only)`)
+			end
+		end
+		return
+	end
 
 	-- "!give kangkung 30": put items straight into the bag (any item id from Modules/Items).
 	local giveItem, giveCount = normalized:match("^!give%s+(%S+)%s*(%d*)%s*$")

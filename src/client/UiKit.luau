@@ -12,6 +12,7 @@ local GuiService = game:GetService("GuiService")
 local ContentProvider = game:GetService("ContentProvider")
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
@@ -33,6 +34,7 @@ UiKit.BAMBOO = Color3.fromRGB(214, 164, 64)
 UiKit.BAMBOO_DARK = Color3.fromRGB(150, 104, 40)
 UiKit.TERRACOTTA = Color3.fromRGB(196, 100, 64)
 UiKit.CREAM = Color3.fromRGB(255, 248, 232)
+UiKit.DARK = Color3.fromRGB(66, 46, 30) -- dark bamboo brown: floating menus, hints and tooltips (cream text on it)
 
 UiKit.FONT = Enum.Font.FredokaOne -- headings, buttons, numbers
 UiKit.FONT_BODY = Enum.Font.GothamMedium
@@ -624,11 +626,13 @@ local MENU_ICON = {
 	GarapButton = "garap",
 }
 
--- Where each button lives (thumb-friendly layout):
---   DOCK = the things you use all the time, a vertical column on the right edge, centered, clear of the jump button
---          at the bottom right and of the top bar. Big (64 px) icon buttons.
---   everything else = the small top-right row (secondary: Warga, Toko, Koleksi, Atur).
+-- Where each button lives (thumb-friendly layout, no captions: the icons speak, a tooltip names them on hover):
+--   DOCK = the things you use all the time: a row at the bottom center, between the thumbstick and the jump button.
+--          Big (58 px) round icon buttons.
+--   everything else = a vertical column at the top right (Warga, Toko, Atur, Koleksi). On phones it collapses behind a
+--   round menu button and slides open downward.
 local DOCK_ORDER = { GarapButton = 1, DecorButton = 2, BagButton = 3, OrdersButton = 4 }
+local MENU_SIZE = 50 -- round button size in the top-right column
 
 -- Calls `callback` now and whenever the screen size changes (rotation, window resize). It follows the CURRENT camera:
 -- Roblox may swap Workspace.CurrentCamera (respawn, cutscenes), and a connection to the old one would go silent.
@@ -649,44 +653,35 @@ local function onViewportChanged(callback: () -> ())
 	bind()
 end
 
--- Phone portrait (narrow): the secondary row wraps into a 2-wide grid at the top right, and the dock is a column on the
--- right edge. Landscape / tablet: the secondary row is one line, the dock is a row at the bottom center, between the
--- thumbstick and the jump button. Re-laid out whenever the viewport changes.
-local function relayoutBar(bar: Frame, layout: UIListLayout, dock: boolean)
+-- A phone or tablet (touch) gets the collapsible menu. Testing on a PC: player:SetAttribute("CompactHud", true).
+local function isCompact(): boolean
+	return UserInputService.TouchEnabled or Players.LocalPlayer:GetAttribute("CompactHud") == true
+end
+
+-- Phone portrait (narrow): the dock is a column on the right edge. Landscape / tablet: a row at the bottom center.
+local function relayoutDock(bar: Frame, layout: UIListLayout)
 	local camera = Workspace.CurrentCamera
 	local size = if camera then camera.ViewportSize else Vector2.new(800, 400)
-	local portrait = size.X < size.Y * 1.1
-	if dock then
-		if portrait then
-			bar.AnchorPoint = Vector2.new(1, 0)
-			bar.Position = UDim2.new(1, -8, 0, 184)
-			layout.FillDirection = Enum.FillDirection.Vertical
-			layout.HorizontalAlignment = Enum.HorizontalAlignment.Right
-		else
-			bar.AnchorPoint = Vector2.new(0.5, 1)
-			bar.Position = UDim2.new(0.5, 0, 1, -10)
-			layout.FillDirection = Enum.FillDirection.Horizontal
-			layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-		end
-	else
+	if size.X < size.Y * 1.1 then
 		bar.AnchorPoint = Vector2.new(1, 0)
-		bar.Position = UDim2.new(1, -8, 0, 8)
-		layout.FillDirection = Enum.FillDirection.Horizontal
+		bar.Position = UDim2.new(1, -8, 0, 184)
+		layout.FillDirection = Enum.FillDirection.Vertical
 		layout.HorizontalAlignment = Enum.HorizontalAlignment.Right
-		layout.Wraps = true
-		bar.AutomaticSize = Enum.AutomaticSize.Y
-		bar.Size = UDim2.fromOffset(if portrait then 144 else 290, 0)
+	else
+		bar.AnchorPoint = Vector2.new(0.5, 1)
+		bar.Position = UDim2.new(0.5, 0, 1, -10)
+		layout.FillDirection = Enum.FillDirection.Horizontal
+		layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	end
 end
 
-local function barOf(hud: Instance, dock: boolean): Frame
-	local name = if dock then "DockBar" else "MenuBar"
-	local existing = hud:FindFirstChild(name)
+local function dockOf(hud: Instance): Frame
+	local existing = hud:FindFirstChild("DockBar")
 	if existing and existing:IsA("Frame") then
 		return existing
 	end
 	local bar = Instance.new("Frame")
-	bar.Name = name
+	bar.Name = "DockBar"
 	bar.BackgroundTransparency = 1
 	bar.AutomaticSize = Enum.AutomaticSize.XY
 	bar.Size = UDim2.new(0, 0, 0, 0)
@@ -694,75 +689,273 @@ local function barOf(hud: Instance, dock: boolean): Frame
 
 	local layout = Instance.new("UIListLayout")
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
-	layout.Padding = UDim.new(0, 6)
+	layout.Padding = UDim.new(0, 8)
 	layout.Parent = bar
 
 	onViewportChanged(function()
-		relayoutBar(bar, layout, dock)
+		relayoutDock(bar, layout)
 	end)
 	return bar
 end
 
--- Changes the label of a menu button made by menuItem (icon mode: the caption under the icon; flat mode: its text).
+-- A round bamboo plate (the ForgeGUI plate image, flat fallback) that fills its parent, with an optional icon.
+local function makePlate(parent: GuiObject, size: number, iconKey: string?): Frame
+	local plate = Instance.new("Frame")
+	plate.Name = "Plate"
+	plate.BackgroundColor3 = UiKit.BG
+	plate.Size = UDim2.fromScale(1, 1)
+	plate.Parent = parent
+	corner(plate, size / 2)
+	local plateBorder = stroke(plate, UiKit.BAMBOO, 3)
+	attachSkin(plate, PLATE, function()
+		plate.BackgroundTransparency = 1
+		plateBorder.Enabled = false
+		local round = plate:FindFirstChildOfClass("UICorner")
+		if round then
+			round:Destroy()
+		end
+	end, true)
+	if iconKey then
+		local icon = UiKit.icon(plate, iconKey, size - 14)
+		if icon then
+			icon.ZIndex = 2
+			icon.Position = UDim2.fromOffset(7, 7)
+		end
+	end
+	return plate
+end
+
+-- Hover tooltip (mouse only): a small dark label next to the button, named by its "TipText" attribute.
+local function tipOf(hud: Instance): TextLabel
+	local existing = hud:FindFirstChild("HudTip")
+	if existing and existing:IsA("TextLabel") then
+		return existing
+	end
+	local tip = Instance.new("TextLabel")
+	tip.Name = "HudTip"
+	tip.BackgroundColor3 = UiKit.DARK
+	tip.BackgroundTransparency = 0.1
+	tip.AutomaticSize = Enum.AutomaticSize.XY
+	tip.Size = UDim2.fromOffset(0, 0)
+	tip.TextColor3 = UiKit.CREAM
+	tip.Font = UiKit.FONT
+	tip.TextSize = 15
+	tip.Visible = false
+	tip.ZIndex = 50
+	tip.Parent = hud
+	corner(tip, 10)
+	stroke(tip, UiKit.BAMBOO, 2)
+	local pad = Instance.new("UIPadding")
+	pad.PaddingLeft, pad.PaddingRight = UDim.new(0, 10), UDim.new(0, 10)
+	pad.PaddingTop, pad.PaddingBottom = UDim.new(0, 5), UDim.new(0, 5)
+	pad.Parent = tip
+	return tip
+end
+
+-- Shows `text` next to `anchor` (left of it, or above it for the bottom dock). Positions are in screen fractions, so
+-- the HUD's UIScale does not matter. Used by the menu buttons and the buff icons.
+function UiKit.showTip(hud: Instance, anchor: GuiObject, text: string, above: boolean)
+	local camera = Workspace.CurrentCamera
+	if not camera then
+		return
+	end
+	local view = camera.ViewportSize
+	local tip = tipOf(hud)
+	tip.Text = text
+	local topLeft, size = anchor.AbsolutePosition, anchor.AbsoluteSize
+	if above then
+		if topLeft.X + size.X / 2 < view.X * 0.3 then
+			-- Near the left edge (the player card): line the tip's left edge up with the icon so it never runs off screen.
+			tip.AnchorPoint = Vector2.new(0, 1)
+			tip.Position = UDim2.fromScale(math.max(topLeft.X, 8) / view.X, (topLeft.Y - 6) / view.Y)
+		else
+			tip.AnchorPoint = Vector2.new(0.5, 1)
+			tip.Position = UDim2.fromScale((topLeft.X + size.X / 2) / view.X, (topLeft.Y - 6) / view.Y)
+		end
+	else
+		tip.AnchorPoint = Vector2.new(1, 0.5)
+		tip.Position = UDim2.fromScale((topLeft.X - 8) / view.X, (topLeft.Y + size.Y / 2) / view.Y)
+	end
+	tip.Visible = true
+end
+
+function UiKit.hideTip(hud: Instance)
+	local tip = hud:FindFirstChild("HudTip")
+	if tip and tip:IsA("TextLabel") then
+		tip.Visible = false
+	end
+end
+
+local function attachTip(hud: Instance, button: GuiButton, above: boolean)
+	if not UserInputService.MouseEnabled then
+		return
+	end
+	button.MouseEnter:Connect(function()
+		local text = button:GetAttribute("TipText")
+		if typeof(text) == "string" and text ~= "" then
+			UiKit.showTip(hud, button, text, above)
+		end
+	end)
+	button.MouseLeave:Connect(function()
+		UiKit.hideTip(hud)
+	end)
+end
+
+-- Names a menu button (shown as a tooltip on hover; the buttons carry no captions).
 function UiKit.setMenuLabel(button: GuiButton, text: string)
-	local caption = button:FindFirstChild("Caption")
-	if caption and caption:IsA("TextLabel") then
-		caption.Text = text
-	elseif button:IsA("TextButton") then
+	button:SetAttribute("TipText", text)
+	if button:IsA("TextButton") and button.Text ~= "" then
 		button.Text = text
 	end
 end
 
--- Adds/places a HUD button by name (your designed one if it exists, else an icon button in the dock or the top row).
--- Icon buttons show an icon plate + a small caption; flat pills (until the icon loads) show only the text.
+-- Marks a menu button as "on" (a green ring), e.g. the Garap button while Garap mode is open.
+function UiKit.setMenuActive(button: GuiButton, active: boolean)
+	local ring = button:FindFirstChild("ActiveRing", true) -- it lives inside the plate
+	if ring and ring:IsA("GuiObject") then
+		ring.Visible = active
+	end
+end
+
+-- The top-right column: [menu toggle] + the clipped "Items" frame that slides open downward on phones.
+local menuState: { setExpanded: ((on: boolean, animate: boolean) -> ())? } = { setExpanded = nil }
+
+local function menuItemsOf(hud: Instance): Frame
+	local existing = hud:FindFirstChild("MenuBar")
+	if existing then
+		return existing:FindFirstChild("Items") :: Frame
+	end
+	local menu = Instance.new("Frame")
+	menu.Name = "MenuBar"
+	menu.BackgroundTransparency = 1
+	menu.AnchorPoint = Vector2.new(1, 0)
+	menu.Position = UDim2.new(1, -8, 0, 8)
+	menu.AutomaticSize = Enum.AutomaticSize.XY
+	menu.Size = UDim2.fromOffset(MENU_SIZE, 0)
+	menu.Parent = hud
+	local menuLayout = Instance.new("UIListLayout")
+	menuLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	menuLayout.Padding = UDim.new(0, 8)
+	menuLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+	menuLayout.Parent = menu
+
+	-- Round menu button with a hamburger (three bars) that turns a quarter when open.
+	local toggle = Instance.new("TextButton")
+	toggle.Name = "MenuToggle"
+	toggle.Text = ""
+	toggle.AutoButtonColor = false
+	toggle.BackgroundTransparency = 1
+	toggle.Size = UDim2.fromOffset(MENU_SIZE, MENU_SIZE)
+	toggle.LayoutOrder = -1000
+	toggle.Parent = menu
+	local plate = makePlate(toggle, MENU_SIZE, nil)
+	local bars = Instance.new("Frame")
+	bars.Name = "Bars"
+	bars.BackgroundTransparency = 1
+	bars.AnchorPoint = Vector2.new(0.5, 0.5)
+	bars.Position = UDim2.fromScale(0.5, 0.5)
+	bars.Size = UDim2.fromOffset(22, 18)
+	bars.ZIndex = 2
+	bars.Parent = plate
+	for i = 0, 2 do
+		local bar = Instance.new("Frame")
+		bar.BackgroundColor3 = UiKit.TEXT
+		bar.BorderSizePixel = 0
+		bar.Position = UDim2.fromOffset(0, i * 7)
+		bar.Size = UDim2.fromOffset(22, 4)
+		bar.ZIndex = 3
+		bar.Parent = bars
+		corner(bar, 2)
+	end
+	toggle:SetAttribute("TipText", Locale.t("ui.menu"))
+	attachTip(hud, toggle, false)
+
+	local items = Instance.new("Frame")
+	items.Name = "Items"
+	items.BackgroundTransparency = 1
+	items.ClipsDescendants = true
+	items.LayoutOrder = 0
+	items.Size = UDim2.fromOffset(MENU_SIZE, 0)
+	items.AutomaticSize = Enum.AutomaticSize.Y
+	items.Parent = menu
+	local itemsLayout = Instance.new("UIListLayout")
+	itemsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	itemsLayout.Padding = UDim.new(0, 8)
+	itemsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+	itemsLayout.Parent = items
+
+	local expanded = true
+	local running: Tween? = nil
+	local function setExpanded(on: boolean, animate: boolean)
+		expanded = on
+		if running then
+			running:Cancel()
+			running = nil
+		end
+		items.AutomaticSize = Enum.AutomaticSize.None
+		local target = if on then itemsLayout.AbsoluteContentSize.Y else 0
+		local turn = if on then 90 else 0
+		if animate then
+			local tween = TweenService:Create(items, TweenInfo.new(0.28, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.fromOffset(MENU_SIZE, target) })
+			running = tween
+			tween.Completed:Connect(function(state)
+				if state == Enum.PlaybackState.Completed and on then
+					items.AutomaticSize = Enum.AutomaticSize.Y -- follow items added later
+				end
+			end)
+			tween:Play()
+			TweenService:Create(bars, TweenInfo.new(0.2, Enum.EasingStyle.Quad), { Rotation = turn }):Play()
+		else
+			items.Size = UDim2.fromOffset(MENU_SIZE, target)
+			bars.Rotation = turn
+			if on then
+				items.AutomaticSize = Enum.AutomaticSize.Y
+			end
+		end
+	end
+	menuState.setExpanded = setExpanded
+	toggle.Activated:Connect(function()
+		setExpanded(not expanded, true)
+	end)
+
+	local function refreshCompact()
+		local compact = isCompact()
+		toggle.Visible = compact
+		setExpanded(not compact, false)
+	end
+	refreshCompact()
+	Players.LocalPlayer:GetAttributeChangedSignal("CompactHud"):Connect(refreshCompact)
+	return items
+end
+
+-- Adds/places a HUD button by name (your designed one if it exists, else a round icon button in the dock or the top-right
+-- column). No captions: `text` becomes the hover tooltip. Flat pills (until the icon loads) show only the text.
 function UiKit.menuItem(hud: Instance, name: string, text: string, slot: number): GuiButton?
 	local button = hud:FindFirstChild(name, true)
 	if not button then
 		local iconKey = MENU_ICON[name]
 		local dock = DOCK_ORDER[name] ~= nil
 		local hasIcon = iconKey ~= nil and UiKit.iconId(iconKey) ~= ""
-		local plateSize = if dock then 58 else 48
+		local plateSize = if dock then 58 else MENU_SIZE
 		local item = Instance.new("TextButton")
 		item.Name = name
 		item.Text = ""
 		item.AutoButtonColor = false
 		item.LayoutOrder = if dock then DOCK_ORDER[name] else -slot
-		item.Parent = barOf(hud, dock)
+		item.Parent = if dock then dockOf(hud) else menuItemsOf(hud)
 		if hasIcon then
 			item.BackgroundTransparency = 1
-			item.Size = UDim2.fromOffset(plateSize + 10, plateSize + 18)
-			local plate = Instance.new("Frame")
-			plate.Name = "Plate"
-			plate.BackgroundColor3 = UiKit.BG
-			plate.Size = UDim2.fromOffset(plateSize, plateSize)
-			plate.Position = UDim2.fromOffset(5, 0)
-			plate.Parent = item
-			corner(plate, plateSize / 2)
-			local plateBorder = stroke(plate, UiKit.BAMBOO, 3)
-			attachSkin(plate, PLATE, function()
-				plate.BackgroundTransparency = 1
-				plateBorder.Enabled = false
-				local round = plate:FindFirstChildOfClass("UICorner")
-				if round then
-					round:Destroy()
-				end
-			end, true)
-			local icon = UiKit.icon(plate, iconKey :: string, plateSize - 14)
-			if icon then
-				icon.ZIndex = 2
-				icon.Position = UDim2.fromOffset(7, 7)
-			end
-			local label = Instance.new("TextLabel")
-			label.Name = "Caption"
-			label.BackgroundTransparency = 1
-			label.Position = UDim2.fromOffset(0, plateSize)
-			label.Size = UDim2.new(1, 0, 0, 16)
-			label.Font = UiKit.FONT
-			label.TextSize = 12
-			label.TextColor3 = UiKit.CREAM
-			label.Text = text
-			label.Parent = item
-			stroke(label, Color3.fromRGB(60, 38, 22), 1.2).ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+			item.Size = UDim2.fromOffset(plateSize, plateSize)
+			local plate = makePlate(item, plateSize, iconKey)
+			local active = Instance.new("Frame")
+			active.Name = "ActiveRing"
+			active.BackgroundTransparency = 1
+			active.Size = UDim2.fromScale(1, 1)
+			active.ZIndex = 4
+			active.Visible = false
+			active.Parent = plate
+			corner(active, plateSize / 2)
+			stroke(active, Color3.fromRGB(120, 200, 80), 4)
 		else
 			item.Size = UDim2.fromOffset(if dock then 90 else 76, UiKit.TOUCH)
 			item.BackgroundColor3 = UiKit.BG
@@ -773,6 +966,16 @@ function UiKit.menuItem(hud: Instance, name: string, text: string, slot: number)
 			item.TextWrapped = true
 			corner(item, 14)
 			stroke(item, UiKit.BAMBOO, 3)
+		end
+		item:SetAttribute("TipText", text)
+		attachTip(hud, item, dock)
+		if not dock then
+			-- On phones the column folds away again after you pick something.
+			item.Activated:Connect(function()
+				if isCompact() and menuState.setExpanded then
+					menuState.setExpanded(false, true)
+				end
+			end)
 		end
 		button = item
 	end
@@ -789,6 +992,33 @@ function UiKit.hudButton(name: string, text: string, slot: number, onClick: () -
 	if button then
 		button.Activated:Connect(onClick)
 	end
+end
+
+-- A small round close badge (the ForgeGUI close image, flat terracotta "X" until it loads) for floating menus.
+function UiKit.closeBadge(parent: Instance, size: number, onClick: () -> ()): TextButton
+	local close = UiKit.button(parent, "Close", "X", UiKit.TERRACOTTA)
+	close.AnchorPoint = Vector2.new(1, 0)
+	close.Position = UDim2.new(1, 8, 0, -8)
+	close.Size = UDim2.fromOffset(size, size)
+	close.TextSize = 18
+	close.ZIndex = 6
+	close.Activated:Connect(onClick)
+	local closeSkin = attachSkin(close, CLOSE, nil, true)
+	if closeSkin then
+		closeSkin.ZIndex = 7
+		whenLoaded(closeSkin, function()
+			close.BackgroundTransparency = 1
+			close.TextTransparency = 1
+			for _, child in close:GetChildren() do
+				if (child:IsA("ImageLabel") and child ~= closeSkin) or (child:IsA("TextLabel") and child.Name == "Caption") then
+					(child :: GuiObject).Visible = false
+				elseif child:IsA("UIStroke") or child:IsA("UIGradient") then
+					(child :: any).Enabled = false
+				end
+			end
+		end)
+	end
+	return close
 end
 
 -- Responsive scale -------------------------------------------------------------------------------

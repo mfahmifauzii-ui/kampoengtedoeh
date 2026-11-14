@@ -29,7 +29,7 @@ CROPS = [  # id, unlock, seed, grow_s, sell, xp, harvests
 # CHUNK_BASE * CHUNK_GROWTH ** n (rounded to 10), 80 chunks in all. How many tiles a player tills is limited by their
 # own time, not by a cap; the model ASSUMES one more tile per bought chunk (tune this once there is playtest data).
 FARM_START = 6
-CHUNK_BASE, CHUNK_GROWTH, CHUNK_COUNT, TILES_PER_CHUNK = 200, 1.05, 80, 1
+CHUNK_BASE, CHUNK_GROWTH, CHUNK_COUNT, TILES_PER_CHUNK = 250, 1.06, 80, 1
 WATER = 0.8
 
 
