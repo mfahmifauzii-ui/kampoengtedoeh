@@ -49,8 +49,8 @@ return {
 			outdoorAmbient = Color3.fromRGB(164, 160, 156),
 			tint = Color3.fromRGB(255, 240, 222),
 			saturation = 0.12,
-			atmosphereDensity = 0.44, -- morning mist: mountains melt into soft silhouettes
-			atmosphereColor = Color3.fromRGB(240, 214, 190),
+			atmosphereDensity = 0.3, -- morning mist: mountains melt into soft silhouettes
+			atmosphereColor = Color3.fromRGB(240, 240, 240),
 			atmosphereDecay = Color3.fromRGB(214, 150, 120),
 			haze = 7,
 		},
@@ -60,8 +60,8 @@ return {
 			outdoorAmbient = Color3.fromRGB(172, 168, 160),
 			tint = Color3.fromRGB(255, 250, 238),
 			saturation = 0.18,
-			atmosphereDensity = 0.42, -- thick far haze: only the mountain silhouette shows
-			atmosphereColor = Color3.fromRGB(200, 218, 238),
+			atmosphereDensity = 0.3, -- thick far haze: only the mountain silhouette shows
+			atmosphereColor = Color3.fromRGB(240, 240, 240),
 			atmosphereDecay = Color3.fromRGB(96, 152, 214), -- blue sky
 			haze = 6.5,
 		},
@@ -71,8 +71,8 @@ return {
 			outdoorAmbient = Color3.fromRGB(180, 144, 112),
 			tint = Color3.fromRGB(255, 214, 170), -- golden hour
 			saturation = 0.2,
-			atmosphereDensity = 0.46,
-			atmosphereColor = Color3.fromRGB(250, 206, 160),
+			atmosphereDensity = 0.3,
+			atmosphereColor = Color3.fromRGB(240, 240, 240),
 			atmosphereDecay = Color3.fromRGB(230, 130, 90),
 			haze = 7,
 		},
@@ -82,8 +82,8 @@ return {
 			outdoorAmbient = Color3.fromRGB(92, 100, 134),
 			tint = Color3.fromRGB(200, 212, 244),
 			saturation = 0.02,
-			atmosphereDensity = 0.44,
-			atmosphereColor = Color3.fromRGB(72, 82, 122),
+			atmosphereDensity = 0.3,
+			atmosphereColor = Color3.fromRGB(240, 240, 240),
 			atmosphereDecay = Color3.fromRGB(40, 48, 92),
 			haze = 5,
 		},

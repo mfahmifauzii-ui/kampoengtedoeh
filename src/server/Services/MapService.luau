@@ -1192,8 +1192,45 @@ end
 
 -- Lifecycle -------------------------------------------------------------------------------
 
+-- Hand-built map (Workspace.Map baked from this generator): index its forest so buying a chunk still clears it.
+local function indexBakedForest(map: Folder)
+	local nature = map:FindFirstChild("Nature")
+	if not nature then
+		return
+	end
+	natureFolder = nature :: Folder
+	fenceRoot = map:FindFirstChild("LandFences") :: Folder?
+	local parked = ServerStorage:FindFirstChild("ForestHidden")
+	if not parked then
+		parked = Instance.new("Folder")
+		parked.Name = "ForestHidden"
+		parked.Parent = ServerStorage
+	end
+	hiddenFolder = parked :: Folder
+	for _, model in nature:GetChildren() do
+		local plotIndex = model:GetAttribute("ExpansionOf")
+		local slot = if typeof(plotIndex) == "number" then Plots.LAYOUT[plotIndex] else nil
+		if slot then
+			local frame = CFrame.new(slot.x, 0, slot.z) * CFrame.Angles(0, slot.yaw, 0)
+			local p = frame:PointToObjectSpace(model:GetPivot().Position)
+			local key = Land.chunkKey(p.X // Land.CHUNK, p.Z // Land.CHUNK)
+			local byKey = forestByPlot[plotIndex]
+			if not byKey then
+				byKey = {}
+				forestByPlot[plotIndex] = byKey
+			end
+			local list = byKey[key]
+			if not list then
+				list = {}
+				byKey[key] = list
+			end
+			table.insert(list, model)
+		end
+	end
+end
 function MapService.Init()
 	if Workspace:FindFirstChild("Map") then
+		indexBakedForest(Workspace.Map)
 		print("[MapService] Workspace.Map exists: using the hand-built map")
 		return
 	end
