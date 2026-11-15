@@ -18,6 +18,30 @@ local InventoryController = {}
 
 local panel: UiKit.Panel
 
+local TABS = {
+	{ id = "all", text = "Semua" },
+	{ id = "seed", text = "Bibit" },
+	{ id = "crop", text = "Panen" },
+	{ id = "fish", text = "Ikan" },
+	{ id = "tool", text = "Alat" },
+}
+local TAB_HEIGHT = 26 -- smaller than the shop tabs (34 px): the bag is a list of items, not the main action
+local selectedTab = "all"
+
+-- Category of an item: seeds (bibit), crops (panen), fish, everything else (tools, bait).
+local function categoryOf(itemId: string, info: any): string
+	if itemId:match("^seedx?_") then
+		return "seed"
+	end
+	if info.kind == "crop" then
+		return "crop"
+	end
+	if info.kind == "fish" then
+		return "fish"
+	end
+	return "tool"
+end
+
 local function render()
 	if not panel.gui.Enabled then
 		return
@@ -36,6 +60,25 @@ local function render()
 	end
 	Items.sortIds(ids)
 
+	-- Category tabs, like the shop's (small ones): they sit above the grid and filter it.
+	local tabs = UiKit.tabs(panel.list, TABS, selectedTab, function(id)
+		selectedTab = id
+		render()
+	end)
+	tabs.frame.LayoutOrder = 0
+	tabs.frame.Size = UDim2.new(1, 0, 0, TAB_HEIGHT)
+	for _, button in tabs.buttons do
+		button.Size = UDim2.new(1 / #TABS, -4, 1, 0)
+		button.TextSize = 12
+	end
+	local shown = {}
+	for _, itemId in ids do
+		local info = Items.info(itemId)
+		if info and (selectedTab == "all" or categoryOf(itemId, info) == selectedTab) then
+			table.insert(shown, itemId)
+		end
+	end
+	ids = shown
 	if #ids == 0 then
 		UiKit.header(panel.list, Locale.t("ui.empty"), 1)
 		return

@@ -66,5 +66,8 @@ return {
 	CHUNK = { SIZE = 32, PRICE_BASE = 1500, PRICE_GROWTH = 1.2, PASS_DISCOUNT = 0.2 },
 
 	SPAWN_OFFSET = Vector3.new(0, 4, 70), -- relative to Origin; inside the start land, in front of the house
+	-- New player's first spawn (T1 not done or skipped, no sale yet): 4 studs outside the gate, facing it.
+	-- The gate is the middle of the road side of the start land (FRONT_Z), 32 studs wide (MapService GATE_HALF = 16).
+	GATE_SPAWN = Vector3.new(0, 4, REGION / 2 + 4), -- relative to Origin, plot-local
 	GROUND_COLOR = Color3.fromRGB(134, 150, 104),
 }

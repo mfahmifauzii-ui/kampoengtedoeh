@@ -63,7 +63,7 @@ Lahan pemain tersusun dari **blok 32×32 stud** (di kode masih disebut "chunk"; 
 - Saat pemain keluar, lahan di server kembali ke lahan awal (blok dikembalikan jadi hutan) dan dibangun ulang dari data pemain berikutnya. Slot terakhir pemain (`plotSlot`) dicoba dipakai lagi saat masuk.
 
 ### Garap ✅
-Rumput default hanya untuk hiasan. Petak **digarap** dulu jadi tanah (Terrain, 8×8 stud, kering = Ground, disiram = Mud), baru bisa ditanami. Alat **Cangkul** membaca apa yang ada di bawahnya: rumput → petak baru, petak kosong → kembali jadi rumput (**Hijaukan**, gratis, tanpa tombol terpisah), petak bertanaman → diteruskan ke siram/panen. Menanam dilakukan di luar mode Garap. Tanah dan hiasan tidak boleh bertumpuk (server cek dua arah). Setelah panen, petak tetap tanah.
+Rumput default hanya untuk hiasan. Petak **digarap** dulu jadi tanah (Terrain, 8×8 stud, kering = Ground, disiram = Mud), baru bisa ditanami. Alat **Cangkul** membaca apa yang ada di bawahnya: rumput → petak baru, petak kosong → kembali jadi rumput (**Hapus Petak**, gratis, tanpa tombol terpisah), petak bertanaman → diteruskan ke siram/panen. Menanam dilakukan di luar mode Garap. Tanah dan hiasan tidak boleh bertumpuk (server cek dua arah). Setelah panen, petak tetap tanah.
 
 ---
 

@@ -1082,12 +1082,16 @@ export type Confirm = {
 	totalText: string?, -- e.g. "1.500 Koin"
 	totalRed: boolean?, -- the player cannot pay it
 	confirmText: string?, -- default "Setuju"
+	cancelText: string?, -- default "Batal" (left, red; the tutorial welcome uses "Lewati")
+	confirmColor: Color3?, -- the right button's colour (default gold); the tutorial welcome uses solid green "Mulai"
+	cancelMuted: boolean?, -- true = the left button is the secondary one: outlined, grey, smaller (tutorial "Lewati")
 	canConfirm: boolean?, -- false greys Setuju out
 	onConfirm: () -> (),
 	onCancel: (() -> ())?,
 }
 
 local confirmGui: ScreenGui? = nil
+local confirmLimit: UISizeConstraint? = nil -- the box stays within 86% x 86% of the screen (UIUX_Spec)
 local confirmParts: { title: TextLabel, body: TextLabel, totalRow: Frame, totalValue: TextLabel, no: TextButton, yes: TextButton }? = nil
 local confirmCurrent: Confirm? = nil
 
@@ -1138,6 +1142,7 @@ local function buildConfirm()
 	local limit = Instance.new("UISizeConstraint")
 	limit.MaxSize = Vector2.new(460, 480)
 	limit.Parent = box
+	confirmLimit = limit
 
 	-- The content sits in its own frame: the panel skin is a child of `box`, and a layout on `box` itself would line the
 	-- skin up like one more row.
@@ -1244,8 +1249,54 @@ function UiKit.confirm(opts: Confirm)
 	parts.totalRow.Visible = opts.totalText ~= nil
 	parts.totalValue.Text = opts.totalText or ""
 	parts.totalValue.TextColor3 = if opts.totalRed then UiKit.RED_TEXT else UiKit.TEXT
+	parts.no.Text = opts.cancelText or Locale.t("confirm.no")
 	parts.yes.Text = opts.confirmText or Locale.t("confirm.yes")
-	setButtonEnabled(parts.yes, opts.canConfirm ~= false)
+	-- Primary / secondary: the main action is the solid one; a muted secondary is smaller and outlined.
+	local muted = opts.cancelMuted == true
+	-- The bamboo skin (gold) is shown for the standard buttons; a styled button hides it and shows its own flat colour.
+	-- Every call sets the state again, so a styled modal never leaks its look into the next one.
+	local function styleButton(button: TextButton, solid: Color3?, muted: boolean)
+		local skin = button:FindFirstChild("Skin")
+		local border = button:FindFirstChildOfClass("UIStroke")
+		if skin and skin:IsA("ImageLabel") then
+			skin.Visible = solid == nil and not muted
+		end
+		if solid then
+			button.BackgroundTransparency = 0
+			button.BackgroundColor3 = solid
+		elseif muted then
+			button.BackgroundTransparency = 0
+			button.BackgroundColor3 = Color3.fromRGB(246, 238, 220) -- light cream, quieter than gold
+		elseif skin then
+			button.BackgroundTransparency = 1 -- the skin is the look
+		end
+		if border then
+			border.Color = if muted then Color3.fromRGB(150, 140, 120) else border.Color
+			border.Thickness = if muted then 2 else border.Thickness
+		end
+		if muted then
+			-- No shadow behind the text: the secondary label is plain, one copy, not a doubled look.
+			button.TextStrokeTransparency = 1
+			button.TextTransparency = 0
+		end
+	end
+	styleButton(parts.no, nil, muted)
+	if muted then
+		parts.no.BackgroundColor3 = Color3.fromRGB(246, 238, 220)
+		parts.no.TextColor3 = UiKit.TEXT
+	elseif not muted then
+		parts.no.BackgroundColor3 = UiKit.RED
+	end
+	parts.no.Size = if muted then UDim2.new(0.36, -6, 1, 0) else UDim2.new(0.5, -6, 1, 0)
+	parts.no.TextSize = if muted then 16 else 22
+	setButtonEnabled(parts.yes, opts.canConfirm ~= false) -- enabled colour first (it resets BackgroundColor3)
+	styleButton(parts.yes, opts.confirmColor, false) -- then the requested colour (Hapus Petak = brick red) wins
+	parts.yes.Size = if muted then UDim2.new(0.64, -6, 1, 0) else UDim2.new(0.5, -6, 1, 0)
+	-- Fit the current screen (rotation included): max 86% of the width and 86% of the height, never the fixed 480.
+	if confirmLimit then
+		local view = (Workspace.CurrentCamera :: Camera).ViewportSize
+		confirmLimit.MaxSize = Vector2.new(math.min(460, view.X * 0.86), view.Y * 0.86)
+	end
 	;(confirmGui :: ScreenGui).Enabled = true
 end
 
@@ -1275,6 +1326,24 @@ function UiKit.pill(parent: Instance, name: string, width: number, height: numbe
 	end)
 	return chip
 end
+
+-- Parchment chip for info lines (tutorial hint, feedback toast): the SAME chip as UiKit.pill (rounded ends, the parchment
+-- skin image), with a flat parchment + bamboo border until the image has loaded. Use it on any existing frame.
+function UiKit.parchmentBox(frame: GuiObject, _radius: number?)
+	frame.BackgroundColor3 = UiKit.BG
+	frame.BackgroundTransparency = 0
+	corner(frame, 22)
+	local chipBorder = stroke(frame, UiKit.BAMBOO, 3)
+	attachSkin(frame, CHIP, function()
+		frame.BackgroundTransparency = 1
+		chipBorder.Enabled = false
+		local round = frame:FindFirstChildOfClass("UICorner")
+		if round then
+			round:Destroy()
+		end
+	end)
+end
+-- Parchment box for info lines (tutorial hint, feedback toast): cream parchment, bamboo border, dark brown ink.
 
 function UiKit.chip(parent: Instance, name: string, iconKey: string?, width: number, height: number?): TextLabel
 	local chipHeight = height or 52
@@ -1382,7 +1451,7 @@ local function dockOf(hud: Instance): Frame
 
 	local layout = Instance.new("UIListLayout")
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
-	layout.Padding = UDim.new(0, 8)
+	layout.Padding = UDim.new(0, 6) -- dock gap 6 px (phones and desktop alike)
 	layout.Parent = bar
 
 	onViewportChanged(function()
@@ -1899,9 +1968,13 @@ end
 
 local function currentScale(): number
 	local camera = Workspace.CurrentCamera
-	local height = if camera then camera.ViewportSize.Y else 600
-	-- The game is landscape: phones (~390 px tall) stay at 1 so touch targets keep their size; tall screens scale up.
-	return math.clamp(height / 560, 1, 1.35)
+	local view = if camera then camera.ViewportSize else Vector2.new(1280, 720)
+	-- Small landscape phones (844x390, width < 900 or height < 450): the whole GUI at 0.75 so the land stays dominant.
+	-- Dock icons 58 -> ~44 px, coin bar 42 -> ~32 px, menu buttons 50 -> ~38 px. Desktop and tablets keep the old rule.
+	if view.X < 900 or view.Y < 450 then
+		return 0.75
+	end
+	return math.clamp(view.Y / 560, 1, 1.35)
 end
 
 function UiKit.autoScale()
@@ -1911,6 +1984,10 @@ function UiKit.autoScale()
 	local function attach(gui: Instance)
 		if gui:IsA("ScreenGui") then
 			gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling -- skins (ZIndex 0) must sit above their parent but below its text overlay
+		end
+		if gui:IsA("ScreenGui") then
+			-- the phone's own safe area (notch, rounded corners): nothing is drawn under the cut-out
+			gui.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
 		end
 		if gui:IsA("ScreenGui") and not gui:FindFirstChild("KT_Scale") and gui:GetAttribute("NoScale") ~= true then
 			local scale = Instance.new("UIScale")

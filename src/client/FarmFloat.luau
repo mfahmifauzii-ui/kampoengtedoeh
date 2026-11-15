@@ -1,6 +1,6 @@
 --!strict
 -- FarmFloat: small floating "action pills" over your own beds near you. Each bed tells you what it needs, right where it is:
---   empty            -> "Kosong · Ketuk untuk menanam"   (tap: seed picker)
+--   empty            -> "Kosong · Tap buat tanam"   (tap: seed picker; press and hold: Pindah / Hapus Petak, or the locked note)
 --   growing, dry     -> "Siram" + time left               (tap: water, the character takes out the watering can)
 --   growing, watered -> a quiet timer chip                (tap: Instant Grow panel)
 --   ripe             -> "Panen!"                          (tap: harvest)
@@ -8,7 +8,7 @@
 -- in with a little bounce when a bed changes state, and bob gently. At most MAX_PILLS show at once (nearest first, beds that
 -- need something before quiet timers) so the screen never fills up. Hidden while Garap mode, a picker or a modal is open.
 --
--- UI CONTRACT: ScreenGui "FarmFloat" > Frame "Pill" > TextButton "Hit", ImageLabel "Icon", TextLabel "Title", TextLabel "Sub".
+-- UI CONTRACT: ScreenGui "FarmFloat" > Frame "Pill" > TextButton "Hit" (named "TanamButton" / "SiramButton" / "PanenButton" on those kinds, for the tutorial ring), ImageLabel "Icon", TextLabel "Title", TextLabel "Sub".
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -50,6 +50,8 @@ local FarmFloat = {}
 local gui: ScreenGui
 local pills: { Pill } = {}
 local onAction: (part: BasePart, kind: string) -> () = function() end
+local onHold: (part: BasePart, kind: string) -> () = function() end -- long press: the bed menu (Pindah / Hapus Petak)
+local HOLD_SECONDS = 0.45
 local isBlocked: () -> boolean = function()
 	return false
 end
@@ -175,9 +177,21 @@ local function makePill(): Pill
 		shownSub = "",
 		phase = math.random() * 6,
 	}
+	-- Tap = the normal action (plant / water / harvest). Press and hold (HOLD_SECONDS) = the bed menu instead.
+	local pressedAt = 0
+	hit.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			pressedAt = os.clock()
+		end
+	end)
 	hit.Activated:Connect(function()
 		local part = pill.part
-		if part and pending[part] == nil then
+		if not part or pending[part] ~= nil then
+			return
+		end
+		if os.clock() - pressedAt >= HOLD_SECONDS then
+			onHold(part, pill.kind)
+		else
 			onAction(part, pill.kind)
 		end
 	end)
@@ -232,7 +246,7 @@ local function layout()
 	local placed: { Vector2 } = {} -- screen points (pixels) of the pills already placed this frame
 	for index, pill in pills do
 		local choice = picked[index]
-		if not choice then
+		if not choice or choice.kind == "empty" then -- an empty bed shows the seed popup (proximity), not a pill
 			pill.frame.Visible = false
 			pill.part = nil
 			pill.kind = ""
@@ -248,6 +262,8 @@ local function layout()
 				local iconKey, title, sub = content(part, choice.kind, now)
 				if pill.shownKind ~= choice.kind then
 					pill.shownKind = choice.kind
+					-- Named so a tutorial step can ring it (GuideController findHighlight): the Tanam (empty bed), Siram and Panen pills.
+					pill.hit.Name = if choice.kind == "empty" then "TanamButton" elseif choice.kind == "dry" then "SiramButton" elseif choice.kind == "ripe" then "PanenButton" else "Hit"
 					popIn(pill)
 					local image = UiKit.iconId(iconKey)
 					if image == "" then
@@ -292,8 +308,9 @@ function FarmFloat.setPending(part: BasePart, seconds: number)
 	pending[part] = os.clock() + seconds
 end
 
-function FarmFloat.Init(options: { onAction: (part: BasePart, kind: string) -> (), blocked: () -> boolean })
+function FarmFloat.Init(options: { onAction: (part: BasePart, kind: string) -> (), onHold: ((part: BasePart, kind: string) -> ())?, blocked: () -> boolean })
 	onAction = options.onAction
+	onHold = options.onHold or onHold
 	isBlocked = options.blocked
 	gui = Instance.new("ScreenGui")
 	gui.Name = "FarmFloat"

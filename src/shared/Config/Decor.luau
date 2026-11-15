@@ -186,6 +186,6 @@ return {
 	BLOCK_MARGIN = 1, -- studs kept clear around the farm and pond
 
 	-- Extra no-build areas in plot-local studs (e.g. your house), as {min = Vector2(x, z), max = Vector2(x, z)}.
-	-- (The house and the pond are blocked by Modules/Land.fixedRects.)
+	-- (Ponds are blocked by the land rules; there is no start house any more.)
 	BLOCKED_EXTRA = {} :: { { min: Vector2, max: Vector2 } },
 }

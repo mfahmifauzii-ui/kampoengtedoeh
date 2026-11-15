@@ -33,6 +33,7 @@ local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Signal = require(ReplicatedStorage.Shared.Modules.Signal)
 local GarapController = require(script.Parent.GarapController)
+local CoachmarkController = require(script.Parent.CoachmarkController)
 local State = require(script.Parent.Parent.State)
 local UiKit = require(script.Parent.Parent.UiKit)
 
@@ -54,7 +55,8 @@ local GOLD = Color3.fromRGB(240, 196, 92)
 local OUTLINE = Color3.fromRGB(66, 46, 30) -- UiKit.DARK
 
 local gui: ScreenGui
-local hint: TextLabel
+local hint: Frame -- the parchment chip (see hintText for the words)
+local hintText: TextLabel
 local trailFolder: Folder
 local chevrons: { { model: Model, parts: { BasePart } } } = {}
 local route: { Vector3 } = {} -- walking route from the last path computation (ground-ish points, start to goal)
@@ -75,6 +77,8 @@ local running: Running? = nil
 local lastFinish: number? = nil -- os.clock() when the last tutorial ended (queue gap)
 local firstSnapshotAt: number? = nil
 local closed: { [string]: string } = {} -- "done" | "skipped" in this session (the snapshot may still be stale)
+local acked: { [string]: boolean } = {} -- welcome modal "Mulai" pressed, per step id (kind "ack"); reset on every run
+local welcomeShown = false -- the welcome modal of the current run has been opened
 local defs: { Onboarding.Tutorial } = {}
 local defById: { [string]: Onboarding.Tutorial } = {}
 local skipButton: TextButton
@@ -193,7 +197,7 @@ local function refresh()
 	end
 	skipButton.Visible = false
 	hintPad.PaddingRight = UDim.new(0, 14)
-	hint.Position = UDim2.new(0.5, 0, 0, 62)
+	hint.Position = UDim2.new(0.5, 0, 0.12, 0) -- top of the screen, under the coin bar (not the middle)
 	step = computeStep()
 	local npcName = Locale.t(`npc.{Onboarding.BUYER_NPC}`)
 	local text: string? = nil
@@ -217,7 +221,7 @@ local function refresh()
 		end
 	end
 	hint.Visible = text ~= nil and not GarapController.Active
-	hint.Text = text or ""
+	hintText.Text = text or ""
 end
 
 -- Trail --------------------------------------------------------------------------------------
@@ -405,6 +409,8 @@ local function placeTrail()
 	end
 end
 
+local parchmentBox = UiKit.parchmentBox
+
 local function darkBox(frame: GuiObject, radius: number)
 	frame.BackgroundColor3 = UiKit.DARK
 	frame.BackgroundTransparency = 0.08
@@ -492,6 +498,11 @@ local function evalCondition(condition: Onboarding.Condition): boolean
 		return panel ~= nil and panel:IsA("ScreenGui") and panel.Enabled
 	elseif kind == "garap" then
 		return GarapController.Active
+	elseif kind == "sells" then
+		local snap = snapshot()
+		return snap ~= nil and typeof(snap.guideSells) == "number" and snap.guideSells >= need
+	elseif kind == "ack" then
+		return acked[condition.id or ""] == true
 	end
 	warn(`[Guide] unknown condition kind {kind}`)
 	return false
@@ -512,6 +523,15 @@ end
 
 local function beginTutorial(def: Onboarding.Tutorial, n: number, replay: boolean)
 	local now = os.clock()
+	if n == 0 then
+		-- A new run (or a replay) asks again: the welcome modal is shown and must be acknowledged once more.
+		for _, step in def.steps do
+			if step.done.kind == "ack" then
+				acked[step.done.id or ""] = nil
+			end
+		end
+		welcomeShown = false
+	end
 	running = {
 		def = def,
 		n = n,
@@ -536,13 +556,14 @@ local function endTutorial()
 	running = nil
 	lastFinish = os.clock()
 	clearRing()
+	CoachmarkController.Hide()
 	GuideController.Changed:Fire()
 	refresh()
 end
 
 -- Garap and Decor mode show their own hint line at the top: the tutorial bar goes just under it (GuideUI ignores the inset, they do not).
 local function hintTop(): number
-	local top = 62
+	local top = math.floor((Workspace.CurrentCamera :: Camera).ViewportSize.Y * 0.12)
 	local playerGui = player:FindFirstChildOfClass("PlayerGui")
 	for _, name in { "GarapUI", "DecorUI" } do
 		local other = playerGui and playerGui:FindFirstChild(name)
@@ -572,7 +593,25 @@ function findHighlight(name: string): GuiObject?
 	return nil
 end
 
--- The hint bar + ring for the running tutorial.
+-- A modal or a big panel is open: the tutorial hint bar steps aside (only one instruction on screen at a time).
+local function uiBusy(): boolean
+	if UiKit.confirmOpen() then
+		return true
+	end
+	local playerGui = player:FindFirstChildOfClass("PlayerGui")
+	if not playerGui then
+		return false
+	end
+	for _, name in { "SettingsPanel", "GuidePanel", "BookPanel", "OrdersPanel", "RewardsPanel", "SocialPanel", "StorePanel", "SeedPicker", "TilePanel" } do
+		local screen = playerGui:FindFirstChild(name)
+		if screen and screen:IsA("ScreenGui") and screen.Enabled then
+			return true
+		end
+	end
+	return false
+end
+
+-- The hint bar + ring for the running tutorial. A step with an action shows the coachmark instead (CoachmarkController).
 function refreshTutorial()
 	local current = running
 	if not current then
@@ -590,8 +629,40 @@ function refreshTutorial()
 	else
 		text = Locale.t(stepDef.text)
 	end
-	hint.Text = text
-	hint.Visible = true
+	-- Coachmark (CoachmarkController): ONE instruction per step. The hint bar is hidden while it shows, and the Garap hint
+	-- line too. The welcome step (ack) keeps the modal instead.
+	if stepDef.done.kind ~= "ack" then
+		local highlight = stepDef.highlight
+		local onGround = stepDef.done.kind == "tiles" and GarapController.Active
+		-- Past the tilling step, Garap mode must be closed: its open state hides the bed pills the next step points at.
+		if stepDef.done.kind ~= "tiles" and GarapController.Active then
+			GarapController.Stop()
+		end
+		local coachText = if onGround then Locale.t("tut.coach.ground") elseif stepDef.coach then Locale.t(stepDef.coach) else Locale.t(stepDef.text)
+		hint.Visible = false
+		skipButton.Visible = false
+		clearRing()
+		GarapController.SetHintHidden(true)
+		-- A panel or modal is open (seed picker, Atur, a confirm): the coachmark steps aside until it closes.
+		CoachmarkController.SetPaused(uiBusy())
+		local npcId = stepDef.target and stepDef.target.npc
+		CoachmarkController.Show({
+			mode = if onGround then "ground" else "button",
+			text = coachText,
+			block = stepDef.block ~= false,
+			findButton = if not onGround and highlight then function(): GuiObject? return findHighlight(highlight) end else nil,
+			npcPoint = if npcId then function(): Vector3?
+				local root = npcRootOf(npcId)
+				return if root then root.Position + Vector3.new(0, 5, 0) else nil
+			end else nil,
+		})
+		return
+	end
+	CoachmarkController.Hide()
+	GarapController.SetHintHidden(false)
+
+	hintText.Text = text
+	hint.Visible = not uiBusy() -- one instruction at a time: a modal or Atur / Panduan on screen hides this line
 	hint.Position = UDim2.new(0.5, 0, 0, hintTop())
 	skipButton.Visible = true
 	hintPad.PaddingRight = UDim.new(0, 84)
@@ -711,15 +782,6 @@ local function advance()
 	end
 end
 
-local function tutorialTick()
-	local snap = snapshot()
-	if not snap or not snap.guide then
-		return
-	end
-	autoStart(snap)
-	advance()
-end
-
 local function onSkip()
 	local current = running
 	if not current then
@@ -730,6 +792,47 @@ local function onSkip()
 		closed[current.def.id] = "skipped"
 	end
 	endTutorial()
+end
+
+-- The welcome modal of a step that waits for "ack" (T1 step 0). It stays until Mulai (acks, step 0 completes) or Lewati /
+-- a tap outside it (skips the tutorial, same as the hint's Lewati). Opened once per run; never closes by itself.
+local function showWelcome()
+	local current = running
+	if not current or welcomeShown or current.n ~= 0 then
+		return
+	end
+	local stepDef = current.def.steps[1]
+	if stepDef.done.kind ~= "ack" or not stepDef.modal then
+		return
+	end
+	local id = stepDef.done.id or ""
+	if acked[id] or UiKit.confirmOpen() then
+		return
+	end
+	welcomeShown = true
+	UiKit.confirm({
+		title = Locale.t(stepDef.modal.title),
+		body = Locale.t(stepDef.modal.body),
+		confirmText = Locale.t("tut.start"),
+		cancelText = Locale.t("tut.skip"),
+		confirmColor = Color3.fromRGB(96, 150, 70), -- Mulai: the main action, solid leaf green (UIUX_Spec)
+		cancelMuted = true, -- Lewati: the secondary action, outlined and smaller
+		onConfirm = function()
+			acked[id] = true
+			advance()
+		end,
+		onCancel = onSkip,
+	})
+end
+
+local function tutorialTick()
+	local snap = snapshot()
+	if not snap or not snap.guide then
+		return
+	end
+	autoStart(snap)
+	advance()
+	showWelcome()
 end
 
 -- For Atur > Panduan.
@@ -768,9 +871,7 @@ function GuideController.Replay(id: string): boolean
 end
 
 function GuideController.Init()
-	if RunService:IsStudio() then
-		table.insert(defs, Onboarding.TEST_TUTORIAL)
-	end
+	-- (The Studio-only test tutorial is not listed any more: the playtest build shows T1 only.)
 	for _, def in Onboarding.TUTORIALS do
 		table.insert(defs, def)
 	end
@@ -785,21 +886,28 @@ function GuideController.Init()
 	gui.DisplayOrder = -2 -- under the HUD and every panel
 	gui:SetAttribute("NoScale", true) -- real pixels (UiKit.autoScale must not scale it)
 
-	hint = Instance.new("TextLabel")
+	-- The parchment chip is the frame (UiKit.parchmentBox: rounded ends, bamboo skin); the text is a label on top of it.
+	hint = Instance.new("Frame")
 	hint.Name = "Hint"
 	hint.AnchorPoint = Vector2.new(0.5, 0)
-	hint.Position = UDim2.new(0.5, 0, 0, 62)
-	hint.Size = UDim2.fromOffset(480, 52)
-	hint.TextColor3 = UiKit.CREAM
-	hint.Font = Enum.Font.GothamBold
-	hint.TextSize = 15
-	hint.TextWrapped = true
+	hint.Position = UDim2.new(0.5, 0, 0.12, 0) -- top of the screen, under the coin bar (not the middle)
+	hint.Size = UDim2.new(0.4, 0, 0, 36) -- tutorial toast: at most 40 % of the width, 36 px tall
 	hint.Visible = false
 	hint.Parent = gui
-	darkBox(hint, 14)
+	parchmentBox(hint, 22)
+	hintText = Instance.new("TextLabel")
+	hintText.Name = "Text"
+	hintText.BackgroundTransparency = 1
+	hintText.Size = UDim2.fromScale(1, 1)
+	hintText.ZIndex = 2 -- above the parchment skin
+	hintText.TextColor3 = UiKit.TEXT -- dark brown ink
+	hintText.Font = Enum.Font.GothamBlack -- heavier weight so the ink reads on the parchment
+	hintText.TextSize = 14
+	hintText.TextWrapped = true
+	hintText.Parent = hint
 	hintPad = Instance.new("UIPadding")
 	hintPad.PaddingLeft, hintPad.PaddingRight = UDim.new(0, 14), UDim.new(0, 14)
-	hintPad.Parent = hint
+	hintPad.Parent = hintText
 
 	-- Small "Lewati" button inside the bar (only while a tutorial runs).
 	skipButton = Instance.new("TextButton")
@@ -820,6 +928,7 @@ function GuideController.Init()
 	skipRound.Parent = skipButton
 	skipButton.Activated:Connect(onSkip)
 
+	CoachmarkController.SetSkip(onSkip)
 	gui.Parent = player:WaitForChild("PlayerGui")
 
 	trailFolder = Instance.new("Folder")

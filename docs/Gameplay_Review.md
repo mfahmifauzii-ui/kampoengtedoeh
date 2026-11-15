@@ -39,8 +39,8 @@ Tanaman 1 menit membuat pemain menunggu kecuali ada pekerjaan paralel. Mancing s
 Tumbuh saat offline; tanam dulu baru jalan; pesanan tanpa hukuman dan tanpa streak; bibit tutorial cepat; panah di tanah; hadiah kecil dan gratis; sorot tombol yang tidak memblokir; tanpa popup jualan.
 
 ## Perubahan hari ini yang memengaruhi loop
-- Garap jadi dua tombol dock (Cangkul, Kolam), tanpa menu; hijaukan/urug otomatis menurut isi di bawah penunjuk (lihat `GUI_Design.md`).
-- **Harga:** menanam kini harus keluar dari mode Garap (ketuk tombol lagi). Ini sengaja (agar ketuk petak kosong aman = menghijaukan) tetapi menambah satu ketukan; perbaikan 1 dan 4 di atas menutupnya. Wajib dilihat di playtest HP.
+- Garap jadi dua tombol dock (Cangkul, Kolam), tanpa menu; hapus petak/urug otomatis menurut isi di bawah penunjuk (lihat `GUI_Design.md`).
+- **Harga:** menanam kini harus keluar dari mode Garap (ketuk tombol lagi). Ini sengaja (agar ketuk petak kosong aman = menghapus petak) tetapi menambah satu ketukan; perbaikan 1 dan 4 di atas menutupnya. Wajib dilihat di playtest HP.
 - Dock bertambah satu tombol (5): periksa tidak menutupi joystick/lompat di HP landscape.
 
 ## Urutan kerja yang saya usulkan (setelah P2–P8, atau di depan bila Anda setuju)

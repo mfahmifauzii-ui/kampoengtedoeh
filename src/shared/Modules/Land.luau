@@ -13,7 +13,6 @@
 -- Rows are 4 studs tall, row 0 starts at BACK_Z.
 
 local Fishing = require(script.Parent.Parent.Config.Fishing)
-local Map = require(script.Parent.Parent.Config.Map)
 local Plots = require(script.Parent.Parent.Config.Plots)
 
 export type Rect = { minX: number, minZ: number, maxX: number, maxZ: number }
@@ -229,12 +228,8 @@ function Land.canPond(cx: number, cz: number, tiles: { { cx: number, cz: number 
 	return true
 end
 
--- Things that are always there: the house. (Ponds are built by the player and tracked by PondService.)
+-- No fixed rectangles any more: the start house was removed from the land (ponds are tracked by PondService).
 local fixed: { Rect } = {}
-do
-	local house = Map.HOUSE
-	table.insert(fixed, { minX = house.X - house.HALF, minZ = house.Z - house.HALF, maxX = house.X + house.HALF, maxZ = house.Z + house.HALF })
-end
 
 function Land.fixedRects(): { Rect }
 	return fixed

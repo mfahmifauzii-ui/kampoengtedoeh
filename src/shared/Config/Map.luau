@@ -101,10 +101,6 @@ return {
 	-- The four plank bridges over the canal, along the axes.
 	BRIDGE = { WIDTH = 24, DECK_Y = 0.6, THICK = 1 },
 
-	-- Rumah panggung on every plot, in plot-local studs (X right, Z toward the front/road). HALF = no-build half size.
-	-- R2: the front of the 128 start land is at z = 96 (see Config/Plots), so the house sits just behind the road.
-	HOUSE = { X = 30, Z = 56, HALF = 8, HEIGHT = 13 },
-
 	DOCK = { LENGTH = 14, WIDTH = 5 },
 	DOCKS = DOCKS,
 	-- Water sound emitters along the canal (degrees from +X toward +Z), at the canal's mid radius.

@@ -46,30 +46,49 @@ local function buildPlaceholderPlots(): Folder
 		origin.Parent = model
 		model.PrimaryPart = origin
 
-		local sign = Instance.new("Part")
-		sign.Name = "Sign"
-		sign.Anchored = true
-		sign.CanCollide = false
-		sign.Transparency = 1
-		sign.Size = Vector3.one
-		sign.CFrame = origin.CFrame * CFrame.new(0, 6, PlotsConfig.FRONT_Z - 4) -- just inside the front edge of the land
-		sign.Parent = model
+		-- The gate's sign: a wooden plate beside the gate (outside the opening: the gate is 32 studs wide, so the plate sits
+		-- at x = 22 on the road side), facing the road. It shows "Kebun [Nama]" or "Lahan Kosong". No floating text.
+		local plate = Instance.new("Part")
+		plate.Name = "Sign"
+		plate.Anchored = true
+		plate.CanCollide = false
+		plate.CanQuery = false
+		plate.CanTouch = false
+		plate.Material = Enum.Material.Wood
+		plate.Color = Color3.fromRGB(146, 104, 66)
+		plate.Size = Vector3.new(9, 4.2, 0.6)
+		-- Sejajar pagar, di depan gerbang: the plate sits on the fence line (x of the fence), centred on the gate opening, so a
+		-- player who respawns or joins (4 studs out, facing the land) sees it right in front of them.
+		plate.CFrame = origin.CFrame * CFrame.new(0, 4.5, PlotsConfig.FRONT_Z + 0.3) -- centred in front of the gate (the spawn stands 4 studs out, facing it), on the fence line
+		print(`PLANG AFTER {plate.Name} @ {plate.Position} (lot {model.Name}, centred on the gate, fence line)`)
+		plate.Parent = model
+		for _, x in { -3.5, 3.5 } do -- two posts under the plate, on the fence line, either side of its middle
+			local post = Instance.new("Part")
+			post.Name = "SignPost"
+			post.Anchored = true
+			post.CanCollide = false
+			post.Material = Enum.Material.Wood
+			post.Color = Color3.fromRGB(110, 76, 46)
+			post.Size = Vector3.new(0.6, 3, 0.6)
+			post.CFrame = origin.CFrame * CFrame.new(x, 1.5, PlotsConfig.FRONT_Z)
+			post.Parent = model
+		end
 
-		local billboard = Instance.new("BillboardGui")
-		billboard.Size = UDim2.fromOffset(200, 40)
-		billboard.MaxDistance = 120
-		billboard.Parent = sign
+		local surface = Instance.new("SurfaceGui")
+		surface.Face = Enum.NormalId.Back -- +Z: the road side
+		surface.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		surface.PixelsPerStud = 40
+		surface.Parent = plate
 
 		local label = Instance.new("TextLabel")
 		label.Name = "OwnerLabel"
 		label.Size = UDim2.fromScale(1, 1)
 		label.BackgroundTransparency = 1
-		label.TextColor3 = Color3.fromRGB(245, 236, 214)
-		label.TextStrokeTransparency = 0.6
-		label.Font = Enum.Font.GothamMedium
-		label.TextSize = 20
+		label.TextColor3 = Color3.fromRGB(250, 240, 214)
+		label.TextScaled = true
+		label.Font = Enum.Font.GothamBold
 		label.Text = Locale.t("plot.empty")
-		label.Parent = billboard
+		label.Parent = surface
 
 		model.Parent = folder
 	end
@@ -85,6 +104,12 @@ local function setOwnerLabel(plot: Model, text: string)
 	end
 end
 
+-- A new player: T1 not finished or skipped, and no sale yet (the same "brand-new save" the tutorial uses).
+local function isNewPlayer(data: any): boolean
+	local guide = data.guide
+	return guide.sells == 0 and data.onboarding.first_plant ~= true and not guide.done.t1_awal and not guide.skipped.t1_awal
+end
+
 local function spawnAtPlot(player: Player)
 	local plot = plotOf[player]
 	local character = player.Character
@@ -92,7 +117,15 @@ local function spawnAtPlot(player: Player)
 		return
 	end
 	local origin = plot.PrimaryPart :: BasePart
-	character:PivotTo(origin.CFrame * CFrame.new(PlotsConfig.SPAWN_OFFSET))
+	local data = DataService.Get(player)
+	-- EVERY spawn (first join, respawn after death, rejoin, T1 start) is in front of your OWN gate, outside the fence,
+	-- facing inward toward the land. Never the middle of the land, never the last bed.
+	-- GateSpawn = "a new player" (T1 semantics only). The client puts the camera behind the character on every spawn.
+	local newPlayer = data ~= nil and isNewPlayer(data)
+	player:SetAttribute("GateSpawn", newPlayer)
+	local spawn = origin.CFrame * PlotsConfig.GATE_SPAWN
+	local inward = origin.CFrame * Vector3.new(0, PlotsConfig.GATE_SPAWN.Y, PlotsConfig.FRONT_Z - 6)
+	character:PivotTo(CFrame.lookAt(spawn, inward))
 end
 
 -- Gives the player their last plot if it is free, else the first free one, and remembers it (data.plotSlot).
@@ -158,7 +191,7 @@ function PlotService.SetLikes(player: Player, likes: number)
 	local plot = plotOf[player]
 	if plot then
 		plot:SetAttribute("Likes", likes)
-		setOwnerLabel(plot, Locale.t("plot.owner_likes", { name = player.DisplayName, likes = likes }))
+		setOwnerLabel(plot, Locale.t("plot.owner", { name = player.DisplayName })) -- the plate shows the name only
 	end
 end
 

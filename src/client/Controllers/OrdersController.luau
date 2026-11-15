@@ -70,14 +70,14 @@ local function addOrderRow(order: any, items: { [string]: number }, order_: numb
 		local reroll = UiKit.button(row, "Reroll", Locale.t("ui.reroll"), UiKit.BUTTON_MUTED)
 		-- "Ganti" sits left of "Kirim"; the text gives up that width (title wraps to two lines if needed).
 		reroll.AnchorPoint = Vector2.new(1, 0.5)
-		reroll.Position = UDim2.new(1, -124, 0.5, 0)
-		reroll.Size = UDim2.fromOffset(84, 52)
+		reroll.Position = UDim2.new(1, -118, 0.5, 0)
+		reroll.Size = UDim2.fromOffset(64, 34) -- the Ganti button: small (34 px tall, 44 px hitbox row), not a big key
 		reroll.Activated:Connect(function()
 			Net.Send("OrderReroll", order.uid)
 		end)
 		local label = row:FindFirstChildOfClass("TextLabel")
 		if label then
-			label.Size = UDim2.new(1, -226, 0, 44)
+			label.Size = UDim2.new(1, -210, 0, 44)
 		end
 	end
 end

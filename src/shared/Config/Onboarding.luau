@@ -33,6 +33,9 @@ export type Step = {
 	target: { npc: string? , pos: Vector3? }?, -- the ground arrow points here until the player is within `arrive` studs
 	arrive: number?, -- studs (default 25)
 	reward: Reward?, -- paid once when the step completes (never on replay)
+	modal: { title: string, body: string }?, -- kind "ack" only: the welcome modal (Locale keys); Mulai acks it, Lewati skips T1
+	coach: string?, -- Locale key of the coachmark bubble (defaults to text)
+	block: boolean?, -- coachmark overlay blocks every other tap (default true); false = ring + bubble only
 }
 
 export type Trigger = {
@@ -45,7 +48,7 @@ export type Tutorial = {
 	id: string, -- unique, short ("t1", "t1b", "m1" ...): used in save data and analytics
 	trigger: Trigger,
 	intro: string?, -- Locale key: one line shown first (as the hint of step 0)
-	steps: { Step }, -- 1-4 steps
+	steps: { Step }, -- 1-5 steps (T1 uses 5)
 	reward: Reward?, -- paid once when the last step is done (never on replay)
 	auto: boolean?, -- false = never starts by itself (only from Atur > Panduan); default true
 	title: string, -- Locale key: name in the Panduan list
@@ -63,6 +66,8 @@ export type Tutorial = {
 --   "near"                    within `dist` studs of the NPC `id`
 --   "panel"                   the screen/panel named `id` is open (ScreenGui Enabled)
 --   "garap"                   Garap mode is open
+--   "sells"                   n or more sale trips to the buyer (data.guide.sells, snapshot.guideSells)
+--   "ack"                     the player tapped the welcome modal's Mulai (id = step key); shown by GuideController, never by time
 -- TRIGGER KINDS:
 --   "newPlayer"   a save with no beds and nothing planted yet (starts at once on join)
 --   "level"       level >= n
@@ -70,7 +75,58 @@ export type Tutorial = {
 --   "manual"      never auto-starts (replay only)
 
 local TUTORIALS: { Tutorial } = {
-	-- (empty on purpose: T1 and the rest come in phase P2+)
+	-- T1: the first loop. Skippable, replayable from Atur > Panduan (no reward on replay).
+	{
+		id = "t1_awal",
+		title = "tut.t1.title",
+		intro = "tut.t1.intro",
+		trigger = { kind = "newPlayer" },
+		auto = true,
+		steps = {
+			{
+				-- Sapaan: a welcome modal (Lewati / Mulai). It completes only when the player taps Mulai (kind "ack").
+				id = "sapa",
+				text = "tut.t1.intro",
+				done = { kind = "ack", id = "sapa" },
+				modal = { title = "tut.t1.sapa_title", body = "tut.t1.sapa_body" },
+			},
+			{
+				id = "cangkul",
+				text = "tut.t1.s1",
+				coach = "tut.coach.garap",
+				done = { kind = "tiles", n = 1 },
+				highlight = "GarapButton",
+				reward = { xp = 1 },
+			},
+			{
+				id = "tanam",
+				text = "tut.t1.s2",
+				coach = "tut.coach.tanam",
+				textStuck = "tut.t1.s2_stuck",
+				done = { kind = "planted", n = 1 },
+				highlight = "TanamButton",
+				reward = { xp = 1 },
+			},
+			{
+				id = "siram",
+				text = "tut.t1.s3",
+				coach = "tut.coach.siram",
+				done = { kind = "watered", n = 1 },
+				highlight = "SiramButton",
+				reward = { xp = 1 },
+			},
+			{
+				id = "panen_jual",
+				text = "tut.t1.s4",
+				coach = "tut.coach.panen",
+				block = false, -- after Panen the player must reach Pak Darmo (outside the hole): no overlay here
+				done = { kind = "sells", n = 1 },
+				target = { npc = "pak_darmo" },
+				highlight = "PanenButton",
+			},
+		},
+		reward = { koin = 30 },
+	},
 }
 
 -- Studio-only smoke test of the engine (!tut in chat is not needed: it starts by itself on a fresh save in Studio).
@@ -107,7 +163,7 @@ local TEST_TUTORIAL: Tutorial = {
 }
 
 return {
-	TRIES = 3,
+	TRIES = 1, -- the old sale-trip guide stops after the first sale, the same sale that finishes T1 (sells n = 1)
 	BUYER_NPC = "pak_darmo", -- the arrow points here once there is a crop to sell
 	TUTORIALS = TUTORIALS,
 	TEST_TUTORIAL = TEST_TUTORIAL,

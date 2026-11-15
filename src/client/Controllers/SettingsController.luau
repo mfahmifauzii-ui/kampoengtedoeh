@@ -47,7 +47,7 @@ local function render()
 	local snapshot = State.current :: any
 	local settings = snapshot and snapshot.settings or {}
 	-- Two columns of cards: name on the left, a switch on the right (green + knob right = on). No "Nyala/Mati" words to decode.
-	local grid = UiKit.grid(panel.list, 1, 2, 52)
+	local grid = UiKit.grid(panel.list, 1, 1, 52) -- one column, full width: a vertical list (Atur is a list, not a dashboard)
 	local ICONS = { music = "bintang", ambient = "bunga", sfx = "koin" }
 	local function card(order: number, text: string, accent: Color3): Frame
 		local cell = Instance.new("Frame")
@@ -92,6 +92,17 @@ local function render()
 		guidePanel.gui.Enabled = true
 		renderGuide()
 	end)
+
+	-- Shrink the panel to its content (AutomaticSize behaviour for Atur only): 2 columns of cards, 58 px per row. The frame
+	-- keeps the title ribbon above and a small margin below; it never grows past the screen (UISizeConstraint in UiKit).
+	local rows = #KEYS + 1 -- 1 x 4 rows
+	local body = rows * 58
+	panel.list.Size = UDim2.new(1, -52, 0, body)
+	panel.list.ScrollBarThickness = 0 -- the content fits: no scrollbar
+	local frame = panel.gui:FindFirstChild("Panel") :: Frame?
+	if frame then
+		frame.Size = UDim2.new(0.88, 0, 0, 40 + body + 18)
+	end
 end
 
 function SettingsController.Init()

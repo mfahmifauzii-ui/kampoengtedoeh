@@ -7,6 +7,7 @@
 
 local MarketplaceService = game:GetService("MarketplaceService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local Monetization = require(ReplicatedStorage.Shared.Config.Monetization)
 local Locale = require(ReplicatedStorage.Shared.Locale)
@@ -62,9 +63,9 @@ local function renderSide(sideFrame: Frame)
 		local button = sideButtons[def.id]
 		if not button then
 			button = UiKit.button(sideFrame, `Side_{def.id}`, Locale.t(def.text), UiKit.BUTTON_MUTED)
-			button.Size = UDim2.new(1, 0, 0, 58)
-			button.Position = UDim2.fromOffset(0, (index - 1) * 66)
-			button.TextSize = 17
+			button.Size = UDim2.new(1, 0, 0, 34) -- small side tabs (was 58 px)
+			button.Position = UDim2.fromOffset(0, (index - 1) * 40)
+			button.TextSize = 13
 			button.Activated:Connect(function()
 				selected = def.id
 				StoreController.Render()
@@ -74,6 +75,24 @@ local function renderSide(sideFrame: Frame)
 		button.BackgroundColor3 = if on then UiKit.BUTTON else UiKit.BUTTON_MUTED
 		button.TextTransparency = if on then 0 else 0.25
 	end
+end
+
+-- The panel hugs its content: the height is the header + the rows + the footer, never more than 86 % of the screen (no empty
+-- space under the last row). Measured after the rows are laid out (one frame later).
+local TOP_SPACE = 52 -- the title ribbon and the first row
+local BOTTOM_SPACE = 52 -- the footer line and the rounded bottom edge
+local function fitHeight()
+	task.defer(function()
+		local frame = panel.gui:FindFirstChild("Panel")
+		local layout = panel.list:FindFirstChildOfClass("UIListLayout")
+		if not (frame and frame:IsA("Frame") and layout) then
+			return
+		end
+		local content = layout.AbsoluteContentSize.Y
+		local view = (Workspace.CurrentCamera :: Camera).ViewportSize
+		local height = math.min(TOP_SPACE + content + BOTTOM_SPACE, view.Y * 0.86)
+		frame.Size = UDim2.new(0.88, 0, 0, height)
+	end)
 end
 
 local function render()
@@ -137,6 +156,7 @@ local function render()
 	end
 
 	panel.footerLabel.Text = if snapshot and snapshot.premium then Locale.t("store.premium") else ""
+	fitHeight()
 end
 
 function StoreController.Render()

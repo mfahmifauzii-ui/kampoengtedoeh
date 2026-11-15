@@ -22,11 +22,13 @@ local UiKit = require(script.Parent.Parent.UiKit)
 local Vfx = require(ReplicatedStorage.Shared.Vfx)
 local FarmFloat = require(script.Parent.Parent.FarmFloat)
 local FarmFx = require(script.Parent.Parent.FarmFx)
+local FeedbackController = require(script.Parent.FeedbackController)
 
 local openTilePanel: (index: number) -> ()
 local onTileTapped: (part: BasePart) -> ()
 
 local TILE_TAG = "FarmTile"
+local BRICK = Color3.fromRGB(176, 92, 66) -- Hapus Petak: soft brick red (destructive, but still cozy with wood and cream)
 local REFRESH_SECONDS = 0.5
 local STAGE_SIZE = { 0.8, 1.6, 2.6 } -- placeholder ball per stage: seedling, growing, ready
 -- Real models: height in studs when ripe (stage 3); the other stages scale it down.
@@ -215,12 +217,13 @@ local function cropTemplate(cropId: string): Model?
 end
 
 -- The crop model, framed, in a ViewportFrame.
-local function addThumbnail(parent: GuiObject, cropId: string)
+local function addThumbnail(parent: GuiObject, cropId: string, size: number?)
 	local viewport = Instance.new("ViewportFrame")
 	viewport.Name = "Thumb"
 	viewport.BackgroundTransparency = 1
-	viewport.Size = UDim2.new(1, -8, 0, 96)
-	viewport.Position = UDim2.fromOffset(4, 4)
+	local side = size or 96
+	viewport.Size = if size then UDim2.fromOffset(size - 4, size - 4) else UDim2.new(1, -8, 0, 96)
+	viewport.Position = if size then UDim2.fromOffset(2, 2) else UDim2.fromOffset(4, 4)
 	viewport.Ambient = Color3.fromRGB(176, 172, 160)
 	viewport.LightColor = Color3.fromRGB(255, 244, 222)
 	viewport.LightDirection = Vector3.new(-0.6, -1.2, -0.7)
@@ -415,10 +418,20 @@ local function act(part: BasePart, kind: string)
 		return
 	end
 	if kind == "empty" then
-		openPicker(part)
+		-- Planting is by proximity only (SeedPopup): standing within 1 stud of the empty bed shows the seed row. A tap on the
+		-- bed does not open a picker any more.
+		return
 	elseif kind == "ripe" then
 		FarmFloat.setPending(part, 1.1)
 		FarmFx.harvest(part)
+		-- The harvested crop flies from its bed to the Bag, and the coins of this harvest fly from the same spot.
+		local cropId = part:GetAttribute("Crop")
+		local crop = if typeof(cropId) == "string" then Crops.byId[cropId] else nil
+		local screen, onScreen = (Workspace.CurrentCamera :: Camera):WorldToViewportPoint(part.Position + Vector3.new(0, 2, 0))
+		if crop and onScreen then
+			local point = Vector2.new(screen.X, screen.Y + game:GetService("GuiService"):GetGuiInset().Y)
+			FeedbackController.FlyToBag(point, crop.color, string.sub(Locale.t("crop." .. crop.id), 1, 1))
+		end
 		Net.Send("FarmHarvest", index)
 	elseif kind == "dry" then
 		FarmFloat.setPending(part, 2.4)
@@ -525,13 +538,495 @@ local function removeTile(instance: Instance)
 	views[instance :: BasePart] = nil
 end
 
+-- Bed menu (press and hold a bed's pill): an EMPTY bed gets Pindah (main) and Hapus Petak (secondary, asks first). A bed with a
+-- crop is locked: the same buttons, greyed, with the reason in text, so the player is never left tapping for nothing.
+local bedMenu: ScreenGui? = nil
+local bedCard: Frame? = nil
+
+local function closeBedMenu()
+	if bedMenu then
+		bedMenu.Enabled = false
+	end
+	GarapController.MenuOpen = false -- Garap resumes (it was never switched off)
+end
+
+local function buildBedMenu(): ScreenGui
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "BedMenu"
+	gui.ResetOnSpawn = false
+	gui.IgnoreGuiInset = true
+	gui.DisplayOrder = 45 -- above the HUD and the floating pills, below the confirm modal
+	gui:SetAttribute("NoScale", true) -- real pixels: the card sits on the bed
+	gui.Enabled = false
+	local backdrop = Instance.new("TextButton")
+	backdrop.Name = "Backdrop"
+	backdrop.Text = ""
+	backdrop.AutoButtonColor = false
+	backdrop.BackgroundTransparency = 1
+	backdrop.Size = UDim2.fromScale(1, 1)
+	backdrop.Parent = gui
+	backdrop.Activated:Connect(closeBedMenu)
+	gui.Parent = player:WaitForChild("PlayerGui")
+	bedCard = Instance.new("Frame")
+	bedCard.Name = "Card"
+	bedCard.AnchorPoint = Vector2.new(0.5, 1)
+	bedCard.AutomaticSize = Enum.AutomaticSize.XY
+	bedCard.BackgroundColor3 = Color3.fromRGB(250, 240, 214)
+	bedCard.Active = true -- taps on the card do not reach the backdrop
+	bedCard.Parent = gui
+	local round = Instance.new("UICorner")
+	round.CornerRadius = UDim.new(0, 12)
+	round.Parent = bedCard
+	local edge = Instance.new("UIStroke")
+	edge.Color = UiKit.BAMBOO
+	edge.Thickness = 2
+	edge.Parent = bedCard
+	local pad = Instance.new("UIPadding")
+	pad.PaddingTop, pad.PaddingBottom = UDim.new(0, 8), UDim.new(0, 8)
+	pad.PaddingLeft, pad.PaddingRight = UDim.new(0, 8), UDim.new(0, 8)
+	pad.Parent = bedCard
+	local layout = Instance.new("UIListLayout")
+	layout.FillDirection = Enum.FillDirection.Vertical
+	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	layout.Padding = UDim.new(0, 6)
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Parent = bedCard
+	bedMenu = gui
+	return gui
+end
+
+-- A flat colour for a bed-menu button (the bamboo skin is gold). Locked = grey and faded, so it reads as "not now".
+local function paintBedButton(button: TextButton, solid: Color3?, locked: boolean)
+	local skin = button:FindFirstChild("Skin")
+	if skin and skin:IsA("ImageLabel") then
+		skin.Visible = false
+	end
+	button.BackgroundTransparency = 0
+	if locked then
+		button.BackgroundColor3 = Color3.fromRGB(196, 186, 166)
+		button.TextColor3 = Color3.fromRGB(128, 118, 100)
+	elseif solid then
+		button.BackgroundColor3 = solid
+		button.TextColor3 = Color3.fromRGB(255, 248, 230)
+	end
+end
+
+local function openBedMenu(part: BasePart, kind: string)
+	local index = part:GetAttribute("Index")
+	if typeof(index) ~= "number" then
+		return
+	end
+	local gui = bedMenu or buildBedMenu()
+	local card = bedCard :: Frame
+	for _, child in card:GetChildren() do
+		if not child:IsA("UIBase") then
+			child:Destroy()
+		end
+	end
+	local planted = kind ~= "empty" or part:GetAttribute("Crop") ~= nil -- a planted bed can still be moved (its crop and timer come along); only Hapus is locked
+
+	local note = Instance.new("TextLabel")
+	note.Name = "Note"
+	note.LayoutOrder = 0
+	note.AutomaticSize = Enum.AutomaticSize.XY
+	note.BackgroundTransparency = 1
+	note.TextColor3 = UiKit.TEXT
+	note.Font = UiKit.FONT
+	note.TextSize = 13
+	note.Text = if planted then Locale.t("bed.locked") else Locale.t("bed.menu_title")
+	note.Parent = card
+
+	local row = Instance.new("Frame")
+	row.Name = "Row"
+	row.LayoutOrder = 1
+	row.AutomaticSize = Enum.AutomaticSize.XY
+	row.BackgroundTransparency = 1
+	row.Parent = card
+	local rowLayout = Instance.new("UIListLayout")
+	rowLayout.FillDirection = Enum.FillDirection.Horizontal
+	rowLayout.Padding = UDim.new(0, 8)
+	rowLayout.Parent = row
+
+	local move = UiKit.button(row, "Move", Locale.t("bed.move"), Color3.fromRGB(96, 150, 70))
+	move.Size = UDim2.fromOffset(120, 44) -- 44 px hitbox (UIUX_Spec)
+	move.TextSize = 16
+	move.Active = true
+	move.Interactable = true
+	paintBedButton(move, Color3.fromRGB(96, 150, 70), false)
+	move.Activated:Connect(function()
+		closeBedMenu()
+		GarapController.StartMove(index)
+	end)
+
+	-- Hapus Petak is destructive: soft brick red, never the green of Pindah. Locked while a crop is in the bed.
+	local remove = UiKit.button(row, "Remove", Locale.t("bed.remove"), BRICK)
+	remove.Size = UDim2.fromOffset(132, 44)
+	remove.TextSize = 16
+	remove.Active = not planted
+	remove.Interactable = not planted
+	paintBedButton(remove, if planted then nil else BRICK, planted)
+	remove.Activated:Connect(function()
+		if planted then
+			return
+		end
+		closeBedMenu()
+		UiKit.confirm({
+			title = Locale.t("bed.remove_title"),
+			body = Locale.t("bed.remove_body"),
+			confirmText = Locale.t("bed.remove"),
+			cancelText = Locale.t("confirm.no"),
+			confirmColor = BRICK,
+			cancelMuted = true,
+			onConfirm = function()
+				Net.Send("FarmLevel", index)
+			end,
+		})
+	end)
+
+	-- Sit the card just above the bed (rendered pixels; the top bar inset is added like in CoachmarkController).
+	local camera = Workspace.CurrentCamera :: Camera
+	local screen, onScreen = camera:WorldToViewportPoint(part.Position + Vector3.new(0, 2.5, 0))
+	card.Position = UDim2.fromOffset(screen.X, screen.Y)
+	gui.Enabled = onScreen
+	GarapController.MenuOpen = onScreen -- Garap pauses (ghost hidden) while this menu is up
+end
+
+-- Seed popup (proximity) ----------------------------------------------------------------
+-- Stand within PROXIMITY studs of an EMPTY bed of yours: one small overlay (1 row of up to 4 seed icons, a dashed white ring
+-- on the ground around the bed) appears above the bed, pointing down at it. Only the NEAREST bed in range gets one.
+-- Tap a lit icon = plant that seed there. Hold it 0.3 s = a small "name · xN" tip. No hover anywhere.
+local TweenService = game:GetService("TweenService")
+local Land = require(ReplicatedStorage.Shared.Modules.Land)
+
+local PROXIMITY = 4 -- studs from the bed's edge (HumanoidRootPart to the edge of the square): on a phone a joystick walk lands near 4, not exactly 1
+local RING_RADIUS = Land.TILE / 2 + PROXIMITY -- bed centre to the dashed ring
+local RING_DOTS = 12
+local HOLD_TIP_SECONDS = 0.3
+-- The bamboo ring matches the dock buttons on a phone (the dock is 58 px x 0.75 = ~44 px there), 64 px on desktop.
+local function slotPx(): number
+	local view = (Workspace.CurrentCamera :: Camera).ViewportSize
+	return if view.X < 900 or view.Y < 450 then 44 else 64
+end
+local BAMBOO_RING_IMAGE = "rbxassetid://86005759010163" -- the uploaded bamboo circle (the only backdrop of a seed slot)
+
+local popupGui: ScreenGui? = nil
+local popupCard: Frame
+local popupArrow: TextLabel
+local popupTip: TextLabel
+local popupScale: UIScale
+local popupBed: BasePart? = nil
+local ringDots: { Frame } = {}
+local tipHideAt = 0
+
+local function bedEdgeDistance(root: BasePart, bed: BasePart): number
+	local localPoint = bed.CFrame:PointToObjectSpace(root.Position)
+	local dx = math.max(math.abs(localPoint.X) - bed.Size.X / 2, 0)
+	local dz = math.max(math.abs(localPoint.Z) - bed.Size.Z / 2, 0)
+	return math.sqrt(dx * dx + dz * dz)
+end
+
+-- Beds just planted from the card: skipped for a moment, until the server answers.
+local pendingPlant: { [BasePart]: number } = {}
+
+-- The one empty bed of mine nearest to me, within PROXIMITY (nil if none).
+local function nearestEmptyBed(): BasePart?
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") then
+		return nil
+	end
+	local best: BasePart? = nil
+	local bestDistance = PROXIMITY
+	for _, bed in CollectionService:GetTagged(TILE_TAG) do
+		local pending = pendingPlant[bed :: BasePart]
+		if pending and os.clock() < pending then
+			continue
+		end
+		if bed:IsA("BasePart") and bed:GetAttribute("Owner") == player.UserId and bed:GetAttribute("Crop") == nil then
+			local distance = bedEdgeDistance(root, bed)
+			if distance <= bestDistance then
+				best = bed
+				bestDistance = distance
+			end
+		end
+	end
+	return best
+end
+
+local function buildPopup()
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "SeedPopup"
+	gui.ResetOnSpawn = false
+	gui.IgnoreGuiInset = true
+	gui.DisplayOrder = 35 -- above the HUD and the pills, under the coachmark's top layer
+	gui:SetAttribute("NoScale", true)
+	gui.Enabled = false
+	gui.Parent = player:WaitForChild("PlayerGui")
+	popupGui = gui
+
+	for index = 1, RING_DOTS do
+		local dot = Instance.new("Frame")
+		dot.Name = "RingDot" .. index
+		dot.AnchorPoint = Vector2.new(0.5, 0.5)
+		dot.Size = UDim2.fromOffset(5, 5)
+		dot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		dot.BackgroundTransparency = 0.25
+		dot.BorderSizePixel = 0
+		dot.Active = false
+		dot.Visible = false
+		dot.Parent = gui
+		local round = Instance.new("UICorner")
+		round.CornerRadius = UDim.new(0.5, 0)
+		round.Parent = dot
+		table.insert(ringDots, dot)
+	end
+
+	popupCard = Instance.new("Frame")
+	popupCard.Name = "TanamButton" -- the tutorial rings this card in step Tanam (GuideController findHighlight), shown only next to an empty bed
+	popupCard.AnchorPoint = Vector2.new(0.5, 1)
+	popupCard.AutomaticSize = Enum.AutomaticSize.XY
+	popupCard.BackgroundTransparency = 1 -- no dark backdrop: only the bamboo rings and the white arrow
+	popupCard.Active = true -- taps on the card do not reach the world
+	popupCard.Visible = false
+	popupCard.Parent = gui
+	popupScale = Instance.new("UIScale")
+	popupScale.Scale = 0
+	popupScale.Parent = popupCard
+	local round = Instance.new("UICorner")
+	round.CornerRadius = UDim.new(0, 12)
+	round.Parent = popupCard
+	local pad = Instance.new("UIPadding")
+	pad.PaddingTop, pad.PaddingBottom = UDim.new(0, 10), UDim.new(0, 10)
+	pad.PaddingLeft, pad.PaddingRight = UDim.new(0, 8), UDim.new(0, 8) -- 8 px panel padding
+	pad.Parent = popupCard
+	local grid = Instance.new("UIGridLayout")
+	grid.CellSize = UDim2.fromOffset(slotPx(), slotPx()) -- bamboo rings, 8 px gaps
+	grid.CellPadding = UDim2.fromOffset(10, 10) -- 10 px between the rings
+	grid.FillDirection = Enum.FillDirection.Horizontal
+	grid.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	grid.SortOrder = Enum.SortOrder.LayoutOrder
+	grid.FillDirectionMaxCells = 4 -- 1 row of 4; 8 seeds = 2 rows, 12 = 3 rows
+	grid.Parent = popupCard
+
+	popupArrow = Instance.new("TextLabel")
+	popupArrow.Name = "Arrow"
+	popupArrow.AnchorPoint = Vector2.new(0.5, 0)
+	popupArrow.Size = UDim2.fromOffset(24, 12)
+	popupArrow.BackgroundTransparency = 1
+	popupArrow.Text = "▼"
+	popupArrow.TextColor3 = Color3.fromRGB(250, 240, 214)
+	popupArrow.TextSize = 14
+	popupArrow.Font = UiKit.FONT
+	popupArrow.Visible = false
+	popupArrow.Parent = gui
+
+	popupTip = Instance.new("TextLabel")
+	popupTip.Name = "Tip"
+	popupTip.AnchorPoint = Vector2.new(0.5, 1)
+	popupTip.AutomaticSize = Enum.AutomaticSize.X
+	popupTip.Size = UDim2.fromOffset(0, 22)
+	popupTip.BackgroundColor3 = Color3.fromRGB(48, 32, 20)
+	popupTip.BackgroundTransparency = 0.05
+	popupTip.TextColor3 = UiKit.CREAM
+	popupTip.Font = UiKit.FONT
+	popupTip.TextSize = 13
+	popupTip.Visible = false
+	popupTip.Parent = gui
+	local tipRound = Instance.new("UICorner")
+	tipRound.CornerRadius = UDim.new(0, 8)
+	tipRound.Parent = popupTip
+end
+
+local function hidePopup()
+	popupBed = nil
+	if popupGui then
+		popupGui.Enabled = false
+	end
+end
+
+-- Fills the card with the seed icons for this bed. Lit = have seed & unlocked (tap plants); grey = unlocked, none in the bag
+-- (tip: buy at the shop); dark with "Lv N" = locked.
+local function fillPopup(bed: BasePart)
+	for _, child in popupCard:GetChildren() do
+		if child:IsA("GuiObject") then
+			child:Destroy()
+		end
+	end
+	local level = player:GetAttribute("Level")
+	local playerLevel = if typeof(level) == "number" then level else 1
+	local snapshot = State.current :: any
+	local items = if snapshot and snapshot.items then snapshot.items else {}
+	for order, crop in Crops.list do
+		local unlocked = playerLevel >= crop.unlockLevel
+		local have = (items[`seed_{crop.id}`] or 0) + (items[`seedx_{crop.id}`] or 0)
+		-- Locked seeds are hidden from the card entirely (no lock icon, no "Lv"): the shop shows them as a goal instead.
+		if not unlocked then
+			continue
+		end
+		-- The bamboo circle is the uploaded image (rbxassetid://86005759010163): no white backdrop, no gold stroke, no dark
+		-- backdrop. The seed (3D thumbnail) sits in its middle; the count is plain white text in the top-right corner.
+		local icon = Instance.new("ImageButton") -- a button: it takes the tap (plant / tip)
+		icon.Name = crop.id
+		icon.LayoutOrder = order
+		icon.Size = UDim2.fromOffset(slotPx(), slotPx())
+		icon.BackgroundTransparency = 1
+		icon.Image = BAMBOO_RING_IMAGE
+		icon.ScaleType = Enum.ScaleType.Fit
+		icon.AutoButtonColor = false
+		icon.ClipsDescendants = false -- the count is never clipped
+		icon.Parent = popupCard
+
+		local status = if have > 0 then "lit" else "empty"
+		addThumbnail(icon, crop.id, slotPx() - 12)
+		local thumb = icon:FindFirstChild("Thumb")
+		if thumb and thumb:IsA("GuiObject") then
+			thumb.AnchorPoint = Vector2.new(0.5, 0.5)
+			thumb.Position = UDim2.fromScale(0.5, 0.5)
+			thumb.Size = UDim2.fromOffset(slotPx() - 12, slotPx() - 12) -- the seed, as big as the ring allows
+			thumb.ZIndex = 3
+		end
+			if have == 0 and thumb then
+				-- Disabled look: the ring fades and greys, the seed is greyed (its viewport lighting goes grey, no overlay box).
+				icon.ImageTransparency = 0.5
+				icon.ImageColor3 = Color3.fromRGB(150, 150, 150)
+				if thumb:IsA("ViewportFrame") then
+					thumb.Ambient = Color3.fromRGB(120, 120, 120)
+					thumb.LightColor = Color3.fromRGB(150, 150, 150)
+				end
+				thumb.BackgroundTransparency = 1
+			end
+
+		-- Count: white text, top right, inside the ring (no backdrop circle).
+		local count = Instance.new("TextLabel")
+		count.Name = "Count"
+		count.AnchorPoint = Vector2.new(1, 0)
+		count.Position = UDim2.new(1, -4, 0, 2)
+		count.Size = UDim2.fromOffset(28, 18)
+		count.BackgroundTransparency = 1
+		count.TextColor3 = Color3.fromRGB(255, 255, 255)
+		count.TextStrokeColor3 = Color3.fromRGB(60, 40, 20)
+		count.TextStrokeTransparency = 0
+		count.Font = UiKit.FONT
+		count.TextSize = 13
+		count.Text = "x" .. have
+		count.ZIndex = 10
+		count.Parent = icon
+
+		-- Tap: a lit icon plants (the card closes); a grey/locked one explains itself in a small tip.
+		local pressedAt = 0
+		icon.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				pressedAt = os.clock()
+			end
+		end)
+		icon.Activated:Connect(function()
+			local held = os.clock() - pressedAt >= HOLD_TIP_SECONDS
+			if status == "lit" and not held then
+				-- The bed stays "empty" on this screen until the server confirms the planting: do not re-show the card for it.
+				pendingPlant[bed] = os.clock() + 2
+				hidePopup()
+				plantAt(bed, crop.id)
+				return
+			end
+			-- Held (lit) or a grey icon: a tip near the card (only unlocked seeds are on the card).
+			popupTip.Text = if status == "empty" then Locale.t("seed.tip_none")
+				else Locale.t("seed.tip_have", { name = Locale.t("crop." .. crop.id), n = have })
+			popupTip.Visible = true
+			tipHideAt = os.clock() + 1.6
+		end)
+	end
+	-- Staggered pop from the middle: icons scale 0 -> 1, 0.05 s apart, from the centre out (LayoutOrder 1..n).
+end
+
+local function showPopup(bed: BasePart)
+	popupBed = bed
+	fillPopup(bed)
+	popupGui.Enabled = true
+	popupCard.Visible = true
+	popupArrow.Visible = true
+	popupScale.Scale = 0
+	TweenService:Create(popupScale, TweenInfo.new(0.32, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+	local children = {}
+	for _, child in popupCard:GetChildren() do
+		if child:IsA("TextButton") then
+			table.insert(children, child)
+		end
+	end
+	table.sort(children, function(a, b)
+		return a.LayoutOrder < b.LayoutOrder
+	end)
+	for position, icon in children do
+		local stagger = Instance.new("UIScale")
+		stagger.Scale = 0
+		stagger.Parent = icon
+		task.delay((position - 1) * 0.05, function()
+			TweenService:Create(stagger, TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+		end)
+	end
+end
+
+-- Every frame: find the nearest empty bed in range, show / move / hide the popup, place it above the bed (below if no room,
+-- clamped inside the screen), and keep the dashed ring on the ground around the bed.
+local function updatePopup()
+	if not popupGui then
+		return
+	end
+	local blocked = GarapController.Active or UiKit.confirmOpen()
+	local target = if blocked then nil else nearestEmptyBed()
+	if target ~= popupBed then
+		if target then
+			showPopup(target)
+		else
+			hidePopup()
+		end
+	end
+	if os.clock() > tipHideAt then
+		popupTip.Visible = false
+	end
+	if not popupBed then
+		for _, dot in ringDots do
+			dot.Visible = false
+		end
+		return
+	end
+	local camera = Workspace.CurrentCamera :: Camera
+	local view = camera.ViewportSize
+	local bed = popupBed
+	local center = bed.Position
+	local top, onScreen = camera:WorldToViewportPoint(center + Vector3.new(0, bed.Size.Y / 2 + 1, 0))
+	local width, height = popupCard.AbsoluteSize.X, popupCard.AbsoluteSize.Y
+	local x = math.clamp(top.X, width / 2 + 8, view.X - width / 2 - 8)
+	local above = top.Y - 18 - height >= 110 -- room above (the top bar and hint sit at the top)
+	popupCard.AnchorPoint = Vector2.new(0.5, if above then 1 else 0)
+	popupCard.Position = UDim2.fromOffset(x, if above then top.Y - 18 else top.Y + 18)
+	popupArrow.AnchorPoint = Vector2.new(0.5, if above then 0 else 1)
+	popupArrow.Text = if above then "▼" else "▲"
+	popupArrow.Position = UDim2.fromOffset(math.clamp(top.X, 12, view.X - 12), if above then top.Y - 16 else top.Y + 16)
+	popupArrow.Visible = onScreen
+	popupTip.Position = UDim2.fromOffset(x, popupCard.AbsolutePosition.Y - 6)
+
+	-- Dashed white ring: 12 dots, one stud past the bed's edge.
+	for index, dot in ringDots do
+		local angle = (index - 1) / RING_DOTS * math.pi * 2
+		local point = center + Vector3.new(math.cos(angle) * RING_RADIUS, 0.2, math.sin(angle) * RING_RADIUS)
+		local screen, visible = camera:WorldToViewportPoint(point)
+		dot.Visible = visible
+		dot.Position = UDim2.fromOffset(screen.X, screen.Y)
+	end
+end
+
 function FarmController.Start()
+	-- In Garap mode a tap on a bed that is already here opens this same menu (GarapController.showGhost / act).
+	GarapController.BedTapHandler = openBedMenu
 	FarmFloat.Init({
 		onAction = act,
+		onHold = openBedMenu,
 		blocked = function()
 			return GarapController.Active or (pickerPanel ~= nil and pickerPanel.gui.Enabled) or UiKit.confirmOpen()
 		end,
 	})
+	buildPopup()
+	game:GetService("RunService").RenderStepped:Connect(updatePopup)
 	CollectionService:GetInstanceAddedSignal(TILE_TAG):Connect(addTile)
 	CollectionService:GetInstanceRemovedSignal(TILE_TAG):Connect(removeTile)
 	for _, instance in CollectionService:GetTagged(TILE_TAG) do

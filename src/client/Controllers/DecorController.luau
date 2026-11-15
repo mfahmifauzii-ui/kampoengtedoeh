@@ -468,6 +468,9 @@ local function hookDecorButton()
 end
 
 function DecorController.SetActive(value: boolean)
+	if value ~= active then
+		require(script.Parent.GarapController).HoldGrid(value) -- Hias shows the SAME grid as Garap (one grid, not a second)
+	end
 	active = value
 	if not value then
 		endPlacing()

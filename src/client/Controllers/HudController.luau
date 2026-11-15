@@ -19,6 +19,7 @@ local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Buffs = require(ReplicatedStorage.Shared.Config.Buffs)
+local FeedbackController = require(script.Parent.FeedbackController)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local UiAssets = require(ReplicatedStorage.Shared.Config.UiAssets)
@@ -245,22 +246,86 @@ local function buildPlaceholder(): ScreenGui
 		table.insert(buffSlots, { def = def, slot = slot, stroke = slotStroke, clip = clip, hit = hit })
 	end
 
-	-- Toast: one parchment pill, above the Garap bar so it never hides under it.
-	local toast = UiKit.chip(gui, "ToastLabel", nil, 360)
-	local toastChip = toast.Parent :: Frame
-	toastChip.AnchorPoint = Vector2.new(0.5, 1)
-	toastChip.Position = UDim2.new(0.5, 0, 1, -130)
-	toastChip.Size = UDim2.fromOffset(340, 56)
+	-- PHONE: the player card is compact (180 x 60, avatar 36, XP bar 8 px, name 14 px) and the three buff icons are hidden,
+	-- so the card never takes a quarter of the width. Desktop keeps the full card. Sits 12 px in from the safe edges.
+	local function layoutCard()
+		local camera = Workspace.CurrentCamera :: Camera
+		local view = camera.ViewportSize
+		local phone = view.X < 900 or view.Y < 450
+		-- Phone size (the middle size the player asked for): card 220 x 70, 8 px inner padding, avatar 48, name 14 px,
+		-- XP bar 8 px, three buff icons 28 px with 4 px gaps, all visible. Desktop keeps the full card.
+		card.Position = if phone then UDim2.new(0, 12, 1, -12) else UDim2.new(0, 8, 1, -6)
+		card.Size = if phone then UDim2.fromOffset(250, 100) else UDim2.fromOffset(248, 92) -- the bamboo frame keeps a 14 px inset: every element sits inside it
+		local function set(name: string, props: { [string]: any })
+			local child = card:FindFirstChild(name, true)
+			if child then
+				for key, value in props do
+					(child :: any)[key] = value
+				end
+			end
+		end
+		set("PhotoRing", { Size = if phone then UDim2.fromOffset(60, 60) else UDim2.fromOffset(46, 46), Position = if phone then UDim2.fromOffset(12, 16) else UDim2.fromOffset(22, 23) })
+		set("Photo", { Size = if phone then UDim2.fromOffset(48, 48) else UDim2.fromOffset(32, 32), Position = if phone then UDim2.fromOffset(18, 22) else UDim2.fromOffset(29, 30) })
+		set("PlayerName", { Position = if phone then UDim2.fromOffset(80, 16) else UDim2.fromOffset(76, 12), Size = if phone then UDim2.new(1, -94, 0, 18) else UDim2.new(1, -104, 0, 14), TextSize = if phone then 14 else 12 })
+		set("XPTrack", { Position = if phone then UDim2.fromOffset(80, 40) else UDim2.fromOffset(76, 30), Size = if phone then UDim2.new(1, -94, 0, 8) else UDim2.new(1, -104, 0, 12) })
+		set("LevelBadge", { Visible = not phone })
+		set("Icon_bintang", { Visible = not phone }) -- the star under the photo: desktop only
+		for index, entry in buffSlots do
+			if phone then
+				-- row under the name, spread across the card like the PC layout (space between the three icons)
+				entry.slot.Position = UDim2.fromOffset(80 + (index - 1) * 64, 56) -- three 28 px icons, evenly spaced inside the frame
+				entry.slot.Size = UDim2.fromOffset(28, 28)
+			else
+				local along = (index - 1) / (#Buffs.SLOTS - 1)
+				entry.slot.Position = UDim2.new(along, 76 - 127 * along, 0, 49)
+				entry.slot.Size = UDim2.fromOffset(23, 23)
+			end
+			entry.slot.Visible = true -- the buff icons stay visible on every screen
+		end
+	end
+	layoutCard()
+	local viewCamera = Workspace.CurrentCamera :: Camera
+	viewCamera:GetPropertyChangedSignal("ViewportSize"):Connect(layoutCard)
+
+	-- Feedback toast: the SAME look as the tutorial alert (dark box, bamboo border, cream bold 14 px, 40 % wide, 36 px tall),
+	-- at the same place: under the coin bar. When the tutorial alert is on screen, the toast stacks right under it (8 px gap).
+	local toastChip = Instance.new("Frame")
+	toastChip.Name = "ToastChip"
+	toastChip.AnchorPoint = Vector2.new(0.5, 0)
+	toastChip.Position = UDim2.new(0.5, 0, 0.12, 0)
+	toastChip.Size = UDim2.new(0.4, 0, 0, 36)
+
+
+	toastChip.BorderSizePixel = 0
+	toastChip.Parent = gui
+	UiKit.parchmentBox(toastChip) -- parchment chip: the same look as the tutorial info line
+	local toast = Instance.new("TextLabel")
+	toast.Name = "ToastLabel"
+	toast.BackgroundTransparency = 1
+	toast.Size = UDim2.new(1, -28, 1, 0)
+	toast.Position = UDim2.fromOffset(14, 0)
+	toast.TextColor3 = UiKit.TEXT -- dark brown ink on parchment
+	toast.Font = Enum.Font.GothamBlack -- heavier weight so the ink reads on the parchment
+	toast.TextSize = 14
 	toast.TextWrapped = true
-	toast.TextSize = 18
 	toast.TextXAlignment = Enum.TextXAlignment.Center
-	toast.Position = UDim2.fromOffset(8, 0)
-	toast.Size = UDim2.new(1, -16, 1, 0)
+	toast.Parent = toastChip
+	-- stack under the tutorial alert when it is visible; otherwise stay at 12 % of the screen height
+	RunService.Heartbeat:Connect(function()
+		local playerGui = player:FindFirstChildOfClass("PlayerGui")
+		local guideUI = playerGui and playerGui:FindFirstChild("GuideUI")
+		local alert = guideUI and guideUI:FindFirstChild("Hint")
+		local view = (Workspace.CurrentCamera :: Camera).ViewportSize
+		local top = view.Y * 0.12
+		if alert and alert:IsA("GuiObject") and alert.Visible then
+			top = alert.AbsolutePosition.Y + alert.AbsoluteSize.Y + 8 -- both screens ignore the top-bar inset: same space
+		end
+		toastChip.Position = UDim2.fromOffset(view.X / 2, top)
+	end)
 	toastChip.Visible = false
 	toast:GetPropertyChangedSignal("Visible"):Connect(function()
 		toastChip.Visible = toast.Visible
 	end)
-	toast.Visible = false
 
 	gui.Parent = playerGui
 	return gui
@@ -274,8 +339,9 @@ end
 local function refresh()
 	local koin = player:GetAttribute("Koin")
 	local bunga = player:GetAttribute("Bunga")
-	koinLabel.Text = if typeof(koin) == "number"
-		then Locale.formatNumber(koin) -- number only: the coin icon says what it is (saves width on phones)
+	local shown = FeedbackController.DisplayKoin() or koin -- while the coin counter counts up, show its value
+	koinLabel.Text = if typeof(shown) == "number"
+		then Locale.formatNumber(shown) -- number only: the coin icon says what it is (saves width on phones)
 		else Locale.t("hud.loading")
 	bungaLabel.Text = if typeof(bunga) == "number"
 		then Locale.formatNumber(bunga)
@@ -493,6 +559,17 @@ function HudController.Start()
 	end
 	Net.Listen("Notify", function(key: any, vars: any)
 		if typeof(key) == "string" then
+			-- Redundant feedback is not shown as text: the soil and the moved bed are seen on screen, a harvest / catch / coin
+			-- gain already FLIES to its place (FeedbackController). "Tanah dicangkul", "Petak dipindah", "+N Koin" and
+			-- "+N kangkung" would only repeat that.
+			if key == "farm.tilled" or key == "farm.moved" or key == "notify.gain" or key == "farm.harvested" then
+				return
+			end
+			if key == "fish.caught" then
+				-- the catch flies from the water (the middle of the screen, where the bobber is) to the Bag
+				local view = (workspace.CurrentCamera :: Camera).ViewportSize
+				FeedbackController.FlyToBag(Vector2.new(view.X / 2, view.Y * 0.45), Color3.fromRGB(60, 140, 176), "~")
+			end
 			HudController.Toast(Locale.t(key, resolveVars(if typeof(vars) == "table" then vars else nil)))
 		end
 	end)

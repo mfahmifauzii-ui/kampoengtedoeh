@@ -292,6 +292,56 @@ local function onLevel(player: Player, uid: any)
 	Net.Fire("Notify", player, "farm.leveled")
 end
 
+-- Pindah: an EMPTY bed moves to another free cell of your own land. Nothing is lost; the bed keeps its soil.
+local function onMove(player: Player, uid: any, cx: any, cz: any)
+	if typeof(uid) ~= "number" or typeof(cx) ~= "number" or typeof(cz) ~= "number" or cx % 1 ~= 0 or cz % 1 ~= 0 then
+		return
+	end
+	local data = DataService.Get(player)
+	local plot = PlotService.GetPlot(player)
+	local origin = plot and plot.PrimaryPart
+	if not data or not plot or not origin then
+		return
+	end
+	local tile = findTile(data, uid)
+	if not tile then
+		return
+	end
+	-- A bed WITH a crop moves too: the tile record keeps its crop, planted time, ready time and watered state, so the
+	-- harvest timer keeps running (nothing is reset). Only the cell changes.
+	local distance = characterDistance(player, tileCFrame(origin, tile.cx, tile.cz).Position)
+	if not distance or distance > Farm.TILL_DISTANCE then
+		Net.Fire("Notify", player, "farm.till_far")
+		return
+	end
+	if cx == tile.cx and cz == tile.cz then
+		return
+	end
+	local others = {}
+	for _, other in data.farm.tiles do
+		if other.uid ~= uid then
+			table.insert(others, other)
+		end
+	end
+	if not Land.canTill(cx, cz, others, decorRects(data), data.land.chunks) then
+		Net.Fire("Notify", player, "farm.move_invalid")
+		return
+	end
+
+	local oldCx, oldCz = tile.cx, tile.cz
+	local part = getTilePart(player, uid)
+	if part then
+		soilState[part] = nil
+		part:Destroy()
+	end
+	paintSoil(origin, oldCx, oldCz, "none")
+	tile.cx, tile.cz = cx, cz
+	makeTilePart(player, getFarmFolder(plot), origin, tile)
+	sync(player, tile)
+	InventoryService.Sync(player)
+	Net.Fire("Notify", player, "farm.moved")
+end
+
 -- Plant / water / harvest ---------------------------------------------------------------
 
 -- Shared validation for every tile request: the uid must be a tile of THIS player and their character close to it.
@@ -479,6 +529,7 @@ function FarmService.Start()
 	Net.On("FarmInstantGrow", onInstantGrow, { rate = 1, burst = 2 })
 	Net.On("FarmTill", onTill, RATE_TILL)
 	Net.On("FarmLevel", onLevel, RATE_TILL)
+	Net.On("FarmMove", onMove, RATE_TILL)
 end
 
 return FarmService

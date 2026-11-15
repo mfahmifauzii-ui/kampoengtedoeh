@@ -155,8 +155,9 @@ local function build(npc: Npcs.Npc)
 	-- The rig looks toward its local -Z; stand.yaw turns it to face the way it should (Config/Npcs).
 	model:PivotTo(miniCFrame or (MapService.TownCFrame(npc.stand.x, npc.stand.y or (Map.TOWN.GROUND_Y + 3), npc.stand.z) * CFrame.Angles(0, npc.stand.yaw, 0)))
 	model.Parent = folder
-	if usedTemplate then
+	if usedTemplate and npc.stand.y == nil then
 		-- Designed rigs differ in height: stand them on whatever floor is under them (stall floor, road, grass).
+		-- An explicit stand.y is a hand-placed spot (Pak Darmo behind the warung roof): the raycast would land on the roof beams.
 		local boxCFrame, boxSize = model:GetBoundingBox()
 		local bottom = boxCFrame.Position.Y - boxSize.Y / 2
 		local params = RaycastParams.new()

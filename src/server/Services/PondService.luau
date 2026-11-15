@@ -54,18 +54,66 @@ local function fill(ground: CFrame, top: number, bottom: number, material: Enum.
 	Workspace.Terrain:FillBlock(ground * CFrame.new(0, (top + bottom) / 2 + drop, 0), Vector3.new(size, top - bottom, size), material)
 end
 
-local function digPond(origin: BasePart, cx: number, cz: number)
-	local ground = pondCFrame(origin, cx, cz)
-	fill(ground, 0, -DEPTH, Enum.Material.Air)
-	fill(ground, Map.RIVER.WATER_Y + Land.SURFACE_OFFSET, -DEPTH, Enum.Material.Water)
-	fill(ground, -DEPTH, -DEPTH - BED, Enum.Material.Sand)
+-- Round pond: the water, the pit and the sand bed are CYLINDERS (Terrain:FillCylinder), so the pond reads as a circle. The
+-- 16 x 16 square stays the placement / data rule; its corners are left as grass.
+local function fillRound(ground: CFrame, top: number, bottom: number, material: Enum.Material)
+	local drop = -Land.SURFACE_OFFSET
+	local radius = Fishing.POND.SIZE / 2 - 0.5
+	Workspace.Terrain:FillCylinder(ground * CFrame.new(0, (top + bottom) / 2 + drop, 0), top - bottom, radius, material)
 end
 
--- Back to what MapService built: sand ground with the green top layer.
+local function digPond(origin: BasePart, cx: number, cz: number)
+	local ground = pondCFrame(origin, cx, cz)
+	fillRound(ground, 0, -DEPTH, Enum.Material.Air)
+	fillRound(ground, Map.RIVER.WATER_Y + Land.SURFACE_OFFSET, -DEPTH, Enum.Material.Water)
+	fillRound(ground, -DEPTH, -DEPTH - BED, Enum.Material.Sand)
+end
+
+-- The visible ground height just OUTSIDE the pond (ray down at 8 points on a ring around it, median). The pond is refilled to
+-- exactly this height, so the spot never ends up as a hill or a hole. Falls back to the default top if nothing is hit.
+local function surroundingTop(origin: BasePart, cx: number, cz: number): number
+	local ground = pondCFrame(origin, cx, cz)
+	local heights = {}
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Include
+	params.FilterDescendantsInstances = { Workspace.Terrain }
+	for index = 0, 7 do
+		local angle = index / 8 * math.pi * 2
+		local at = ground * CFrame.new(math.cos(angle) * 13, 60, math.sin(angle) * 13)
+		local hit = Workspace:Raycast(at.Position, Vector3.new(0, -120, 0), params)
+		if hit then
+			table.insert(heights, hit.Position.Y)
+		end
+	end
+	if #heights == 0 then
+		return origin.Position.Y
+	end
+	table.sort(heights)
+	return heights[math.ceil(#heights / 2)]
+end
+
+-- Back to the ground around it, INSIDE the round pond only: clear everything above the pit, then put sand and the green
+-- top layer back at the same height as the ground around the pond (the visible top = block top + SURFACE_OFFSET).
+-- Back to the ground, in two passes like the Terrain tool's Flatten: (1) refill the round pit with sand and the green top
+-- layer, (2) flatten: cut away everything above the level of the ground around the pond, and fill any hole below it, over the
+-- whole 16 x 16 square. The level comes from a ray down outside the pond, so the spot ends level with its surroundings.
 local function fillPond(origin: BasePart, cx: number, cz: number)
 	local ground = pondCFrame(origin, cx, cz)
-	fill(ground, 0, -Map.GRASS_DEPTH, Enum.Material.Sand)
-	fill(ground, 0, -4, Enum.Material.LeafyGrass)
+	local level = surroundingTop(origin, cx, cz) -- world Y of the ground around the pond
+	local blockTop = level - ground.Position.Y - Land.SURFACE_OFFSET -- block top, relative to the ground (fillRound adds the drop)
+	-- pass 1: refill the round pit
+	fillRound(ground, blockTop + 8, -DEPTH - BED - 1, Enum.Material.Air)
+	fillRound(ground, blockTop, -DEPTH - BED, Enum.Material.Sand)
+	fillRound(ground, blockTop, blockTop - 4, Enum.Material.LeafyGrass)
+	-- pass 2: flatten the square to the level of the ground around it
+	-- voxel level: the rendered surface sits SURFACE_OFFSET above the voxels it is made of (see fillRound), so the flatten
+	-- works on the voxel level level - SURFACE_OFFSET; that is what makes the visible top equal to the ground around it
+	local voxelLevel = level - Land.SURFACE_OFFSET
+	local side = Fishing.POND.SIZE
+	local rotation = ground.Rotation
+	Workspace.Terrain:FillBlock(CFrame.new(ground.Position.X, voxelLevel - 3, ground.Position.Z) * rotation, Vector3.new(side, 6, side), Enum.Material.LeafyGrass)
+	-- the air starts exactly at the level (terrain voxels are 4 studs: a block starting at +0.5 left the 0..4 voxel half grass = a 2-stud dome)
+	Workspace.Terrain:FillBlock(CFrame.new(ground.Position.X, voxelLevel + 4, ground.Position.Z) * rotation, Vector3.new(side, 8, side), Enum.Material.Air)
 end
 
 -- Parts ------------------------------------------------------------------------------------
@@ -96,7 +144,69 @@ local function part(parent: Instance, name: string, size: Vector3, cf: CFrame, c
 	return p
 end
 
--- Look per capacity tier: 0 = plain pit, 1 = stone rim, 2 = stone rim + lily pads + lamp posts.
+-- The rock assets the map already has (Workspace.Map.Nature: every model named "Batu" -- they differ in shape and colour).
+local function rockTemplates(): { Model }
+	local nature = Workspace:FindFirstChild("Map") and Workspace.Map:FindFirstChild("Nature")
+	local list = {}
+	if nature then
+		for _, child in nature:GetChildren() do
+			if child:IsA("Model") and child.Name == "Batu" then
+				table.insert(list, child)
+			end
+		end
+	end
+	return list
+end
+
+-- One stone: a clone of a random map rock, keeping its own proportions (some are already flat), uniformly scaled so its
+-- widest side is `size` studs, and set down so its lowest point rests on the ground at `cf` (no floating stones).
+-- One stone, ALWAYS flat: a clone of a random map rock, scaled so its width is `size` studs and its height is 35 % of that
+-- (every part is squashed in Y around the rock's pivot, so the shape stays a flat slab). It rests on the ground at `cf`, lifted
+-- by `lift` studs: a small different lift per stone stops neighbouring flat tops from z-fighting.
+-- One stone, ALWAYS flat, standing on the ground. A clone of a random map rock is scaled so its widest horizontal side is
+-- `size` studs, then squashed in Y (every part, around the rock's pivot) so its height is 35 % of its width. It is turned to
+-- `cf`'s yaw, then lowered until its lowest point touches the ground at `cf` plus `lift` (a small per-stone lift so flat
+-- tops never sit on the same plane: no z-fighting).
+local function placeRock(templates: { Model }, parent: Instance, cf: CFrame, size: number, lift: number)
+	if #templates == 0 then
+		local height = size * 0.35
+		part(parent, "Stone", Vector3.new(size, height, size), cf * CFrame.new(0, height / 2 + lift, 0), STONE_COLOR, Enum.Material.Slate)
+		return
+	end
+	local rock = templates[math.random(1, #templates)]:Clone()
+	for _, d in rock:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.Anchored = true
+			d.CanCollide = false
+			d.CanQuery = false
+			d.CanTouch = false
+		end
+	end
+	-- 1) width
+	local _, box = rock:GetBoundingBox()
+	rock:ScaleTo(rock:GetScale() * size / math.max(box.X, box.Z, 0.01))
+	-- 2) flatten around the pivot
+	local pivot = rock:GetPivot()
+	local _, now = rock:GetBoundingBox()
+	local squash = (size * 0.35) / math.max(now.Y, 0.01)
+	for _, d in rock:GetDescendants() do
+		if d:IsA("BasePart") then
+			local rel = pivot:ToObjectSpace(d.CFrame)
+			d.Size = Vector3.new(d.Size.X, d.Size.Y * squash, d.Size.Z)
+			d.CFrame = pivot * CFrame.new(rel.Position.X, rel.Position.Y * squash, rel.Position.Z) * rel.Rotation
+		end
+	end
+	-- 3) turn and seat on the ground: put it at the spot with the right yaw, then move it so its lowest point is on the ground
+	local _, yaw, _ = cf:ToEulerAnglesYXZ()
+	rock:PivotTo(CFrame.new(cf.Position.X, 0, cf.Position.Z) * CFrame.Angles(0, yaw, 0))
+	local boundsCFrame, boundsSize = rock:GetBoundingBox()
+	local lowest = boundsCFrame.Position.Y - boundsSize.Y / 2
+	rock:PivotTo(rock:GetPivot() + Vector3.new(0, cf.Position.Y + lift - lowest, 0))
+	rock.Name = "Stone"
+	rock.Parent = parent
+end
+
+-- Look per capacity tier: every pond is round with a rock rim and two lily pads (1); tier 2 adds the lamp posts.
 local function buildLook(plot: Model, entry: Types.PondEntry, tier: number)
 	local origin = plot.PrimaryPart
 	if not origin then
@@ -108,40 +218,41 @@ local function buildLook(plot: Model, entry: Types.PondEntry, tier: number)
 	if old then
 		old:Destroy()
 	end
-	if tier <= 0 then
-		return
-	end
 
 	local look = Instance.new("Folder")
 	look.Name = name
 	local ground = pondCFrame(origin, entry.cx, entry.cz)
 	local half = Fishing.POND.SIZE / 2
 
-	-- Stone rim just outside the water.
-	local ring = half + 1.5
-	for t = -half, half, 4 do
-		part(look, "Stone", Vector3.new(3.4, 1.2, 3.4), ground * CFrame.new(t, 0.6, ring), STONE_COLOR, Enum.Material.Slate)
-		part(look, "Stone", Vector3.new(3.4, 1.2, 3.4), ground * CFrame.new(t, 0.6, -ring), STONE_COLOR, Enum.Material.Slate)
-		if math.abs(t) < half then
-			part(look, "Stone", Vector3.new(3.4, 1.2, 3.4), ground * CFrame.new(ring, 0.6, t), STONE_COLOR, Enum.Material.Slate)
-			part(look, "Stone", Vector3.new(3.4, 1.2, 3.4), ground * CFrame.new(-ring, 0.6, t), STONE_COLOR, Enum.Material.Slate)
-		end
+	-- Stone rim: a ring of the rocks from the map (Map.Nature "Batu" models), round the water, each a different size and turn.
+	local rim = half + 1.2
+	local templates = rockTemplates()
+	-- A tight ring of flat stones touching each other: about one stone per 2.2 studs of arc, each a little wider than that
+	-- spacing, so neighbours overlap at the edges. Each stone gets its own tiny lift (cycling 0.02 / 0.05 / 0.08 studs) so two
+	-- flat tops never sit on exactly the same plane (no z-fighting).
+	local count = 22
+	local circumference = 2 * math.pi * rim
+	for index = 1, count do
+		local angle = (index - 1) / count * math.pi * 2
+		local at = ground * CFrame.new(math.cos(angle) * rim, 0, math.sin(angle) * rim)
+		local size = circumference / count + 0.6 + math.random() * 0.4 -- a bit wider than the arc: they touch
+		local lift = 0.02 + (index % 3) * 0.03
+		placeRock(templates, look, at * CFrame.Angles(0, angle + math.pi / 2 + (math.random() - 0.5) * 0.3, 0), size, lift)
 	end
-
+	-- Two lily pads of different sizes on the surface (a small pond decoration, not a crop).
+	local pads = { { x = 2.2, z = -1.8, d = 2.2 }, { x = -2.6, z = 1.6, d = 3.4 } }
+	for _, pad in pads do
+		local lily = part(
+			look,
+			"Lily",
+			Vector3.new(0.2, pad.d, pad.d),
+			ground * CFrame.new(pad.x, Map.RIVER.WATER_Y + 0.15, pad.z) * CFrame.Angles(0, 0, math.pi / 2),
+			LILY_COLOR,
+			Enum.Material.Grass
+		)
+		lily.Shape = Enum.PartType.Cylinder
+	end
 	if tier >= 2 then
-		-- Lily pads floating on the surface (fixed layout, same for every pond).
-		local pads = { { -4, -3 }, { 3, -5 }, { 5, 2 }, { -2, 4 }, { 0, 0 } }
-		for _, pad in pads do
-			local lily = part(
-				look,
-				"Lily",
-				Vector3.new(0.2, 2.6, 2.6),
-				ground * CFrame.new(pad[1], Map.RIVER.WATER_Y + 0.15, pad[2]) * CFrame.Angles(0, 0, math.pi / 2),
-				LILY_COLOR,
-				Enum.Material.Grass
-			)
-			lily.Shape = Enum.PartType.Cylinder
-		end
 		-- Lamp posts at the four corners (switched on at night like the other lamps).
 		local corner = half + 3
 		for _, sx in { -1, 1 } do

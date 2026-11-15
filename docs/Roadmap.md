@@ -58,7 +58,7 @@ Versi pertama (R2a: 10 lahan 96×96 dalam cincin persegi dengan sungai X) **diga
 **Teruji (Studio, 1 pemain):** harga dan urutan 2.590 → 3.110 → 3.730 → 4.480 (blok ke-4 sampai ke-7); beli ditolak untuk blok milik dan yang tidak menempel; Koin kurang ditolak; tanah jadi rumput terang, pohon di blok disembunyikan, pagar mengikuti tepi blok dengan rapi (bentuk L bersih); garap dan hias hanya di blok milik; blok, petak, dan hutan kembali benar setelah rejoin; UI popup menampilkan harga; migrasi v10 → v11 (refund) dan v11 → v12 (6 chunk lama jadi 3 blok).
 **Belum teruji:** reset lahan saat pemain keluar lalu pemain lain masuk (butuh 2 pemain), `plotSlot` dengan 2 pemain, klik langsung di dunia untuk membeli (jalur beli diuji lewat remote yang sama), HP asli, dan performa saat banyak chunk dibeli.
 ### Perombakan UI sebelum playtest ✅ dikodekan dan dites di Studio (14 Nov 2026)
-Detail dan screenshot di `GUI_Design.md`. Ringkas: menu kanan atas jadi kolom vertikal yang menciut di HP (animasi), uang di tengah atas, semua tombol bulat **tanpa caption** (tooltip hover), kartu pemain dengan bar XP ramping + **3 slot buff** (Segar Bertani, Umpan Wangi, Kenyang; efeknya belum dikodekan), menu Garap bambu gelap dengan badge tutup dan nama baru (**Cangkul, Hijaukan, Gali Kolam, Urug Kolam**), dan beli lahan dipindah ke tombol **+** melayang + popup. Harga chunk dinaikkan ke `250 × 1,06ⁿ`.
+Detail dan screenshot di `GUI_Design.md`. Ringkas: menu kanan atas jadi kolom vertikal yang menciut di HP (animasi), uang di tengah atas, semua tombol bulat **tanpa caption** (tooltip hover), kartu pemain dengan bar XP ramping + **3 slot buff** (Segar Bertani, Umpan Wangi, Kenyang; efeknya belum dikodekan), menu Garap bambu gelap dengan badge tutup dan nama baru (**Cangkul, Hapus Petak, Gali Kolam, Urug Kolam**), dan beli lahan dipindah ke tombol **+** melayang + popup. Harga chunk dinaikkan ke `250 × 1,06ⁿ`.
 **Belum teruji:** HP asli (menu menciut disimulasikan di PC dengan `CompactHud`), ketukan jari pada tombol **+** dan popup, dan tombol Menu bersama joystick/tombol lompat.
 
 **Risiko ekonomi:** tanpa batas petak, simulasi (dengan asumsi +4 petak per blok) mencapai Lv 30 di hari ke-23 (dulu hari 31), dan 15 dari 20 blok terbeli di hari 42, jadi blok efektif menyerap Koin. Perlu data playtest, bukan tebakan.
@@ -76,8 +76,8 @@ Detail teknis: `Tutorial_Engine.md`. `data.guide` bertambah `step{id,n}`, `done`
 **Belum teruji:** lihat bagian "Belum teruji" di `Tutorial_Engine.md`.
 
 ### P1b — Penyederhanaan Garap + penunjuk tombol ✅ dikodekan, dites sebagian di Studio (15 Nov 2026)
-Menu popup Garap (Cangkul / Hijaukan / Gali Kolam / Urug Kolam) **dibuang**. Dua tombol dock: **Garap (Cangkul)** dan **Kolam** (ikon `kolam` yang sudah ada). Alat membaca isi bawah penunjuk: rumput → petak, petak kosong → hijaukan otomatis, petak bertanaman → siram/panen; kolam kosong → gali, kolam ada → urug (dengan konfirmasi). Kotak hijau/oranye + label kecil menunjukkan aksi. Penunjuk tutorial kini menjangkau tombol mana pun (cincin + panah melambung). Detail di `GUI_Design.md`; penilaian gameplay di `Gameplay_Review.md`.
-**Belum teruji:** HP asli (dock 5 tombol di antara joystick dan lompat, tap di dunia vs tombol dock), konfirmasi urug kolam, hijaukan lewat tap sungguhan di HP.
+Menu popup Garap (Cangkul / Hapus Petak / Gali Kolam / Urug Kolam) **dibuang**. Dua tombol dock: **Garap (Cangkul)** dan **Kolam** (ikon `kolam` yang sudah ada). Alat membaca isi bawah penunjuk: rumput → petak, petak kosong → hapus petak otomatis, petak bertanaman → siram/panen; kolam kosong → gali, kolam ada → urug (dengan konfirmasi). Kotak hijau/oranye + label kecil menunjukkan aksi. Penunjuk tutorial kini menjangkau tombol mana pun (cincin + panah melambung). Detail di `GUI_Design.md`; penilaian gameplay di `Gameplay_Review.md`.
+**Belum teruji:** HP asli (dock 5 tombol di antara joystick dan lompat, tap di dunia vs tombol dock), konfirmasi urug kolam, hapus petak lewat tap sungguhan di HP.
 
 ## Gerbang: Playtest #1
 
@@ -119,7 +119,7 @@ Kandidat, bukan komitmen: **mode foto**, **tujuan bersama kampung**, **peternaka
 ---
 
 ### Playtest menyeluruh 1 (15 Nov 2026) ✅ sebagian
-`Playtest_Menyeluruh_1.md`: teks dipangkas, outline teks diperbaiki, 7 role suara baru dan efek suara bisa dimatikan, kamera ngobrol NPC, banner naik level, pisang diperbaiki harganya. Temuan terbuka: pesanan mingguan Lv 1 terlalu besar, XP pesanan awal, NPC yatim, aset 203785492. **Viewport 3D hitam saat capture, jadi visual 3D tidak dilihat ulang.**
+`Playtest_Menyeluruh_1.md`: teks dipangkas, outline teks diperbaiki, 7 role suara baru dan efek suara bisa dimatikan, kamera ngobrol NPC, banner naik level, pisang diperbaiki harganya. Temuan terbuka: pesanan mingguan Lv 1 terlalu besar, XP pesanan awal, NPC yatim. **Viewport 3D hitam saat capture, jadi visual 3D tidak dilihat ulang.**
 
 ### L1a — Bertani bertahap: GUI melayang + animasi + model tanaman ✅ dikodekan, dites di Studio sebagian (15 Nov 2026)
 Pil melayang di atas petak sendiri (`client/FarmFloat`): Kosong → ketuk menanam; Siram + sisa waktu; Panen!; bibit/ketuk hanya muncul untuk petak dekat, maksimal 3, tidak menumpuk. Pemilih bibit = panel bambu standar dengan **model 3D tiap tanaman di kartu** (ViewportFrame, model sama dengan di petak). Animasi: menanam (gali, **VFX di petak**), menyiram (karakter memegang kaleng siram, air mengalir ke petak, percik di petak), panen (kilau di petak). Delapan model tanaman dan dua ikon dari ForgeGUI sudah di-upload dan dipasang (`Aset_Roblox.md`). NPC `bang_tarno` yatim dihapus. Pak Darmo punya model baru (`ServerStorage.NpcModels`).

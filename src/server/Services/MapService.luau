@@ -5,7 +5,7 @@
 -- parts of every plot's reserved square, edge trees and invisible walls.
 -- If Workspace.Map already exists (hand-built map), nothing is generated.
 --
--- Real models: put Models named "Warung", "TokoKota" (town shophouse), "RumahPanggung" in
+-- Real models: put Models named "Warung", "TokoKota" (town shophouse) in
 -- ServerStorage > MapModels. They replace the placeholders automatically. Each is scaled to the
 -- height used here and rotated by its numeric attribute "FrontYaw" (degrees) so its front faces the road.
 --
@@ -1147,40 +1147,6 @@ function MapService.RebuildFence(plotIndex: number, chunks: Land.Chunks?)
 	end
 end
 
--- Plot house ------------------------------------------------------------------------------
-
--- Called by PlotService for every plot it builds. The house is scenery; decor can't be placed on it (Decor.BLOCKED_EXTRA).
-function MapService.AddHouse(plot: Model)
-	local origin = plot.PrimaryPart
-	if not origin then
-		return
-	end
-	local house = Map.HOUSE
-	-- Footprint center on the plot surface; the front (stairs / porch) faces local +Z, toward the road.
-	local cf = origin.CFrame * CFrame.new(house.X, origin.Size.Y / 2, house.Z)
-
-	local template = getTemplate("RumahPanggung")
-	if template then
-		placeTemplate(template, plot, "Rumah", cf, house.HEIGHT)
-		return
-	end
-
-	local model = Instance.new("Model")
-	model.Name = "Rumah"
-	for _, sx in { -1, 1 } do
-		for _, sz in { -1, 1 } do
-			block(model, "Post", Vector3.new(0.8, 3, 0.8), cf * CFrame.new(sx * 5, 1.5, sz * 4.5), C.DARKWOOD, Enum.Material.Wood)
-		end
-	end
-	block(model, "Floor", Vector3.new(12, 0.6, 11), cf * CFrame.new(0, 3.3, 0), C.PLANK, Enum.Material.WoodPlanks)
-	block(model, "Walls", Vector3.new(10, 5, 9), cf * CFrame.new(0, 6.1, 0), C.BAMBOO, Enum.Material.Wood)
-	block(model, "Roof", Vector3.new(14, 0.7, 13), cf * CFrame.new(0, 9.1, 0.2) * CFrame.Angles(math.rad(14), 0, 0), C.TERRACOTTA, Enum.Material.Slate)
-	local door = block(model, "Door", Vector3.new(2.6, 4, 0.3), cf * CFrame.new(-2, 5.6, 4.6), C.DARKWOOD, Enum.Material.Wood)
-	door.CanCollide = false
-	local window = block(model, "Window", Vector3.new(2.8, 2.2, 0.3), cf * CFrame.new(2.6, 6.4, 4.6), C.GLASS, Enum.Material.Glass)
-	window.CanCollide = false
-	model.Parent = plot
-end
 
 -- Lifecycle -------------------------------------------------------------------------------
 
