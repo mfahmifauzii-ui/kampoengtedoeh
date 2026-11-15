@@ -15,7 +15,7 @@ WorldService.RainChanged = Signal.new() -- (raining: boolean)
 WorldService.PhaseChanged = Signal.new() -- (phase: string)
 
 local random = Random.new()
-local cycleStart = os.time() - (WorldClock.phaseOffset("pagi") or 0)
+local cycleStart = os.time() - (WorldClock.offsetForClock(World.START_CLOCK) or 0) -- every new server starts at START_CLOCK
 local rainEndsAt = 0
 local nextRainCheck = 0
 

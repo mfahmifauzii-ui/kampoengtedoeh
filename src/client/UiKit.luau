@@ -1203,6 +1203,12 @@ local function makePlate(parent: GuiObject, size: number, iconKey: string?): Fra
 	return plate
 end
 
+-- The round bamboo plate every round button uses (parchment + bamboo ring, ForgeGUI plate image). Public so floating
+-- buttons (e.g. the land "+") look like the rest of the HUD. `parent` should be a button sized `size` square.
+function UiKit.plate(parent: GuiObject, size: number, iconKey: string?): Frame
+	return makePlate(parent, size, iconKey)
+end
+
 -- Hover tooltip (mouse only): a small dark label next to the button, named by its "TipText" attribute.
 local function tipOf(hud: Instance): TextLabel
 	local existing = hud:FindFirstChild("HudTip")

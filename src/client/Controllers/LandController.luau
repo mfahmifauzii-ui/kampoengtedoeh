@@ -24,6 +24,10 @@ local UiKit = require(script.Parent.Parent.UiKit)
 local VALID_COLOR = Color3.fromRGB(150, 196, 120)
 local NEAR_DISTANCE = 50 -- studs from the character to the chunk's center: closer shows the "+", farther hides it
 local MAX_SHOWN = 3 -- at most this many "+" at once (the nearest ones), so the screen never fills with prompts
+local PLUS_SIZE = 56 -- the round plate, px (same bamboo plate as the HUD buttons)
+local PRICE_GAP = 4 -- px between the plate and the price chip
+local PRICE_WIDTH = 84
+local PRICE_HEIGHT = 26
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
@@ -160,51 +164,41 @@ local function makeEntry(plot: Model, ix: number, iz: number, price: number)
 	gui.Name = `LandBuy_{ix}_{iz}`
 	gui.AnchorPoint = Vector2.new(0.5, 0.5)
 	gui.BackgroundTransparency = 1
-	gui.Size = UDim2.fromOffset(72, 84)
+	gui.Size = UDim2.fromOffset(PLUS_SIZE + 4, PLUS_SIZE + 4 + PRICE_GAP + PRICE_HEIGHT)
 	gui.Visible = false -- the per-frame update below shows it when it is near and on screen
 	gui.Parent = marks
 
+	-- The same round bamboo plate as the HUD buttons (UiKit.plate), with a green "+" on it.
 	local button = Instance.new("TextButton")
 	button.Name = "Plus"
 	button.AnchorPoint = Vector2.new(0.5, 0)
 	button.Position = UDim2.fromScale(0.5, 0)
-	button.Size = UDim2.fromOffset(56, 56)
-	button.BackgroundColor3 = UiKit.BUTTON
-	button.Text = "+"
-	button.TextColor3 = UiKit.CREAM
-	button.Font = UiKit.FONT
-	button.TextSize = 38
-	button.TextStrokeColor3 = Color3.fromRGB(40, 70, 24)
-	button.TextStrokeTransparency = 0.3
-	button.AutoButtonColor = true
+	button.Size = UDim2.fromOffset(PLUS_SIZE, PLUS_SIZE)
+	button.BackgroundTransparency = 1
+	button.Text = ""
+	button.AutoButtonColor = false
 	button.Parent = gui
-	local round = Instance.new("UICorner")
-	round.CornerRadius = UDim.new(1, 0)
-	round.Parent = button
-	local border = Instance.new("UIStroke")
-	border.Color = UiKit.BAMBOO
-	border.Thickness = 3.5
-	border.Parent = button
+	local plate = UiKit.plate(button, PLUS_SIZE)
 
-	local tag = Instance.new("TextLabel")
-	tag.Name = "Price"
-	tag.AnchorPoint = Vector2.new(0.5, 0)
-	tag.Position = UDim2.new(0.5, 0, 0, 60)
-	tag.Size = UDim2.fromOffset(68, 22)
-	tag.BackgroundColor3 = UiKit.DARK
-	tag.BackgroundTransparency = 0.1
+	local sign = Instance.new("TextLabel")
+	sign.Name = "Sign"
+	sign.BackgroundTransparency = 1
+	sign.Size = UDim2.fromScale(1, 1)
+	sign.Text = "+"
+	sign.TextColor3 = UiKit.BUTTON
+	sign.Font = UiKit.FONT
+	sign.TextSize = 36
+	sign.ZIndex = 2
+	sign.Parent = plate
+
+	-- The price in the same cream chip as the HUD's value chips (UiKit.chip), centered under the plate.
+	local tag = UiKit.chip(gui, "Price", nil, PRICE_WIDTH, PRICE_HEIGHT)
+	local tagFrame = tag.Parent :: Frame
+	tagFrame.Position = UDim2.fromOffset((PLUS_SIZE + 4 - PRICE_WIDTH) / 2, PLUS_SIZE + 4 + PRICE_GAP)
+	tag.Position = UDim2.fromOffset(0, 0)
+	tag.Size = UDim2.fromScale(1, 1)
+	tag.TextXAlignment = Enum.TextXAlignment.Center
 	tag.Text = Locale.formatNumber(price)
-	tag.TextColor3 = UiKit.CREAM
-	tag.Font = UiKit.FONT
-	tag.TextSize = 14
-	tag.Parent = gui
-	local tagRound = Instance.new("UICorner")
-	tagRound.CornerRadius = UDim.new(1, 0)
-	tagRound.Parent = tag
-	local tagBorder = Instance.new("UIStroke")
-	tagBorder.Color = UiKit.BAMBOO
-	tagBorder.Thickness = 2
-	tagBorder.Parent = tag
 
 	button.Activated:Connect(function()
 		openPopup(ix, iz)

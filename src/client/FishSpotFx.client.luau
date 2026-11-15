@@ -20,7 +20,6 @@ local PLATE = Color3.fromRGB(44, 30, 20)
 local MARK_RANGE = 110 -- studs: marks only near the player
 local MARK_EVERY = 2.6 -- seconds between fish-mark pairs on one spot
 local MARK_GAP = 0.9 -- seconds between the two rings of a pair
-local DIRECTIONS = 8
 
 type Spot = {
 	part: BasePart,
@@ -136,28 +135,30 @@ local function levelNow(): number
 	return if typeof(level) == "number" then level else 1
 end
 
--- Finds the water in front of the dock tip. The spot sits on the planks, and the planks hide the water under them,
--- so the mark goes just PAST the tip, out over open water (both directions are tried: docks point either way).
+-- Finds the water in front of the dock tip. The spot sits 2 studs inside the planks' tip (MapService sets its "Dir" to the
+-- way the dock points out). The planks hide the water under them, so the mark goes only PAST the tip, out over open water:
+-- we walk outward from the tip and take the first water we hit. Nothing is searched sideways or back toward the land.
+local TIP_DISTANCE = 2 -- studs from the spot's center to the planks' tip
+local REACH = { 1, 2.5, 4, 5.5, 7 } -- studs past the tip to try, in order
+
 local function findWater(part: BasePart): Vector3?
+	local dirValue = part:GetAttribute("Dir")
+	if typeof(dirValue) ~= "Vector3" then
+		return nil
+	end
+	local dir = Vector3.new(dirValue.X, 0, dirValue.Z)
+	if dir.Magnitude < 0.1 then
+		return nil
+	end
+	dir = dir.Unit
+	local tip = part.Position + dir * TIP_DISTANCE
+
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Include
 	params.FilterDescendantsInstances = { Workspace.Terrain }
 	params.IgnoreWater = false
-	local flat = Vector3.new(part.Position.X, 0, part.Position.Z)
-	local out = if flat.Magnitude > 0.1 then flat.Unit else Vector3.new(1, 0, 0)
-	local offsets: { Vector3 } = {}
-	for _, reach in { 5, 7, 9 } do
-		table.insert(offsets, out * reach)
-		table.insert(offsets, -out * reach)
-	end
-	for _, reach in { 4, 8, 12 } do
-		for i = 0, DIRECTIONS - 1 do
-			local a = (i / DIRECTIONS) * math.pi * 2
-			table.insert(offsets, Vector3.new(math.cos(a), 0, math.sin(a)) * reach)
-		end
-	end
-	for _, off in offsets do
-		local origin = part.Position + off + Vector3.new(0, 12, 0)
+	for _, reach in REACH do
+		local origin = tip + dir * reach + Vector3.new(0, 12, 0)
 		local hit = Workspace:Raycast(origin, Vector3.new(0, -48, 0), params)
 		if hit and hit.Material == Enum.Material.Water then
 			return hit.Position + Vector3.new(0, 0.3, 0) -- clear of the water surface, so the ring is not hidden inside it

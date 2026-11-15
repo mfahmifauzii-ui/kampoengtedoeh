@@ -31,6 +31,9 @@ return {
 	CYCLE = CYCLE,
 	CYCLE_SECONDS = total,
 
+	-- Clock hour a new server starts at (each play session begins here, then runs on in real time).
+	START_CLOCK = 10,
+
 	RAIN = {
 		CHECK_INTERVAL = 1200, -- roll every 20 min
 		CHANCE = 0.25,

@@ -593,6 +593,7 @@ local function buildFishing(map: Folder)
 		local spot = block(fishing, `Spot_{location}`, Vector3.new(2, 1, 2), CFrame.new(tip - dir * 2 + Vector3.new(0, 1, 0)), C.PLANK)
 		ghost(spot)
 		spot:SetAttribute("Location", location)
+			spot:SetAttribute("Dir", dir) -- the way the dock points out over the water (client places fish marks past its tip)
 
 		-- The sign (name, level, lock) is drawn by client/FishSpotFx: it depends on the player's level, so it is not baked here.
 	end

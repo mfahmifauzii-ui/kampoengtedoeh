@@ -21,6 +21,24 @@ function WorldClock.at(now: number, cycleStart: number): (string, number, number
 	return last.phase, last.clockTo % 24, 1
 end
 
+-- Seconds into the cycle where the given clock hour (0..24) falls, so a cycle can start at any time of day.
+function WorldClock.offsetForClock(hour: number): number?
+	local offset = 0
+	for _, entry in World.CYCLE do
+		local from = entry.clockFrom
+		local to = entry.clockTo
+		local h = hour
+		if h < from then
+			h += 24
+		end
+		if h >= from and h < to then
+			return offset + (h - from) / (to - from) * entry.minutes * 60
+		end
+		offset += entry.minutes * 60
+	end
+	return nil
+end
+
 -- Seconds into the cycle where `phase` starts.
 function WorldClock.phaseOffset(phase: string): number?
 	local offset = 0
