@@ -52,7 +52,12 @@ function Sfx.play(role: string, parent: Instance?, pitchVary: number?): Sound?
 		if pitchVary and pitchVary > 0 then
 			clone.PlaybackSpeed = 1 + (math.random() * 2 - 1) * pitchVary
 		end
-		clone.Parent = parent or SoundService
+		-- Client: route through the "sfx" group (AudioController) so Atur > Efek suara really mutes it.
+			local group = SoundService:FindFirstChild("KT_sfx")
+			if group and group:IsA("SoundGroup") then
+				clone.SoundGroup = group
+			end
+			clone.Parent = parent or SoundService
 		clone:Play()
 		if not entry.looped then
 			Debris:AddItem(clone, entry.length / math.max(clone.PlaybackSpeed, 0.01) + TAIL)

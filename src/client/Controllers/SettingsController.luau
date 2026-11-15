@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
+local GuideController = require(script.Parent.GuideController)
 local State = require(script.Parent.Parent.State)
 local UiKit = require(script.Parent.Parent.UiKit)
 
@@ -14,6 +15,29 @@ local KEYS = { "music", "ambient", "sfx" }
 local SettingsController = {}
 
 local panel: UiKit.Panel
+local guidePanel: UiKit.Panel
+
+-- Atur > Panduan: every tutorial with its state; tap "Ulang" to run it again (no rewards).
+local function renderGuide()
+	if not guidePanel.gui.Enabled then
+		return
+	end
+	UiKit.clear(guidePanel.list)
+	local entries = GuideController.List()
+	if #entries == 0 then
+		UiKit.row(guidePanel.list, 1, Locale.t("tut.list_empty"), nil, nil, false, nil)
+		return
+	end
+	local busy = GuideController.IsRunning()
+	for order, entry in entries do
+		UiKit.row(guidePanel.list, order, Locale.t(entry.title), Locale.t(`tut.state.{entry.state}`), Locale.t("tut.replay"), not busy, function()
+			if GuideController.Replay(entry.id) then
+				guidePanel.gui.Enabled = false
+				panel.gui.Enabled = false
+			end
+		end)
+	end
+end
 
 local function render()
 	if not panel.gui.Enabled then
@@ -22,22 +46,69 @@ local function render()
 	UiKit.clear(panel.list)
 	local snapshot = State.current :: any
 	local settings = snapshot and snapshot.settings or {}
+	-- Two columns of cards: name on the left, a switch on the right (green + knob right = on). No "Nyala/Mati" words to decode.
+	local grid = UiKit.grid(panel.list, 1, 2, 52)
+	local ICONS = { music = "bintang", ambient = "bunga", sfx = "koin" }
+	local function card(order: number, text: string, accent: Color3): Frame
+		local cell = Instance.new("Frame")
+		cell.LayoutOrder = order
+		cell.BackgroundColor3 = if order % 2 == 0 then UiKit.ROW_ALT else UiKit.ROW
+		cell.Parent = grid
+		local round = Instance.new("UICorner")
+		round.CornerRadius = UDim.new(0, 10)
+		round.Parent = cell
+		local line = Instance.new("UIStroke")
+		line.Color = Color3.fromRGB(222, 200, 154)
+		line.Thickness = 1.5
+		line.Parent = cell
+		UiKit.accentStripe(cell, accent)
+		local label = Instance.new("TextLabel")
+		label.BackgroundTransparency = 1
+		label.Position = UDim2.fromOffset(18, 0)
+		label.Size = UDim2.new(1, -90, 1, 0)
+		label.TextXAlignment = Enum.TextXAlignment.Left
+		label.Font = UiKit.FONT
+		label.TextSize = 15
+		label.TextColor3 = UiKit.TEXT
+		label.Text = text
+		label.Parent = cell
+		return cell
+	end
+	local accents = { UiKit.CAT.decor, UiKit.CAT.crop, UiKit.CAT.fish }
 	for order, key in KEYS do
 		local on = settings[key] ~= false
-		UiKit.row(panel.list, order, Locale.t(`settings.{key}`), nil, Locale.t(if on then "settings.on" else "settings.off"), true, function()
-			Net.Send("SettingsSet", key, not on)
+		local cell = card(order, Locale.t(`settings.{key}`), accents[order])
+		UiKit.switch(cell, on, function(value)
+			Net.Send("SettingsSet", key, value)
 		end)
 	end
+	local guide = card(#KEYS + 1, Locale.t("settings.guide"), UiKit.CAT.tool)
+	local open = UiKit.button(guide, "Open", Locale.t("settings.guide_open"), UiKit.BUTTON)
+	open.AnchorPoint = Vector2.new(1, 0.5)
+	open.Position = UDim2.new(1, -8, 0.5, 0)
+	open.Size = UDim2.fromOffset(66, 32)
+	open.TextSize = 14
+	open.Activated:Connect(function()
+		guidePanel.gui.Enabled = true
+		renderGuide()
+	end)
 end
 
 function SettingsController.Init()
 	panel = UiKit.panel("SettingsPanel", Locale.t("ui.settings"), function()
 		panel.gui.Enabled = false
 	end)
+	guidePanel = UiKit.panel("GuidePanel", Locale.t("ui.guide"), function()
+		guidePanel.gui.Enabled = false
+	end)
 end
 
 function SettingsController.Start()
-	State.Changed:Connect(render)
+	State.Changed:Connect(function()
+		render()
+		renderGuide()
+	end)
+	GuideController.Changed:Connect(renderGuide)
 	task.spawn(UiKit.hudButton, "SettingsButton", Locale.t("ui.settings"), 5, function()
 		panel.gui.Enabled = not panel.gui.Enabled
 		render()

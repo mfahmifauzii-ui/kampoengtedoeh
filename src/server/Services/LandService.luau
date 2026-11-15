@@ -55,7 +55,7 @@ local function onBuy(player: Player, ix: any, iz: any)
 		return
 	end
 	local chunks = data.land.chunks
-	if not Land.canBuyChunk(ix, iz, chunks) then
+	if not Land.canBuyChunk(ix, iz, chunks, Plots.INWARD(plotIndex)) then
 		Net.Fire("Notify", player, "land.invalid")
 		return
 	end

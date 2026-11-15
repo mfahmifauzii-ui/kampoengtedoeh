@@ -71,6 +71,14 @@ Temuan di `Playtest_AI_Persona_1.md`. Diperbaiki: Garap tidak lagi menelan ketuk
 Toko kota versi bisa diwarnai di Roblox (`Config/ShopPalette`, belum di-upload); VFX hadiah + ambient (`AmbientFx`, kilau tanaman siap panen); model tanaman dari Part (`Shared/CropBuilder`); seed picker bergaya UiKit; temuan persona 6–9 ditutup; duplikat skrip di Studio dihapus.
 **Belum teruji:** tampilan di layar (screenshot Studio timeout), mancing penuh dari dermaga baru, HP asli.
 
+### P1 — Mesin tutorial ✅ dikodekan dan dites di Studio (15 Nov 2026)
+Detail teknis: `Tutorial_Engine.md`. `data.guide` bertambah `step{id,n}`, `done`, `skipped`, `fastLeft` (lewat Reconcile, tanpa migrasi); `TutorialService` (server) menyimpan langkah, membayar hadiah, mencatat analytics, dan menjalankan bibit cepat (6 penanaman pertama save baru tumbuh 20 d, 16 d bila disiram); `GuideController` menjalankan banyak tutorial dari `Config/Onboarding.TUTORIALS` (satu aktif, antrean jeda 120 d, simpan dan lanjut per langkah, tombol Lewati, cincin berdenyut di tombol HUD, deteksi macet 45/90 d); Atur > Panduan untuk mengulang tanpa hadiah. **Isi T1 belum ada** (P2); hanya tutorial tes khusus Studio (`TEST_TUTORIAL`, `auto = false`). Sprint dibatalkan.
+**Belum teruji:** lihat bagian "Belum teruji" di `Tutorial_Engine.md`.
+
+### P1b — Penyederhanaan Garap + penunjuk tombol ✅ dikodekan, dites sebagian di Studio (15 Nov 2026)
+Menu popup Garap (Cangkul / Hijaukan / Gali Kolam / Urug Kolam) **dibuang**. Dua tombol dock: **Garap (Cangkul)** dan **Kolam** (ikon `kolam` yang sudah ada). Alat membaca isi bawah penunjuk: rumput → petak, petak kosong → hijaukan otomatis, petak bertanaman → siram/panen; kolam kosong → gali, kolam ada → urug (dengan konfirmasi). Kotak hijau/oranye + label kecil menunjukkan aksi. Penunjuk tutorial kini menjangkau tombol mana pun (cincin + panah melambung). Detail di `GUI_Design.md`; penilaian gameplay di `Gameplay_Review.md`.
+**Belum teruji:** HP asli (dock 5 tombol di antara joystick dan lompat, tap di dunia vs tombol dock), konfirmasi urug kolam, hijaukan lewat tap sungguhan di HP.
+
 ## Gerbang: Playtest #1
 
 Jangan tambah fitur baru sebelum ini. Isi: `Playtest_Plan.md`.
@@ -79,6 +87,13 @@ Jangan tambah fitur baru sebelum ini. Isi: `Playtest_Plan.md`.
 - Keluar dari gerbang dengan daftar perbaikan, bukan daftar fitur.
 
 ## R3 — Hadiah, Upgrade, Toko (dari rencana Fase 17 yang masih dipakai)
+
+**Status: semua tahap dikodekan (17.0, 17.3, 17.4, 17.7, 17.5, 17.6). Belum dites di HP asli, 2+ pemain, atau dengan save v12 asli.** Diuji di Studio: server start tanpa error, panel Hadiah / Koleksi / Toko tampil dengan data sungguhan, migrasi v12 → v13 (uji lewat skrip), kompilasi semua modul.
+- **Keputusan sementara (asumsi, perlu playtest):** peti main 5 / 10 / 20 / 30 / 45 / 60 menit (koin 50, 75, pelet 5, bunga 1, koin 150, bunga 2); aktif = karakter bergerak ≥ 1 stud tiap 10 detik.
+- **Lahan tidak dibuat sebagai upgrade tingkat.** Lahan dibeli per blok (R2b); upgrade yang ada: Tas, Kolam, Kapasitas Warung.
+- **Toko:** tab Paket (Tas Ekstra, Kolam 2×, Diskon Lahan), Koin, Bunga, Hias (Hias Lebih Banyak + Langsung Panen).
+- **Koleksi:** hadiah kategori dan milestone sekarang diklaim manual (`BookClaim`). Tidak perlu migrasi: klaim lama sudah tercatat `claimed`.
+- **Migrasi v13:** `backpackTier`, `pond.tier`, `sales.tier` pindah ke `upgrades{backpack,pond,warung}`; `playtime` baru.
 
 Urutan: 17.0 → 17.3 → 17.4 → 17.7 → 17.5 → 17.6.
 - **17.0 Fondasi GUI:** `UiKit.tabs`, `productCard`, `progressDots`, `notifyDot`, `rewardPopup`; aset ForgeGUI (hemat kredit, cek `assets/gui` dulu): ikon hadiah, kalender, upgrade, titik notifikasi, kartu produk, tab.
@@ -102,6 +117,23 @@ Ulangi playtest dengan build R3–R4.
 Kandidat, bukan komitmen: **mode foto**, **tujuan bersama kampung**, **peternakan ayam**, **warung pemain + masak + buff**, **hadiah teman**, **kucing**, **rumah Tahap A lalu B**, **hias v2** (grid + highlight dulu, undo/redo dan tampak atas belakangan), **tinggal bareng**.
 
 ---
+
+### Playtest menyeluruh 1 (15 Nov 2026) ✅ sebagian
+`Playtest_Menyeluruh_1.md`: teks dipangkas, outline teks diperbaiki, 7 role suara baru dan efek suara bisa dimatikan, kamera ngobrol NPC, banner naik level, pisang diperbaiki harganya. Temuan terbuka: pesanan mingguan Lv 1 terlalu besar, XP pesanan awal, NPC yatim, aset 203785492. **Viewport 3D hitam saat capture, jadi visual 3D tidak dilihat ulang.**
+
+### L1a — Bertani bertahap: GUI melayang + animasi + model tanaman ✅ dikodekan, dites di Studio sebagian (15 Nov 2026)
+Pil melayang di atas petak sendiri (`client/FarmFloat`): Kosong → ketuk menanam; Siram + sisa waktu; Panen!; bibit/ketuk hanya muncul untuk petak dekat, maksimal 3, tidak menumpuk. Pemilih bibit = panel bambu standar dengan **model 3D tiap tanaman di kartu** (ViewportFrame, model sama dengan di petak). Animasi: menanam (gali, **VFX di petak**), menyiram (karakter memegang kaleng siram, air mengalir ke petak, percik di petak), panen (kilau di petak). Delapan model tanaman dan dua ikon dari ForgeGUI sudah di-upload dan dipasang (`Aset_Roblox.md`). NPC `bang_tarno` yatim dihapus. Pak Darmo punya model baru (`ServerStorage.NpcModels`).
+**Belum:** model NPC lain (Bu Wati, Mas Joko, Mbok Minah, Mbak Arsi, Bang Tarno) dan penilaian visual model Pak Darmo/tanaman di kamera game; tekstur tanaman tampak pucat di petak (diperiksa: tekstur hijau benar, kemungkinan pencahayaan/Overlay alpha); kamera ngobrol Pak Darmo dari depan stall belum dites ulang setelah tabrakan kamera ditambah; tombol Siram untuk ikon baru belum dilihat di layar (ikon fallback `kolam` tampil sampai gambar termuat).
+
+### L1b — Perbaikan umpan balik (15 Nov 2026)
+Tanaman abu-abu: penyebabnya **normal map** hasil ForgeGUI yang terlalu kuat di cahaya game (bukan warna); NormalMap, MetalnessMap, RoughnessMap dikosongkan di `CropModels`. Ukuran tanaman diperbesar (kangkung 2,2 → 4 stud, jagung 5 → 8, pisang 6 → 9, dst.). Kaleng siram dibenarkan arahnya (tanpa rotasi ekstra; moncong ke depan). Pil melayang dikecilkan (132×38), label Garap (92×22), papan titik pancing (124×36, jarak 45 stud). GUI mancing dibangun ulang bergaya bambu (kartu Status + Reel dengan jalur air, zona hijau, ikon ikan, tombol Tarik! UiKit). Dites: kangkung hijau dan besar, kaleng di tangan menuang ke petak, kartu Reel tampil.
+**Belum:** cabai masih tampak gelap keabuan di petak (kemungkinan tekstur/UV, tertutup pil saat dicek); papan titik pancing dan kartu Status belum dilihat; model NPC lain (lihat `Aset_Roblox.md`).
+
+### Perombakan daftar GUI (15 Nov 2026)
+`UIUX_Spec.md`: alasan UX, warna per kategori, komponen baru, hasil. Tas, Koleksi, Atur, Toko NPC sudah dipadatkan; Pesanan, Hadiah, Warga, Toko Robux masih gaya lama.
+
+## Penilaian gameplay (15 Nov 2026)
+`Gameplay_Review.md`: loop inti tidak busuk tapi terlalu banyak ketukan dan sedikit keputusan; usulan L1 (tanam/panen/siram sekali ketuk), L2 (variasi waktu tumbuh), L3 (sink Koin), L4 (alasan ke alun-alun). Menunggu persetujuan urutan.
 
 ## Keputusan terbuka
 

@@ -16,6 +16,7 @@ local Crops = require(ReplicatedStorage.Shared.Config.Crops)
 local Farm = require(ReplicatedStorage.Shared.Config.Farm)
 local DecorGrid = require(ReplicatedStorage.Shared.Modules.DecorGrid)
 local Land = require(ReplicatedStorage.Shared.Modules.Land)
+local Onboarding = require(ReplicatedStorage.Shared.Config.Onboarding)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
@@ -25,6 +26,7 @@ local ProgressionService = require(script.Parent.ProgressionService)
 local BookService = require(script.Parent.BookService)
 local WorldService = require(script.Parent.WorldService)
 local MonetizationService = require(script.Parent.MonetizationService)
+local TutorialService = require(script.Parent.TutorialService)
 local AnalyticsHooks = require(script.Parent.AnalyticsHooks)
 
 local TILE_TAG = "FarmTile"
@@ -358,6 +360,11 @@ local function onPlant(player: Player, uid: any, cropId: any)
 	tile.fast = if unggul then true else nil
 	tile.plantedAt = now
 	tile.readyAt = now + math.floor(crop.growSeconds * (if unggul then Farm.SEED_UNGGUL_GROW_MULT else 1))
+	-- Tutorial seeds: the first plantings of a new save grow fast (data.guide.fastLeft); later ones use the normal timer.
+	if TutorialService.ConsumeFast(player) then
+		tile.readyAt = now + Onboarding.FAST_GROW_SECONDS
+		InventoryService.Sync(player) -- fastLeft is in the snapshot
+	end
 	tile.watered = false
 	tile.harvestsLeft = crop.regrows
 	if WorldService.IsRaining() then

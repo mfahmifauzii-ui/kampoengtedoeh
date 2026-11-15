@@ -243,6 +243,7 @@ local function confirm()
 		endPlacing()
 	else
 		Net.Send("DecorPlace", state.item.id, state.x, state.z, state.r)
+		require(ReplicatedStorage.Shared.Sfx).play("place_item")
 		-- Keep the ghost for the next one; it turns red once the server model occupies the cell.
 		task.delay(0.3, refreshGhost)
 	end

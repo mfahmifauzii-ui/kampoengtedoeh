@@ -9,9 +9,18 @@
 -- step with the game: ripe bed -> "harvest", crops in the bag -> "sell", and so on.
 -- While Garap mode is open the guide stays quiet: Garap has its own hint line in the same place.
 --
--- UI CONTRACT: ScreenGui "GuideUI" > TextLabel "Hint"; the trail is the Folder "GuideTrail" in Workspace (client only).
+-- TUTORIAL ENGINE (on top of the above): runs the tutorials of Config/Onboarding TUTORIALS, one at a time. While one runs
+-- it owns the hint bar (text of the current step, a small "Lewati" button), the ground trail (step.target), and a pulsing ring on
+-- a HUD button (step.highlight); the old guide stays quiet. Steps are NEVER blocking: every step whose condition already
+-- holds is ticked at once, conditions are ">=". The server (TutorialService) saves the step counter, pays rewards and logs
+-- analytics; this side only watches the world and asks. No progress for 45 s = stronger ring, 90 s = the explicit text.
+-- Replay (Atur > Panduan) runs the same steps with no save and no reward.
+--
+-- UI CONTRACT: ScreenGui "GuideUI" > TextLabel "Hint" (> TextButton "Skip"); the trail is the Folder "GuideTrail" in Workspace
+-- (client only); the ring is a Frame "GuideRing" parented to the highlighted HUD button.
 
 local CollectionService = game:GetService("CollectionService")
+local GuiService = game:GetService("GuiService")
 local PathfindingService = game:GetService("PathfindingService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -21,6 +30,8 @@ local Workspace = game:GetService("Workspace")
 local Crops = require(ReplicatedStorage.Shared.Config.Crops)
 local Onboarding = require(ReplicatedStorage.Shared.Config.Onboarding)
 local Locale = require(ReplicatedStorage.Shared.Locale)
+local Net = require(ReplicatedStorage.Shared.Modules.Net)
+local Signal = require(ReplicatedStorage.Shared.Modules.Signal)
 local GarapController = require(script.Parent.GarapController)
 local State = require(script.Parent.Parent.State)
 local UiKit = require(script.Parent.Parent.UiKit)
@@ -49,7 +60,30 @@ local chevrons: { { model: Model, parts: { BasePart } } } = {}
 local route: { Vector3 } = {} -- walking route from the last path computation (ground-ish points, start to goal)
 local pathing = false
 
-local step = "none" -- "harvest" | "sell" | "water" | "plant" | "wait" | "till" | "buy" | "none"
+local step = "none" -- old guide: "harvest" | "sell" | "water" | "plant" | "wait" | "till" | "buy" | "none"
+
+-- Tutorial engine state -------------------------------------------------------------------------
+type Running = {
+	def: Onboarding.Tutorial,
+	n: number, -- steps done
+	replay: boolean,
+	stepAt: number, -- os.clock() when the current step became current
+	progressAt: number, -- os.clock() of the last progress (stuck timers)
+	introUntil: number,
+}
+local running: Running? = nil
+local lastFinish: number? = nil -- os.clock() when the last tutorial ended (queue gap)
+local firstSnapshotAt: number? = nil
+local closed: { [string]: string } = {} -- "done" | "skipped" in this session (the snapshot may still be stale)
+local defs: { Onboarding.Tutorial } = {}
+local defById: { [string]: Onboarding.Tutorial } = {}
+local skipButton: TextButton
+local hintPad: UIPadding
+local ring: Frame? = nil
+local ringFor: string? = nil
+local ringStrong = false
+
+GuideController.Changed = Signal.new() -- () a tutorial started or ended
 
 local function snapshot(): any
 	return State.current
@@ -93,10 +127,10 @@ local function hasInBag(snap: any, test: (itemId: string) -> boolean): boolean
 end
 
 local function computeStep(): string
-	if not active() then
+	local snap = snapshot()
+	if not snap then
 		return "none"
 	end
-	local snap = snapshot()
 	local beds, ripe, thirsty, growing, empty = bedStates()
 	local crops = hasInBag(snap, function(itemId)
 		return Crops.byId[itemId] ~= nil
@@ -104,6 +138,14 @@ local function computeStep(): string
 	local seeds = hasInBag(snap, function(itemId)
 		return itemId:match("^seedx?_") ~= nil
 	end)
+	if not active() then
+		-- After the first sale trips the guide is quiet, except for the one thing that stops the loop dead: no bibit and nothing
+		-- growing. (The beds and the "Siram / Panen" pills say the rest.)
+		if beds > 0 and not seeds and not growing and not ripe and not crops then
+			return "buy"
+		end
+		return "none"
+	end
 	if ripe then
 		return "harvest"
 	elseif crops then
@@ -122,11 +164,15 @@ local function computeStep(): string
 	return "none"
 end
 
-local function npcRoot(): BasePart?
+local function npcRootOf(npcId: string): BasePart?
 	local folder = Workspace:FindFirstChild("Npcs")
-	local model = folder and folder:FindFirstChild(Onboarding.BUYER_NPC)
+	local model = folder and folder:FindFirstChild(npcId)
 	local root = model and model:FindFirstChild("HumanoidRootPart")
 	return if root and root:IsA("BasePart") then root else nil
+end
+
+local function npcRoot(): BasePart?
+	return npcRootOf(Onboarding.BUYER_NPC)
 end
 
 local function myRoot(): BasePart?
@@ -136,7 +182,18 @@ local function myRoot(): BasePart?
 end
 
 -- Hint text + whether the arrow shows, for the current step.
+local refreshTutorial: () -> ()
+local findHighlight: (name: string) -> GuiObject?
+
 local function refresh()
+	if running then
+		step = "none"
+		refreshTutorial()
+		return
+	end
+	skipButton.Visible = false
+	hintPad.PaddingRight = UDim.new(0, 14)
+	hint.Position = UDim2.new(0.5, 0, 0, 62)
 	step = computeStep()
 	local npcName = Locale.t(`npc.{Onboarding.BUYER_NPC}`)
 	local text: string? = nil
@@ -156,7 +213,7 @@ local function refresh()
 		if near then
 			text = Locale.t("guide.talk", { npc = npcName })
 		else
-			text = Locale.t(if step == "sell" then "guide.sell" else "guide.buy", { npc = npcName })
+			text = Locale.t(if step == "sell" then "guide.sell" elseif active() then "guide.buy" else "guide.buy_plain", { npc = npcName })
 		end
 	end
 	hint.Visible = text ~= nil and not GarapController.Active
@@ -213,14 +270,45 @@ local function hideTrail()
 	end
 end
 
--- Asks for a walking route to the buyer (so the trail crosses the bridges, not the canal). Falls back to a straight line.
-local function computeRoute()
-	local root, npc = myRoot(), npcRoot()
-	if pathing or not root or not npc then
+type Goal = { key: string, target: Vector3, point: Vector3, radius: number }
+local routeKey = ""
+
+-- Where the trail leads right now: the current tutorial step's target, else (old guide) the buyer when there is something to sell/buy.
+local function currentGoal(): Goal?
+	if running then
+		local current = running.def.steps[running.n + 1]
+		local target = current and current.target
+		if not current or not target then
+			return nil
+		end
+		local radius = current.arrive or 25
+		if target.npc then
+			local npc = npcRootOf(target.npc)
+			if npc then
+				return { key = `npc:{target.npc}`, target = npc.Position, point = goalPoint(npc), radius = radius }
+			end
+		elseif target.pos then
+			return { key = `pos:{target.pos}`, target = target.pos, point = target.pos, radius = radius }
+		end
+		return nil
+	end
+	if (step == "sell" or step == "buy") and active() then -- the ground arrow is for the first trips only
+		local npc = npcRoot()
+		if npc then
+			return { key = `npc:{Onboarding.BUYER_NPC}`, target = npc.Position, point = goalPoint(npc), radius = ARRIVED_DISTANCE }
+		end
+	end
+	return nil
+end
+
+-- Asks for a walking route to the goal (so the trail crosses the bridges, not the canal). Falls back to a straight line.
+local function computeRoute(wanted: Goal)
+	local root = myRoot()
+	if pathing or not root then
 		return
 	end
 	pathing = true
-	local from, goal = root.Position, goalPoint(npc)
+	local from, goal, key = root.Position, wanted.point, wanted.key
 	task.spawn(function()
 		local points: { Vector3 } = {}
 		local path = PathfindingService:CreatePath({ AgentRadius = 2, AgentHeight = 5, AgentCanJump = true })
@@ -236,6 +324,7 @@ local function computeRoute()
 			points = { from, goal }
 		end
 		route = points
+		routeKey = key
 		pathing = false
 	end)
 end
@@ -243,15 +332,14 @@ end
 -- Every frame: lays the chevrons along the route ahead of the player, sliding toward the goal. They sit on the ground (a ray
 -- down from each spot) and fade in near the player and out toward the far end.
 local function placeTrail()
-	local root, npc = myRoot(), npcRoot()
-	local pointing = (step == "sell" or step == "buy") and root ~= nil and npc ~= nil and #route >= 2
-	if not pointing then
+	local root, goal = myRoot(), currentGoal()
+	if not root or not goal or routeKey ~= goal.key or #route < 2 then
 		hideTrail()
 		return
 	end
-	local here = (root :: BasePart).Position
-	if (here - (npc :: BasePart).Position).Magnitude <= ARRIVED_DISTANCE then
-		hideTrail() -- he is right here: the E prompt and his name tag do the rest
+	local here = root.Position
+	if (here - goal.target).Magnitude <= goal.radius then
+		hideTrail() -- arrived: the E prompt / the next step do the rest
 		return
 	end
 
@@ -298,7 +386,7 @@ local function placeTrail()
 		local point = line[seg]:Lerp(line[seg + 1], math.clamp((s - lengths[seg]) / span, 0, 1))
 		local direction = flat(line[seg + 1] - line[seg])
 		if direction.Magnitude < 1e-3 then
-			direction = flat((npc :: BasePart).Position - here)
+			direction = flat(goal.target - here)
 		end
 		direction = direction.Unit
 
@@ -326,10 +414,370 @@ local function darkBox(frame: GuiObject, radius: number)
 	local border = Instance.new("UIStroke")
 	border.Color = UiKit.BAMBOO
 	border.Thickness = 3
+	border.ApplyStrokeMode = Enum.ApplyStrokeMode.Border -- on a TextLabel the default (Contextual) outlines the LETTERS in gold
 	border.Parent = frame
 end
 
+-- Tutorial engine ---------------------------------------------------------------------------------
+
+local function guideData(): any
+	local snap = snapshot()
+	return snap and snap.guide
+end
+
+local function isFinished(id: string): boolean
+	local guide = guideData()
+	return closed[id] ~= nil or (guide ~= nil and (guide.done[id] == true or guide.skipped[id] == true))
+end
+
+local function ownedBeds(): { BasePart }
+	local beds = {}
+	for _, instance in CollectionService:GetTagged(TILE_TAG) do
+		if instance:IsA("BasePart") and instance:GetAttribute("Owner") == player.UserId then
+			table.insert(beds, instance)
+		end
+	end
+	return beds
+end
+
+local function countBeds(test: (bed: BasePart, now: number) -> boolean): number
+	local now, count = Workspace:GetServerTimeNow(), 0
+	for _, bed in ownedBeds() do
+		if test(bed, now) then
+			count += 1
+		end
+	end
+	return count
+end
+
+-- True when the condition holds (always ">=": more than asked is fine).
+local function evalCondition(condition: Onboarding.Condition): boolean
+	local need = condition.n or 1
+	local kind = condition.kind
+	if kind == "always" then
+		return true
+	elseif kind == "tiles" then
+		return #ownedBeds() >= need
+	elseif kind == "planted" then
+		return countBeds(function(bed)
+			return bed:GetAttribute("Crop") ~= nil
+		end) >= need
+	elseif kind == "watered" then
+		return countBeds(function(bed)
+			return bed:GetAttribute("Crop") ~= nil and bed:GetAttribute("Watered") == true
+		end) >= need
+	elseif kind == "ripe" then
+		return countBeds(function(bed, now)
+			local readyAt = bed:GetAttribute("ReadyAt")
+			return bed:GetAttribute("Crop") ~= nil and typeof(readyAt) == "number" and now >= readyAt
+		end) >= need
+	elseif kind == "item" then
+		local snap, total = snapshot(), 0
+		local prefix = condition.id or ""
+		local items = if snap then snap.items or {} else {}
+		for itemId, count in items do
+			if itemId:sub(1, #prefix) == prefix then
+				total += count
+			end
+		end
+		return total >= need
+	elseif kind == "level" then
+		local level = player:GetAttribute("Level")
+		return typeof(level) == "number" and level >= need
+	elseif kind == "near" then
+		local root, npc = myRoot(), npcRootOf(condition.id or "")
+		return root ~= nil and npc ~= nil and (root.Position - npc.Position).Magnitude <= (condition.dist or 25)
+	elseif kind == "panel" then
+		local panel = player:WaitForChild("PlayerGui"):FindFirstChild(condition.id or "")
+		return panel ~= nil and panel:IsA("ScreenGui") and panel.Enabled
+	elseif kind == "garap" then
+		return GarapController.Active
+	end
+	warn(`[Guide] unknown condition kind {kind}`)
+	return false
+end
+
+local function triggerHolds(trigger: Onboarding.Trigger): boolean
+	local guide = guideData()
+	if trigger.kind == "newPlayer" then
+		return guide ~= nil and guide.fresh == true
+	elseif trigger.kind == "level" then
+		local level = player:GetAttribute("Level")
+		return typeof(level) == "number" and level >= (trigger.n or 1)
+	elseif trigger.kind == "done" then
+		return trigger.id ~= nil and isFinished(trigger.id)
+	end
+	return false -- "manual" and anything unknown never starts by itself
+end
+
+local function beginTutorial(def: Onboarding.Tutorial, n: number, replay: boolean)
+	local now = os.clock()
+	running = {
+		def = def,
+		n = n,
+		replay = replay,
+		stepAt = now,
+		progressAt = now,
+		introUntil = if n == 0 and def.intro then now + 4 else 0,
+	}
+	GuideController.Changed:Fire()
+	refresh()
+end
+
+local function clearRing()
+	if ring then
+		ring:Destroy()
+		ring = nil
+	end
+	ringFor = nil
+end
+
+local function endTutorial()
+	running = nil
+	lastFinish = os.clock()
+	clearRing()
+	GuideController.Changed:Fire()
+	refresh()
+end
+
+-- Garap and Decor mode show their own hint line at the top: the tutorial bar goes just under it (GuideUI ignores the inset, they do not).
+local function hintTop(): number
+	local top = 62
+	local playerGui = player:FindFirstChildOfClass("PlayerGui")
+	for _, name in { "GarapUI", "DecorUI" } do
+		local other = playerGui and playerGui:FindFirstChild(name)
+		local line = other and other:FindFirstChild("Hint")
+		local shown = other ~= nil and other:IsA("ScreenGui") and other.Enabled
+		if shown and line and line:IsA("GuiObject") and line.Visible then
+			top = math.max(top, line.AbsolutePosition.Y + line.AbsoluteSize.Y + GuiService:GetGuiInset().Y + 6)
+		end
+	end
+	return top
+end
+
+-- A button (or any GuiObject) by name in any open screen: the HUD, or a panel/bar such as Garap's "TillButton".
+function findHighlight(name: string): GuiObject?
+	local playerGui = player:FindFirstChildOfClass("PlayerGui")
+	if not playerGui then
+		return nil
+	end
+	for _, screen in playerGui:GetChildren() do
+		if screen:IsA("ScreenGui") and screen.Enabled and screen ~= gui then
+			local found = screen:FindFirstChild(name, true)
+			if found and found:IsA("GuiObject") and found.Visible and found.AbsoluteSize.X > 0 then
+				return found
+			end
+		end
+	end
+	return nil
+end
+
+-- The hint bar + ring for the running tutorial.
+function refreshTutorial()
+	local current = running
+	if not current then
+		return
+	end
+	local steps = current.def.steps
+	local stepDef = steps[math.min(current.n + 1, #steps)]
+	local now = os.clock()
+	local stuckFor = now - current.progressAt
+	local text: string
+	if now < current.introUntil and current.def.intro then
+		text = Locale.t(current.def.intro)
+	elseif stuckFor >= Onboarding.STUCK_TEXT then
+		text = if stepDef.textStuck then Locale.t(stepDef.textStuck) else Locale.t(stepDef.text) .. Locale.t("tut.stuck_suffix")
+	else
+		text = Locale.t(stepDef.text)
+	end
+	hint.Text = text
+	hint.Visible = true
+	hint.Position = UDim2.new(0.5, 0, 0, hintTop())
+	skipButton.Visible = true
+	hintPad.PaddingRight = UDim.new(0, 84)
+
+	-- Ring on a HUD button (created once per button, pulsed in RenderStepped).
+	local wanted = stepDef.highlight
+	ringStrong = stuckFor >= Onboarding.STUCK_STRONG
+	if wanted ~= ringFor or (ring and not ring.Parent) then
+		clearRing()
+		if wanted then
+			local button = findHighlight(wanted)
+			if button then
+				local frame = Instance.new("Frame")
+				frame.Name = "GuideRing"
+				frame.AnchorPoint = Vector2.new(0.5, 0.5)
+				frame.Position = UDim2.fromScale(0.5, 0.5)
+				frame.Size = UDim2.new(1, 8, 1, 8)
+				frame.BackgroundTransparency = 1
+				frame.ZIndex = 50
+				local round = Instance.new("UICorner")
+				round.CornerRadius = UDim.new(0.5, 0)
+				round.Parent = frame
+				local line = Instance.new("UIStroke")
+				line.Name = "Line"
+				line.Color = UiKit.BAMBOO
+				line.Thickness = 3
+				line.Parent = frame
+				-- A bobbing arrow on the side with room, so the eye finds the button even in a crowded menu.
+				local view = (Workspace.CurrentCamera :: Camera).ViewportSize
+				local center = button.AbsolutePosition + button.AbsoluteSize / 2
+				local side = if center.Y < 110 then "below" elseif center.X > view.X * 0.8 then "left" else "above"
+				local arrow = Instance.new("TextLabel")
+				arrow.Name = "Arrow"
+				arrow:SetAttribute("Side", side)
+				arrow.BackgroundTransparency = 1
+				arrow.Size = UDim2.fromOffset(30, 26)
+				arrow.Font = UiKit.FONT
+				arrow.TextSize = 26
+				arrow.Text = if side == "above" then "▼" elseif side == "below" then "▲" else "▶"
+				arrow.TextColor3 = Color3.fromRGB(255, 226, 120)
+				arrow.ZIndex = 51
+				local arrowLine = Instance.new("UIStroke")
+				arrowLine.Color = OUTLINE
+				arrowLine.Thickness = 2
+				arrowLine.Parent = arrow
+				arrow.Parent = frame
+				frame.Parent = button
+				ring, ringFor = frame, wanted
+			end
+		end
+	end
+end
+
+local function autoStart(snap: any)
+	local guide = snap.guide
+	if running or not guide then
+		return
+	end
+	local now = os.clock()
+	if not firstSnapshotAt then
+		firstSnapshotAt = now
+	end
+	if now - firstSnapshotAt < 2 then
+		return -- let the HUD finish building
+	end
+	-- Resume the tutorial this save was in the middle of (no gap: the player left mid-way).
+	local savedId = guide.step.id
+	if savedId ~= "" and defById[savedId] and not isFinished(savedId) then
+		beginTutorial(defById[savedId], guide.step.n, false)
+		return
+	end
+	if lastFinish and now - lastFinish < Onboarding.GAP_SECONDS then
+		return
+	end
+	for _, def in defs do
+		if def.auto ~= false and not isFinished(def.id) and triggerHolds(def.trigger) then
+			Net.Send("GuideEvent", "start", def.id)
+			beginTutorial(def, 0, false)
+			return
+		end
+	end
+end
+
+-- Moves the running tutorial forward over every step whose condition already holds.
+local function advance()
+	local current = running
+	if not current then
+		return
+	end
+	local steps, n, now = current.def.steps, current.n, os.clock()
+	while n < #steps do
+		local condition = steps[n + 1].done
+		if (current.replay or condition.kind == "always") and now - current.stepAt < Onboarding.REPLAY_MIN_SECONDS then
+			break
+		end
+		if not evalCondition(condition) then
+			break
+		end
+		n += 1
+		current.stepAt, current.progressAt = now, now
+	end
+	if n == current.n then
+		return
+	end
+	current.n = n
+	local finished = n >= #steps
+	if not current.replay then
+		Net.Send("GuideEvent", "step", current.def.id, n)
+		if finished then
+			closed[current.def.id] = "done"
+		end
+	end
+	if finished then
+		endTutorial()
+	else
+		refresh()
+	end
+end
+
+local function tutorialTick()
+	local snap = snapshot()
+	if not snap or not snap.guide then
+		return
+	end
+	autoStart(snap)
+	advance()
+end
+
+local function onSkip()
+	local current = running
+	if not current then
+		return
+	end
+	if not current.replay then
+		Net.Send("GuideEvent", "skip", current.def.id)
+		closed[current.def.id] = "skipped"
+	end
+	endTutorial()
+end
+
+-- For Atur > Panduan.
+function GuideController.IsRunning(): boolean
+	return running ~= nil
+end
+
+function GuideController.List(): { { id: string, title: string, state: string } }
+	local list = {}
+	local guide = guideData()
+	for _, def in defs do
+		local state = "new"
+		if closed[def.id] then
+			state = closed[def.id]
+		elseif guide and guide.done[def.id] then
+			state = "done"
+		elseif guide and guide.skipped[def.id] then
+			state = "skipped"
+		elseif running and running.def.id == def.id then
+			state = "active"
+		end
+		table.insert(list, { id = def.id, title = def.title, state = state })
+	end
+	return list
+end
+
+-- Runs a tutorial again, with no save and no reward. False if another one is running.
+function GuideController.Replay(id: string): boolean
+	local def = defById[id]
+	if running or not def then
+		return false
+	end
+	Net.Send("GuideEvent", "replay", id)
+	beginTutorial(def, 0, true)
+	return true
+end
+
 function GuideController.Init()
+	if RunService:IsStudio() then
+		table.insert(defs, Onboarding.TEST_TUTORIAL)
+	end
+	for _, def in Onboarding.TUTORIALS do
+		table.insert(defs, def)
+	end
+	for _, def in defs do
+		defById[def.id] = def
+	end
+
 	gui = Instance.new("ScreenGui")
 	gui.Name = "GuideUI"
 	gui.ResetOnSpawn = false
@@ -343,15 +791,34 @@ function GuideController.Init()
 	hint.Position = UDim2.new(0.5, 0, 0, 62)
 	hint.Size = UDim2.fromOffset(480, 52)
 	hint.TextColor3 = UiKit.CREAM
-	hint.Font = UiKit.FONT_BODY
+	hint.Font = Enum.Font.GothamBold
 	hint.TextSize = 15
 	hint.TextWrapped = true
 	hint.Visible = false
 	hint.Parent = gui
 	darkBox(hint, 14)
-	local hintPad = Instance.new("UIPadding")
+	hintPad = Instance.new("UIPadding")
 	hintPad.PaddingLeft, hintPad.PaddingRight = UDim.new(0, 14), UDim.new(0, 14)
 	hintPad.Parent = hint
+
+	-- Small "Lewati" button inside the bar (only while a tutorial runs).
+	skipButton = Instance.new("TextButton")
+	skipButton.Name = "Skip"
+	skipButton.AnchorPoint = Vector2.new(1, 0.5)
+	skipButton.Position = UDim2.new(1, 76, 0.5, 0) -- children sit inside the bar's padding (right pad 84): +76 puts it 8 px from the edge
+	skipButton.Size = UDim2.fromOffset(66, 28)
+	skipButton.BackgroundColor3 = UiKit.BUTTON_MUTED
+	skipButton.AutoButtonColor = true
+	skipButton.Text = Locale.t("tut.skip")
+	skipButton.TextColor3 = UiKit.TEXT
+	skipButton.Font = UiKit.FONT
+	skipButton.TextSize = 14
+	skipButton.Visible = false
+	skipButton.Parent = hint
+	local skipRound = Instance.new("UICorner")
+	skipRound.CornerRadius = UDim.new(0, 10)
+	skipRound.Parent = skipButton
+	skipButton.Activated:Connect(onSkip)
 
 	gui.Parent = player:WaitForChild("PlayerGui")
 
@@ -364,20 +831,52 @@ function GuideController.Init()
 end
 
 function GuideController.Start()
-	State.Changed:Connect(refresh)
+	State.Changed:Connect(function()
+		tutorialTick()
+		refresh()
+	end)
 	-- Beds change by attribute (growth, water) without a state sync: re-check a few times a second.
 	task.spawn(function()
 		local lastRoute = 0
 		while true do
+			tutorialTick()
 			refresh()
-			if (step == "sell" or step == "buy") and os.clock() - lastRoute >= REPATH_SECONDS then
+			local goal = currentGoal()
+			if goal and os.clock() - lastRoute >= REPATH_SECONDS then
 				lastRoute = os.clock()
-				computeRoute()
+				computeRoute(goal)
 			end
 			task.wait(0.3)
 		end
 	end)
-	RunService.RenderStepped:Connect(placeTrail)
+	RunService.RenderStepped:Connect(function()
+		placeTrail()
+		local frame = ring
+		if frame and frame.Parent then
+			local strong = ringStrong
+			local pulse = (math.sin(os.clock() * (if strong then 7 else 4.5)) + 1) / 2
+			local pad = (if strong then 14 else 10) + pulse * (if strong then 12 else 8)
+			frame.Size = UDim2.new(1, pad, 1, pad)
+			local arrow = frame:FindFirstChild("Arrow") :: TextLabel?
+			if arrow then
+				local bob = 2 + pulse * 7
+				local side = arrow:GetAttribute("Side")
+				if side == "above" then
+					arrow.AnchorPoint, arrow.Position = Vector2.new(0.5, 1), UDim2.new(0.5, 0, 0, -bob)
+				elseif side == "below" then
+					arrow.AnchorPoint, arrow.Position = Vector2.new(0.5, 0), UDim2.new(0.5, 0, 1, bob)
+				else
+					arrow.AnchorPoint, arrow.Position = Vector2.new(1, 0.5), UDim2.new(0, -bob, 0.5, 0)
+				end
+			end
+			local line = frame:FindFirstChild("Line") :: UIStroke?
+			if line then
+				line.Thickness = (if strong then 6 else 4) + pulse * 2
+				line.Color = if strong then Color3.fromRGB(255, 226, 120) else UiKit.BAMBOO
+				line.Transparency = 0.2 - pulse * 0.2
+			end
+		end
+	end)
 	refresh()
 end
 

@@ -12,12 +12,14 @@ local ORDER = {
 	"MonetizationService",
 	"InventoryService",
 	"ProgressionService",
+	"PlaytimeService", -- after ProgressionService (it grants the peti rewards)
 	"WorldService",
 	"EventService",
 	"BookService",
 	"QuestService", -- before the services that report to it (Fish, Pond)
 	"PlotService",
 	"LandService", -- before FarmService: owned chunks are painted before the soil is rebuilt on top of them
+	"TutorialService", -- before FarmService: it asks TutorialService.ConsumeFast on every planting
 	"FarmService",
 	"FishService",
 	"PondService", -- after FishService: gives each pond its fishing/collect spot

@@ -4,7 +4,7 @@
 --     The only Parts are an invisible fishing/collect spot per pond and a few decoration parts per upgrade tier.
 --   * Ponds are 16 x 16 studs = 2 x 2 farm-tile cells, saved in data.pond.list and rebuilt on join.
 --   * The first pond is free; the next ones cost Fishing.POND.PRICES. Removing one refunds REFUND_RATE of what
---     was paid. Capacity upgrades (data.pond.tier) apply to every pond and change how they look.
+--     was paid. Capacity upgrades (Upgrades.tier "pond") apply to every pond and change how they look.
 --   * Fishing/collecting is FishService (FishService.SetupPond); this file only digs, fills and decorates.
 
 local CollectionService = game:GetService("CollectionService")
@@ -19,6 +19,7 @@ local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Map = require(ReplicatedStorage.Shared.Config.Map)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Types = require(ReplicatedStorage.Shared.Types)
+local Upgrades = require(ReplicatedStorage.Shared.Modules.Upgrades)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
 local FishService = require(script.Parent.FishService)
@@ -191,7 +192,7 @@ local function buildOne(player: Player, plot: Model, data: Types.PlayerData, ent
 	end
 	digPond(origin, entry.cx, entry.cz)
 	buildSpot(player, plot, entry)
-	buildLook(plot, entry, data.pond.tier)
+	buildLook(plot, entry, Upgrades.tier(data, "pond"))
 end
 
 -- Rebuilds every pond from saved data (on join).
@@ -367,7 +368,7 @@ function PondService.RefreshLook(player: Player)
 		return
 	end
 	for _, entry in data.pond.list do
-		buildLook(plot, entry, data.pond.tier)
+		buildLook(plot, entry, Upgrades.tier(data, "pond"))
 	end
 end
 

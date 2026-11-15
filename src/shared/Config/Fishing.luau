@@ -44,11 +44,11 @@ return {
 
 	POND = {
 		INTERVAL = 600, -- one fish every 10 minutes, also offline
-		CAPS = { 10, 20, 30 }, -- fish per pond, by pond.tier + 1
+		CAPS = { 10, 20, 30 }, -- fish per pond, by Kolam upgrade tier + 1
 		SIZE = 16, -- every player-built pond is SIZE x SIZE studs (4 x 4 terrain cells)
 		MAX_PONDS = 4,
 		PRICES = { 0, 400, 900, 1600 }, -- koin, by how many ponds you already have + 1 (the first is free)
-		TIER_NAMES = { "tanah", "batu", "taman" }, -- look by pond.tier + 1 (see PondService)
+		TIER_NAMES = { "tanah", "batu", "taman" }, -- look by Kolam upgrade tier + 1 (see PondService)
 		REFUND_RATE = 0.5, -- share of the price returned when a pond is removed
 	},
 }

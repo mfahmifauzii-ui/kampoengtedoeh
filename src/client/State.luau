@@ -11,6 +11,9 @@ export type Snapshot = {
 	slotsUsed: number,
 	slotsMax: number,
 	backpackTier: number,
+	visits: number, -- Kunjungan Harian count (cumulative)
+	visitDay: string, -- WIB day of the last visit reward
+	playtime: { day: string, seconds: number, claimed: number }, -- Hadiah playtime (seconds is live via the "PlaytimeSec" attribute)
 	pondTier: number,
 	ponds: { { uid: number, cx: number, cz: number } },
 	quests: { active: { [string]: { step: number, count: number } }, done: { [string]: boolean } },

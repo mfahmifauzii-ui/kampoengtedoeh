@@ -59,7 +59,7 @@ export type PlayerData = {
 		sessions: number,
 	},
 	inventory: { [string]: number },
-	backpackTier: number,
+	upgrades: { [string]: number }, -- tier per permanent upgrade: backpack, pond, warung (Modules/Upgrades)
 	farm: {
 		tiles: { FarmTile },
 		nextUid: number,
@@ -73,7 +73,6 @@ export type PlayerData = {
 		done: { [string]: boolean },
 	},
 	pond: {
-		tier: number, -- capacity upgrade, shared by all ponds
 		list: { PondEntry },
 		nextUid: number,
 	},
@@ -92,6 +91,7 @@ export type PlayerData = {
 		nextUid: number,
 	},
 	visits: { count: number, lastDay: string },
+	playtime: { day: string, seconds: number, claimed: number },
 	book: {
 		crops: { [string]: boolean },
 		fish: { [string]: number },
@@ -106,7 +106,6 @@ export type PlayerData = {
 	sales: {
 		day: string, -- WIB day key that `sold` belongs to
 		sold: { [string]: number }, -- [cropId] = how many Pak Darmo bought today (daily quota)
-		tier: number, -- "Kapasitas Warung" upgrade tier
 	},
 	social: {
 		likes: number,
@@ -118,7 +117,13 @@ export type PlayerData = {
 	passes: { [string]: boolean },
 	instantGrow: { tokens: number, day: string, usedToday: number },
 	onboarding: { [string]: boolean },
-	guide: { sells: number }, -- finished sale trips so far: the new-player guide (hints + NPC arrow) runs for Onboarding.TRIES of them
+	guide: {
+		sells: number, -- finished sale trips so far: the old new-player guide (hints + NPC arrow) runs for Onboarding.TRIES of them
+		step: { id: string, n: number }, -- tutorial engine: running tutorial and how many of its steps are done ("" = none)
+		done: { [string]: boolean },
+		skipped: { [string]: boolean },
+		fastLeft: number, -- plantings left on the 20 s tutorial timer (-1 = not decided yet)
+	},
 	purchaseIdCache: { string },
 }
 

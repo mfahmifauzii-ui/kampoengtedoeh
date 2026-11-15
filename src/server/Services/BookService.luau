@@ -1,6 +1,6 @@
 --!strict
--- Collection Book: records first harvest / catch (+ best fish size) / first placement,
--- then auto-grants category and overall milestone rewards.
+-- Collection Book: records first harvest / catch (+ best fish size) / first placement. A finished category or a
+-- reached milestone is claimed by hand (BookClaim), so the reward is never a surprise.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -11,6 +11,7 @@ local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
 local InventoryService = require(script.Parent.InventoryService)
 local ProgressionService = require(script.Parent.ProgressionService)
+local Progression = require(ReplicatedStorage.Shared.Config.Progression)
 
 local BookService = {}
 
@@ -30,15 +31,15 @@ local function countIn(data: Types.PlayerData, category: string): number
 	return count
 end
 
-local function checkRewards(player: Player, data: Types.PlayerData)
+-- Rewards are NOT granted here any more (R3 17.5): a finished category or a reached milestone waits for the player to
+-- press "Klaim" (BookService.Claim). This only tells the player once that something is ready to claim.
+local function checkReached(player: Player, data: Types.PlayerData)
 	local total = 0
 	for _, category in Book.CATEGORIES do
 		local count = countIn(data, category)
 		total += count
 		local key = `cat:{category}`
 		if count == #Book.ENTRIES[category] and not data.book.claimed[key] then
-			data.book.claimed[key] = true
-			ProgressionService.Grant(player, Book.CATEGORY_REWARDS[category], `book:{key}`)
 			Net.Fire("Notify", player, "book.category_done", { category = `book.cat.{category}` })
 		end
 	end
@@ -46,11 +47,51 @@ local function checkRewards(player: Player, data: Types.PlayerData)
 	local percent = total / TOTAL * 100
 	for _, milestone in Book.MILESTONES do
 		if percent >= milestone.percent and not data.book.claimed[milestone.id] then
-			data.book.claimed[milestone.id] = true
-			ProgressionService.Grant(player, milestone.reward, `book:{milestone.id}`)
 			Net.Fire("Notify", player, "book.milestone", { percent = milestone.percent })
 		end
 	end
+end
+
+-- Claim a reached category ("cat:<category>") or milestone (its id). Each one pays once.
+function BookService.Claim(player: Player, key: string): boolean
+	local data = DataService.Get(player)
+	if not data or data.book.claimed[key] then
+		return false
+	end
+	local reward: Progression.Reward? = nil
+	local category = string.match(key, "^cat:(%w+)$")
+	if category and table.find(Book.CATEGORIES, category) then
+		if countIn(data, category) == #Book.ENTRIES[category] then
+			reward = Book.CATEGORY_REWARDS[category]
+		end
+	else
+		for _, milestone in Book.MILESTONES do
+			if milestone.id == key then
+				local total = 0
+				for _, c in Book.CATEGORIES do
+					total += countIn(data, c)
+				end
+				if total / TOTAL * 100 >= milestone.percent then
+					reward = milestone.reward
+				end
+			end
+		end
+	end
+	if not reward then
+		return false
+	end
+	data.book.claimed[key] = true
+	ProgressionService.Grant(player, reward, `book:{key}`)
+	Net.Fire("Notify", player, "book.claim_done")
+	return true
+end
+
+function BookService.Start()
+	Net.On("BookClaim", function(player: Player, key: any)
+		if typeof(key) == "string" then
+			BookService.Claim(player, key)
+		end
+	end, { rate = 3, burst = 6 })
 end
 
 local function record(player: Player, category: string, id: string, value: any, nameKey: string)
@@ -66,7 +107,7 @@ local function record(player: Player, category: string, id: string, value: any, 
 	recorded[id] = value
 	if previous == nil then
 		Net.Fire("Notify", player, "book.new", { item = nameKey })
-		checkRewards(player, data)
+		checkReached(player, data)
 	end
 	InventoryService.Sync(player)
 end

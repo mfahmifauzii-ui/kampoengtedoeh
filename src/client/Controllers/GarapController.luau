@@ -1,16 +1,20 @@
 --!strict
--- "Garap" mode (the Garap button in the dock): work your land with four tools.
---   Cangkul      turn a grass cell of your land into soil (a farm bed)
---   Hijaukan     turn an EMPTY soil bed back into grass
---   Gali Kolam   dig a 16 x 16 pond
---   Urug Kolam   fill a pond back in (50% refund)
+-- "Garap" mode (the Garap button in the dock): work your land with TWO tools, each one smart about what is under the pointer.
+--   Cangkul   grass -> soil bed (green square). An EMPTY bed -> back to grass (orange square, "Hijaukan"). A bed with a crop is
+--             left alone: the tap goes through to FarmController (water / harvest).
+--   Kolam     free land -> dig a 16 x 16 pond (green square, price in the hint). Over a pond -> fill it in (orange, asks first,
+--             50% refund).
+-- So there is no "Hijaukan" / "Urug" button: the colour of the square and the little label above it say what the tap will do.
+-- Planting an empty bed is done OUTSIDE Garap mode (a tap on an empty bed here would remove it).
 -- Buying more land is NOT here: LandController floats a "+" over every chunk you can buy.
--- UI contract (replace with your designed UI, keep the names):
---   ScreenGui "GarapUI" > Frame "Bar" (TextLabel "Count", TextButton "TillButton", "LevelButton", "PondButton",
---   "PondRemoveButton", the round close badge "Close"), TextLabel "Hint".
+-- No popup menu: the tools are two buttons in the dock, Garap (Cangkul) and Kolam. Tap one to turn its mode on (green ring), tap
+-- it again (or the other one switches mode) to finish. UI contract: dock buttons "GarapButton" and "KolamButton" (HUD > DockBar),
+-- ScreenGui "GarapUI" > TextLabel "Hint".
 -- The preview square is a transient client Part; the soil itself is terrain created by the server.
 -- All checks here are only for the preview: the server validates every request again.
 
+local CollectionService = game:GetService("CollectionService")
+local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -34,21 +38,31 @@ local player = Players.LocalPlayer
 
 local GarapController = {}
 GarapController.Active = false -- LandController hides its "+" buttons while true
--- FarmController ignores tile taps while Garap is on, EXCEPT in "till" mode: there a tap on an existing bed does nothing here,
--- so it goes through to the bed (plant / water / harvest) instead of being swallowed. "level" taps are Garap's own.
+-- FarmController ignores tile taps while Garap is on, EXCEPT a bed WITH A CROP in "till" mode (water / harvest go through);
+-- an empty bed there is Garap's own (it turns back to grass).
 GarapController.Mode = "till"
 
-local mode = "till" -- "till" | "level" | "pond" | "pondRemove"
+local mode = "till" -- "till" (Cangkul) | "pond" (Kolam)
 local gui: ScreenGui
 local toggleButton: GuiButton
-local bar: Frame
+local kolamButton: GuiButton
 local hintLabel: TextLabel
-local countLabel: TextLabel
-local tillButton: TextButton
-local levelButton: TextButton
-local pondButton: TextButton
-local pondRemoveButton: TextButton
 local ghost: Part? = nil
+local ghostLabel: TextLabel? = nil
+
+-- A dark bamboo-brown rounded box with a bamboo outline: the Garap bar and its hint (cream text on it).
+local function darkBox(frame: GuiObject)
+	frame.BackgroundColor3 = UiKit.DARK
+	frame.BackgroundTransparency = 0.08
+	local round = Instance.new("UICorner")
+	round.CornerRadius = UDim.new(0, 16)
+	round.Parent = frame
+	local border = Instance.new("UIStroke")
+	border.Color = UiKit.BAMBOO
+	border.Thickness = 3
+	border.ApplyStrokeMode = Enum.ApplyStrokeMode.Border -- on a TextLabel the default (Contextual) outlines the LETTERS in gold
+	border.Parent = frame
+end
 
 -- Helpers ------------------------------------------------------------------------------------
 
@@ -75,6 +89,16 @@ local function tileAt(tiles: { any }, cx: number, cz: number): any?
 		end
 	end
 	return nil
+end
+
+-- Does this bed (uid) have a crop? Read from the attributes the server puts on the bed's click part.
+local function bedHasCrop(uid: number): boolean
+	for _, part in CollectionService:GetTagged("FarmTile") do
+		if part:GetAttribute("Index") == uid and part:GetAttribute("Owner") == player.UserId then
+			return part:GetAttribute("Crop") ~= nil
+		end
+	end
+	return false
 end
 
 -- Placed decor rectangles, read from the attributes the server puts on every decor model.
@@ -179,6 +203,22 @@ local function hideGhost()
 	if ghost then
 		ghost.Transparency = 1
 	end
+	if ghostLabel then
+		ghostLabel.Visible = false
+	end
+end
+
+-- Puts the label just above the ghost square's centre.
+local function placeLabel()
+	if not ghost or not ghostLabel then
+		return
+	end
+	local screen, onScreen = (Workspace.CurrentCamera :: Camera):WorldToViewportPoint(ghost.Position + Vector3.new(0, 2.5, 0))
+	ghostLabel.Visible = onScreen
+	-- Scale-based position: the GUI may be auto-scaled (UiKit.autoScale), pixel offsets would drift.
+	local view = (Workspace.CurrentCamera :: Camera).ViewportSize
+	local inset = GuiService:GetGuiInset().Y
+	ghostLabel.Position = UDim2.fromScale(screen.X / view.X, (screen.Y - inset) / (view.Y - inset))
 end
 
 local function ensureGhost(): Part
@@ -192,10 +232,41 @@ local function ensureGhost(): Part
 		part.CastShadow = false
 		part.Material = Enum.Material.Neon
 		part.Parent = Workspace
+		-- A little label above the square says what a tap will do (Cangkul / Hijaukan / Gali kolam / Urug kolam). It is a plain
+		-- screen label placed over the square each frame (a BillboardGui on the ghost never showed up).
+		local label = Instance.new("TextLabel")
+		label.Name = "Tip"
+		label.AnchorPoint = Vector2.new(0.5, 1)
+		label.Size = UDim2.fromOffset(92, 22)
+		label.TextColor3 = UiKit.CREAM
+		label.Font = UiKit.FONT
+		label.TextSize = 13
+		label.Visible = false
+		darkBox(label)
+		label.Parent = gui
+		ghostLabel = label
 		ghost = part
 	end
 	return ghost :: Part
 end
+
+-- What a tap would do at this spot: "till" | "level" | "pond" | "pondRemove" | nil (nothing, or not Garap's tap).
+local function actionAt(plot: Model, cx: number, cz: number, point: Vector3): string?
+	if mode == "pond" then
+		return if pondAtPoint(point) then "pondRemove" else "pond"
+	end
+	local state = cellState(plot, cx, cz)
+	if state == "tile" then
+		local tile = tileAt(farmInfo(), cx, cz)
+		if tile and not bedHasCrop(tile.uid) then
+			return "level"
+		end
+		return nil -- a bed with a crop: the tap goes through to FarmController (water / harvest)
+	end
+	return "till"
+end
+
+local ACTION_TEXT = { till = "garap.tip_till", level = "garap.tip_level", pond = "garap.tip_pond", pondRemove = "garap.tip_pond_remove" }
 
 local function showGhost(plot: Model?, cx: number?, cz: number?, point: Vector3?)
 	if not plot or not cx or not cz or not point then
@@ -203,49 +274,48 @@ local function showGhost(plot: Model?, cx: number?, cz: number?, point: Vector3?
 		return
 	end
 	local origin = plot.PrimaryPart :: BasePart
+	local action = actionAt(plot, cx, cz, point)
+	if not action then
+		hideGhost()
+		return
+	end
+	local preview = ensureGhost()
+	preview.Shape = Enum.PartType.Block
+	preview.Transparency = 0.55
+	if ghostLabel then
+		ghostLabel.Text = Locale.t(ACTION_TEXT[action])
+	end
 
-	-- Pond modes: a 16 x 16 square (the whole pond when removing).
-	if mode == "pond" or mode == "pondRemove" then
-		local rect: Land.Rect?
-		local color = INVALID_COLOR
-		if mode == "pond" then
+	-- Pond tools: a 16 x 16 square (the whole pond when filling it in).
+	if action == "pond" or action == "pondRemove" then
+		local rect: Land.Rect
+		if action == "pond" then
 			local pcx, pcz = pondCorner(point)
 			rect = Land.pondRect(pcx, pcz)
-			color = if pondBuildValid(plot, pcx, pcz) then VALID_COLOR else INVALID_COLOR
+			preview.Color = if pondBuildValid(plot, pcx, pcz) then VALID_COLOR else INVALID_COLOR
 		else
-			local pond = pondAtPoint(point)
-			if pond then
-				rect = Land.pondRect(pond.cx, pond.cz)
-				color = LEVEL_COLOR
-			end
+			local pond = pondAtPoint(point) :: any
+			rect = Land.pondRect(pond.cx, pond.cz)
+			preview.Color = LEVEL_COLOR
 		end
-		if not rect then
-			hideGhost()
-			return
-		end
-		local preview = ensureGhost()
-		preview.Shape = Enum.PartType.Block
 		preview.Size = Vector3.new(rect.maxX - rect.minX - 0.4, 0.2, rect.maxZ - rect.minZ - 0.4)
-		preview.Transparency = 0.55
-		preview.Color = color
 		preview.CFrame = origin.CFrame * CFrame.new((rect.minX + rect.maxX) / 2, origin.Size.Y / 2 + 0.3, (rect.minZ + rect.maxZ) / 2)
+		placeLabel()
 		return
 	end
 
+	-- Cangkul: green = can be tilled, red = cannot, orange = an empty bed (tap turns it back into grass).
 	local state = cellState(plot, cx, cz)
-	local color = if mode == "till"
-		then (if state == "valid" then VALID_COLOR else INVALID_COLOR)
-		else (if state == "tile" then LEVEL_COLOR else INVALID_COLOR)
-
-	local preview = ensureGhost()
+	preview.Color = if action == "level" then LEVEL_COLOR elseif state == "valid" then VALID_COLOR else INVALID_COLOR
+	if action == "till" and state ~= "valid" and ghostLabel then
+		ghostLabel.Text = Locale.t("garap.tip_blocked")
+	end
 	-- The bed is a crisp slab of Farm.BED_SIZE, so the preview is exactly that square.
-	preview.Shape = Enum.PartType.Block
 	preview.Size = Vector3.new(Farm.BED_SIZE, 0.2, Farm.BED_SIZE)
-	preview.Transparency = 0.55
-	preview.Color = color
 	local centerX, centerZ = Land.tileCenter(cx, cz)
 	local lift = if state == "tile" then Farm.BED_RAISE else 0 -- an existing bed is a mound
 	preview.CFrame = origin.CFrame * CFrame.new(centerX, origin.Size.Y / 2 + 0.3 + lift, centerZ) -- ground is at y = 0
+	placeLabel()
 end
 
 -- Actions ------------------------------------------------------------------------------------
@@ -256,85 +326,81 @@ local function act(ray: Ray)
 		return
 	end
 	showGhost(plot, cx, cz, point)
-	if mode == "pond" then
+	local action = actionAt(plot, cx, cz, point)
+	if action == "pond" then
 		local pcx, pcz = pondCorner(point)
 		if pondBuildValid(plot, pcx, pcz) then
 			Net.Send("PondBuild", pcx, pcz)
 		end
-	elseif mode == "pondRemove" then
+	elseif action == "pondRemove" then
 		local pond = pondAtPoint(point)
 		if pond then
-			Net.Send("PondRemove", pond.uid)
+			-- Filling a pond loses its fish and refunds only part of the price: ask first (standard confirm modal).
+			UiKit.confirm({
+				title = Locale.t("garap.pond_remove_title"),
+				body = Locale.t("garap.pond_remove_body"),
+				confirmText = Locale.t("garap.pond_remove_yes"),
+				onConfirm = function()
+					Net.Send("PondRemove", pond.uid)
+				end,
+			} :: any)
 		end
-	elseif mode == "till" then
+	elseif action == "till" then
 		if cellState(plot, cx, cz) == "valid" then
 			Net.Send("FarmTill", cx, cz)
+			require(script.Parent.Parent.FarmFx).till(false)
 		end
-	else
+	elseif action == "level" then
 		local tile = tileAt(farmInfo(), cx, cz)
 		if tile then
 			Net.Send("FarmLevel", tile.uid)
+			require(script.Parent.Parent.FarmFx).till(true)
 		end
 	end
-end
-
-local function refreshCount()
-	local tiles = farmInfo()
-	countLabel.Text = Locale.t("garap.count", { n = #tiles })
 end
 
 local function refreshHint()
 	if mode == "till" then
 		-- Once there is a bed, say what comes next (a new player used to be stuck here: the hint never changed).
 		hintLabel.Text = Locale.t(if #farmInfo() > 0 then "garap.hint_till_more" else "garap.hint_till")
-	elseif mode == "level" then
-		hintLabel.Text = Locale.t("garap.hint_level")
-	elseif mode == "pond" then
-		hintLabel.Text = Locale.t("garap.hint_pond", { price = pondPriceText() })
 	else
-		hintLabel.Text = Locale.t("garap.hint_pond_remove")
+		hintLabel.Text = Locale.t("garap.hint_pond", { price = pondPriceText() })
 	end
 end
 
 local function setMode(newMode: string)
 	mode = newMode
 	GarapController.Mode = newMode
-	tillButton.BackgroundColor3 = if mode == "till" then UiKit.BUTTON else UiKit.BUTTON_MUTED
-	levelButton.BackgroundColor3 = if mode == "level" then UiKit.BUTTON else UiKit.BUTTON_MUTED
-	pondButton.BackgroundColor3 = if mode == "pond" then UiKit.BUTTON else UiKit.BUTTON_MUTED
-	pondRemoveButton.BackgroundColor3 = if mode == "pondRemove" then UiKit.BUTTON else UiKit.BUTTON_MUTED
+	UiKit.setMenuActive(toggleButton, GarapController.Active and mode == "till")
+	UiKit.setMenuActive(kolamButton, GarapController.Active and mode == "pond")
 	refreshHint()
 	hideGhost()
 end
 
-local function setActive(on: boolean)
+-- on = Garap mode with that tool; off = finished.
+local function setActive(on: boolean, newMode: string?)
 	GarapController.Active = on
-	bar.Visible = on
 	hintLabel.Visible = on
-	UiKit.setMenuLabel(toggleButton, Locale.t(if on then "garap.done" else "ui.garap"))
-	UiKit.setMenuActive(toggleButton, on)
+	UiKit.setMenuLabel(toggleButton, Locale.t(if on and (newMode or mode) == "till" then "garap.done" else "ui.garap"))
+	UiKit.setMenuLabel(kolamButton, Locale.t(if on and (newMode or mode) == "pond" then "garap.done" else "garap.tool_pond"))
 	if on then
-		setMode("till")
-		refreshCount()
+		setMode(newMode or "till")
 	else
+		setMode(mode)
 		hideGhost()
 	end
 end
 
--- UI -----------------------------------------------------------------------------------------
-
--- A dark bamboo-brown rounded box with a bamboo outline: the Garap bar and its hint (cream text on it).
-local function darkBox(frame: GuiObject)
-	frame.BackgroundColor3 = UiKit.DARK
-	frame.BackgroundTransparency = 0.08
-	local round = Instance.new("UICorner")
-	round.CornerRadius = UDim.new(0, 16)
-	round.Parent = frame
-	local border = Instance.new("UIStroke")
-	border.Color = UiKit.BAMBOO
-	border.Thickness = 3
-	border.Parent = frame
+-- A dock button: off -> on with its tool; on with the same tool -> off; on with the other tool -> switch.
+local function pressTool(tool: string)
+	if GarapController.Active and mode == tool then
+		setActive(false)
+	else
+		setActive(true, tool)
+	end
 end
+
+-- UI -----------------------------------------------------------------------------------------
 
 function GarapController.Init()
 	gui = Instance.new("ScreenGui")
@@ -351,70 +417,19 @@ function GarapController.Init()
 	hintLabel.Position = UDim2.new(0.5, 0, 0, 56)
 	hintLabel.Size = UDim2.new(0.6, 0, 0, 36)
 	hintLabel.TextColor3 = UiKit.CREAM
-	hintLabel.Font = UiKit.FONT_BODY
+	hintLabel.Font = Enum.Font.GothamBold
 	hintLabel.TextSize = 15
 	hintLabel.TextWrapped = true
 	hintLabel.Visible = false
 	hintLabel.Parent = gui
 	darkBox(hintLabel)
 
-	-- The tool bar sits above the dock: a count, a 2 x 2 grid of tools and a round close badge on its corner.
-	bar = Instance.new("Frame")
-	bar.Name = "Bar"
-	bar.AnchorPoint = Vector2.new(0.5, 1)
-	bar.Position = UDim2.new(0.5, 0, 1, -84)
-	bar.Size = UDim2.fromOffset(330, 150)
-	bar.Visible = false
-	bar.Parent = gui
-	darkBox(bar)
-
-	countLabel = Instance.new("TextLabel")
-	countLabel.Name = "Count"
-	countLabel.BackgroundTransparency = 1
-	countLabel.Position = UDim2.fromOffset(14, 6)
-	countLabel.Size = UDim2.new(1, -60, 0, 24)
-	countLabel.TextXAlignment = Enum.TextXAlignment.Left
-	countLabel.TextColor3 = UiKit.CREAM
-	countLabel.Font = UiKit.FONT
-	countLabel.TextSize = 16
-	countLabel.Parent = bar
-
-	tillButton = UiKit.button(bar, "TillButton", Locale.t("garap.till"), UiKit.BUTTON)
-	tillButton.Position = UDim2.fromOffset(12, 36)
-	tillButton.Size = UDim2.new(0.5, -18, 0, 48)
-	tillButton.Activated:Connect(function()
-		setMode("till")
-	end)
-
-	levelButton = UiKit.button(bar, "LevelButton", Locale.t("garap.level"), UiKit.BUTTON_MUTED)
-	levelButton.AnchorPoint = Vector2.new(1, 0)
-	levelButton.Position = UDim2.new(1, -12, 0, 36)
-	levelButton.Size = UDim2.new(0.5, -18, 0, 48)
-	levelButton.Activated:Connect(function()
-		setMode("level")
-	end)
-
-	pondButton = UiKit.button(bar, "PondButton", Locale.t("garap.pond"), UiKit.BUTTON_MUTED)
-	pondButton.Position = UDim2.fromOffset(12, 92)
-	pondButton.Size = UDim2.new(0.5, -18, 0, 48)
-	pondButton.Activated:Connect(function()
-		setMode("pond")
-	end)
-
-	pondRemoveButton = UiKit.button(bar, "PondRemoveButton", Locale.t("garap.pond_remove"), UiKit.BUTTON_MUTED)
-	pondRemoveButton.AnchorPoint = Vector2.new(1, 0)
-	pondRemoveButton.Position = UDim2.new(1, -12, 0, 92)
-	pondRemoveButton.Size = UDim2.new(0.5, -18, 0, 48)
-	pondRemoveButton.Activated:Connect(function()
-		setMode("pondRemove")
-	end)
-
-	UiKit.closeBadge(bar, 40, function()
-		setActive(false)
-	end)
-
+	kolamButton = UiKit.menuItem(hud :: Instance, "KolamButton", Locale.t("garap.tool_pond"), 2) :: GuiButton
 	toggleButton.Activated:Connect(function()
-		setActive(not GarapController.Active)
+		pressTool("till")
+	end)
+	kolamButton.Activated:Connect(function()
+		pressTool("pond")
 	end)
 
 	gui.Parent = player:WaitForChild("PlayerGui")
@@ -423,7 +438,6 @@ end
 function GarapController.Start()
 	State.Changed:Connect(function()
 		if GarapController.Active then
-			refreshCount()
 			refreshHint() -- the price of the next pond changes with every pond built
 		end
 	end)

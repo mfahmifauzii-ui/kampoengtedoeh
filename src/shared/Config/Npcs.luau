@@ -26,6 +26,8 @@ export type Npc = {
 	buys: { [string]: number },
 	sells: Sells,
 	quota: boolean?, -- buys each crop only up to the daily quota (Pak Darmo)
+	miniIndex: number?, -- Bang Tarno at the n-th "Warung Mini": stands beside that stall, ignores `stand`
+	model: string?, -- ServerStorage.NpcModels.<model> rig to clone (default: the npc id); else a plain colour-only rig is built
 }
 
 local Map = require(script.Parent.Map)
@@ -40,7 +42,7 @@ local list: { Npc } = {
 	{
 		-- Behind the counter of the Warung stall. Best price (1.0x), but only up to the daily quota per crop.
 		id = "pak_darmo",
-		stand = { x = Map.WARUNG.x, z = Map.WARUNG.z - 3.5, y = Map.WARUNG.FLOOR_Y + 2.5, yaw = math.pi }, -- behind the counter on the warung floor, looking south
+		stand = { x = Map.WARUNG.x, z = Map.WARUNG.z + 3.5, y = Map.WARUNG.FLOOR_Y + 2.5, yaw = 0 }, -- behind the counter on the warung floor (south side), looking north at the tree
 		look = { skin = Color3.fromRGB(198, 148, 102), shirt = Color3.fromRGB(220, 206, 176), pants = Color3.fromRGB(96, 70, 50) },
 		buys = { crop = 1.0 },
 		sells = { seeds = true, upgrades = true },
@@ -71,15 +73,6 @@ local list: { Npc } = {
 		sells = { fish = true },
 	},
 	{
-		-- Lapak Tarno (shop slot 3): the middleman. Pays 0.7x for crops with no limit: where you sell once
-		-- Pak Darmo's daily quota for a crop is used up.
-		id = "bang_tarno",
-		stand = atShop(3), -- shop 3
-		look = { skin = Color3.fromRGB(168, 120, 84), shirt = Color3.fromRGB(176, 104, 74), pants = Color3.fromRGB(78, 70, 62) },
-		buys = { crop = 0.7 },
-		sells = {},
-	},
-	{
 		-- Toko Tukang (shop slot 4): the builder. Sells decor blueprints.
 		id = "mbak_arsi",
 		stand = atShop(4), -- shop 4
@@ -89,6 +82,23 @@ local list: { Npc } = {
 	},
 }
 
+-- Bang Tarno runs every "Warung Mini" (hand-placed models named "Warung Mini" in Workspace, one per ring-road axis).
+-- He replaces the old Lapak Tarno: pays MINI_BUY_MULT x Pak Darmo's price for crops, with no daily quota. One NPC per
+-- stall (ids bang_tarno_1 .. _N, same name and dialogue); NpcService stands each beside its stall, see miniStand.
+local MINI_COUNT = 4
+local MINI_BUY_MULT = 0.9
+for i = 1, MINI_COUNT do
+	table.insert(list, {
+		id = `bang_tarno_{i}`,
+		stand = { x = 0, z = 0, yaw = 0 }, -- unused: placed beside the stall at runtime (miniIndex)
+		miniIndex = i,
+		model = "bang_tarno",
+		look = { skin = Color3.fromRGB(168, 120, 84), shirt = Color3.fromRGB(176, 104, 74), pants = Color3.fromRGB(78, 70, 62) },
+		buys = { crop = MINI_BUY_MULT },
+		sells = {},
+	})
+end
+
 local byId: { [string]: Npc } = {}
 for _, npc in list do
 	byId[npc.id] = npc
@@ -97,6 +107,9 @@ end
 return {
 	list = list,
 	byId = byId,
+	MINI_STALL_NAME = "Warung Mini",
+	MINI_SIDE_OFFSET = 13, -- studs along the stall's local X (left of the counter seen from the front)
+	MINI_FRONT_OFFSET = -3, -- studs along the stall's local Z (negative = toward the front, where the counter faces)
 
 	-- Pak Darmo's daily quota (WIB day): PER_CROP of each crop type at the start, +PER_TIER per "Kapasitas Warung"
 	-- upgrade (Config/Shop). Values are assumptions: simulate with tools/balance_sim.py before locking them.

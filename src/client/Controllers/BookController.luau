@@ -1,6 +1,8 @@
 --!strict
--- Collection Book panel (HUD "BookButton" / placeholder "Koleksi").
--- Unknown entries show as "???" so players feel what's left to find.
+-- Collection Book panel (HUD "BookButton" / placeholder "Koleksi"). Two tabs (R3 17.5):
+--   * Koleksi: one grid per category (tanaman, ikan, set decor). Unknown entries show as "???" so players feel what's left.
+--   * Hadiah: the category and overall milestone rewards. They are NOT automatic any more: a reached one has a "Klaim"
+--     button that sends BookClaim (the server checks everything again and pays once).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -8,18 +10,131 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Book = require(ReplicatedStorage.Shared.Config.Book)
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local Locale = require(ReplicatedStorage.Shared.Locale)
+local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local State = require(script.Parent.Parent.State)
 local UiKit = require(script.Parent.Parent.UiKit)
 
 local _player = Players.LocalPlayer
 
 local PREFIX = { crops = "crop", fish = "fish", decor = "decor" }
+local TILE_HEIGHT = 58
+local TILE_ROWS_GAP = 6
 
 local BookController = {}
 
 local panel: UiKit.Panel
+local tab = "collect" -- "collect" | "rewards"
 
-local function render()
+-- Entries of one category that the player has found.
+local function foundIn(book: any, category: string): number
+	local count = 0
+	for _, id in Book.ENTRIES[category] do
+		if book[category][id] ~= nil then
+			count += 1
+		end
+	end
+	return count
+end
+
+-- One cell of the collection grid (5 per row): found = the picture + name (+ best size for fish); not found = a dimmed "?".
+local CAT_OF = { crops = "crop", fish = "fish", decor = "decor" }
+local ICON_OF = { crops = "bibit", fish = "ikan", decor = "hias" }
+
+local function tile(grid: Frame, order: number, category: string, id: string, value: any)
+	local found = value ~= nil
+	local sub: string? = nil
+	if found and category == "fish" then
+		local size = FishConfig.SIZES[value]
+		sub = Locale.t(`size.{size and size.id or "S"}`)
+	end
+	local cell = UiKit.cell(grid, order, {
+		name = if found then Locale.t(`{PREFIX[category]}.{id}`) else Locale.t("book.unknown"),
+		sub = sub,
+		accent = if found then UiKit.CAT[CAT_OF[category] or "gold"] else Color3.fromRGB(190, 172, 140),
+		cropId = if found and category == "crops" then id else nil,
+		icon = ICON_OF[category] or "bintang",
+	})
+	if not found then
+		for _, child in cell:GetDescendants() do
+			if child:IsA("ImageLabel") then
+				child.ImageTransparency = 0.7
+				child.ImageColor3 = Color3.fromRGB(120, 100, 80)
+			end
+		end
+	end
+end
+
+local function renderCollect(book: any, nextOrder: () -> number)
+	for _, category in Book.CATEGORIES do
+		local entries = Book.ENTRIES[category]
+		local recorded = book[category]
+		UiKit.header(panel.list, `{Locale.t(`book.cat.{category}`)}  {foundIn(book, category)}/{#entries}`, nextOrder())
+		local grid = UiKit.grid(panel.list, nextOrder(), 5, 92)
+		for index, id in entries do
+			tile(grid, index, category, id, recorded[id])
+		end
+	end
+end
+
+-- Whether a category / milestone is reached (the server checks the same thing when you claim).
+local function reached(book: any, key: string): boolean
+	local total = 0
+	for _, category in Book.CATEGORIES do
+		total += foundIn(book, category)
+	end
+	local count = 0
+	for _, entries in Book.ENTRIES do
+		count += #entries
+	end
+	local category = string.match(key, "^cat:(%w+)$")
+	if category then
+		return foundIn(book, category) == #Book.ENTRIES[category]
+	end
+	for _, milestone in Book.MILESTONES do
+		if milestone.id == key then
+			return total / count * 100 >= milestone.percent
+		end
+	end
+	return false
+end
+
+local function claimRow(order: number, key: string, title: string, sub: string?, book: any)
+	local claimed = book.claimed[key] == true
+	local ready = not claimed and reached(book, key)
+	local buttonText = if claimed then Locale.t("book.claimed") elseif ready then Locale.t("book.claim") else "-"
+	UiKit.row(panel.list, order, title, sub, buttonText, ready, function()
+		Net.Send("BookClaim", key)
+	end)
+end
+
+local function renderRewards(book: any, nextOrder: () -> number)
+	UiKit.header(panel.list, Locale.t("book.tab.milestone"), nextOrder())
+	for _, category in Book.CATEGORIES do
+		claimRow(nextOrder(), `cat:{category}`, Locale.t("book.cat_claim", { category = Locale.t(`book.cat.{category}`) }), nil, book)
+	end
+	for _, milestone in Book.MILESTONES do
+		claimRow(nextOrder(), milestone.id, Locale.t("book.milestone_row", { percent = milestone.percent }), nil, book)
+	end
+end
+
+local function tabBar(nextOrder: () -> number)
+	local holder = Instance.new("Frame")
+	holder.Name = "TabBar"
+	holder.LayoutOrder = nextOrder()
+	holder.BackgroundTransparency = 1
+	holder.Size = UDim2.new(1, 0, 0, 34)
+	holder.Parent = panel.list
+	local bar = UiKit.tabs(holder, {
+		{ id = "collect", text = Locale.t("book.tab.collect") },
+		{ id = "rewards", text = Locale.t("book.tab.milestone") },
+	}, tab, function(id)
+		tab = id
+		BookController.Render()
+	end)
+	bar.frame.Size = UDim2.fromScale(1, 1)
+end
+
+function BookController.Render()
 	if not panel.gui.Enabled then
 		return
 	end
@@ -35,48 +150,18 @@ local function render()
 		return order
 	end
 
+	tabBar(nextOrder)
+	if tab == "rewards" then
+		renderRewards(book, nextOrder)
+	else
+		renderCollect(book, nextOrder)
+	end
+
 	local found, total = 0, 0
 	for _, category in Book.CATEGORIES do
-		local entries = Book.ENTRIES[category]
-		local recorded = book[category]
-		local categoryFound = 0
-		for _, id in entries do
-			if recorded[id] then
-				categoryFound += 1
-			end
-		end
-		found += categoryFound
-		total += #entries
-
-		UiKit.header(panel.list, `{Locale.t(`book.cat.{category}`)}  {categoryFound}/{#entries}`, nextOrder())
-		for _, id in entries do
-			local value = recorded[id]
-			if value == nil then
-				UiKit.row(panel.list, nextOrder(), Locale.t("book.unknown"))
-			elseif category == "fish" then
-				local size = FishConfig.SIZES[value]
-				UiKit.row(panel.list, nextOrder(), Locale.t(`fish.{id}`), Locale.t("book.best_size", { size = Locale.t(`size.{size and size.id or "S"}`) }))
-			else
-				UiKit.row(panel.list, nextOrder(), Locale.t(`{PREFIX[category]}.{id}`), Locale.t("book.found"))
-			end
-		end
+		found += foundIn(book, category)
+		total += #Book.ENTRIES[category]
 	end
-
-	UiKit.header(panel.list, Locale.t("ui.book"), nextOrder())
-	for _, milestone in Book.MILESTONES do
-		local claimed = book.claimed[milestone.id] == true
-		UiKit.row(panel.list, nextOrder(), Locale.t("book.milestone_row", { percent = milestone.percent }), nil,
-			if claimed then Locale.t("book.claimed") else `{milestone.percent}%`, false)
-	end
-
-	local titles = {}
-	for titleId in snapshot.titles or {} do
-		table.insert(titles, Locale.t(`title.{titleId}`))
-	end
-	if #titles > 0 then
-		UiKit.header(panel.list, Locale.t("book.titles", { titles = table.concat(titles, ", ") }), nextOrder())
-	end
-
 	local percent = if total > 0 then math.floor(found / total * 100) else 0
 	panel.footerLabel.Text = Locale.t("book.progress", { n = found, total = total, percent = percent })
 end
@@ -88,10 +173,10 @@ function BookController.Init()
 end
 
 function BookController.Start()
-	State.Changed:Connect(render)
+	State.Changed:Connect(BookController.Render)
 	task.spawn(UiKit.hudButton, "BookButton", Locale.t("ui.book"), 4, function()
 		panel.gui.Enabled = not panel.gui.Enabled
-		render()
+		BookController.Render()
 	end)
 end
 

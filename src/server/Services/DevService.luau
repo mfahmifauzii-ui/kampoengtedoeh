@@ -23,7 +23,7 @@ local WorldService = require(script.Parent.WorldService)
 local MonetizationService = require(script.Parent.MonetizationService)
 local EventService = require(script.Parent.EventService)
 
-local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !orders, !grow, !time malam, !rain, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 2: !level 2),!inv, !pass backpack, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !buff tani 60 (UI test only: no effect yet), !give kangkung 30, !sales, !quota reset, !blueprint all|taman|pondok_sawah"
+local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !orders, !grow, !time malam, !rain, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 2: !level 2),!inv, !pass backpack, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !buff tani 60 (UI test only: no effect yet), !give kangkung 30, !sales, !quota reset, !tut [reset|fast],!blueprint all|taman|pondok_sawah"
 
 local DevService = {}
 
@@ -47,6 +47,19 @@ local function onChatted(player: Player, message: string)
 	end
 	print(`[DevService] {player.Name}: {message}`)
 	local normalized = message:gsub("\u{2212}", "-") -- typographic minus from autocorrect
+
+	-- "!reset": wipes this player's save back to a brand-new account (Studio store only), then kicks so the next join is fresh.
+	if normalized:match("^!reset%s*$") then
+		local profile = DataService.GetProfile(player)
+		if profile then
+			for key in profile.Data do
+				profile.Data[key] = nil
+			end
+			profile:Reconcile()
+			player:Kick("Progress direset. Join ulang untuk mulai dari awal.")
+		end
+		return
+	end
 
 	-- "!buff tani 60": lights a buff slot on the player card for 60 seconds (0 = off). Display only, the effect is not coded.
 	local buffId, buffSeconds = normalized:match("^!buff%s+(%a+)%s*(%d*)%s*$")
@@ -138,6 +151,21 @@ local function onChatted(player: Player, message: string)
 		if data then
 			data.sales.sold = {}
 			InventoryService.Sync(player)
+		end
+	elseif command == "tut" then
+		-- "!tut reset": forget every tutorial (step, done, skipped) so they start again; "!tut fast": 6 fast plantings; "!tut" prints the state.
+		local data = DataService.Get(player)
+		if data then
+			if arg == "reset" then
+				data.guide.step = { id = "", n = 0 }
+				data.guide.done = {}
+				data.guide.skipped = {}
+				InventoryService.Sync(player)
+			elseif arg == "fast" then
+				data.guide.fastLeft = 6
+				InventoryService.Sync(player)
+			end
+			print(`[DevService] guide={HttpService:JSONEncode(data.guide)}`)
 		end
 	elseif command == "pond" then
 		FishService.DevFillPond(player)

@@ -3,7 +3,7 @@
 -- buys and sells comes from its config, prices from Modules/Trade. The client only sends requests.
 --   Sell(npcId, itemId | "all", amount?)                NPC buys items from the player (amount: whole number 1-99, one item only)
 --   ShopBuy(npcId, kind, id, amount?)                   kind: rod | bait | upgrade | seed | seedx | fish | blueprint
--- Pak Darmo (npc.quota) buys each crop only up to a daily quota; the rest stays in the bag for Bang Tarno (0.7x, no limit).
+-- Pak Darmo (npc.quota) buys each crop only up to a daily quota; the rest stays in the bag for Bang Tarno at a Warung Mini (0.9x, no limit).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -24,35 +24,22 @@ local FishService = require(script.Parent.FishService)
 local PondService = require(script.Parent.PondService)
 local InventoryService = require(script.Parent.InventoryService)
 local NpcService = require(script.Parent.NpcService)
+local UpgradeService = require(script.Parent.UpgradeService)
+local Upgrades = require(ReplicatedStorage.Shared.Modules.Upgrades)
 
 local RATE = { rate = 4, burst = 8 }
 
-type UpgradeState = {
-	get: (data: Types.PlayerData) -> number,
-	set: (data: Types.PlayerData, tier: number) -> (),
-	after: ((player: Player) -> ())?,
-}
+local ShopService = {}
 
-local UPGRADE_STATE: { [string]: UpgradeState } = {
-	backpack = {
-		get = function(data) return data.backpackTier end,
-		set = function(data, tier) data.backpackTier = tier end,
-	},
-	pond = {
-		get = function(data) return data.pond.tier end,
-		set = function(data, tier) data.pond.tier = tier end,
-		after = function(player)
+function ShopService.Init()
+	-- A pond upgrade changes every pond's capacity and look (the upgrade itself lives in UpgradeService).
+	UpgradeService.Bought:Connect(function(player: Player, upgradeId: string)
+		if upgradeId == "pond" then
 			FishService.RefreshPond(player)
 			PondService.RefreshLook(player)
-		end,
-	},
-	warung = {
-		get = function(data) return data.sales.tier end,
-		set = function(data, tier) data.sales.tier = tier end,
-	},
-}
-
-local ShopService = {}
+		end
+	end)
+end
 
 -- Returns the NPC only if the id is real and the player's character is close to it.
 local function npcNear(player: Player, npcId: any): Npcs.Npc?
@@ -132,7 +119,7 @@ local function onSell(player: Player, npcId: any, target: any, amount: any)
 			count = math.min(count, wanted)
 		end
 		if npc.quota and Crops.byId[itemId] then
-			local left = Trade.quotaLeft(data.sales, data.sales.tier, itemId, data.sales.day)
+			local left = Trade.quotaLeft(data.sales, Upgrades.tier(data, "warung"), itemId, data.sales.day)
 			if count > left then
 				limited = true
 				count = left
@@ -201,32 +188,7 @@ local function buyBait(player: Player, baitId: string, amount: any): boolean
 end
 
 local function buyUpgrade(player: Player, data: Types.PlayerData, upgradeId: string): boolean
-	local config = Shop.UPGRADES[upgradeId]
-	local state = UPGRADE_STATE[upgradeId]
-	if not config or not state then
-		return false
-	end
-	local current = state.get(data)
-	local cost = config.costs[current + 1]
-	if not cost then
-		Net.Fire("Notify", player, "shop.max")
-		return false
-	end
-	if data.level < config.unlockLevel then
-		Net.Fire("Notify", player, "shop.locked", { level = config.unlockLevel })
-		return false
-	end
-	if not EconomyService.TrySpend(player, "koin", cost, `upgrade:{upgradeId}:{current + 1}`) then
-		notEnough(player)
-		return false
-	end
-	state.set(data, current + 1)
-	if state.after then
-		state.after(player)
-	end
-	InventoryService.Sync(player)
-	Net.Fire("Notify", player, "shop.bought", { item = `upgrade.{upgradeId}` })
-	return true
+	return UpgradeService.Buy(player, data, upgradeId)
 end
 
 -- Mbak Arsi's blueprints: one purchase unlocks buying every decor item of that set (Config/Blueprints).

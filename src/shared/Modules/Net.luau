@@ -51,6 +51,11 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 
 	SocialVisit = "Event", -- C->S (ownerUserId: number) teleport to that plot; your own id = go home
 	SocialLike = "Event", -- C->S (ownerUserId: number) like the plot you're standing on
+
+	PlaytimeClaim = "Event", -- C->S (index: number) open playtime peti number index (in order, Config/Progression PLAYTIME)
+	BookClaim = "Event", -- C->S (key: string) claim a Book reward: "cat:<category>" or a milestone id (Config/Book)
+
+	GuideEvent = "Event", -- C->S (action: "start"|"step"|"skip"|"replay", tutorialId: string, n: number?) tutorial engine, see TutorialService
 }
 
 local FOLDER_NAME = "Remotes"

@@ -17,6 +17,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Locale = require(ReplicatedStorage.Shared.Locale)
+local Sfx = require(ReplicatedStorage.Shared.Sfx)
 local UiAssets = require(ReplicatedStorage.Shared.Config.UiAssets)
 
 local UiKit = {}
@@ -42,7 +43,16 @@ UiKit.FONT = Enum.Font.FredokaOne -- headings, buttons, numbers
 UiKit.FONT_BODY = Enum.Font.GothamMedium
 
 UiKit.TOUCH = 50 -- minimum touch target, px (thumb-sized)
-UiKit.ROW_HEIGHT = 82
+UiKit.ROW_HEIGHT = 54
+UiKit.ROW_ALT = Color3.fromRGB(246, 236, 210) -- the second cream of the zebra (rows alternate ROW / ROW_ALT)
+-- Category colours (docs/UIUX_Spec.md): each kind of thing has ONE colour, used as the card's left stripe and badges.
+UiKit.CAT = {
+	crop = Color3.fromRGB(96, 150, 70), -- plants, seeds
+	fish = Color3.fromRGB(60, 140, 176), -- fish, water
+	tool = Color3.fromRGB(196, 100, 60), -- rods, upgrades, bait
+	decor = Color3.fromRGB(158, 92, 120), -- decor, blueprints
+	gold = Color3.fromRGB(240, 196, 92), -- money
+}
 
 local PANEL = UiAssets.PANEL
 local BUTTON = UiAssets.BUTTON
@@ -221,6 +231,9 @@ function UiKit.button(parent: Instance, name: string, text: string, color: Color
 	button.AutoButtonColor = true
 	button.Size = UDim2.fromOffset(120, UiKit.TOUCH)
 	button.Parent = parent
+	button.Activated:Connect(function()
+		Sfx.play("ui_click", nil, 0.05) -- every UiKit button clicks (SoundBank role, muted by Atur > Efek suara)
+	end)
 
 	-- Flat look first; the bamboo image goes on top and takes over once it has LOADED (see skinPanel).
 	-- Consumers keep changing BackgroundColor3 to show state, so the image tint mirrors it.
@@ -271,13 +284,14 @@ function UiKit.button(parent: Instance, name: string, text: string, color: Color
 				overlay.Text = button.Text
 				overlay.Font = button.Font
 				overlay.TextSize = button.TextSize
+					overlay.TextYAlignment = button.TextYAlignment
 				-- Inactive buttons (TextTransparency 0.45, set by UiKit.row) stay readable, only a little dimmer.
 				local dim = if button.TextTransparency > 0 then 0.55 else 0
 				overlay.TextTransparency = dim
 				overlay.TextStrokeTransparency = 0.1 + dim * 1.1 -- the outline fades with the letters
 			end
 			mirror()
-			for _, property in { "Text", "Font", "TextSize", "TextTransparency" } do
+			for _, property in { "Text", "Font", "TextSize", "TextTransparency", "TextYAlignment" } do
 				button:GetPropertyChangedSignal(property):Connect(mirror)
 			end
 		end)
@@ -324,29 +338,29 @@ function UiKit.panel(name: string, titleText: string, onClose: () -> ()): Panel
 	frame.Name = "Panel"
 	frame.AnchorPoint = Vector2.new(0.5, 0.5)
 	frame.Position = UDim2.fromScale(0.5, 0.5)
-	frame.Size = UDim2.new(0.96, 0, 0.92, 0)
+	frame.Size = UDim2.new(0.88, 0, 0.86, 0)
 	frame.Active = true -- swallow taps so they do not reach the backdrop
 	frame.Parent = gui
 	skinPanel(frame)
 
 	local sizeLimit = Instance.new("UISizeConstraint")
-	sizeLimit.MaxSize = Vector2.new(620, 700)
+	sizeLimit.MaxSize = Vector2.new(600, 400)
 	sizeLimit.Parent = frame
 
 	-- Title ribbon. Flat green pill until the ribbon image has loaded.
 	local ribbon = Instance.new("Frame")
 	ribbon.Name = "Ribbon"
 	ribbon.AnchorPoint = Vector2.new(0.5, 0)
-	ribbon.Position = UDim2.new(0.5, 0, 0, -16)
-	ribbon.Size = UDim2.new(0.62, 0, 0, 58)
+	ribbon.Position = UDim2.new(0.5, 0, 0, -12)
+	ribbon.Size = UDim2.new(0.5, 0, 0, 44)
 	ribbon.BackgroundColor3 = UiKit.HEADER
 	ribbon.ZIndex = 2
 	ribbon.Parent = frame
 	corner(ribbon, 14)
 	local ribbonStroke = stroke(ribbon, UiKit.HEADER_DARK, 3)
 	local ribbonLimit = Instance.new("UISizeConstraint")
-	ribbonLimit.MinSize = Vector2.new(240, 0)
-	ribbonLimit.MaxSize = Vector2.new(420, 80)
+	ribbonLimit.MinSize = Vector2.new(190, 0)
+	ribbonLimit.MaxSize = Vector2.new(320, 56)
 	ribbonLimit.Parent = ribbon
 	attachSkin(ribbon, RIBBON, function()
 		ribbon.BackgroundTransparency = 1
@@ -362,11 +376,11 @@ function UiKit.panel(name: string, titleText: string, onClose: () -> ()): Panel
 	title.BackgroundTransparency = 1
 	title.AnchorPoint = Vector2.new(0.5, 0.5)
 	title.Position = UDim2.fromScale(0.5, 0.5)
-	title.Size = UDim2.new(1, -120, 1, -12)
+	title.Size = UDim2.new(1, -90, 1, -10)
 	title.TextXAlignment = Enum.TextXAlignment.Center
 	title.TextColor3 = UiKit.CREAM
 	title.Font = UiKit.FONT
-	title.TextSize = 26
+	title.TextSize = 21
 	title.TextTruncate = Enum.TextTruncate.AtEnd
 	title.Text = titleText
 	title.ZIndex = 3
@@ -377,9 +391,9 @@ function UiKit.panel(name: string, titleText: string, onClose: () -> ()): Panel
 	-- Round close badge: the ForgeGUI close image once loaded, else the flat/bamboo button below it.
 	local close = UiKit.button(frame, "Close", "X", UiKit.TERRACOTTA)
 	close.AnchorPoint = Vector2.new(1, 0)
-	close.Position = UDim2.new(1, -10, 0, -8)
-	close.Size = UDim2.fromOffset(56, 56)
-	close.TextSize = 24
+	close.Position = UDim2.new(1, -6, 0, -10)
+	close.Size = UDim2.fromOffset(44, 44)
+	close.TextSize = 20
 	close.ZIndex = 4
 	close.Activated:Connect(onClose)
 	local closeSkin = attachSkin(close, CLOSE, nil, true)
@@ -403,23 +417,23 @@ function UiKit.panel(name: string, titleText: string, onClose: () -> ()): Panel
 	list.Name = "List"
 	list.BackgroundTransparency = 1
 	list.BorderSizePixel = 0
-	list.Position = UDim2.fromOffset(32, 52)
-	list.Size = UDim2.new(1, -64, 1, -(52 + 26 + 56))
+	list.Position = UDim2.fromOffset(26, 40)
+	list.Size = UDim2.new(1, -52, 1, -(40 + 22 + 38))
 	list.CanvasSize = UDim2.new()
 	list.AutomaticCanvasSize = Enum.AutomaticSize.Y
-	list.ScrollBarThickness = 6
+	list.ScrollBarThickness = 4
 	list.ScrollBarImageColor3 = UiKit.BAMBOO_DARK
 	list.ScrollingDirection = Enum.ScrollingDirection.Y
 	list.ElasticBehavior = Enum.ElasticBehavior.Always
 	list.Parent = frame
 
 	local padding = Instance.new("UIPadding")
-	padding.PaddingTop = UDim.new(0, 6)
-	padding.PaddingBottom = UDim.new(0, 8)
-	padding.PaddingRight = UDim.new(0, 8)
+	padding.PaddingTop = UDim.new(0, 4)
+	padding.PaddingBottom = UDim.new(0, 6)
+	padding.PaddingRight = UDim.new(0, 6)
 	padding.Parent = list
 	local layout = Instance.new("UIListLayout")
-	layout.Padding = UDim.new(0, 8)
+	layout.Padding = UDim.new(0, 5)
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	layout.Parent = list
 
@@ -427,18 +441,19 @@ function UiKit.panel(name: string, titleText: string, onClose: () -> ()): Panel
 	footer.Name = "Footer"
 	footer.BackgroundTransparency = 1
 	footer.AnchorPoint = Vector2.new(0, 1)
-	footer.Position = UDim2.new(0, 36, 1, -28)
-	footer.Size = UDim2.new(1, -72, 0, 50)
+	footer.Position = UDim2.new(0, 28, 1, -20)
+	footer.Size = UDim2.new(1, -56, 0, 34)
 	footer.Parent = frame
 
 	local footerLabel = Instance.new("TextLabel")
 	footerLabel.Name = "Info"
+	footerLabel.Text = "" -- (a new TextLabel says "Label": it showed in the corner of every panel)
 	footerLabel.BackgroundTransparency = 1
 	footerLabel.Size = UDim2.new(0.55, 0, 1, 0)
 	footerLabel.TextXAlignment = Enum.TextXAlignment.Left
 	footerLabel.TextColor3 = UiKit.TEXT
 	footerLabel.Font = UiKit.FONT
-	footerLabel.TextSize = 18
+	footerLabel.TextSize = 14
 	footerLabel.TextWrapped = true
 	footerLabel.Parent = footer
 
@@ -467,12 +482,12 @@ function UiKit.header(list: ScrollingFrame, text: string, order: number)
 	local label = Instance.new("TextLabel")
 	label.LayoutOrder = order
 	label.BackgroundTransparency = 1
-	label.Size = UDim2.new(1, 0, 0, 34)
+	label.Size = UDim2.new(1, 0, 0, 24)
 	label.AutomaticSize = Enum.AutomaticSize.Y -- a long line wraps and grows instead of being cut off
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	label.TextColor3 = UiKit.HEADER_DARK
 	label.Font = UiKit.FONT
-	label.TextSize = 20
+	label.TextSize = 16
 	label.TextWrapped = true
 	label.Text = text
 	label.Parent = list
@@ -484,46 +499,38 @@ end
 -- A row card: two-line text on the left and an optional action button on the right.
 -- enabled = false greys the button out and ignores taps.
 -- extraText / onExtra add a second button to the left of the main one (e.g. "Tawar" next to "Jual").
-function UiKit.row(list: ScrollingFrame, order: number, text: string, subText: string?, buttonText: string?, enabled: boolean?, onClick: (() -> ())?, extraText: string?, onExtra: (() -> ())?): Frame
+function UiKit.row(list: ScrollingFrame, order: number, text: string, subText: string?, buttonText: string?, enabled: boolean?, onClick: (() -> ())?, extraText: string?, onExtra: (() -> ())?, accent: Color3?): Frame
 	local row = Instance.new("Frame")
 	row.LayoutOrder = order
-	row.BackgroundColor3 = UiKit.ROW
+	row.BackgroundColor3 = if order % 2 == 0 then UiKit.ROW_ALT else UiKit.ROW
 	row.Size = UDim2.new(1, 0, 0, UiKit.ROW_HEIGHT)
 	row.Parent = list
-	corner(row, 16)
-	local rowBorder = stroke(row, Color3.fromRGB(228, 208, 164), 2)
-	attachSkin(row, CARD, function()
-		row.BackgroundTransparency = 1
-		rowBorder.Enabled = false
-		local round = row:FindFirstChildOfClass("UICorner")
-		if round then
-			round:Destroy()
-		end
-	end)
+	corner(row, 10)
+	stroke(row, Color3.fromRGB(222, 200, 154), 1.5)
+	UiKit.accentStripe(row, accent or UiKit.BAMBOO)
 
 	local hasButton = buttonText ~= nil
-	local textInset = (if hasButton then 138 else 30) + (if extraText then 96 else 0)
+	local textInset = (if hasButton then 100 else 24) + (if extraText then 80 else 0)
 	local label = Instance.new("TextLabel")
 	label.BackgroundTransparency = 1
-	label.Position = UDim2.fromOffset(22, 9)
-	label.Size = UDim2.new(1, -textInset, 0, 40)
+	label.Position = UDim2.fromOffset(16, if subText then 7 else 0)
+	label.Size = UDim2.new(1, -textInset, 0, if subText then 22 else UiKit.ROW_HEIGHT)
 	label.TextXAlignment = Enum.TextXAlignment.Left
-	label.TextYAlignment = Enum.TextYAlignment.Top
+	label.TextYAlignment = if subText then Enum.TextYAlignment.Top else Enum.TextYAlignment.Center
 	label.TextColor3 = UiKit.TEXT
 	label.Font = UiKit.FONT
-	label.TextSize = 18
-	label.TextWrapped = true
+	label.TextSize = 16
+	label.TextWrapped = false
 	label.TextTruncate = Enum.TextTruncate.AtEnd
 	label.Text = text
 	label.Parent = row
 
 	if subText then
 		local sub = label:Clone()
-		sub.Position = UDim2.fromOffset(22, 52)
-		sub.Size = UDim2.new(1, -textInset, 0, 20)
+		sub.Position = UDim2.fromOffset(16, 30)
+		sub.Size = UDim2.new(1, -textInset, 0, 18)
 		sub.Font = UiKit.FONT_BODY
-		sub.TextSize = 14
-		sub.TextWrapped = false
+		sub.TextSize = 12
 		sub.TextColor3 = Color3.fromRGB(128, 100, 66)
 		sub.Text = subText
 		sub.Parent = row
@@ -533,8 +540,9 @@ function UiKit.row(list: ScrollingFrame, order: number, text: string, subText: s
 		local isEnabled = enabled ~= false
 		local button = UiKit.button(row, "Action", buttonText, if isEnabled then UiKit.BUTTON else UiKit.BUTTON_MUTED)
 		button.AnchorPoint = Vector2.new(1, 0.5)
-		button.Position = UDim2.new(1, -16, 0.5, 0)
-		button.Size = UDim2.fromOffset(106, 50)
+		button.Position = UDim2.new(1, -8, 0.5, 0)
+		button.Size = UDim2.fromOffset(82, 36)
+		button.TextSize = 15
 		button.AutoButtonColor = isEnabled and BUTTON.image == ""
 		button.TextTransparency = if isEnabled then 0 else 0.45
 		if not isEnabled then
@@ -558,13 +566,240 @@ function UiKit.row(list: ScrollingFrame, order: number, text: string, subText: s
 	if extraText then
 		local extra = UiKit.button(row, "Extra", extraText, UiKit.BUTTON)
 		extra.AnchorPoint = Vector2.new(1, 0.5)
-		extra.Position = UDim2.new(1, -130, 0.5, 0)
-		extra.Size = UDim2.fromOffset(84, 50)
+		extra.Position = UDim2.new(1, -96, 0.5, 0)
+		extra.Size = UDim2.fromOffset(70, 36)
+		extra.TextSize = 15
 		if onExtra then
 			extra.Activated:Connect(onExtra)
 		end
 	end
 	return row
+end
+
+-- The coloured stripe on a card's left edge (the card's category, see UiKit.CAT).
+function UiKit.accentStripe(card: GuiObject, color: Color3)
+	local stripe = Instance.new("Frame")
+	stripe.Name = "Accent"
+	stripe.BackgroundColor3 = color
+	stripe.BorderSizePixel = 0
+	stripe.AnchorPoint = Vector2.new(0, 0.5)
+	stripe.Position = UDim2.new(0, 5, 0.5, 0)
+	stripe.Size = UDim2.new(0, 5, 1, -14)
+	stripe.ZIndex = 2
+	stripe.Parent = card
+	corner(stripe, 3)
+end
+
+-- Price: a small dark pill with the coin and the amount in gold (the same look as the HUD's Koin). Red when it cannot be paid.
+function UiKit.priceChip(parent: Instance, amountText: string, red: boolean?): Frame
+	local chip = Instance.new("Frame")
+	chip.Name = "PriceChip"
+	chip.BackgroundColor3 = UiKit.DARK
+	chip.Size = UDim2.fromOffset(0, 24)
+	chip.AutomaticSize = Enum.AutomaticSize.X
+	chip.Parent = parent
+	corner(chip, 12)
+	local layout = Instance.new("UIListLayout")
+	layout.FillDirection = Enum.FillDirection.Horizontal
+	layout.VerticalAlignment = Enum.VerticalAlignment.Center
+	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	layout.Padding = UDim.new(0, 3)
+	layout.Parent = chip
+	local pad = Instance.new("UIPadding")
+	pad.PaddingLeft, pad.PaddingRight = UDim.new(0, 7), UDim.new(0, 8)
+	pad.Parent = chip
+	local coin = UiKit.icon(chip, "koin", 16)
+	if coin then
+		coin.LayoutOrder = 1
+	end
+	local label = Instance.new("TextLabel")
+	label.LayoutOrder = 2
+	label.BackgroundTransparency = 1
+	label.AutomaticSize = Enum.AutomaticSize.X
+	label.Size = UDim2.fromOffset(0, 24)
+	label.Font = UiKit.FONT
+	label.TextSize = 14
+	label.TextColor3 = if red then Color3.fromRGB(255, 130, 116) else UiKit.CAT.gold
+	label.Text = amountText
+	label.Parent = chip
+	return chip
+end
+
+-- On/off switch: green with the knob on the right when on, grey with the knob on the left when off. Tapping flips it and runs
+-- onToggle(newValue); the caller re-renders (the server owns the value).
+function UiKit.switch(parent: Instance, on: boolean, onToggle: (value: boolean) -> ()): TextButton
+	local track = Instance.new("TextButton")
+	track.Name = "Switch"
+	track.Text = ""
+	track.AutoButtonColor = false
+	track.AnchorPoint = Vector2.new(1, 0.5)
+	track.Position = UDim2.new(1, -10, 0.5, 0)
+	track.Size = UDim2.fromOffset(54, 28)
+	track.BackgroundColor3 = if on then Color3.fromRGB(104, 164, 70) else Color3.fromRGB(176, 164, 144)
+	track.Parent = parent
+	corner(track, 14)
+	stroke(track, if on then UiKit.HEADER_DARK else Color3.fromRGB(140, 126, 104), 2)
+	local knob = Instance.new("Frame")
+	knob.Name = "Knob"
+	knob.AnchorPoint = Vector2.new(0, 0.5)
+	knob.Position = if on then UDim2.new(1, -25, 0.5, 0) else UDim2.new(0, 3, 0.5, 0)
+	knob.Size = UDim2.fromOffset(22, 22)
+	knob.BackgroundColor3 = UiKit.CREAM
+	knob.Parent = track
+	corner(knob, 11)
+	track.Activated:Connect(function()
+		on = not on
+		track.BackgroundColor3 = if on then Color3.fromRGB(104, 164, 70) else Color3.fromRGB(176, 164, 144)
+		TweenService:Create(knob, TweenInfo.new(0.12), { Position = if on then UDim2.new(1, -25, 0.5, 0) else UDim2.new(0, 3, 0.5, 0) }):Play()
+		onToggle(on)
+	end)
+	return track
+end
+
+-- A grid of cells inside a panel list (the bag, the collection): `columns` cells per row, each cell `cellHeight` tall.
+function UiKit.grid(list: ScrollingFrame, order: number, columns: number, cellHeight: number): Frame
+	local frame = Instance.new("Frame")
+	frame.Name = "Grid"
+	frame.LayoutOrder = order
+	frame.BackgroundTransparency = 1
+	frame.Size = UDim2.new(1, 0, 0, 0)
+	frame.AutomaticSize = Enum.AutomaticSize.Y
+	frame.Parent = list
+	local layout = Instance.new("UIGridLayout")
+	layout.CellSize = UDim2.new(1 / columns, -6, 0, cellHeight)
+	layout.CellPadding = UDim2.fromOffset(6, 6)
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Parent = frame
+	return frame
+end
+
+export type Cell = {
+	name: string,
+	sub: string?, -- small line under the name
+	badge: string?, -- count in the top-right corner ("x3")
+	accent: Color3?,
+	cropId: string?, -- show this crop's 3D model as the picture
+	icon: string?, -- else this icon key
+	price: string?, -- shown as a price chip
+	onClick: (() -> ())?,
+}
+
+-- One grid cell: coloured top edge, picture, name, count badge, optional price chip.
+function UiKit.cell(grid: Instance, order: number, def: Cell): TextButton
+	local cell = Instance.new("TextButton")
+	cell.Name = "Cell"
+	cell.LayoutOrder = order
+	cell.Text = ""
+	cell.AutoButtonColor = false
+	cell.BackgroundColor3 = if order % 2 == 0 then UiKit.ROW_ALT else UiKit.ROW
+	cell.Parent = grid
+	corner(cell, 10)
+	stroke(cell, Color3.fromRGB(222, 200, 154), 1.5)
+	local top = Instance.new("Frame")
+	top.Name = "Accent"
+	top.BackgroundColor3 = def.accent or UiKit.BAMBOO
+	top.BorderSizePixel = 0
+	top.Position = UDim2.fromOffset(8, 0)
+	top.Size = UDim2.new(1, -16, 0, 4)
+	top.Parent = cell
+	corner(top, 2)
+
+	local picture = Instance.new("Frame")
+	picture.Name = "Picture"
+	picture.BackgroundTransparency = 1
+	picture.AnchorPoint = Vector2.new(0.5, 0)
+	picture.Position = UDim2.new(0.5, 0, 0, 7)
+	picture.Size = UDim2.fromOffset(46, 46)
+	picture.Parent = cell
+	if not (def.cropId and UiKit.modelView(picture, def.cropId)) then
+		local icon = UiKit.icon(picture, def.icon or "bibit", 40)
+		if icon then
+			icon.AnchorPoint = Vector2.new(0.5, 0.5)
+			icon.Position = UDim2.fromScale(0.5, 0.5)
+		end
+	end
+
+	local name = Instance.new("TextLabel")
+	name.BackgroundTransparency = 1
+	name.Position = UDim2.fromOffset(4, 54)
+	name.Size = UDim2.new(1, -8, 0, 16)
+	name.Font = UiKit.FONT
+	name.TextSize = 13
+	name.TextColor3 = UiKit.TEXT
+	name.TextTruncate = Enum.TextTruncate.AtEnd
+	name.Text = def.name
+	name.Parent = cell
+
+	if def.badge then
+		local badge = Instance.new("TextLabel")
+		badge.Name = "Badge"
+		badge.AnchorPoint = Vector2.new(1, 0)
+		badge.Position = UDim2.new(1, -5, 0, 8)
+		badge.Size = UDim2.fromOffset(0, 18)
+		badge.AutomaticSize = Enum.AutomaticSize.X
+		badge.BackgroundColor3 = def.accent or UiKit.BAMBOO
+		badge.Font = UiKit.FONT
+		badge.TextSize = 12
+		badge.TextColor3 = UiKit.CREAM
+		badge.Text = def.badge
+		badge.ZIndex = 3
+		badge.Parent = cell
+		corner(badge, 9)
+		local pad = Instance.new("UIPadding")
+		pad.PaddingLeft, pad.PaddingRight = UDim.new(0, 6), UDim.new(0, 6)
+		pad.Parent = badge
+	end
+	if def.price then
+		local chip = UiKit.priceChip(cell, def.price)
+		chip.AnchorPoint = Vector2.new(0.5, 1)
+		chip.Position = UDim2.new(0.5, 0, 1, -4)
+	elseif def.sub then
+		local sub = name:Clone()
+		sub.Position = UDim2.fromOffset(4, 70)
+		sub.Size = UDim2.new(1, -8, 0, 14)
+		sub.Font = UiKit.FONT_BODY
+		sub.TextSize = 11
+		sub.TextColor3 = Color3.fromRGB(128, 100, 66)
+		sub.Text = def.sub
+		sub.Parent = cell
+	end
+	if def.onClick then
+		cell.Activated:Connect(def.onClick)
+	end
+	return cell
+end
+
+-- A crop's own 3D model in a ViewportFrame (ReplicatedStorage.CropModels.<id>, the same model that grows on the bed). Returns
+-- false when there is no such model.
+function UiKit.modelView(parent: Instance, cropId: string): boolean
+	local models = ReplicatedStorage:FindFirstChild("CropModels")
+	local template = models and models:FindFirstChild(cropId)
+	if not template or not template:IsA("Model") then
+		return false
+	end
+	local viewport = Instance.new("ViewportFrame")
+	viewport.Name = "Model"
+	viewport.BackgroundTransparency = 1
+	viewport.Size = UDim2.fromScale(1, 1)
+	viewport.Ambient = Color3.fromRGB(176, 172, 160)
+	viewport.LightColor = Color3.fromRGB(255, 244, 222)
+	viewport.LightDirection = Vector3.new(-0.6, -1.2, -0.7)
+	viewport.Parent = parent
+	local model = template:Clone()
+	for _, descendant in model:GetDescendants() do
+		if descendant:IsA("BasePart") then
+			descendant.Anchored = true
+		end
+	end
+	model.Parent = viewport
+	local boxCFrame, boxSize = model:GetBoundingBox()
+	local camera = Instance.new("Camera")
+	camera.FieldOfView = 30
+	viewport.CurrentCamera = camera
+	camera.Parent = viewport
+	local distance = (boxSize.Magnitude / 2) / math.tan(math.rad(15)) * 1.02
+	camera.CFrame = CFrame.lookAt(boxCFrame.Position + Vector3.new(0.42, 0.3, 1).Unit * distance, boxCFrame.Position)
+	return true
 end
 
 -- Tabs, number picker, item picture, trade row, confirm modal --------------------------------------
@@ -615,7 +850,7 @@ function UiKit.tabs(parent: Instance, defs: { { id: string, text: string } }, se
 		local button = UiKit.button(frame, `Tab_{def.id}`, def.text, if def.id == selected then UiKit.BUTTON else UiKit.BUTTON_MUTED)
 		button.LayoutOrder = order
 		button.Size = UDim2.new(1 / #defs, -8 * (#defs - 1) / #defs, 1, 0)
-		button.TextSize = 21
+		button.TextSize = 16
 		button.Activated:Connect(function()
 			select(def.id)
 			onSelect(def.id)
@@ -632,7 +867,7 @@ function UiKit.stepper(parent: Instance, value: number, minValue: number, maxVal
 	local frame = Instance.new("Frame")
 	frame.Name = "Stepper"
 	frame.BackgroundTransparency = 1
-	frame.Size = UDim2.fromOffset(150, 38)
+	frame.Size = UDim2.fromOffset(92, 32)
 	frame.Parent = parent
 
 	local current = math.clamp(value, minValue, maxValue)
@@ -641,10 +876,10 @@ function UiKit.stepper(parent: Instance, value: number, minValue: number, maxVal
 	label.BackgroundTransparency = 1
 	label.AnchorPoint = Vector2.new(0.5, 0.5)
 	label.Position = UDim2.fromScale(0.5, 0.5)
-	label.Size = UDim2.new(1, -84, 1, 0)
+	label.Size = UDim2.new(1, -64, 1, 0)
 	label.TextColor3 = UiKit.TEXT
 	label.Font = UiKit.FONT
-	label.TextSize = 22
+	label.TextSize = 16
 	label.Text = tostring(current)
 	label.Parent = frame
 
@@ -661,8 +896,8 @@ function UiKit.stepper(parent: Instance, value: number, minValue: number, maxVal
 		local button = UiKit.button(frame, name, text, UiKit.BUTTON_MUTED)
 		button.AnchorPoint = Vector2.new(anchorX, 0.5)
 		button.Position = UDim2.new(anchorX, 0, 0.5, 0)
-		button.Size = UDim2.fromOffset(40, 38)
-		button.TextSize = 26
+		button.Size = UDim2.fromOffset(32, 32)
+		button.TextSize = 20
 		local token = 0
 		button.MouseButton1Down:Connect(function()
 			token += 1
@@ -695,37 +930,33 @@ function UiKit.thumb(parent: Instance, size: number, thumbKey: string?, placehol
 	slot.BackgroundColor3 = Color3.fromRGB(240, 226, 190)
 	slot.Size = UDim2.fromOffset(size, size)
 	slot.Parent = parent
-	corner(slot, 14)
-	local slotBorder = stroke(slot, Color3.fromRGB(214, 190, 140), 2)
-	local skin = attachSkin(slot, CARD, function()
-		slot.BackgroundTransparency = 1
-		slotBorder.Enabled = false
-		local round = slot:FindFirstChildOfClass("UICorner")
-		if round then
-			round:Destroy()
-		end
-	end)
-	if skin then
-		skin.ImageColor3 = Color3.fromRGB(240, 226, 190) -- a touch darker than the row card behind it
-	end
+	corner(slot, 10)
+	stroke(slot, Color3.fromRGB(214, 190, 140), 1.5)
 
-	local picture = Instance.new("ImageLabel")
+	local picture = Instance.new("Frame")
 	picture.Name = "Picture"
-	picture.BackgroundTransparency = 1 -- the picture has a transparent background: the frame shows through
+	picture.BackgroundTransparency = 1
 	picture.AnchorPoint = Vector2.new(0.5, 0.5)
 	picture.Position = UDim2.fromScale(0.5, 0.5)
-	picture.Size = UDim2.new(1, -16, 1, -16)
-	picture.ScaleType = Enum.ScaleType.Fit
+	picture.Size = UDim2.new(1, -6, 1, -6)
 	picture.ZIndex = 2
+	picture.Parent = slot
+	-- A harvested crop (key "kangkung") or its seed ("seed_kangkung") shows the crop's own 3D model; else the picture / an icon.
+	local cropId = if thumbKey then thumbKey:gsub("^seedx?_", "") else nil
+	if cropId and UiKit.modelView(picture, cropId) then
+		return slot
+	end
+	local image = Instance.new("ImageLabel")
+	image.BackgroundTransparency = 1
+	image.Size = UDim2.fromScale(1, 1)
+	image.ScaleType = Enum.ScaleType.Fit
 	local real = if thumbKey then UiAssets.THUMBS[thumbKey] else nil
 	if real and real ~= "" then
-		picture.Image = real
+		image.Image = real
 	else
-		picture.Image = UiKit.iconId(placeholderIcon or "")
-		picture.ImageTransparency = 0.4 -- placeholder: visibly "not the final picture"
-		picture.ImageColor3 = Color3.fromRGB(170, 150, 118)
+		image.Image = UiKit.iconId(placeholderIcon or "")
 	end
-	picture.Parent = slot
+	image.Parent = picture
 	return slot
 end
 
@@ -743,6 +974,7 @@ export type TradeRow = {
 	disabledText: string?, -- shown on the button when maxQty is 0 (e.g. "Lv 3", "Kuota habis")
 	onQty: ((n: number) -> ())?,
 	onAction: (qty: number) -> (),
+	accent: Color3?, -- the category stripe (UiKit.CAT)
 }
 
 -- One shop row: picture slot, name + detail, number picker, total, action button. The total is red when the player cannot
@@ -751,105 +983,86 @@ function UiKit.tradeRow(list: ScrollingFrame, order: number, def: TradeRow): Fra
 	local row = Instance.new("Frame")
 	row.Name = "TradeRow"
 	row.LayoutOrder = order
-	row.BackgroundColor3 = UiKit.ROW
-	row.Size = UDim2.new(1, 0, 0, 108)
+	row.BackgroundColor3 = if order % 2 == 0 then UiKit.ROW_ALT else UiKit.ROW
+	row.Size = UDim2.new(1, 0, 0, 58)
 	row.Parent = list
-	corner(row, 16)
-	local rowBorder = stroke(row, Color3.fromRGB(228, 208, 164), 2)
-	attachSkin(row, CARD, function()
-		row.BackgroundTransparency = 1
-		rowBorder.Enabled = false
-		local round = row:FindFirstChildOfClass("UICorner")
-		if round then
-			round:Destroy()
-		end
-	end)
+	corner(row, 10)
+	stroke(row, Color3.fromRGB(222, 200, 154), 1.5)
+	UiKit.accentStripe(row, def.accent or UiKit.BAMBOO)
 
-	local thumb = UiKit.thumb(row, 76, def.thumbKey, def.placeholderIcon)
+	local thumb = UiKit.thumb(row, 44, def.thumbKey, def.placeholderIcon)
 	thumb.AnchorPoint = Vector2.new(0, 0.5)
-	thumb.Position = UDim2.new(0, 18, 0.5, 0)
+	thumb.Position = UDim2.new(0, 16, 0.5, 0)
 
+	-- Columns, right to left: action button | price chip | stepper. Name + detail take the rest.
+	local RIGHT = 8 + 76 + 6 + 74 + 6 + (if def.pickQty and def.maxQty > 1 then 92 + 6 else 0)
 	local label = Instance.new("TextLabel")
 	label.Name = "Name"
 	label.BackgroundTransparency = 1
-	label.Position = UDim2.fromOffset(106, 14)
-	label.Size = UDim2.new(1, -106 - 214, 0, 28)
+	label.Position = UDim2.fromOffset(68, 8)
+	label.Size = UDim2.new(1, -68 - RIGHT, 0, 20)
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	label.TextYAlignment = Enum.TextYAlignment.Top
 	label.TextColor3 = UiKit.TEXT
 	label.Font = UiKit.FONT
-	label.TextSize = 19
-	label.TextWrapped = true
+	label.TextSize = 15
 	label.TextTruncate = Enum.TextTruncate.AtEnd
 	label.Text = def.name
 	label.Parent = row
 	if def.sub then
 		local sub = label:Clone()
 		sub.Name = "Sub"
-		sub.Position = UDim2.fromOffset(106, 46)
-		sub.Size = UDim2.new(1, -106 - 214, 0, 50)
+		sub.Position = UDim2.fromOffset(68, 30)
+		sub.Size = UDim2.new(1, -68 - RIGHT, 0, 22)
 		sub.Font = UiKit.FONT_BODY
-		sub.TextSize = 14
+		sub.TextSize = 11
+		sub.TextWrapped = true
 		sub.TextColor3 = Color3.fromRGB(128, 100, 66)
 		sub.Text = def.sub
 		sub.Parent = row
 	end
 
-	-- Right block: picker on top, total + button below.
-	local right = Instance.new("Frame")
-	right.Name = "Right"
-	right.BackgroundTransparency = 1
-	right.AnchorPoint = Vector2.new(1, 0.5)
-	right.Position = UDim2.new(1, -16, 0.5, 0)
-	right.Size = UDim2.fromOffset(196, 92)
-	right.Parent = row
-
 	local active = def.maxQty >= 1
 	local qty = math.clamp(def.qty or 1, 1, math.max(def.maxQty, 1))
 
-	local total = Instance.new("TextLabel")
-	total.Name = "Total"
-	total.BackgroundTransparency = 1
-	total.AnchorPoint = Vector2.new(0, 1)
-	total.Position = UDim2.fromScale(0, 1)
-	total.Size = UDim2.new(1, -92, 0, 40)
-	total.TextXAlignment = Enum.TextXAlignment.Left
-	total.TextColor3 = UiKit.TEXT
-	total.Font = UiKit.FONT
-	total.TextSize = 17
-	total.TextWrapped = true
-	total.Parent = right
-
-	local action = UiKit.button(right, "Action", if active then def.actionText else (def.disabledText or def.actionText), UiKit.BUTTON)
-	action.AnchorPoint = Vector2.new(1, 1)
-	action.Position = UDim2.fromScale(1, 1)
-	action.Size = UDim2.fromOffset(86, 42)
-	action.TextSize = if not active and #(def.disabledText or "") > 7 then 14 else 18 -- "Kuota habis" must fit the button
+	local action = UiKit.button(row, "Action", if active then def.actionText else (def.disabledText or def.actionText), UiKit.BUTTON)
+	action.AnchorPoint = Vector2.new(1, 0.5)
+	action.Position = UDim2.new(1, -8, 0.5, 0)
+	action.Size = UDim2.fromOffset(76, 36)
+	action.TextSize = if not active and #(def.disabledText or "") > 6 then 11 else 15 -- "Kuota habis" must fit the button
 	action.TextWrapped = true
+
+	local priceHolder = Instance.new("Frame")
+	priceHolder.Name = "Total"
+	priceHolder.BackgroundTransparency = 1
+	priceHolder.AnchorPoint = Vector2.new(1, 0.5)
+	priceHolder.Position = UDim2.new(1, -8 - 76 - 6, 0.5, 0)
+	priceHolder.Size = UDim2.fromOffset(74, 26)
+	priceHolder.Parent = row
 
 	local function refresh()
 		local sum = if def.unitPrice then def.unitPrice * qty else nil
 		local short = sum ~= nil and def.money ~= nil and sum > def.money
-		total.Visible = sum ~= nil and (active or def.money ~= nil) -- selling: no total on a row you cannot sell from
-		if sum then
-			total.Text = Locale.t("ui.koin", { n = Locale.formatNumber(sum) })
-			total.TextColor3 = if short then UiKit.RED_TEXT else UiKit.TEXT
+		priceHolder:ClearAllChildren()
+		if sum and (active or def.money ~= nil) then -- selling: no total on a row you cannot sell from
+			local chip = UiKit.priceChip(priceHolder, Locale.formatNumber(sum), short)
+			chip.AnchorPoint = Vector2.new(1, 0.5)
+			chip.Position = UDim2.fromScale(1, 0.5)
 		end
 		setButtonEnabled(action, active and not short)
 	end
 	refresh()
 
 	if active and def.pickQty and def.maxQty > 1 then
-		local stepper = UiKit.stepper(right, qty, 1, def.maxQty, function(n)
+		local stepper = UiKit.stepper(row, qty, 1, def.maxQty, function(n)
 			qty = n
 			refresh()
 			if def.onQty then
 				def.onQty(n)
 			end
 		end)
-		stepper.AnchorPoint = Vector2.new(1, 0)
-		stepper.Position = UDim2.fromScale(1, 0)
-		stepper.Size = UDim2.fromOffset(196, 38)
+		stepper.AnchorPoint = Vector2.new(1, 0.5)
+		stepper.Position = UDim2.new(1, -8 - 76 - 6 - 74 - 6, 0.5, 0)
 	end
 
 	action.Activated:Connect(function()
@@ -1102,6 +1315,8 @@ local MENU_ICON = {
 	StoreButton = "toko",
 	SocialButton = "warga",
 	GarapButton = "garap",
+	KolamButton = "kolam",
+	RewardButton = "bintang", -- Hadiah (kalender + peti main)
 }
 
 -- Where each button lives (thumb-friendly layout, no captions: the icons speak, a tooltip names them on hover):
@@ -1109,7 +1324,7 @@ local MENU_ICON = {
 --          Big (58 px) round icon buttons.
 --   everything else = a vertical column at the top right (Warga, Toko, Atur, Koleksi). On phones it collapses behind a
 --   round menu button and slides open downward.
-local DOCK_ORDER = { GarapButton = 1, DecorButton = 2, BagButton = 3, OrdersButton = 4 }
+local DOCK_ORDER = { GarapButton = 1, KolamButton = 2, DecorButton = 3, BagButton = 4, OrdersButton = 5 }
 local MENU_SIZE = 50 -- round button size in the top-right column
 
 -- Calls `callback` now and whenever the screen size changes (rotation, window resize). It follows the CURRENT camera:
@@ -1270,20 +1485,8 @@ function UiKit.hideTip(hud: Instance)
 	end
 end
 
-local function attachTip(hud: Instance, button: GuiButton, above: boolean)
-	if not UserInputService.MouseEnabled then
-		return
-	end
-	button.MouseEnter:Connect(function()
-		local text = button:GetAttribute("TipText")
-		if typeof(text) == "string" and text ~= "" then
-			UiKit.showTip(hud, button, text, above)
-		end
-	end)
-	button.MouseLeave:Connect(function()
-		UiKit.hideTip(hud)
-	end)
-end
+-- Menu buttons have no hover tooltip any more (only the buff icons show a tip, on click); kept so callers stay as they are.
+local function attachTip(_hud: Instance, _button: GuiButton, _above: boolean) end
 
 -- Names a menu button (shown as a tooltip on hover; the buttons carry no captions).
 function UiKit.setMenuLabel(button: GuiButton, text: string)
@@ -1456,6 +1659,7 @@ function UiKit.menuItem(hud: Instance, name: string, text: string, slot: number)
 		if not dock then
 			-- On phones the column folds away again after you pick something.
 			item.Activated:Connect(function()
+				Sfx.play("ui_click", nil, 0.05)
 				if isCompact() and menuState.setExpanded then
 					menuState.setExpanded(false, true)
 				end
@@ -1505,7 +1709,192 @@ function UiKit.closeBadge(parent: Instance, size: number, onClick: () -> ()): Te
 	return close
 end
 
--- Responsive scale -------------------------------------------------------------------------------
+-- Foundation for the R3 screens (17.0): product card, progress dots, notification dot, reward popup ---------------
+
+export type ProductDef = {
+	progress: { count: number, filled: number }?, -- optional dots under the title (upgrade tiers)
+	title: string,
+	sub: string?,
+	price: string?,
+	buttonText: string,
+	enabled: boolean?,
+	onClick: (() -> ())?,
+	thumbKey: string?,
+	placeholderIcon: string?,
+	accent: Color3?,
+}
+
+-- A shop card for one product: a thumb on the left, title + sub-line + price, and a buy button on the right. Same
+-- bamboo card as the list rows. Returns the card so the caller can set LayoutOrder.
+function UiKit.productCard(list: Instance, order: number, def: ProductDef): Frame
+	local card = Instance.new("Frame")
+	card.Name = `Product_{def.title}`
+	card.LayoutOrder = order
+	card.BackgroundColor3 = if order % 2 == 0 then UiKit.ROW_ALT else UiKit.ROW
+	card.Size = UDim2.new(1, 0, 0, 64)
+	card.Parent = list
+	corner(card, 10)
+	stroke(card, Color3.fromRGB(222, 200, 154), 1.5)
+	UiKit.accentStripe(card, def.accent or UiKit.CAT.tool)
+
+	local thumb = UiKit.thumb(card, 48, def.thumbKey, def.placeholderIcon)
+	thumb.AnchorPoint = Vector2.new(0, 0.5)
+	thumb.Position = UDim2.new(0, 16, 0.5, 0)
+
+	local RIGHT = 8 + 92 + 6 + 84
+	local title = Instance.new("TextLabel")
+	title.Name = "Title"
+	title.BackgroundTransparency = 1
+	title.Position = UDim2.fromOffset(72, 6)
+	title.Size = UDim2.new(1, -72 - RIGHT, 0, 20)
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.TextColor3 = UiKit.TEXT
+	title.Font = UiKit.FONT
+	title.TextSize = 15
+	title.TextTruncate = Enum.TextTruncate.AtEnd
+	title.Text = def.title
+	title.Parent = card
+
+	local sub = title:Clone()
+	sub.Name = "Sub"
+	sub.Position = UDim2.fromOffset(72, 27)
+	sub.Size = UDim2.new(1, -72 - RIGHT, 0, 16)
+	sub.Font = UiKit.FONT_BODY
+	sub.TextSize = 11
+	sub.TextColor3 = Color3.fromRGB(128, 100, 66)
+	sub.Text = def.sub or ""
+	sub.Parent = card
+
+	if def.progress then
+		local dots = UiKit.progressDots(card, def.progress.count, def.progress.filled, 9)
+		dots.Position = UDim2.fromOffset(72, 46)
+	end
+
+	local isEnabled = def.enabled ~= false
+	local button = UiKit.button(card, "Action", def.buttonText, if isEnabled then UiKit.BUTTON else UiKit.BUTTON_MUTED)
+	button.AnchorPoint = Vector2.new(1, 0.5)
+	button.Position = UDim2.new(1, -8, 0.5, 0)
+	button.Size = UDim2.fromOffset(84, 36)
+	button.TextSize = if #def.buttonText > 7 then 12 else 15
+	button.TextTransparency = if isEnabled then 0 else 0.45
+
+	if def.price then
+		local priceHolder = Instance.new("Frame")
+		priceHolder.BackgroundTransparency = 1
+		priceHolder.AnchorPoint = Vector2.new(1, 0.5)
+		priceHolder.Position = UDim2.new(1, -8 - 84 - 6, 0.5, 0)
+		priceHolder.Size = UDim2.fromOffset(92, 26)
+		priceHolder.Parent = card
+		local chip = UiKit.priceChip(priceHolder, def.price)
+		chip.AnchorPoint = Vector2.new(1, 0.5)
+		chip.Position = UDim2.fromScale(1, 0.5)
+	end
+	if def.onClick then
+		local onClick = def.onClick
+		button.Activated:Connect(function()
+			if isEnabled then
+				onClick()
+			end
+		end)
+	end
+	return card
+end
+
+-- A row of small dots: `filled` of `count` are green (done), the rest tan. Used for upgrade levels and reward progress.
+function UiKit.progressDots(parent: Instance, count: number, filled: number, size: number?): Frame
+	local dot = size or 14
+	local gap = 6
+	local frame = Instance.new("Frame")
+	frame.Name = "Dots"
+	frame.BackgroundTransparency = 1
+	frame.Size = UDim2.fromOffset(count * dot + (count - 1) * gap, dot)
+	frame.Parent = parent
+	for i = 1, count do
+		local on = i <= filled
+		local d = Instance.new("Frame")
+		d.Name = `Dot{i}`
+		d.Position = UDim2.fromOffset((i - 1) * (dot + gap), 0)
+		d.Size = UDim2.fromOffset(dot, dot)
+		d.BackgroundColor3 = if on then UiKit.BUTTON else UiKit.BUTTON_MUTED
+		d.Parent = frame
+		corner(d, dot)
+		stroke(d, if on then UiKit.HEADER_DARK else Color3.fromRGB(170, 150, 118), 2)
+	end
+	return frame
+end
+
+-- A red badge with a count on the top-right corner of `target` ("something new here"). Calling it again updates the
+-- count; a count of 0 hides it. Returns the badge.
+function UiKit.notifyDot(target: GuiObject, count: number): Frame
+	local badge = target:FindFirstChild("NotifyDot") :: Frame?
+	if not badge then
+		badge = Instance.new("Frame")
+		badge.Name = "NotifyDot"
+		badge.AnchorPoint = Vector2.new(1, 0)
+		badge.Position = UDim2.new(1, 4, 0, -4)
+		badge.Size = UDim2.fromOffset(22, 22)
+		badge.BackgroundColor3 = UiKit.RED
+		badge.ZIndex = 8
+		badge.Parent = target
+		corner(badge, 11)
+		stroke(badge, Color3.fromRGB(255, 240, 220), 2)
+		local text = Instance.new("TextLabel")
+		text.Name = "Count"
+		text.BackgroundTransparency = 1
+		text.Size = UDim2.fromScale(1, 1)
+		text.Font = UiKit.FONT
+		text.TextSize = 14
+		text.TextColor3 = UiKit.CREAM
+		text.ZIndex = 9
+		text.Parent = badge
+	end
+	local shown = count > 0
+	badge.Visible = shown
+	local label = badge:FindFirstChild("Count") :: TextLabel?
+	if label then
+		label.Text = if count > 99 then "99+" else tostring(count)
+	end
+	return badge
+end
+
+-- A short reward toast in the middle of the screen: a cream chip with the text, floats up and goes (~1.7 s).
+-- Fails quietly when there is no player GUI yet.
+function UiKit.rewardPopup(text: string)
+	local player = Players.LocalPlayer
+	local playerGui = player and player:FindFirstChildOfClass("PlayerGui")
+	if not playerGui then
+		return
+	end
+	local gui = playerGui:FindFirstChild("RewardPopups")
+	if not gui or not gui:IsA("ScreenGui") then
+		gui = Instance.new("ScreenGui")
+		gui.Name = "RewardPopups"
+		gui.ResetOnSpawn = false
+		gui.IgnoreGuiInset = true
+		gui.DisplayOrder = 40 -- above the HUD and the panels
+		gui.Parent = playerGui
+	end
+	local chip = UiKit.pill(gui :: ScreenGui, "Reward", 260, 56)
+	chip.AnchorPoint = Vector2.new(0.5, 0.5)
+	chip.Position = UDim2.fromScale(0.5, 0.42)
+	local label = Instance.new("TextLabel")
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.new(1, -24, 1, 0)
+	label.Position = UDim2.fromOffset(12, 0)
+	label.ZIndex = 2
+	label.Font = UiKit.FONT
+	label.TextSize = 20
+	label.TextColor3 = UiKit.TEXT
+	label.Text = text
+	label.Parent = chip
+	local info = TweenInfo.new(1.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	TweenService:Create(chip, info, { Position = UDim2.fromScale(0.5, 0.34) }):Play()
+	task.delay(1.7, function()
+		chip:Destroy()
+	end)
+end
+
+-- Responsive scale-------------------------------------------------------------------------------
 -- Phones keep scale 1 (44 px targets are already comfortable); big screens scale the UI up so it doesn't look tiny.
 
 local function currentScale(): number

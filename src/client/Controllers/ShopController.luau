@@ -7,7 +7,7 @@
 -- cannot pay turns red and the button stays grey. Beli always asks first (UiKit.confirm, Batal left / Setuju right);
 -- so does Jual Semua. Jual of one item is a deliberate pick (item + number) and goes straight through.
 -- Pak Darmo buys each crop at full price only up to a daily quota; the row shows what is left. Past the quota, Bang Tarno
--- buys the rest at 0.7x with no limit.
+-- buys the rest at 0.9x with no limit.
 -- Buttons only send requests; prices, levels, quotas and stock are re-checked on the server.
 --
 -- UI CONTRACT: ScreenGui "ShopPanel" (UiKit.panel). The title is the NPC's name.
@@ -35,9 +35,9 @@ local player = Players.LocalPlayer
 
 local ShopController = {}
 
-local TABS_HEIGHT = 46
-local LIST_TOP_PLAIN = 52 -- list top when there are no tabs (UiKit.panel default)
-local LIST_TOP_TABS = LIST_TOP_PLAIN + TABS_HEIGHT + 8
+local TABS_HEIGHT = 34
+local LIST_TOP_PLAIN = 40 -- list top when there are no tabs (UiKit.panel default)
+local LIST_TOP_TABS = LIST_TOP_PLAIN + TABS_HEIGHT + 6
 
 local panel: UiKit.Panel
 local tabs: UiKit.Tabs
@@ -226,6 +226,7 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 					name = name,
 					thumbKey = rod.id,
 					placeholderIcon = "pancing",
+						accent = UiKit.CAT.tool,
 					maxQty = if equipped then 0 else 1,
 					pickQty = false,
 					actionText = Locale.t("ui.equip"),
@@ -240,6 +241,7 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 					name = name,
 					thumbKey = rod.id,
 					placeholderIcon = "pancing",
+						accent = UiKit.CAT.tool,
 					unitPrice = rod.price,
 					maxQty = if unlocked then 1 else 0,
 					pickQty = false,
@@ -263,6 +265,7 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 			sub = `{Locale.t("shop.unit_price", { price = koin(Fishing.BAIT.price) })}  ·  {Locale.t("ui.owned", { n = items[baitId] or 0 })}`,
 			thumbKey = baitId,
 			placeholderIcon = "pancing",
+						accent = UiKit.CAT.tool,
 			unitPrice = Fishing.BAIT.price,
 			maxQty = Shop.MAX_AMOUNT,
 			pickQty = true,
@@ -281,42 +284,36 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 	-- Upgrades (Pak Darmo)
 	if sells.upgrades then
 		UiKit.header(list, Locale.t("shop.section.upgrades"), nextOrder())
+		-- R3 17.7: one card per upgrade, its tiers as progress dots, and a buy button with the next tier's price.
 		for _, upgradeId in Shop.UPGRADE_ORDER do
 			anything = true
 			local config = Shop.UPGRADES[upgradeId]
 			local upgradeTier, detail = upgradeInfo(upgradeId, snapshot)
 			local cost = config.costs[upgradeTier + 1]
 			local name = Locale.t(`upgrade.{upgradeId}`)
-			if not cost then
-				UiKit.tradeRow(list, nextOrder(), {
-					name = name,
-					sub = detail,
-					thumbKey = `upgrade_{upgradeId}`,
-					placeholderIcon = UPGRADE_ICON[upgradeId],
-					maxQty = 0,
-					pickQty = false,
-					actionText = Locale.t("ui.max"),
-					disabledText = Locale.t("ui.max"),
-					onAction = function() end,
-				})
-			else
-				local unlocked = playerLevel >= config.unlockLevel
-				UiKit.tradeRow(list, nextOrder(), {
-					name = name,
-					sub = detail,
-					thumbKey = `upgrade_{upgradeId}`,
-					placeholderIcon = UPGRADE_ICON[upgradeId],
-					unitPrice = cost,
-					maxQty = if unlocked then 1 else 0,
-					pickQty = false,
-					money = money(),
-					actionText = Locale.t("ui.buy"),
-					disabledText = Locale.t("ui.locked", { level = config.unlockLevel }),
-					onAction = function()
-						confirmBuy(npcId, "upgrade", upgradeId, name, cost, nil)
-					end,
-				})
+			local unlocked = playerLevel >= config.unlockLevel
+			local onClick: (() -> ())? = nil
+			local buttonText = Locale.t("ui.max")
+			local price = Locale.t("ui.max")
+			if cost then
+				local unit: number = cost
+				price = koin(unit)
+				buttonText = if unlocked then Locale.t("ui.buy") else Locale.t("ui.locked", { level = config.unlockLevel })
+				onClick = function()
+					confirmBuy(npcId, "upgrade", upgradeId, name, unit, nil)
+				end
 			end
+			UiKit.productCard(list, nextOrder(), {
+				title = name,
+				sub = detail,
+				price = price,
+				buttonText = buttonText,
+				enabled = cost ~= nil and unlocked,
+				onClick = onClick,
+				progress = { count = #config.costs, filled = upgradeTier },
+				thumbKey = `upgrade_{upgradeId}`,
+				placeholderIcon = UPGRADE_ICON[upgradeId],
+			})
 		end
 	end
 
@@ -340,6 +337,7 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 					sub = detail,
 					thumbKey = `blueprint_{blueprint.id}`,
 					placeholderIcon = "pesanan",
+						accent = UiKit.CAT.decor,
 					maxQty = 0,
 					pickQty = false,
 					actionText = Locale.t("blueprint.owned"),
@@ -353,6 +351,7 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 					sub = detail,
 					thumbKey = `blueprint_{blueprint.id}`,
 					placeholderIcon = "pesanan",
+						accent = UiKit.CAT.decor,
 					unitPrice = blueprint.price,
 					maxQty = if unlocked then 1 else 0,
 					pickQty = false,
@@ -406,6 +405,7 @@ local function renderSell(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 			sub = sub,
 			thumbKey = itemId,
 			placeholderIcon = if info.kind == "fish" then "ikan" elseif info.kind == "crop" then "bibit" else "pancing",
+			accent = if info.kind == "fish" then UiKit.CAT.fish elseif info.kind == "crop" then UiKit.CAT.crop else UiKit.CAT.tool,
 			unitPrice = unit,
 			maxQty = maxQty,
 			pickQty = true,
@@ -456,8 +456,8 @@ local function render()
 	tabs.frame.Visible = showTabs
 	tabs.select(tab)
 	local top = if showTabs then LIST_TOP_TABS else LIST_TOP_PLAIN
-	panel.list.Position = UDim2.fromOffset(32, top)
-	panel.list.Size = UDim2.new(1, -64, 1, -(top + 26 + 56))
+	panel.list.Position = UDim2.fromOffset(26, top)
+	panel.list.Size = UDim2.new(1, -52, 1, -(top + 22 + 38))
 
 	panel.footerLabel.Text = Locale.t("shop.you_have", { price = koin(money()) })
 	sellAllButton.Visible = canSell and tab == "sell" and #sellableIds(npc, snapshot) > 0
@@ -550,14 +550,15 @@ function ShopController.Init()
 		tab = id
 		render()
 	end)
-	tabs.frame.Position = UDim2.fromOffset(32, LIST_TOP_PLAIN)
-	tabs.frame.Size = UDim2.new(1, -64, 0, TABS_HEIGHT)
+	tabs.frame.Position = UDim2.fromOffset(26, LIST_TOP_PLAIN)
+	tabs.frame.Size = UDim2.new(1, -52, 0, TABS_HEIGHT)
 	tabs.frame.Visible = false
 
 	sellAllButton = UiKit.button(panel.footer, "SellAll", Locale.t("ui.sell_all"))
 	sellAllButton.AnchorPoint = Vector2.new(1, 0)
 	sellAllButton.Position = UDim2.fromScale(1, 0)
-	sellAllButton.Size = UDim2.new(0.45, 0, 1, 0)
+	sellAllButton.Size = UDim2.new(0.4, 0, 1, 0)
+	sellAllButton.TextSize = 15
 	sellAllButton.Visible = false
 	sellAllButton.Activated:Connect(onSellAll)
 end

@@ -41,12 +41,23 @@ local function render()
 		return
 	end
 
+	-- A grid, 5 per row: the picture says what it is (crops show their own 3D model), the badge says how many, the gold chip what
+	-- the stack is worth. Category colour on the cell's top edge: green plants, blue fish, terracotta tools and bait.
+	local grid = UiKit.grid(panel.list, 1, 5, 96)
 	for order, itemId in ids do
 		local info = Items.info(itemId)
 		local count = snapshot.items[itemId]
 		if info then
-			local value = if info.sellPrice then Locale.t("ui.koin", { n = Locale.formatNumber(info.sellPrice * count) }) else nil
-			UiKit.row(panel.list, order, `{Items.displayName(info)}  ×{count}`, value)
+			local isCrop = info.kind == "crop"
+			local isFish = info.kind == "fish"
+			UiKit.cell(grid, order, {
+				name = Items.displayName(info),
+				badge = `×{count}`,
+				accent = if isFish then UiKit.CAT.fish elseif isCrop or itemId:match("^seedx?_") then UiKit.CAT.crop else UiKit.CAT.tool,
+				cropId = if isCrop then itemId elseif itemId:match("^seedx?_") then itemId:gsub("^seedx?_", "") else nil,
+				icon = if isFish then "ikan" elseif itemId:match("^seedx?_") then "bibit" else "pancing",
+				price = if info.sellPrice then Locale.formatNumber(info.sellPrice * count) else nil,
+			})
 		end
 	end
 end

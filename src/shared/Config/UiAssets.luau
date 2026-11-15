@@ -67,5 +67,7 @@ return {
 		pancing = "rbxassetid://133616022513657", -- fishing rod
 		bibit = "rbxassetid://85277378514415", -- seed packet
 		kolam = "rbxassetid://123008103858779", -- pond with a drop
+		siram = "rbxassetid://128270474264694", -- watering can (ForgeGUI, 15 Nov 2026): the "Siram" pill over a dry bed
+		panen = "rbxassetid://72510453002470", -- harvest basket (ForgeGUI, 15 Nov 2026): the "Panen!" pill over a ripe bed
 	} :: { [string]: string },
 }

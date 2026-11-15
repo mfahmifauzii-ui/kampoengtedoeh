@@ -40,5 +40,20 @@ return {
 		{ bunga = 3 },
 	} :: { Reward },
 
+	-- Hadiah playtime (R3 17.4): six peti a day, free, opened in order. A tick counts only while the character moved
+	-- at least MOVE_STUDS in TICK seconds, so standing AFK earns nothing. Minutes and rewards are a first draft.
+	PLAYTIME = {
+		TICK = 10, -- seconds per server check
+		MOVE_STUDS = 1,
+		CHESTS = {
+			{ minutes = 5, reward = { koin = 50 } },
+			{ minutes = 10, reward = { koin = 75 } },
+			{ minutes = 20, reward = { items = { pelet = 5 } } },
+			{ minutes = 30, reward = { bunga = 1 } },
+			{ minutes = 45, reward = { koin = 150 } },
+			{ minutes = 60, reward = { bunga = 2 } },
+		} :: { { minutes: number, reward: Reward } },
+	},
+
 	UTC_OFFSET = 7 * 3600, -- days reset at 00:00 WIB
 }

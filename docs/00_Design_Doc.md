@@ -63,7 +63,7 @@ Lahan pemain tersusun dari **blok 32×32 stud** (di kode masih disebut "chunk"; 
 - Saat pemain keluar, lahan di server kembali ke lahan awal (blok dikembalikan jadi hutan) dan dibangun ulang dari data pemain berikutnya. Slot terakhir pemain (`plotSlot`) dicoba dipakai lagi saat masuk.
 
 ### Garap ✅
-Rumput default hanya untuk hiasan. Petak **digarap** dulu jadi tanah (Terrain, 8×8 stud, kering = Ground, disiram = Mud), baru bisa ditanami. **Ratakan** mengembalikan petak kosong jadi rumput tanpa biaya. Tanah dan hiasan tidak boleh bertumpuk (server cek dua arah). Setelah panen, petak tetap tanah.
+Rumput default hanya untuk hiasan. Petak **digarap** dulu jadi tanah (Terrain, 8×8 stud, kering = Ground, disiram = Mud), baru bisa ditanami. Alat **Cangkul** membaca apa yang ada di bawahnya: rumput → petak baru, petak kosong → kembali jadi rumput (**Hijaukan**, gratis, tanpa tombol terpisah), petak bertanaman → diteruskan ke siram/panen. Menanam dilakukan di luar mode Garap. Tanah dan hiasan tidak boleh bertumpuk (server cek dua arah). Setelah panen, petak tetap tanah.
 
 ---
 
@@ -116,7 +116,7 @@ Niat desain: tanaman pendek untung lebih per menit (menghargai main aktif), tana
 **Joran:** Bambu (awal) · Rotan 500 Koin Lv5 (gigit −15%, Langka +2) · Fiber 2.000 Lv10 (−25%, +4) · Juragan 6.000 Lv18 (−35%, +6, Legendaris +1).
 **Umpan:** Cacing gratis tak terbatas. Pelet 5 Koin, gigit −30%.
 
-**Kolam:** Garap → *Kolam* menggali kolam 16×16 (air Terrain sungguhan, dalam 8 stud) di mana saja di lahan hijau; *Hapus Kolam* menimbun dan mengembalikan 50% harga (ikan belum diambil hilang). Maksimal 4 kolam; harga: pertama gratis, lalu 400 / 900 / 1.600 Koin (`Config/Fishing` POND.PRICES). Kolam menghasilkan 1 ikan Umum/Tak umum tiap 10 menit, maksimal **10 per kolam** (upgrade Koin naik ke 20 → 30; pass 2× Offline melipatgandakan). Ambil dengan satu ketukan.
+**Kolam:** tombol dock **Kolam** menggali kolam 16×16 (air Terrain sungguhan, dalam 8 stud) di mana saja di lahan hijau; mengetuk kolam yang sudah ada (alat yang sama, kotak oranye, dengan konfirmasi) menimbun dan mengembalikan 50% harga (ikan belum diambil hilang). Maksimal 4 kolam; harga: pertama gratis, lalu 400 / 900 / 1.600 Koin (`Config/Fishing` POND.PRICES). Kolam menghasilkan 1 ikan Umum/Tak umum tiap 10 menit, maksimal **10 per kolam** (upgrade Koin naik ke 20 → 30; pass 2× Offline melipatgandakan). Ambil dengan satu ketukan.
 Kolam 16×16 = seperempat blok lahan (32×32).
 
 ---

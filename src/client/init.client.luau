@@ -21,6 +21,7 @@ local ORDER = {
 	"OrdersController",
 	"QuestController",
 	"BookController",
+	"RewardsController", -- Hadiah: kalender harian + peti main
 	"WorldController",
 	"AudioController",
 	"SettingsController",

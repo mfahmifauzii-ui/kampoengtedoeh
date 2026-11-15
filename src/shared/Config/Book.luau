@@ -1,6 +1,6 @@
 --!strict
 -- Collection Book: entries come from the content configs, so new crops/fish/set decor
--- appear automatically. Rewards are granted automatically when reached.
+-- appear automatically. A finished category or a reached milestone is claimed by hand (BookService.Claim).
 
 local Crops = require(script.Parent.Crops)
 local Decor = require(script.Parent.Decor)

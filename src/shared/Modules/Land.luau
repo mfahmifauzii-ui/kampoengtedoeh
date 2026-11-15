@@ -66,7 +66,8 @@ Land.CHUNK_MAX = Land.REGION_HALF // CH - 1 -- 5
 local START_IX0, START_IX1 = -Land.HALF // CH, Land.HALF // CH - 1
 local START_IZ0, START_IZ1 = Land.BACK_Z // CH, Land.FRONT_Z // CH - 1
 Land.START_CHUNKS = (START_IX1 - START_IX0 + 1) * (START_IZ1 - START_IZ0 + 1)
-Land.EXTRA_CHUNKS = (Land.CHUNK_MAX - Land.CHUNK_MIN + 1) ^ 2 - Land.START_CHUNKS
+-- Bought blocks: everything outside the start land except the town-facing column (one block column of the square).
+Land.EXTRA_CHUNKS = (Land.CHUNK_MAX - Land.CHUNK_MIN + 1) ^ 2 - Land.START_CHUNKS - (Land.CHUNK_MAX - Land.CHUNK_MIN + 1)
 
 export type Chunks = { [string]: boolean }
 
@@ -96,8 +97,17 @@ end
 local NEIGHBOURS = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } }
 
 -- Can the player buy this chunk now? In the square, not owned, and touching an owned chunk.
-function Land.canBuyChunk(ix: number, iz: number, chunks: Chunks?): boolean
-	if not Land.inRegion(ix, iz) or Land.isOwned(ix, iz, chunks) then
+-- inward: the plot-local X side (+1 / -1) that faces the town (Plots.INWARD). Its whole column of blocks is never for
+-- sale, so the land only grows to the back and the outer side.
+function Land.isBlocked(ix: number, inward: number?): boolean
+	if inward == nil then
+		return false
+	end
+	return ix == (if inward > 0 then Land.CHUNK_MAX else Land.CHUNK_MIN)
+end
+
+function Land.canBuyChunk(ix: number, iz: number, chunks: Chunks?, inward: number?): boolean
+	if not Land.inRegion(ix, iz) or Land.isOwned(ix, iz, chunks) or Land.isBlocked(ix, inward) then
 		return false
 	end
 	for _, step in NEIGHBOURS do
@@ -109,11 +119,11 @@ function Land.canBuyChunk(ix: number, iz: number, chunks: Chunks?): boolean
 end
 
 -- Every chunk the player could buy right now.
-function Land.buyableChunks(chunks: Chunks?): { { ix: number, iz: number } }
+function Land.buyableChunks(chunks: Chunks?, inward: number?): { { ix: number, iz: number } }
 	local list = {}
 	for ix = Land.CHUNK_MIN, Land.CHUNK_MAX do
 		for iz = Land.CHUNK_MIN, Land.CHUNK_MAX do
-			if Land.canBuyChunk(ix, iz, chunks) then
+			if Land.canBuyChunk(ix, iz, chunks, inward) then
 				table.insert(list, { ix = ix, iz = iz })
 			end
 		end

@@ -7,7 +7,7 @@
 export type Crop = {
 	id: string,
 	unlockLevel: number,
-	seedPrice: number, -- Koin, paid when planting (no seed items)
+	seedPrice: number, -- Koin, the price of one bibit at Pak Darmo
 	growSeconds: number,
 	sellPrice: number,
 	xp: number,
@@ -24,7 +24,7 @@ local list: { Crop } = {
 	{ id = "jagung", unlockLevel = 8, seedPrice = 40, growSeconds = 1200, sellPrice = 85, xp = 12, yield = 1, regrows = 0, color = Color3.fromRGB(214, 180, 92) },
 	{ id = "singkong", unlockLevel = 11, seedPrice = 60, growSeconds = 2700, sellPrice = 140, xp = 20, yield = 1, regrows = 0, color = Color3.fromRGB(150, 118, 84) },
 	{ id = "padi", unlockLevel = 14, seedPrice = 80, growSeconds = 7200, sellPrice = 220, xp = 35, yield = 1, regrows = 0, color = Color3.fromRGB(196, 176, 110) },
-	{ id = "pisang", unlockLevel = 18, seedPrice = 200, growSeconds = 28800, sellPrice = 120, xp = 40, yield = 1, regrows = 2, color = Color3.fromRGB(208, 190, 96) },
+	{ id = "pisang", unlockLevel = 18, seedPrice = 200, growSeconds = 28800, sellPrice = 380, xp = 40, yield = 1, regrows = 2, color = Color3.fromRGB(208, 190, 96) },
 }
 
 local byId: { [string]: Crop } = {}

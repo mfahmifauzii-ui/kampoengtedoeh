@@ -32,6 +32,7 @@ local AnalyticsHooks = require(script.Parent.AnalyticsHooks)
 local Monetization = require(ReplicatedStorage.Shared.Config.Monetization)
 local Progression = require(ReplicatedStorage.Shared.Config.Progression)
 local Types = require(ReplicatedStorage.Shared.Types)
+local Upgrades = require(ReplicatedStorage.Shared.Modules.Upgrades)
 
 type Fish = FishConfig.Fish
 type Rarity = FishConfig.Rarity
@@ -282,7 +283,7 @@ local function syncPond(player: Player, pond: BasePart)
 	local entry = data and findEntry(data, pond)
 	if data and entry then
 		pond:SetAttribute("LastCollect", entry.lastCollect)
-		pond:SetAttribute("Cap", pondCap(player, data.pond.tier))
+		pond:SetAttribute("Cap", pondCap(player, Upgrades.tier(data, "pond")))
 	end
 end
 
@@ -301,7 +302,7 @@ local function collectPond(player: Player, pond: BasePart)
 	end
 
 	local now = os.time()
-	local cap = pondCap(player, data.pond.tier)
+	local cap = pondCap(player, Upgrades.tier(data, "pond"))
 	local ready = (now - entry.lastCollect) // Fishing.POND.INTERVAL
 	local count = math.min(ready, cap)
 	if count <= 0 then

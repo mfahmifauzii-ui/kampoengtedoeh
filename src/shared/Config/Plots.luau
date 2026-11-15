@@ -34,8 +34,20 @@ local LAYOUT: { Slot } = {
 	{ name = "west_top", x = -DEPTH, z = -LATERAL, yaw = 0 },
 }
 
+-- Which plot-local side (+1 = +X, -1 = -X) faces the town / ring road. That side strip of the reserved square is the
+-- plot's "front yard": it can never be bought, so bought land grows to the back and the outer side only.
+local function inwardSign(slot: Slot): number
+	local worldX = Vector2.new(math.cos(slot.yaw), -math.sin(slot.yaw)) -- plot-local +X in world (x, z)
+	local toCenter = Vector2.new(-slot.x, -slot.z)
+	return if worldX:Dot(toCenter) > 0 then 1 else -1
+end
+
 return {
 	COUNT = #LAYOUT,
+	INWARD = function(plotIndex: number): number
+		local slot = LAYOUT[plotIndex]
+		return if slot then inwardSign(slot) else 1
+	end,
 	SIZE = REGION, -- reserved square; the decor grid's cell (0,0) is plot-local (-96, -96)
 	START_SIZE = START,
 	ROAD_HALF = ROAD_HALF,

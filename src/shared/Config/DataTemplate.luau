@@ -7,7 +7,7 @@ local Economy = require(script.Parent.Economy)
 local Types = require(script.Parent.Parent.Types)
 
 local template: Types.PlayerData = {
-	version = 12,
+	version = 13,
 
 	koin = Economy.START_KOIN,
 	bunga = Economy.START_BUNGA,
@@ -21,7 +21,7 @@ local template: Types.PlayerData = {
 	},
 
 	inventory = { seed_kangkung = 6 }, -- [itemId] = count. A new player starts with a few seeds (Pak Darmo sells more)
-	backpackTier = 0, -- index into Inventory.SLOTS (tier + 1)
+	upgrades = { backpack = 0, pond = 0, warung = 0 }, -- tier per upgrade (Config/Shop UPGRADES, Modules/Upgrades)
 
 	farm = {
 		tiles = {}, -- tilled soil tiles { uid, cx, cz, crop?... }; a new player tills their own (Garap)
@@ -34,8 +34,7 @@ local template: Types.PlayerData = {
 	},
 
 	pond = {
-		tier = 0, -- index into Fishing.POND.CAPS (tier + 1); applies to every pond
-		list = {}, -- { PondEntry } ponds the player built (the Lv 2 quest gives the first one free)
+		list = {},-- { PondEntry } ponds the player built (the Lv 2 quest gives the first one free)
 		nextUid = 1,
 	},
 
@@ -61,6 +60,8 @@ local template: Types.PlayerData = {
 	},
 
 	visits = { count = 0, lastDay = "" }, -- Kunjungan Harian (cumulative)
+	playtime = { day = "", seconds = 0, claimed = 0 }, -- Hadiah playtime: active seconds today, chests opened today (Config/Progression PLAYTIME)
+	playtime = { day = "", seconds = 0, claimed = 0 }, -- Hadiah playtime: active seconds today, chests opened today (Config/Progression PLAYTIME)
 
 	book = {
 		crops = {}, -- [id] = true
@@ -73,7 +74,7 @@ local template: Types.PlayerData = {
 
 	land = { chunks = {} }, -- bought 32 x 32 blocks of the plot, "ix,iz" keys (Modules/Land); the start land is always owned
 	plotSlot = 0, -- last plot number (PlotService tries to give it back)
-	sales = { day = "", sold = {}, tier = 0 }, -- Pak Darmo's daily crop quota (Config/Npcs QUOTA) + Kapasitas Warung tier
+	sales = { day = "", sold = {} }, -- Pak Darmo's daily crop quota (Config/Npcs QUOTA); Kapasitas Warung tier is in upgrades.warung
 
 	social = {
 		likes = 0, -- likes received on your plot (all time)
@@ -87,7 +88,11 @@ local template: Types.PlayerData = {
 	passes = {}, -- [passKey] = true; cache of confirmed game pass ownership (fallback if API is down)
 	instantGrow = { tokens = 0, day = "", usedToday = 0 },
 	onboarding = {}, -- [stepNumber] = true (analytics funnel, logged once)
-	guide = { sells = 0 }, -- sale trips done (Config/Onboarding TRIES): the new-player guide stops after that many
+	-- sells: sale trips done (Config/Onboarding TRIES), the old guide stops after that many.
+	-- Tutorial engine (Config/Onboarding TUTORIALS, server/TutorialService): step = the running tutorial {id, n = steps done},
+	-- done/skipped = [tutorialId] = true, fastLeft = plantings still on the fast tutorial timer (-1 = not decided yet:
+	-- TutorialService sets 6 for a brand-new save and 0 for an old one on load).
+	guide = { sells = 0, step = { id = "", n = 0 }, done = {}, skipped = {}, fastLeft = -1 },
 	purchaseIdCache = {}, -- last N dev product PurchaseIds (ProfileStore pattern; prevents double-grant)
 }
 

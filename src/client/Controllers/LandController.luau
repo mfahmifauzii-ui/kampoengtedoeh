@@ -16,6 +16,7 @@ local Workspace = game:GetService("Workspace")
 
 local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Locale = require(ReplicatedStorage.Shared.Locale)
+local Plots = require(ReplicatedStorage.Shared.Config.Plots)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local GarapController = require(script.Parent.GarapController)
 local State = require(script.Parent.Parent.State)
@@ -168,7 +169,7 @@ local function makeEntry(plot: Model, ix: number, iz: number, price: number)
 	gui.Visible = false -- the per-frame update below shows it when it is near and on screen
 	gui.Parent = marks
 
-	-- The same round bamboo plate as the HUD buttons (UiKit.plate), with a green "+" on it.
+	-- The same round bamboo plate as the HUD buttons (UiKit.plate), with a brown "+" on it.
 	local button = Instance.new("TextButton")
 	button.Name = "Plus"
 	button.AnchorPoint = Vector2.new(0.5, 0)
@@ -185,7 +186,7 @@ local function makeEntry(plot: Model, ix: number, iz: number, price: number)
 	sign.BackgroundTransparency = 1
 	sign.Size = UDim2.fromScale(1, 1)
 	sign.Text = "+"
-	sign.TextColor3 = UiKit.BUTTON
+	sign.TextColor3 = UiKit.TEXT
 	sign.Font = UiKit.FONT
 	sign.TextSize = 36
 	sign.ZIndex = 2
@@ -225,7 +226,8 @@ local function rebuild()
 	end
 	signature = now
 	clearEntries()
-	for _, chunk in Land.buyableChunks(chunks) do
+	local plotIndex = tonumber(string.match(plot.Name, "%d+"))
+	for _, chunk in Land.buyableChunks(chunks, if plotIndex then Plots.INWARD(plotIndex) else nil) do
 		makeEntry(plot, chunk.ix, chunk.iz, snap.landPrice or Land.chunkPrice(0))
 	end
 end

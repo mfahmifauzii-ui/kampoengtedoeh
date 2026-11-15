@@ -6,7 +6,7 @@
 -- (or Space / click-hold) to slide the catch zone right; release to let it drift left.
 -- Score = share of time the fish was inside the zone -> size S / M / L.
 --
--- UI is a plain placeholder ("FishingUI"); tell me your instance names to bind real UI.
+-- UI: ScreenGui "FishingUI" > Frame "Status" (waiting, Batal) and Frame "Reel" (track, zone, fish, progress, "Pull") in the bamboo style.
 
 local CollectionService = game:GetService("CollectionService")
 local ContextActionService = game:GetService("ContextActionService")
@@ -19,12 +19,11 @@ local Workspace = game:GetService("Workspace")
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
+local UiKit = require(script.Parent.Parent.UiKit)
 
 local REEL_ACTION = "FishingReel"
 local ZONE_WIDTH = 0.3
 local ZONE_SPEED = 0.9 -- bar widths per second
-local BG = Color3.fromRGB(58, 52, 44)
-local TEXT = Color3.fromRGB(240, 230, 210)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
@@ -44,10 +43,32 @@ local reeling = false
 
 -- UI ------------------------------------------------------------------------------
 
-local function corner(parent: Instance)
-	Instance.new("UICorner").Parent = parent
+local function darkBox(frame: GuiObject, radius: number)
+	frame.BackgroundColor3 = UiKit.DARK
+	frame.BackgroundTransparency = 0.06
+	local round = Instance.new("UICorner")
+	round.CornerRadius = UDim.new(0, radius)
+	round.Parent = frame
+	local border = Instance.new("UIStroke")
+	border.Color = UiKit.BAMBOO
+	border.Thickness = 3
+	border.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	border.Parent = frame
 end
 
+local function label(parent: Instance, text: string, size: number, color: Color3?): TextLabel
+	local l = Instance.new("TextLabel")
+	l.BackgroundTransparency = 1
+	l.Font = Enum.Font.GothamBold
+	l.TextSize = size
+	l.TextColor3 = color or UiKit.CREAM
+	l.Text = text
+	l.Parent = parent
+	return l
+end
+
+-- Two small bamboo-brown cards at the bottom centre: STATUS (waiting / bite, with Batal) and REEL (the mini-game). Only one is
+-- visible at a time. The reel bar is a wide, thick track so the fish and the zone read at a glance on a phone.
 local function buildUi()
 	gui = Instance.new("ScreenGui")
 	gui.Name = "FishingUI"
@@ -56,35 +77,26 @@ local function buildUi()
 	statusFrame = Instance.new("Frame")
 	statusFrame.Name = "Status"
 	statusFrame.AnchorPoint = Vector2.new(0.5, 1)
-	statusFrame.Position = UDim2.new(0.5, 0, 1, -24)
-	statusFrame.Size = UDim2.fromOffset(300, 92)
-	statusFrame.BackgroundColor3 = BG
-	statusFrame.BackgroundTransparency = 0.1
+	statusFrame.Position = UDim2.new(0.5, 0, 1, -92)
+	statusFrame.Size = UDim2.fromOffset(240, 78)
 	statusFrame.Visible = false
 	statusFrame.Parent = gui
-	corner(statusFrame)
+	darkBox(statusFrame, 16)
 
-	statusLabel = Instance.new("TextLabel")
-	statusLabel.BackgroundTransparency = 1
-	statusLabel.Position = UDim2.fromOffset(0, 8)
-	statusLabel.Size = UDim2.new(1, 0, 0, 30)
-	statusLabel.TextColor3 = TEXT
-	statusLabel.Font = Enum.Font.GothamMedium
-	statusLabel.TextSize = 18
-	statusLabel.Parent = statusFrame
+	local rodIcon = UiKit.icon(statusFrame, "pancing", 34)
+	if rodIcon then
+		rodIcon.Position = UDim2.fromOffset(10, 8)
+	end
+	statusLabel = label(statusFrame, "", 17, Color3.fromRGB(255, 226, 120))
+	statusLabel.Position = UDim2.fromOffset(52, 6)
+	statusLabel.Size = UDim2.new(1, -62, 0, 34)
+	statusLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-	local cancel = Instance.new("TextButton")
-	cancel.Name = "Cancel"
+	local cancel = UiKit.button(statusFrame, "Cancel", Locale.t("fish.cancel"), UiKit.BUTTON_MUTED)
 	cancel.AnchorPoint = Vector2.new(0.5, 1)
-	cancel.Position = UDim2.new(0.5, 0, 1, -8)
-	cancel.Size = UDim2.fromOffset(120, 36)
-	cancel.BackgroundColor3 = Color3.fromRGB(92, 82, 68)
-	cancel.TextColor3 = TEXT
-	cancel.Font = Enum.Font.GothamMedium
-	cancel.TextSize = 16
-	cancel.Text = Locale.t("fish.cancel")
-	cancel.Parent = statusFrame
-	corner(cancel)
+	cancel.Position = UDim2.new(0.5, 0, 1, -7)
+	cancel.Size = UDim2.new(1, -24, 0, 30)
+	cancel.TextSize = 14
 	cancel.Activated:Connect(function()
 		Net.Send("FishCancel")
 	end)
@@ -92,69 +104,83 @@ local function buildUi()
 	reelFrame = Instance.new("Frame")
 	reelFrame.Name = "Reel"
 	reelFrame.AnchorPoint = Vector2.new(0.5, 1)
-	reelFrame.Position = UDim2.new(0.5, 0, 1, -24)
-	reelFrame.Size = UDim2.fromOffset(340, 150)
-	reelFrame.BackgroundColor3 = BG
-	reelFrame.BackgroundTransparency = 0.1
+	reelFrame.Position = UDim2.new(0.5, 0, 1, -92)
+	reelFrame.Size = UDim2.fromOffset(330, 150)
 	reelFrame.Visible = false
 	reelFrame.Parent = gui
-	corner(reelFrame)
+	darkBox(reelFrame, 18)
 
-	local hint = statusLabel:Clone()
-	hint.Text = Locale.t("fish.reel_hint")
-	hint.TextSize = 14
-	hint.Parent = reelFrame
+	local hint = label(reelFrame, Locale.t("fish.reel_hint"), 14)
+	hint.Position = UDim2.fromOffset(12, 8)
+	hint.Size = UDim2.new(1, -24, 0, 20)
 
 	local track = Instance.new("Frame")
 	track.Name = "Track"
-	track.Position = UDim2.fromOffset(20, 44)
-	track.Size = UDim2.new(1, -40, 0, 28)
-	track.BackgroundColor3 = Color3.fromRGB(92, 128, 128)
+	track.Position = UDim2.fromOffset(16, 36)
+	track.Size = UDim2.new(1, -32, 0, 34)
+	track.BackgroundColor3 = Color3.fromRGB(46, 104, 128) -- water
+	track.ClipsDescendants = true
 	track.Parent = reelFrame
-	corner(track)
+	local trackRound = Instance.new("UICorner")
+	trackRound.CornerRadius = UDim.new(0, 12)
+	trackRound.Parent = track
+	local trackBorder = Instance.new("UIStroke")
+	trackBorder.Color = UiKit.BAMBOO_DARK
+	trackBorder.Thickness = 2
+	trackBorder.Parent = track
 
 	zone = Instance.new("Frame")
 	zone.Name = "Zone"
 	zone.Size = UDim2.fromScale(ZONE_WIDTH, 1)
-	zone.BackgroundColor3 = Color3.fromRGB(214, 196, 150)
-	zone.BackgroundTransparency = 0.35
+	zone.BackgroundColor3 = Color3.fromRGB(120, 204, 96) -- the green catch zone
+	zone.BackgroundTransparency = 0.15
 	zone.Parent = track
-	corner(zone)
+	local zoneRound = Instance.new("UICorner")
+	zoneRound.CornerRadius = UDim.new(0, 10)
+	zoneRound.Parent = zone
 
 	marker = Instance.new("Frame")
 	marker.Name = "Fish"
 	marker.AnchorPoint = Vector2.new(0.5, 0.5)
-	marker.Size = UDim2.fromOffset(14, 20)
+	marker.Size = UDim2.fromOffset(26, 26)
 	marker.Position = UDim2.fromScale(0.5, 0.5)
-	marker.BackgroundColor3 = Color3.fromRGB(176, 120, 80)
+	marker.BackgroundTransparency = 1
 	marker.Parent = track
-	corner(marker)
+	local fishIcon = UiKit.icon(marker, "ikan", 26)
+	if fishIcon then
+		fishIcon.Position = UDim2.fromScale(0, 0)
+	else
+		marker.BackgroundTransparency = 0
+		marker.BackgroundColor3 = Color3.fromRGB(255, 226, 120)
+		local fishRound = Instance.new("UICorner")
+		fishRound.CornerRadius = UDim.new(1, 0)
+		fishRound.Parent = marker
+	end
 
 	local progress = Instance.new("Frame")
 	progress.Name = "Progress"
-	progress.Position = UDim2.fromOffset(20, 78)
-	progress.Size = UDim2.new(1, -40, 0, 6)
-	progress.BackgroundColor3 = Color3.fromRGB(92, 82, 68)
+	progress.Position = UDim2.fromOffset(16, 78)
+	progress.Size = UDim2.new(1, -32, 0, 8)
+	progress.BackgroundColor3 = Color3.fromRGB(40, 28, 18)
 	progress.Parent = reelFrame
+	local progressRound = Instance.new("UICorner")
+	progressRound.CornerRadius = UDim.new(1, 0)
+	progressRound.Parent = progress
 
 	progressFill = Instance.new("Frame")
 	progressFill.Size = UDim2.fromScale(0, 1)
-	progressFill.BackgroundColor3 = TEXT
+	progressFill.BackgroundColor3 = UiKit.BAMBOO
 	progressFill.BorderSizePixel = 0
 	progressFill.Parent = progress
+	local fillRound = Instance.new("UICorner")
+	fillRound.CornerRadius = UDim.new(1, 0)
+	fillRound.Parent = progressFill
 
-	local pull = Instance.new("TextButton")
-	pull.Name = "Pull"
+	local pull = UiKit.button(reelFrame, "Pull", Locale.t("fish.reel_button"), UiKit.BUTTON)
 	pull.AnchorPoint = Vector2.new(0.5, 1)
 	pull.Position = UDim2.new(0.5, 0, 1, -10)
-	pull.Size = UDim2.fromOffset(160, 44)
-	pull.BackgroundColor3 = Color3.fromRGB(118, 148, 86)
-	pull.TextColor3 = TEXT
-	pull.Font = Enum.Font.GothamBold
-	pull.TextSize = 20
-	pull.Text = Locale.t("fish.reel_button")
-	pull.Parent = reelFrame
-	corner(pull)
+	pull.Size = UDim2.new(1, -32, 0, 48)
+	pull.TextSize = 22
 	pull.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			holding = true

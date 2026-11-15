@@ -41,7 +41,7 @@ local function buildLock(parent: Instance): Frame
 	local lock = Instance.new("Frame")
 	lock.Name = "Lock"
 	lock.Size = UDim2.fromOffset(14, 16)
-	lock.Position = UDim2.new(0, 14, 0.5, -8)
+	lock.Position = UDim2.new(0, 8, 0.5, -3)
 	lock.BackgroundTransparency = 1
 	lock.Parent = parent
 
@@ -89,9 +89,9 @@ local function buildSign(part: BasePart): (BillboardGui, TextLabel, Frame)
 
 	local sign = Instance.new("BillboardGui")
 	sign.Name = "SpotSign"
-	sign.Size = UDim2.fromOffset(190, 50)
-	sign.StudsOffset = Vector3.new(0, 3.2, 0)
-	sign.MaxDistance = 70
+	sign.Size = UDim2.fromOffset(124, 36)
+	sign.StudsOffset = Vector3.new(0, 2.6, 0)
+	sign.MaxDistance = 45
 	sign.AlwaysOnTop = false
 	sign.Parent = part
 
@@ -102,13 +102,13 @@ local function buildSign(part: BasePart): (BillboardGui, TextLabel, Frame)
 	plate.BorderSizePixel = 0
 	plate.Parent = sign
 	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 8)
+	corner.CornerRadius = UDim.new(0, 10)
 	corner.Parent = plate
 
 	local title = Instance.new("TextLabel")
 	title.Name = "Title"
-	title.Size = UDim2.new(1, -12, 0.5, 0)
-	title.Position = UDim2.fromOffset(6, 3)
+	title.Size = UDim2.new(1, -10, 0.5, 0)
+	title.Position = UDim2.fromOffset(5, 2)
 	title.BackgroundTransparency = 1
 	title.Font = Enum.Font.GothamBold
 	title.TextScaled = true
@@ -173,8 +173,8 @@ local function applySign(s: Spot)
 	s.sub.Text = if locked then Locale.t("spot.need", { level = s.unlock }) else Locale.t("spot.open")
 	s.sub.TextColor3 = if locked then LOCKED else OPEN
 	s.lock.Visible = locked
-	s.sub.Position = if locked then UDim2.new(0, 30, 0.52, 0) else UDim2.new(0, 6, 0.52, 0)
-	s.sub.Size = if locked then UDim2.new(1, -36, 0.45, 0) else UDim2.new(1, -12, 0.45, 0)
+	s.sub.Position = if locked then UDim2.new(0, 26, 0.52, 0) else UDim2.new(0, 5, 0.52, 0)
+	s.sub.Size = if locked then UDim2.new(1, -30, 0.45, 0) else UDim2.new(1, -10, 0.45, 0)
 end
 
 local function track(part: BasePart, location: string)

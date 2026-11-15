@@ -15,6 +15,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Buffs = require(ReplicatedStorage.Shared.Config.Buffs)
@@ -79,7 +80,7 @@ local function buildPlaceholder(): ScreenGui
 
 	-- BOTTOM LEFT: the player card = photo + level star + name + a slim XP bar, and under it the three buff slots.
 	-- The bamboo frame of the card is thick, so everything inside keeps a 14 px inset from its edges (nothing touches it).
-	local card = UiKit.pill(gui, "StatusCard", 232, 92)
+	local card = UiKit.pill(gui, "StatusCard", 248, 92)
 	card.AnchorPoint = Vector2.new(0, 1)
 	card.Position = UDim2.new(0, 8, 1, -6)
 
@@ -89,14 +90,14 @@ local function buildPlaceholder(): ScreenGui
 	ring.Image = UiAssets.PLATE.image
 	ring.ScaleType = Enum.ScaleType.Fit
 	ring.Size = UDim2.fromOffset(46, 46)
-	ring.Position = UDim2.fromOffset(14, 23)
+	ring.Position = UDim2.fromOffset(22, 23)
 	ring.ZIndex = 2
 	ring.Parent = card
 	local photo = Instance.new("ImageLabel")
 	photo.Name = "Photo"
 	photo.BackgroundColor3 = UiKit.ROW
 	photo.Size = UDim2.fromOffset(32, 32)
-	photo.Position = UDim2.fromOffset(21, 30)
+	photo.Position = UDim2.fromOffset(29, 30)
 	photo.ZIndex = 3
 	photo.Parent = card
 	local photoRound = Instance.new("UICorner")
@@ -115,7 +116,7 @@ local function buildPlaceholder(): ScreenGui
 	badge.Name = "LevelBadge"
 	badge.BackgroundTransparency = 1
 	badge.Size = UDim2.fromOffset(22, 22)
-	badge.Position = UDim2.fromOffset(8, 52)
+	badge.Position = UDim2.fromOffset(16, 52)
 	badge.ZIndex = 5
 	badge.Font = UiKit.FONT
 	badge.TextSize = 12
@@ -126,7 +127,7 @@ local function buildPlaceholder(): ScreenGui
 	badge.Parent = card
 	local star = UiKit.icon(card, "bintang", 22)
 	if star then
-		star.Position = UDim2.fromOffset(8, 52)
+		star.Position = UDim2.fromOffset(16, 52)
 		star.ZIndex = 4
 	end
 	levelBadge = badge
@@ -134,8 +135,8 @@ local function buildPlaceholder(): ScreenGui
 	local nameLabel = Instance.new("TextLabel")
 	nameLabel.Name = "PlayerName"
 	nameLabel.BackgroundTransparency = 1
-	nameLabel.Position = UDim2.fromOffset(68, 12)
-	nameLabel.Size = UDim2.new(1, -84, 0, 14)
+	nameLabel.Position = UDim2.fromOffset(76, 12)
+	nameLabel.Size = UDim2.new(1, -104, 0, 14)
 	nameLabel.TextXAlignment = Enum.TextXAlignment.Left
 	nameLabel.Font = UiKit.FONT
 	nameLabel.TextSize = 12
@@ -149,8 +150,8 @@ local function buildPlaceholder(): ScreenGui
 	local track = Instance.new("Frame")
 	track.Name = "XPTrack"
 	track.BackgroundColor3 = Color3.fromRGB(150, 118, 76)
-	track.Position = UDim2.fromOffset(68, 30)
-	track.Size = UDim2.new(1, -84, 0, 12)
+	track.Position = UDim2.fromOffset(76, 30)
+	track.Size = UDim2.new(1, -104, 0, 12)
 	track.ZIndex = 2
 	track.Parent = card
 	local trackRound = Instance.new("UICorner")
@@ -187,7 +188,9 @@ local function buildPlaceholder(): ScreenGui
 		slot.Name = `Buff_{def.id}`
 		slot.BackgroundColor3 = UiKit.DARK
 		slot.BackgroundTransparency = 0.3
-		slot.Position = UDim2.fromOffset(68 + (index - 1) * 27, 49)
+		-- spread evenly under the XP bar: first slot at its left edge, last one at its right edge
+		local along = (index - 1) / (#Buffs.SLOTS - 1) -- 0 .. 1 across the bar (bar = card width - 104, slot = 23)
+		slot.Position = UDim2.new(along, 76 - 127 * along, 0, 49)
 		slot.Size = UDim2.fromOffset(23, 23)
 		slot.ZIndex = 2
 		slot.Parent = card
@@ -231,7 +234,7 @@ local function buildPlaceholder(): ScreenGui
 			full.Position = UDim2.fromScale(0, 1)
 			full.ZIndex = 4
 		end
-		-- Hover (mouse) or tap (touch) names the buff and says how long is left.
+		-- Click or tap names the buff and says how long is left.
 		local hit = Instance.new("TextButton")
 		hit.Name = "Hit"
 		hit.Text = ""
@@ -325,23 +328,31 @@ local function updateBuffs()
 	end
 end
 
+local tipToken = 0
+local tipOwner: BuffSlot? = nil
+
 local function bindBuffTips()
 	local gui = hudGui
 	if not gui then
 		return
 	end
 	for _, entry in buffSlots do
-		entry.hit.MouseEnter:Connect(function()
-			UiKit.showTip(gui, entry.slot, buffTip(entry), true)
-		end)
-		entry.hit.MouseLeave:Connect(function()
-			UiKit.hideTip(gui)
-		end)
-		-- Touch has no hover: a tap shows the tip for a moment.
+		-- No hover: clicking / tapping a buff icon shows its info for a moment (click it again to close).
 		entry.hit.Activated:Connect(function()
-			UiKit.showTip(gui, entry.slot, buffTip(entry), true)
-			task.delay(2.5, function()
+			tipToken += 1
+			local token = tipToken
+			if tipOwner == entry then
+				tipOwner = nil
 				UiKit.hideTip(gui)
+				return
+			end
+			tipOwner = entry
+			UiKit.showTip(gui, entry.slot, buffTip(entry), true)
+			task.delay(3, function()
+				if tipToken == token then
+					tipOwner = nil
+					UiKit.hideTip(gui)
+				end
 			end)
 		end)
 	end
@@ -378,7 +389,8 @@ local function runToasts()
 	while #toastQueue > 0 do
 		label.Text = table.remove(toastQueue, 1) :: string
 		label.Visible = true
-		task.wait(TOAST_SECONDS)
+		-- Short while others are waiting, so a burst of events never lags behind the action by seconds.
+		task.wait(if #toastQueue >= 2 then 0.9 else TOAST_SECONDS)
 	end
 	label.Visible = false
 	toastRunning = false
@@ -411,7 +423,61 @@ function HudController.Init()
 	UiKit.autoScale() -- every ScreenGui (now and later) gets a responsive UIScale
 end
 
+-- Level-up banner: a big "LEVEL n" that pops in at the top centre, holds, fades. (The toast still lists what unlocked.)
+local function showLevelUp(level: number)
+	local screen = Instance.new("ScreenGui")
+	screen.Name = "LevelUpUI"
+	screen.ResetOnSpawn = false
+	screen.DisplayOrder = 20
+	screen.IgnoreGuiInset = true
+	local box = Instance.new("Frame")
+	box.AnchorPoint = Vector2.new(0.5, 0.5)
+	box.Position = UDim2.fromScale(0.5, 0.27)
+	box.Size = UDim2.fromOffset(300, 84)
+	box.BackgroundColor3 = UiKit.DARK
+	box.BackgroundTransparency = 0.05
+	box.Parent = screen
+	local round = Instance.new("UICorner")
+	round.CornerRadius = UDim.new(0, 20)
+	round.Parent = box
+	local border = Instance.new("UIStroke")
+	border.Color = UiKit.BAMBOO
+	border.Thickness = 4
+	border.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	border.Parent = box
+	local text = Instance.new("TextLabel")
+	text.BackgroundTransparency = 1
+	text.Size = UDim2.fromScale(1, 1)
+	text.Font = UiKit.FONT
+	text.TextSize = 44
+	text.TextColor3 = Color3.fromRGB(255, 226, 120)
+	text.Text = Locale.t("hud.level_banner", { level = level })
+	text.Parent = box
+	local scale = Instance.new("UIScale")
+	scale.Scale = 0.4
+	scale.Parent = box
+	screen.Parent = playerGui
+	TweenService:Create(scale, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+	task.delay(2.0, function()
+		local fade = TweenInfo.new(0.4)
+		TweenService:Create(box, fade, { BackgroundTransparency = 1, Position = UDim2.fromScale(0.5, 0.22) }):Play()
+		TweenService:Create(text, fade, { TextTransparency = 1 }):Play()
+		TweenService:Create(border, fade, { Transparency = 1 }):Play()
+		task.delay(0.45, function()
+			screen:Destroy()
+		end)
+	end)
+end
+
 function HudController.Start()
+	local shownLevel = player:GetAttribute("Level")
+	player:GetAttributeChangedSignal("Level"):Connect(function()
+		local level = player:GetAttribute("Level")
+		if typeof(level) == "number" and typeof(shownLevel) == "number" and level > shownLevel then
+			showLevelUp(level)
+		end
+		shownLevel = level
+	end)
 	refresh()
 	bindBuffTips()
 	local elapsed = 0

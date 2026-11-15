@@ -8,12 +8,35 @@ local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Audio = require(ReplicatedStorage.Shared.Config.Audio)
+local Sfx = require(ReplicatedStorage.Shared.Sfx)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local State = require(script.Parent.Parent.State)
 
 local FADE = TweenInfo.new(4, Enum.EasingStyle.Sine)
 
 local AudioController = {}
+
+-- Notification key -> SoundBank role: the feedback sounds for the loop (sell, order, level, shop...).
+-- (Audio.SFX below is the older per-key id map and still works for any key listed there.)
+local NOTIFY_ROLE: { [string]: string } = {
+	["sell.sold"] = "coin_gain",
+	["shop.bought"] = "coin_gain",
+	["shop.bought_fish"] = "coin_gain",
+	["order.done"] = "order_done",
+	["quest.done"] = "order_done",
+	["chest.opened"] = "order_done",
+	["visit.reward"] = "order_done",
+	["land.bought"] = "order_done",
+	["level.up"] = "level_up",
+	["level.up_unlocks"] = "level_up",
+	["level.milestone"] = "level_up",
+	["book.new"] = "notify_ding",
+	["book.claim_done"] = "order_done",
+	["quest.new"] = "notify_ding",
+	["order.new_day"] = "notify_ding",
+	["pond.built"] = "place_item",
+	["decor.stored"] = "place_item",
+}
 
 local groups: { [string]: SoundGroup } = {}
 local ambientSounds: { [string]: Sound } = {} -- by sound id
@@ -167,6 +190,8 @@ function AudioController.Start()
 		if sound then
 			sound.TimePosition = 0
 			sound:Play()
+		elseif typeof(key) == "string" and NOTIFY_ROLE[key] then
+			Sfx.play(NOTIFY_ROLE[key])
 		end
 	end)
 end

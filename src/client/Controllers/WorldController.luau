@@ -50,7 +50,8 @@ local function setupEffects()
 	atmosphere.Glare = 0.1
 
 	colorCorrection = getOrCreate(Lighting, "ColorCorrectionEffect", "KT_Color")
-	colorCorrection.Contrast = 0.12
+	colorCorrection.Contrast = 0
+	colorCorrection.Brightness = 0
 
 	local bloom = getOrCreate(Lighting, "BloomEffect", "KT_Bloom")
 	bloom.Intensity = 0.35

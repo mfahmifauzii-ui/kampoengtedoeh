@@ -3,7 +3,7 @@
 -- To change the schema: add STEPS[n] (migrates v n -> n+1), bump CURRENT_VERSION
 -- and DataTemplate.version together.
 
-local CURRENT_VERSION = 12
+local CURRENT_VERSION = 13
 
 -- Farm beds moved to a wider grid (a path between beds): every tile keeps its crop and moves to the cell its old
 -- center falls in; if two tiles land in one cell, the later one takes the nearest free cell (a bed can shift a
@@ -210,6 +210,26 @@ local STEPS: { [number]: (data: any) -> () } = {
 		data.land = { chunks = blocks }
 	end,
 }
+
+-- v12 -> v13 (R3): the three permanent upgrades share one table, data.upgrades[id] = tier (Tas = backpack, Kolam = pond,
+-- Kapasitas Warung = warung). Each old tier moves over as is. New: playtime (Hadiah), empty for everyone.
+STEPS[12] = function(data)
+	local upgrades = { backpack = 0, pond = 0, warung = 0 }
+	if typeof(data.backpackTier) == "number" then
+		upgrades.backpack = data.backpackTier
+	end
+	if data.pond and typeof(data.pond.tier) == "number" then
+		upgrades.pond = data.pond.tier
+		data.pond.tier = nil
+	end
+	if data.sales and typeof(data.sales.tier) == "number" then
+		upgrades.warung = data.sales.tier
+		data.sales.tier = nil
+	end
+	data.backpackTier = nil
+	data.upgrades = upgrades
+	data.playtime = { day = "", seconds = 0, claimed = 0 }
+end
 
 local Migrations = {}
 Migrations.CURRENT_VERSION = CURRENT_VERSION

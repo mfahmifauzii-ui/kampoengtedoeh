@@ -14,6 +14,7 @@ local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Plots = require(ReplicatedStorage.Shared.Config.Plots)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Types = require(ReplicatedStorage.Shared.Types)
+local Upgrades = require(ReplicatedStorage.Shared.Modules.Upgrades)
 local DataService = require(script.Parent.DataService)
 local MonetizationService = require(script.Parent.MonetizationService)
 
@@ -36,7 +37,7 @@ local function slotsUsed(data: Types.PlayerData): number
 end
 
 local function slotsMax(player: Player, data: Types.PlayerData): number
-	local base = InventoryConfig.SLOTS[math.clamp(data.backpackTier + 1, 1, #InventoryConfig.SLOTS)]
+	local base = InventoryConfig.SLOTS[math.clamp(Upgrades.tier(data, "backpack") + 1, 1, #InventoryConfig.SLOTS)]
 	return base + (if MonetizationService.HasPass(player, "backpack") then Monetization.BACKPACK_BONUS_SLOTS else 0)
 end
 
@@ -71,8 +72,8 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		items = table.clone(data.inventory),
 		slotsUsed = slotsUsed(data),
 		slotsMax = slotsMax(player, data),
-		backpackTier = data.backpackTier,
-		pondTier = data.pond.tier,
+		backpackTier = Upgrades.tier(data, "backpack"),
+		pondTier = Upgrades.tier(data, "pond"),
 		ponds = pondCells(data),
 		quests = { active = table.clone(data.quests.active), done = table.clone(data.quests.done) },
 		farm = { tiles = farmTiles(data), cap = FarmConfig.MAX_TILES },
@@ -97,10 +98,20 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		},
 		book = data.book,
 		visits = data.visits.count,
+		visitDay = data.visits.lastDay,
+		playtime = table.clone(data.playtime),
 		titles = data.titles,
 		sales = { day = data.sales.day, sold = table.clone(data.sales.sold) },
-		warungTier = data.sales.tier,
+		warungTier = Upgrades.tier(data, "warung"),
 		guideSells = data.guide.sells,
+		guide = {
+			step = { id = data.guide.step.id, n = data.guide.step.n },
+			done = table.clone(data.guide.done),
+			skipped = table.clone(data.guide.skipped),
+			fastLeft = data.guide.fastLeft,
+			-- a save that has not started playing: the "newPlayer" tutorial trigger
+			fresh = #data.farm.tiles == 0 and data.onboarding.first_plant ~= true and data.guide.sells == 0,
+		},
 		social = data.social,
 		settings = data.settings,
 	}
