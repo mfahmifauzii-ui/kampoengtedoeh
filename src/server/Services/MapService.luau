@@ -21,9 +21,9 @@ local Workspace = game:GetService("Workspace")
 
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Farm = require(ReplicatedStorage.Shared.Config.Farm)
-local FishingConfig = require(ReplicatedStorage.Shared.Config.Fishing)
 local Map = require(ReplicatedStorage.Shared.Config.Map)
 local Plots = require(ReplicatedStorage.Shared.Config.Plots)
+local ShopPalette = require(ReplicatedStorage.Shared.Config.ShopPalette)
 local Land = require(ReplicatedStorage.Shared.Modules.Land)
 
 local TOWN = Map.TOWN
@@ -125,6 +125,12 @@ local function placeTemplate(template: Model, parent: Instance, name: string, cf
 	for _, descendant in model:GetDescendants() do
 		if descendant:IsA("BasePart") then
 			descendant.Anchored = true
+			-- Recolourable shop models: an untextured MeshPart named after a ShopPalette slot takes its colour + material.
+			local slot = ShopPalette[descendant.Name]
+			if slot and not (descendant:IsA("MeshPart") and descendant.TextureID ~= "") then
+				descendant.Color = slot.Color
+				descendant.Material = slot.Material
+			end
 		end
 	end
 	local _, size = model:GetBoundingBox()
@@ -526,7 +532,8 @@ local function buildWarung()
 	local model = Instance.new("Model")
 	model.Name = "Warung"
 	-- Stall frame: floor center on the -Z strip, front (customers) faces local +Z.
-	local wf = CFrame.new(Map.WARUNG.x, TOWN.GROUND_Y, Map.WARUNG.z)
+	-- Floor on the plaza (cobblestone, measured y = 1.8 under the warung).
+	local wf = CFrame.new(Map.WARUNG.x, TOWN.PLAZA_Y, Map.WARUNG.z)
 
 	local template = getTemplate("Warung")
 	if template then
@@ -587,23 +594,7 @@ local function buildFishing(map: Folder)
 		ghost(spot)
 		spot:SetAttribute("Location", location)
 
-		-- Small sign so players know where they are and what level it needs.
-		local level = FishingConfig.LOCATIONS[location].unlockLevel
-		local name = Locale.t(`location.{location}`)
-		local billboard = Instance.new("BillboardGui")
-		billboard.Size = UDim2.fromOffset(150, 26)
-		billboard.StudsOffset = Vector3.new(0, 2.5, 0)
-		billboard.MaxDistance = 55
-		billboard.Parent = spot
-		local label = Instance.new("TextLabel")
-		label.Size = UDim2.fromScale(1, 1)
-		label.BackgroundTransparency = 1
-		label.TextColor3 = Color3.fromRGB(245, 236, 214)
-		label.TextStrokeTransparency = 0.6
-		label.Font = Enum.Font.GothamMedium
-		label.TextSize = 16
-		label.Text = if level > 1 then `{name} · Lv {level}` else name
-		label.Parent = billboard
+		-- The sign (name, level, lock) is drawn by client/FishSpotFx: it depends on the player's level, so it is not baked here.
 	end
 
 	-- Outer bank = the ring road side (docks point in toward the island); inner bank = the island side (docks point out).

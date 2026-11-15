@@ -67,6 +67,10 @@ Detail dan screenshot di `GUI_Design.md`. Ringkas: menu kanan atas jadi kolom ve
 Temuan di `Playtest_AI_Persona_1.md`. Diperbaiki: Garap tidak lagi menelan ketukan petak; tanaman bisa diketuk langsung; **panduan pemain baru + jalur panah di tanah ke Pak Darmo** untuk 3 perjalanan jual pertama (`Config/Onboarding`, `data.guide.sells`, tanpa migrasi karena kunci baru ditambah Reconcile); toko NPC bertab Beli/Jual dengan number picker, total merah, slot gambar placeholder; modal konfirmasi standar (Batal kiri merah, Setuju kanan) untuk beli, Jual Semua, dan beli lahan; server menerima jumlah bebas 1–99 untuk beli dan jual (`Sell(npc, item, amount?)`, `Shop.MAX_AMOUNT` menggantikan `PACKS`).
 **Belum teruji:** HP asli (picker, tahan tombol, panah di tepi layar dengan joystick), 2+ pemain, toko NPC selain Pak Darmo (Bu Wati, Mas Joko, Mbok Minah, Mbak Arsi memakai kode yang sama tetapi belum dibuka satu per satu), tombol Jual satu item untuk NPC non-kuota. Temuan 6–9 di dokumen persona masih terbuka.
 
+### Poles malam 15 Nov 2026 (kerja otomatis, detail di `Overnight_Log.md`)
+Toko kota versi bisa diwarnai di Roblox (`Config/ShopPalette`, belum di-upload); VFX hadiah + ambient (`AmbientFx`, kilau tanaman siap panen); model tanaman dari Part (`Shared/CropBuilder`); seed picker bergaya UiKit; temuan persona 6–9 ditutup; duplikat skrip di Studio dihapus.
+**Belum teruji:** tampilan di layar (screenshot Studio timeout), mancing penuh dari dermaga baru, HP asli.
+
 ## Gerbang: Playtest #1
 
 Jangan tambah fitur baru sebelum ini. Isi: `Playtest_Plan.md`.

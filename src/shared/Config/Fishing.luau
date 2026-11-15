@@ -31,9 +31,9 @@ return {
 	CAST_DISTANCE = 18, -- studs, server-checked
 
 	LOCATIONS = {
-		sungai = { unlockLevel = 1 },
-		empang = { unlockLevel = 4 },
-		kolam = { unlockLevel = 6 },
+		sungai = { unlockLevel = 2 }, -- Basic Mancing
+		empang = { unlockLevel = 10 }, -- Pro Mancing
+		kolam = { unlockLevel = 2 }, -- building a kolam (Garap > Kolam) and fishing in it
 	} :: { [string]: { unlockLevel: number } },
 
 	-- Optional bait: one is used automatically per cast while you have any.

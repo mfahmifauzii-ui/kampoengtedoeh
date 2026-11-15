@@ -1,5 +1,5 @@
 --!strict
--- Town NPCs (Config/Npcs): placeholder R15 shopkeepers standing on the bridge. Each has ONE prompt, "Ngobrol";
+-- Town NPCs (Config/Npcs). Rigs hand-placed in Workspace.Npcs (named <npcId>) are used as they are; missing ones are built. Each has ONE prompt, "Ngobrol";
 -- pressing it tells that player's client to open the dialogue (Net "NpcTalk"). Trading itself is in ShopService.
 -- Replace the rigs with your designed NPCs: keep them anchored, named <npcId>, in Workspace.Npcs,
 -- with a ProximityPrompt "TalkPrompt" on their root part.
@@ -26,7 +26,48 @@ function NpcService.Position(npcId: string): Vector3?
 	return if root and root:IsA("BasePart") then root.Position else nil
 end
 
+-- Hand-placed rigs: if Workspace.Npcs already holds a model named after this NPC (edited by hand in Studio), use it and
+-- only make sure it has its talk prompt. The rig is then never moved or replaced by the server.
+local function adopt(npc: Npcs.Npc): boolean
+	local existing = folder:FindFirstChild(npc.id)
+	if not existing or not existing:IsA("Model") then
+		return false
+	end
+	local root = existing:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") then
+		warn(`[NpcService] {npc.id} has no HumanoidRootPart; it will not talk`)
+		return true
+	end
+	existing.PrimaryPart = root
+	models[npc.id] = existing
+	for _, descendant in existing:GetDescendants() do
+		if descendant:IsA("BasePart") then
+			descendant.Anchored = true
+			descendant.CanCollide = false
+		end
+	end
+	if not root:FindFirstChild("TalkPrompt") then
+		local prompt = Instance.new("ProximityPrompt")
+		prompt.Name = "TalkPrompt"
+		prompt.ActionText = Locale.t("prompt.talk")
+		prompt.ObjectText = Locale.t(`npc.{npc.id}`)
+		prompt.HoldDuration = 0
+		prompt.MaxActivationDistance = Npcs.TALK_DISTANCE
+		prompt.RequiresLineOfSight = false
+		prompt.KeyboardKeyCode = Enum.KeyCode.E
+		prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
+		prompt.Parent = root
+		prompt.Triggered:Connect(function(player: Player)
+			Net.Fire("NpcTalk", player, npc.id)
+		end)
+	end
+	return true
+end
+
 local function build(npc: Npcs.Npc)
+	if adopt(npc) then
+		return
+	end
 	local ok, rig = pcall(function()
 		local description = Instance.new("HumanoidDescription")
 		description.HeadColor = npc.look.skin
@@ -56,7 +97,7 @@ local function build(npc: Npcs.Npc)
 	end
 
 	-- The rig looks toward its local -Z; stand.yaw turns it to face the way it should (Config/Npcs).
-	model:PivotTo(MapService.TownCFrame(npc.stand.x, Map.TOWN.GROUND_Y + 3, npc.stand.z) * CFrame.Angles(0, npc.stand.yaw, 0))
+	model:PivotTo(MapService.TownCFrame(npc.stand.x, npc.stand.y or (Map.TOWN.GROUND_Y + 3), npc.stand.z) * CFrame.Angles(0, npc.stand.yaw, 0))
 	model.Parent = folder
 
 	local root = model:FindFirstChild("HumanoidRootPart")
@@ -100,7 +141,7 @@ local function build(npc: Npcs.Npc)
 end
 
 function NpcService.Start()
-	folder = Instance.new("Folder")
+	folder = Workspace:FindFirstChild("Npcs") :: Folder? or Instance.new("Folder")
 	folder.Name = "Npcs"
 	folder.Parent = Workspace
 	for _, npc in Npcs.list do

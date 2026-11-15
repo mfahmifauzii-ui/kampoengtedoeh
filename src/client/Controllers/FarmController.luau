@@ -12,12 +12,14 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
+local CropBuilder = require(ReplicatedStorage.Shared.CropBuilder)
 local Crops = require(ReplicatedStorage.Shared.Config.Crops)
 local GarapController = require(script.Parent.GarapController)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local State = require(script.Parent.Parent.State)
 local UiKit = require(script.Parent.Parent.UiKit)
+local Vfx = require(ReplicatedStorage.Shared.Vfx)
 
 local openTilePanel: (index: number) -> ()
 local onTileTapped: (part: BasePart) -> ()
@@ -58,6 +60,7 @@ local picker: ScreenGui?
 local pickerTileIndex: number?
 
 local FarmController = {}
+local readyGlow: { [BasePart]: ParticleEmitter? } = {}
 
 local function getStage(part: BasePart): number
 	if part:GetAttribute("Crop") == nil then
@@ -110,6 +113,16 @@ local function render(view: TileView)
 	local cropId = part:GetAttribute("Crop") :: string?
 	local stage = getStage(part)
 
+	-- Ripe crops of your own sparkle softly, so you can see from afar what is ready to harvest.
+	local wantsGlow = view.isMine and stage == READY_STAGE
+	local glow = readyGlow[part]
+	if wantsGlow and not glow then
+		readyGlow[part] = Vfx.loop("ready", part)
+	elseif not wantsGlow and glow then
+		glow:Destroy()
+		readyGlow[part] = nil
+	end
+
 	if view.label then
 		local label = view.label
 		local billboard = label.Parent :: BillboardGui
@@ -138,8 +151,9 @@ local function render(view: TileView)
 
 	-- A real model (ReplicatedStorage > CropModels > <cropId>) when one exists, else the placeholder ball.
 	local models = ReplicatedStorage:FindFirstChild("CropModels")
-	local template = models and models:FindFirstChild(crop.id)
-	if template and template:IsA("Model") then
+	local found = models and models:FindFirstChild(crop.id)
+	local template: Model? = if found and found:IsA("Model") then found else CropBuilder.template(crop.id)
+	if template then
 		local model = template:Clone()
 		for _, descendant in model:GetDescendants() do
 			if descendant:IsA("BasePart") then
@@ -182,7 +196,9 @@ local function render(view: TileView)
 	view.cropPart = newPart
 end
 
--- Seed picker (placeholder) ---------------------------------------------------
+-- Seed picker -----------------------------------------------------------------
+-- A small parchment card in the middle of the screen (it used to sit on top of the dock buttons), with a bamboo
+-- button per crop in a 2-column grid and the standard close badge.
 
 local function closePicker()
 	pickerTileIndex = nil
@@ -196,49 +212,72 @@ local function buildPicker(): ScreenGui
 	gui.Name = "SeedPicker"
 	gui.ResetOnSpawn = false
 	gui.Enabled = false
+	gui.IgnoreGuiInset = true
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	gui.DisplayOrder = 5
 
 	local panel = Instance.new("Frame")
 	panel.Name = "Panel"
-	panel.AnchorPoint = Vector2.new(0.5, 1)
-	panel.Position = UDim2.new(0.5, 0, 1, -24)
-	panel.Size = UDim2.fromOffset(320, 0)
+	panel.AnchorPoint = Vector2.new(0.5, 0.5)
+	panel.Position = UDim2.fromScale(0.5, 0.48)
+	panel.Size = UDim2.fromOffset(348, 0)
 	panel.AutomaticSize = Enum.AutomaticSize.Y
-	panel.BackgroundColor3 = Color3.fromRGB(58, 52, 44)
-	panel.BackgroundTransparency = 0.1
+	panel.BackgroundColor3 = UiKit.BG
 	panel.Parent = gui
-	Instance.new("UICorner").Parent = panel
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 16)
+	corner.Parent = panel
+	local border = Instance.new("UIStroke")
+	border.Color = UiKit.BAMBOO_DARK
+	border.Thickness = 3
+	border.Parent = panel
 
 	local padding = Instance.new("UIPadding")
-	padding.PaddingTop = UDim.new(0, 10)
-	padding.PaddingBottom = UDim.new(0, 10)
-	padding.PaddingLeft = UDim.new(0, 10)
-	padding.PaddingRight = UDim.new(0, 10)
+	padding.PaddingTop = UDim.new(0, 12)
+	padding.PaddingBottom = UDim.new(0, 14)
+	padding.PaddingLeft = UDim.new(0, 12)
+	padding.PaddingRight = UDim.new(0, 12)
 	padding.Parent = panel
 
 	local layout = Instance.new("UIListLayout")
-	layout.Padding = UDim.new(0, 6)
+	layout.Padding = UDim.new(0, 8)
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	layout.Parent = panel
 
-	local function makeButton(name: string, order: number): TextButton
-		local button = Instance.new("TextButton")
-		button.Name = name
-		button.LayoutOrder = order
-		button.Size = UDim2.new(1, 0, 0, 40)
-		button.BackgroundColor3 = Color3.fromRGB(92, 82, 68)
-		button.TextColor3 = Color3.fromRGB(240, 230, 210)
-		button.Font = Enum.Font.GothamMedium
-		button.TextSize = 18
-		button.Parent = panel
-		Instance.new("UICorner").Parent = button
-		return button
-	end
+	local title = Instance.new("TextLabel")
+	title.Name = "Title"
+	title.LayoutOrder = 0
+	title.BackgroundTransparency = 1
+	title.Size = UDim2.new(1, 0, 0, 30)
+	title.Font = UiKit.FONT
+	title.TextSize = 24
+	title.TextColor3 = UiKit.TEXT
+	title.Text = Locale.t("seed_picker.title")
+	title.Parent = panel
+
+	local grid = Instance.new("Frame")
+	grid.Name = "Grid"
+	grid.LayoutOrder = 1
+	grid.BackgroundTransparency = 1
+	grid.Size = UDim2.new(1, 0, 0, 0)
+	grid.AutomaticSize = Enum.AutomaticSize.Y
+	grid.Parent = panel
+	local gridLayout = Instance.new("UIGridLayout")
+	gridLayout.CellSize = UDim2.fromOffset(156, UiKit.TOUCH)
+	gridLayout.CellPadding = UDim2.fromOffset(8, 8)
+	gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	gridLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	gridLayout.Parent = grid
 
 	for order, crop in Crops.list do
-		local button = makeButton(crop.id, order)
+		local button = UiKit.button(grid, crop.id, Locale.t("crop." .. crop.id), UiKit.BUTTON)
+		button.LayoutOrder = order
+		button.TextSize = 16
+		button.TextWrapped = true
 		button.Activated:Connect(function()
 			if not button.Active then
-				return -- locked crop
+				return -- locked crop or no seeds
 			end
 			local index = pickerTileIndex
 			closePicker()
@@ -249,10 +288,7 @@ local function buildPicker(): ScreenGui
 		end)
 	end
 
-	local close = makeButton("Close", #Crops.list + 1)
-	close.Text = Locale.t("seed_picker.close")
-	close.BackgroundColor3 = Color3.fromRGB(72, 64, 54)
-	close.Activated:Connect(closePicker)
+	UiKit.closeBadge(panel, 40, closePicker)
 
 	gui.Parent = playerGui
 	return gui
@@ -261,7 +297,7 @@ end
 local function refreshPickerButtons(gui: ScreenGui)
 	local level = player:GetAttribute("Level")
 	local playerLevel = if typeof(level) == "number" then level else 1
-	local panel = gui:FindFirstChild("Panel") :: Frame
+	local panel = (gui:FindFirstChild("Panel") :: Frame):FindFirstChild("Grid") :: Frame
 	local snapshot = State.current :: any
 	local items = if snapshot and snapshot.items then snapshot.items else {}
 	for _, crop in Crops.list do
@@ -273,12 +309,13 @@ local function refreshPickerButtons(gui: ScreenGui)
 		button.Visible = unlocked or crop.unlockLevel <= playerLevel + 5 -- show only the next few locked crops
 		button.Active = usable
 		button.AutoButtonColor = usable
-		button.TextTransparency = if usable then 0 else 0.5
+		button.TextTransparency = if usable then 0 else 0.45
+		button.BackgroundColor3 = if usable then UiKit.BUTTON else UiKit.BUTTON_MUTED
 		local name = Locale.t("crop." .. crop.id)
 		button.Text = if not unlocked
-			then `{name}  ·  {Locale.t("seed_picker.locked", { level = crop.unlockLevel })}`
-			elseif have == 0 then `{name}  ·  {Locale.t("seed_picker.none")}`
-			else `{name}  ·  {Locale.t("seed_picker.have", { n = have })}`
+			then `{name} · {Locale.t("seed_picker.locked", { level = crop.unlockLevel })}`
+			elseif have == 0 then `{name} · {Locale.t("seed_picker.none")}`
+			else `{name} · {have}`
 	end
 end
 
@@ -397,6 +434,11 @@ local function removeTile(instance: Instance)
 	end
 	if view.cropPart then
 		view.cropPart:Destroy()
+	end
+	local glow = readyGlow[instance :: BasePart]
+	if glow then
+		glow:Destroy()
+		readyGlow[instance :: BasePart] = nil
 	end
 	views[instance :: BasePart] = nil
 end

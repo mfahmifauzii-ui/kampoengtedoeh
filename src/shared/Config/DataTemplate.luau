@@ -35,7 +35,7 @@ local template: Types.PlayerData = {
 
 	pond = {
 		tier = 0, -- index into Fishing.POND.CAPS (tier + 1); applies to every pond
-		list = {}, -- { PondEntry } ponds the player built (Lv 6 quest gives the first one free)
+		list = {}, -- { PondEntry } ponds the player built (the Lv 2 quest gives the first one free)
 		nextUid = 1,
 	},
 

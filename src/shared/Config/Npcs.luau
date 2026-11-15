@@ -21,7 +21,7 @@ export type Sells = {
 
 export type Npc = {
 	id: string,
-	stand: { x: number, z: number, yaw: number },
+	stand: { x: number, z: number, y: number?, yaw: number },
 	look: { skin: Color3, shirt: Color3, pants: Color3 },
 	buys: { [string]: number },
 	sells: Sells,
@@ -40,7 +40,7 @@ local list: { Npc } = {
 	{
 		-- Behind the counter of the Warung stall. Best price (1.0x), but only up to the daily quota per crop.
 		id = "pak_darmo",
-		stand = { x = Map.WARUNG.x, z = Map.WARUNG.z - 1.2, yaw = math.pi }, -- behind the counter, looking south
+		stand = { x = Map.WARUNG.x, z = Map.WARUNG.z - 3.5, y = Map.WARUNG.FLOOR_Y + 2.5, yaw = math.pi }, -- behind the counter on the warung floor, looking south
 		look = { skin = Color3.fromRGB(198, 148, 102), shirt = Color3.fromRGB(220, 206, 176), pants = Color3.fromRGB(96, 70, 50) },
 		buys = { crop = 1.0 },
 		sells = { seeds = true, upgrades = true },
@@ -105,7 +105,7 @@ return {
 		PER_TIER = 5,
 	},
 
-	TALK_DISTANCE = 10, -- studs: how close the "Ngobrol" prompt appears
+	TALK_DISTANCE = 16, -- studs: how close the "Ngobrol" prompt appears
 	LEAVE_DISTANCE = 30, -- the client closes the dialogue / shop when you walk this far away
 
 	SEED_UNGGUL_PRICE_MULT = 1.5, -- Bu Wati's seeds cost this much more than Pak Darmo's...

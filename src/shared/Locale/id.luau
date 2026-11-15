@@ -82,6 +82,7 @@ return {
 	["seed_picker.none"] = "Habis",
 	["seed_picker.locked"] = "Lv {level}",
 	["seed_picker.close"] = "Tutup",
+	["seed_picker.title"] = "Pilih Bibit",
 
 	-- Fish
 	["fish.wader"] = "Wader",
@@ -285,6 +286,11 @@ return {
 	["location.sungai"] = "Sungai",
 	["location.empang"] = "Empang",
 	["location.kolam"] = "Kolam",
+	-- Nama spot mancing (papan di dermaga dan teks prompt). Sungai = Basic, Empang = Pro.
+	["spot.sungai"] = "Basic Mancing",
+	["spot.empang"] = "Pro Mancing",
+	["spot.open"] = "Terbuka",
+	["spot.need"] = "Butuh Lv {level}",
 	["visit.reward"] = "Kunjungan ke-{day}! Hadiah hari ini sudah masuk",
 
 	-- Orders

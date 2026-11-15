@@ -15,14 +15,15 @@ local TOWN = {
 	ISLAND_R = 90, -- the island (grass + plaza)
 	CANAL_R = 130, -- outer edge of the water: the canal is ISLAND_R .. CANAL_R (40 wide)
 	RING_R = 165, -- outer edge of the cobblestone ring road: the road is CANAL_R .. RING_R (35 wide)
-	GROUND_Y = 0, -- the island surface; NPCs stand on it
+	GROUND_Y = 2, -- the island's grass surface (measured y = 2.00); shops, NPCs and the spawn stand on it
+	PLAZA_Y = 1.8, -- the cobblestone plaza around the tree (measured y = 1.80); the warung sits here
 	SHOP_RADIUS = 56, -- shophouse footprint centers (8 slots, two per quadrant)
 	STAND_RADIUS = 44, -- where the shopkeeper stands in front of the door
 }
 
 -- The warung stall in the middle of the island, south of the tree: customers come from the south bridge.
 -- Its counter faces local +Z (south); Pak Darmo stands behind it (see Config/Npcs).
-local WARUNG = { x = 0, z = 28 }
+local WARUNG = { x = 0.4, z = 16, FLOOR_Y = 7.05 } -- FLOOR_Y: top of the warung's wooden floor (the seller stands on it)
 
 export type Shop = { x: number, z: number, yaw: number, standX: number, standZ: number, standYaw: number }
 
@@ -44,7 +45,7 @@ for slot = 1, 8 do
 end
 
 -- Fishing docks: both banks of the canal, 8 angles each (degrees from +X toward +Z), away from the bridges.
--- West half of the canal = Sungai (Lv1), east half = Empang (Lv4): same water, same docks; only the fishing
+-- West half of the canal = Sungai (Basic Mancing, Lv2), east half = Empang (Pro Mancing, Lv10): same water, same docks; only the fishing
 -- location differs.
 local DOCKS: { { angle: number, bank: string, location: string } } = {}
 for _, bank in { "outer", "inner" } do

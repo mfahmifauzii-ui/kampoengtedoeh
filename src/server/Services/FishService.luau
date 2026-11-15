@@ -351,7 +351,10 @@ local function makePrompt(parent: BasePart, name: string, actionKey: string, ord
 end
 
 local function setupSpot(spot: BasePart)
-	local prompt = makePrompt(spot, "FishPrompt", "prompt.fish", 0)
+	local location = spot:GetAttribute("Location")
+	-- Dermaga pancing punya nama sendiri (Basic / Pro Mancing); kolam milik pemain tetap "Mancing".
+	local actionKey = if location == "sungai" or location == "empang" then `spot.{location}` else "prompt.fish"
+	local prompt = makePrompt(spot, "FishPrompt", actionKey, 0)
 	prompt.Triggered:Connect(function(player)
 		startCast(player, spot)
 	end)

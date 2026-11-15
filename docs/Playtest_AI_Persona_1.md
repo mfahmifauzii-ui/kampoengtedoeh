@@ -34,9 +34,10 @@ Save persona memakai store sementara `KampungTeduh_Studio_Persona1` (nama store 
 | 3 Tanaman tidak bisa diketuk | ✅ Visual tanaman kini punya ClickDetector sendiri; mengetuk bola/model memanen. |
 | 4 NPC jauh tanpa penanda | ✅ lewat jalur panah di tanah di #1 (juga untuk "bibit habis, beli lagi"). |
 | 5 "Jual Semua" menjual bahan pesanan | ✅ modal konfirmasi memuat total dan peringatan "pesananmu masih butuh …". |
-| 6 Umpan balik tanam/siram | ⬜ belum |
-| 7 Seed picker placeholder | ⬜ belum (kini tumpang tindih dengan bar Garap, perlu dibuat bergaya bambu) |
-| 8 Model tanaman, 9 aset 203785492 | ⬜ belum |
+| 6 Umpan balik tanam/siram | ✅ (15 Nov) animasi + suara + partikel tanam/siram (`FarmFx`, commit 254cfa1), plus kilau lembut pada tanaman siap panen (`Vfx.loop("ready")`, terbukti di Play). Ditemukan dan dihapus duplikat skrip di Studio (`RodAnimController`, `FarmFx`, `Sfx`, `SoundBank`, `Vfx` lama) yang membuat efek mancing jalan dua kali. |
+| 7 Seed picker placeholder | ✅ dikodekan (15 Nov): kartu perkamen di tengah layar (tidak lagi menutup dock), tombol bambu `UiKit.button` dalam grid 2 kolom, judul "Pilih Bibit", badge tutup standar; tanaman tanpa bibit/terkunci memakai warna tombol nonaktif. **Belum dilihat di layar** (screenshot Studio timeout malam itu); komponennya diuji jalan tanpa error. |
+| 8 Model tanaman | ✅ (15 Nov) `Shared/CropBuilder` membangun 8 tanaman dari Part (daun elipsoid, batang, buah) tanpa upload; dipakai bila `CropModels` tidak punya model. Terbukti di Play: kangkung tampil sebagai model tegak 10 part, tinggi 2,2. **Tampilan belum dinilai lewat screenshot.** |
+| 9 aset 203785492 | ⬜ **belum selesai**: error masih muncul (2x saat start, dicek 15 Nov sore); sumbernya belum ketemu, tidak ada referensi di repo. |
 
 **Perubahan GUI yang ikut** (permintaan): toko memakai tab **Beli / Jual**, number picker (− jumlah +, tahan untuk mengulang), total yang merah bila uang kurang, modal konfirmasi di Beli dan Jual Semua, slot gambar item (placeholder sampai ada gambar model, `UiAssets.THUMBS`). Lihat `GUI_Design.md`.
 
@@ -50,3 +51,24 @@ Save persona memakai store sementara `KampungTeduh_Studio_Persona1` (nama store 
 
 ## Berikutnya
 Ulangi persona untuk memancing dan menghias, lalu uji di HP asli dan dengan 2+ pemain, baru 3–5 orang asli.
+
+---
+
+# Putaran 2 — AI persona (15 Nov 2026, sebagian)
+
+Pemain baru (save kosong: Lv 1, 10 Bunga, Koin 340 saat join), Studio Play, store sementara `KampungTeduh_Studio_Persona2` (sudah dikembalikan). Syarat baru: **Basic Mancing (sungai) dan kolam Lv 2, Pro Mancing (empang) Lv 10**.
+
+**Berhasil dijalankan:** Garap → Cangkul (1 petak) → Tanam (Kangkung, timer 0:59) → Siram (0:42) → Panen (+1 Kangkung, XP 2 → 4/20, siklus tumbuh ±50 detik) → Pak Darmo: dialog dan panel Jual (Kangkung 9 Koin, sisa kuota 19/20). Papan Basic Mancing tampil dengan gembok di dermaga sungai.
+
+**Belum dijalankan:** memancing (perlu Lv 2; chat `!level` tidak bisa dikirim dari skrip, dan XP harian belum cukup), kolam, Pro Mancing (Lv 10), menghias, Pesanan (tombol dok tidak merespons klik), HP asli, 2+ pemain.
+
+**Temuan baru (round 2):**
+| # | Temuan | Dampak |
+|---|---|---|
+| A | Pemain baru Lv 1 tidak bisa memancing sama sekali sampai Lv 2. Dermaga terdekat (sungai) berjarak ±190 stud dari lahan awal, dan tidak ada petunjuk ke sana. | Sedang–tinggi (funnel "first_catch" ≥ 65%) |
+| B | Papan "Basic Mancing · Butuh Lv 2" tertutup kepala karakter saat berdiri di dermaga. | Rendah |
+| C | Jarak lahan awal → Pak Darmo ±290 stud; jalur panah ada, tetapi tidak ada petunjuk ke dermaga. | Sedang (temuan 4 putaran 1 belum tertutup penuh) |
+| D | Tombol dok Pesanan tidak membuka panel pada percobaan klik (belum dicek ulang). | Perlu cek |
+| E | Hint bar Garap ("Ketuk petak tanah untuk menanam…") tampil dan berganti. | Berjalan |
+
+**Catatan teknis:** GUI `Freecam` bawaan Studio sempat aktif dan membuat layar hitam serta memblokir klik. Saat tes ini dimatikan di sisi klien; jika terulang, stop/start Play.

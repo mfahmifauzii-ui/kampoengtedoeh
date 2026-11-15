@@ -9,7 +9,6 @@ local PlotsConfig = require(ReplicatedStorage.Shared.Config.Plots)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Signal = require(ReplicatedStorage.Shared.Modules.Signal)
 local DataService = require(script.Parent.DataService)
-local MapService = require(script.Parent.MapService)
 
 local PlotService = {}
 PlotService.Assigned = Signal.new() -- (player, plot: Model)
@@ -72,7 +71,6 @@ local function buildPlaceholderPlots(): Folder
 		label.Text = Locale.t("plot.empty")
 		label.Parent = billboard
 
-		MapService.AddHouse(model)
 		model.Parent = folder
 	end
 

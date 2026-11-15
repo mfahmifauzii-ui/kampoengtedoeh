@@ -24,7 +24,7 @@ export type Quest = {
 local list: { Quest } = {
 	{
 		id = "kolam_pertama",
-		unlockLevel = 6, -- same level the Kolam fishing location opens (Config/Fishing)
+		unlockLevel = 2, -- same level the Kolam fishing location opens (Config/Fishing)
 		steps = {
 			{ event = "pond_built", count = 1 }, -- the first pond is free
 			{ event = "catch_pond", count = 1 },
