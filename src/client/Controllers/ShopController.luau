@@ -18,6 +18,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Blueprints = require(ReplicatedStorage.Shared.Config.Blueprints)
 local Crops = require(ReplicatedStorage.Shared.Config.Crops)
 local Decor = require(ReplicatedStorage.Shared.Config.Decor)
+local Farm = require(ReplicatedStorage.Shared.Config.Farm)
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
 local InventoryConfig = require(ReplicatedStorage.Shared.Config.Inventory)
@@ -208,6 +209,35 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 					end,
 					onAction = function(n)
 						confirmBuy(npcId, "fish", fish.id, name, unit, n)
+					end,
+				})
+			end
+		end
+	end
+
+	-- Stage 2: farm tools (Gembor Bambu). Koin only; locked until its level.
+	if sells.tools then
+		UiKit.header(list, Locale.t("shop.section.tools"), nextOrder())
+		for toolId, tool in Farm.TOOLS do
+			anything = true
+			local name = Locale.t(`tool.{toolId}`)
+			if snapshot.tools and snapshot.tools[toolId] == true then
+				UiKit.row(list, nextOrder(), name, Locale.t("tool.owned"), nil, false)
+			else
+				local unlocked = playerLevel >= tool.unlockLevel
+				UiKit.tradeRow(list, nextOrder(), {
+					name = name,
+					thumbKey = toolId,
+					placeholderIcon = "pancing",
+					accent = UiKit.CAT.tool,
+					unitPrice = tool.price,
+					maxQty = if unlocked then 1 else 0,
+					pickQty = false,
+					money = money(),
+					actionText = Locale.t("ui.buy"),
+					disabledText = Locale.t("ui.locked", { level = tool.unlockLevel }),
+					onAction = function()
+						confirmBuy(npcId, "tool", toolId, name, tool.price, nil)
 					end,
 				})
 			end
@@ -498,12 +528,14 @@ local function onSellAll()
 	if kinds == 0 then
 		return
 	end
-	local body = Locale.t("confirm.sell_all_body", { n = kinds })
-	local needed = neededByOrders(snapshot, ids)
-	if needed ~= "" then
-		body ..= "\n" .. Locale.t("confirm.sell_all_orders", { items = needed })
-	end
 	local npcId = npc.id
+	-- Stage 1: one tap sells. A confirm only appears when an open order still needs one of these items.
+	local needed = neededByOrders(snapshot, ids)
+	if needed == "" then
+		Net.Send("Sell", npcId, "all")
+		return
+	end
+	local body = Locale.t("confirm.sell_all_body", { n = kinds }) .. "\n" .. Locale.t("confirm.sell_all_orders", { items = needed })
 	UiKit.confirm({
 		title = Locale.t("confirm.sell_all_title"),
 		body = body,

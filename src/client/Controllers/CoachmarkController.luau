@@ -201,10 +201,17 @@ function CoachmarkController.Init()
 	RunService.RenderStepped:Connect(CoachmarkController.Update)
 end
 
+-- GuideController: false for a tutorial that cannot be skipped (T1, T1b): the Lewati button is then never shown.
+local skipAllowed = true
+function CoachmarkController.SetSkipAllowed(allowed: boolean)
+	skipAllowed = allowed
+end
+
 function CoachmarkController.Show(spec: Spec)
 	current = spec
 	bubbleText.Text = spec.text or ""
 	bubble.Visible = spec.text ~= nil
+	skipButton.Visible = skipAllowed
 	topGui.Enabled = true
 end
 

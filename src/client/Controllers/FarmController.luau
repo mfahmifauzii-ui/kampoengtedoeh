@@ -1015,9 +1015,149 @@ local function updatePopup()
 	end
 end
 
+-- STAGE 1: PANEN SEMUA + DRAG SIRAM -------------------------------------------------------------
+-- Panen Semua: one tap sends the harvest of every ripe bed of mine, one by one (HARVEST_GAP apart), so each crop's
+-- flight to the Bag queues up instead of landing on the same frame. Each one still goes through act("ripe"), so the
+-- server stays the only authority (it re-checks ripeness, distance and rate).
+-- Drag siram: a stroke that STARTS on a dry bed of mine waters every dry bed of mine that the pointer crosses.
+local HARVEST_GAP = 0.25
+local harvestAllButton: TextButton? = nil
+local dragWaterActive = false
+local dragWaterDone: { [BasePart]: boolean } = {}
+
+local function myRipeParts(): { BasePart }
+	local parts = {}
+	for part, view in views do
+		if view.isMine and getStage(part) == READY_STAGE then
+			table.insert(parts, part)
+		end
+	end
+	return parts
+end
+
+-- Panen Semua is LOCKED behind a Gamepass (decided 16 Nov; Plan v3 3.3's level 3 rule is withdrawn). For now it is hidden
+-- completely: the button is never shown and its call is switched off. The harvest code (harvestAll) stays in place.
+-- TODO Gamepass: set PanenSemuaGamepassId, make HasPanenSemuaGamepass real, then set PANEN_SEMUA_ENABLED = true.
+local PANEN_SEMUA_ENABLED = false
+local PanenSemuaGamepassId = "" -- TODO Gamepass: empty until the gamepass exists
+
+local function harvestAll()
+	if not PANEN_SEMUA_ENABLED then
+		return -- locked (Gamepass TODO): the button is hidden, this is a second switch
+	end
+	local parts = myRipeParts()
+	for index, part in parts do
+		task.delay((index - 1) * HARVEST_GAP, function()
+			if getStage(part) == READY_STAGE then
+				act(part, "ripe")
+			end
+		end)
+	end
+end
+
+local function buildHarvestAllButton()
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "HarvestAll"
+	gui.ResetOnSpawn = false
+	gui.DisplayOrder = 5
+	gui.Parent = playerGui
+	local button = UiKit.button(gui, "HarvestAllButton", Locale.t("ui.harvest_all"))
+	button.Size = UDim2.fromOffset(190, UiKit.TOUCH)
+	button.AnchorPoint = Vector2.new(0.5, 0)
+	button.Position = UDim2.new(0.5, 0, 0, 124) -- below the hint bar at the top (it was covering the T1 hint, 16 Nov)
+	button.Visible = false
+	button.Activated:Connect(harvestAll)
+	harvestAllButton = button
+end
+
+local function HasPanenSemuaGamepass(): boolean
+	if PanenSemuaGamepassId == "" then
+		return false -- no gamepass id yet
+	end
+	-- TODO Gamepass: return MarketplaceService:UserOwnsGamePassAsync(player.UserId, tonumber(PanenSemuaGamepassId)) (server-side check)
+	return false
+end
+
+local function refreshHarvestAllButton()
+	local button = harvestAllButton
+	if not button then
+		return
+	end
+	-- Hidden for now. Level and ripe beds no longer decide: only the gamepass will, once it exists.
+	button.Visible = PANEN_SEMUA_ENABLED and HasPanenSemuaGamepass() and #myRipeParts() > 0 and not GarapController.Active
+	if button.Visible then
+		button.Text = Locale.t("ui.harvest_all") .. " (" .. #myRipeParts() .. ")"
+	end
+end
+
+-- Drag siram ---------------------------------------------------------------------------------
+local dragParams = RaycastParams.new()
+dragParams.FilterType = Enum.RaycastFilterType.Include
+
+local function tileUnderPointer(position: Vector2): BasePart?
+	local camera = Workspace.CurrentCamera
+	if not camera then
+		return nil
+	end
+	dragParams.FilterDescendantsInstances = CollectionService:GetTagged(TILE_TAG)
+	local ray = camera:ScreenPointToRay(position.X, position.Y)
+	local hit = Workspace:Raycast(ray.Origin, ray.Direction * 1000, dragParams)
+	if hit and hit.Instance:IsA("BasePart") then
+		return hit.Instance
+	end
+	return nil
+end
+
+local function isDryMine(part: BasePart): boolean
+	local view = views[part]
+	return view ~= nil and view.isMine and getStage(part) ~= 0 and getStage(part) ~= READY_STAGE and part:GetAttribute("Watered") ~= true
+end
+
+local function waterStrokeAt(position: Vector2)
+	local part = tileUnderPointer(position)
+	if not part or dragWaterDone[part] or not isDryMine(part) then
+		return
+	end
+	dragWaterDone[part] = true
+	act(part, "dry")
+end
+
+local function setupDragWater()
+	local UserInputService = game:GetService("UserInputService")
+	local function isPointer(input: InputObject): boolean
+		return input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch
+	end
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if processed or not isPointer(input) or UiKit.confirmOpen() or GarapController.Active then
+			return
+		end
+		local position = Vector2.new(input.Position.X, input.Position.Y)
+		local part = tileUnderPointer(position)
+		if part and isDryMine(part) then
+			dragWaterActive = true
+			table.clear(dragWaterDone)
+			dragWaterDone[part] = true
+			act(part, "dry")
+		end
+	end)
+	UserInputService.InputChanged:Connect(function(input)
+		if dragWaterActive and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+			waterStrokeAt(Vector2.new(input.Position.X, input.Position.Y))
+		end
+	end)
+	UserInputService.InputEnded:Connect(function(input)
+		if isPointer(input) then
+			dragWaterActive = false
+		end
+	end)
+end
+
 function FarmController.Start()
 	-- In Garap mode a tap on a bed that is already here opens this same menu (GarapController.showGhost / act).
 	GarapController.BedTapHandler = openBedMenu
+	buildHarvestAllButton()
+	buildGemborButton()
+	setupDragWater()
 	FarmFloat.Init({
 		onAction = act,
 		onHold = openBedMenu,
@@ -1038,6 +1178,8 @@ function FarmController.Start()
 		for _, view in views do
 			render(view)
 		end
+		refreshHarvestAllButton()
+		refreshGemborButton()
 	end
 end
 

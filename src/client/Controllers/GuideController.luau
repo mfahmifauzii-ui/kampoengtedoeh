@@ -36,6 +36,7 @@ local GarapController = require(script.Parent.GarapController)
 local CoachmarkController = require(script.Parent.CoachmarkController)
 local State = require(script.Parent.Parent.State)
 local UiKit = require(script.Parent.Parent.UiKit)
+local WorldArrow = require(script.Parent.Parent.WorldArrow)
 
 local player = Players.LocalPlayer
 
@@ -185,6 +186,24 @@ local function myRoot(): BasePart?
 	return if root and root:IsA("BasePart") then root else nil
 end
 
+-- Instruction sink (set by T1Ghost.client): while Mbok Minah's local copy stands at the gate, a T1 step's instruction is
+-- SPOKEN in her bubble. The sink gets a step key ("cangkul", "cangkul_ground", "tanam", "siram", "panen_wait", "panen_harvest",
+-- "panen_sell") and whether the player has been stuck for a while; it returns true when it spoke. Then no instruction text
+-- shows in the hint bar or the coachmark bubble: the coachmark keeps only its glow / ring / arrows. No sink (or false) =
+-- the old text behaviour, so a replay without her, or a failed build, still teaches.
+local instructionSink: ((key: string, stuck: boolean) -> boolean)? = nil
+
+local function say(key: string, stuck: boolean): boolean
+	local sink = instructionSink
+	return sink ~= nil and sink(key, stuck)
+end
+
+-- T1 and T1b are not skippable (no Lewati anywhere: the pond and the first fish are the point). A replay from Atur > Panduan
+-- can still be left, so nobody is ever trapped in it.
+local function skipAllowed(current: { def: Onboarding.Tutorial, replay: boolean }): boolean
+	return current.replay or not (current.def.id == "t1_awal" or current.def.id == "t1b_kolam")
+end
+
 -- Hint text + whether the arrow shows, for the current step.
 local refreshTutorial: () -> ()
 local findHighlight: (name: string) -> GuiObject?
@@ -274,13 +293,76 @@ local function hideTrail()
 	end
 end
 
-type Goal = { key: string, target: Vector3, point: Vector3, radius: number }
+type Goal = { key: string, target: Vector3, point: Vector3, radius: number, part: BasePart? }
 local routeKey = ""
+
+-- T1 panen step (user, 16 Nov): what the player must do NOW.
+--   "wait"    a planted bed is still growing: text "Tunggu matang", arrow to that bed (never to Pak Darmo)
+--   "harvest" a bed is ripe: text "Tap Panen", arrow to the ripe bed
+--   "sell"    the harvest is in the Tas: text "Jual ke Pak Darmo", arrow to Pak Darmo (only now)
+local function t1Phase(): string
+	local snap = snapshot()
+	local kangkung = if snap and snap.items then snap.items.kangkung else nil
+	if typeof(kangkung) == "number" and kangkung > 0 then
+		return "sell"
+	end
+	local now = Workspace:GetServerTimeNow()
+	for _, instance in CollectionService:GetTagged(TILE_TAG) do
+		if instance:IsA("BasePart") and instance:GetAttribute("Owner") == player.UserId and instance:GetAttribute("Crop") ~= nil then
+			local readyAt = instance:GetAttribute("ReadyAt")
+			if typeof(readyAt) == "number" and now >= readyAt then
+				return "harvest"
+			end
+		end
+	end
+	return "wait"
+end
+
+-- The nearest of MY beds that matches kind: "empty" (no crop), "dry" (crop, not watered), "ripe", "growing".
+local function t1BedGoal(kind: string): Goal?
+	local root = myRoot()
+	local now = Workspace:GetServerTimeNow()
+	local best: BasePart? = nil
+	local bestDistance = math.huge
+	for _, instance in CollectionService:GetTagged(TILE_TAG) do
+		if instance:IsA("BasePart") and instance:GetAttribute("Owner") == player.UserId then
+			local crop = instance:GetAttribute("Crop") ~= nil
+			local readyAt = instance:GetAttribute("ReadyAt")
+			local ripe = crop and typeof(readyAt) == "number" and now >= readyAt
+			local match = (kind == "empty" and not crop)
+				or (kind == "dry" and crop and instance:GetAttribute("Watered") ~= true)
+				or (kind == "ripe" and ripe)
+				or (kind == "growing" and crop and not ripe)
+			if match then
+				local distance = if root then (instance.Position - root.Position).Magnitude else 0
+				if distance < bestDistance then
+					bestDistance = distance
+					best = instance
+				end
+			end
+		end
+	end
+	if not best then
+		return nil
+	end
+	return { key = `bed:{best:GetAttribute("Index")}:{kind}`, target = best.Position, point = best.Position, radius = 5, part = best }
+end
 
 -- Where the trail leads right now: the current tutorial step's target, else (old guide) the buyer when there is something to sell/buy.
 local function currentGoal(): Goal?
 	if running then
 		local current = running.def.steps[running.n + 1]
+		-- T1 bed steps: the arrow is ONLY on the bed the step needs (never to Pak Darmo before the harvest is in the Tas).
+		if current and current.id == "tanam" then
+			return t1BedGoal("empty")
+		elseif current and current.id == "siram" then
+			return t1BedGoal("dry")
+		elseif current and current.id == "panen_jual" then
+			local phase = t1Phase()
+			if phase ~= "sell" then
+				return t1BedGoal(if phase == "harvest" then "ripe" else "growing")
+			end
+		end
 		local target = current and current.target
 		if not current or not target then
 			return nil
@@ -293,6 +375,22 @@ local function currentGoal(): Goal?
 			end
 		elseif target.pos then
 			return { key = `pos:{target.pos}`, target = target.pos, point = target.pos, radius = radius }
+		elseif target.spot then
+			-- The nearest fishing spot of that Location (e.g. the river dock "sungai").
+			local here = myRoot()
+			local best: BasePart? = nil
+			local bestDistance = math.huge
+			for _, part in CollectionService:GetTagged("FishingSpot") do
+				if part:IsA("BasePart") and part:GetAttribute("Location") == target.spot then
+					local distance = if here then (part.Position - here.Position).Magnitude else 0
+					if distance < bestDistance then
+						best, bestDistance = part, distance
+					end
+				end
+			end
+			if best then
+				return { key = `spot:{best:GetFullName()}`, target = best.Position, point = best.Position, radius = radius }
+			end
 		end
 		return nil
 	end
@@ -331,6 +429,43 @@ local function computeRoute(wanted: Goal)
 		routeKey = key
 		pathing = false
 	end)
+end
+
+-- Big arrow above the target bed of a T1 step (user, 16 Nov: the arrow must be visible in the screenshot).
+-- The arrow is a screen label placed over the bed (WorldArrow), 9 studs up so it clears the bed's own pill (FarmFloat).
+local bedArrow: any = nil
+local function updateTutorialBedArrow()
+	-- Removed (user, 16 Nov): "arrow coklat" over the T1 beds and Pak Darmo is not needed, the hint text is clear enough.
+	-- The hint bar and the ground trail stay. Quest (Misi) arrows are separate (QuestController).
+	if bedArrow then
+		bedArrow.hide()
+	end
+	if true then
+		return
+	end
+	local goal = if running then currentGoal() else nil
+	local part: BasePart? = goal and goal.part
+	local text: string? = nil
+	if goal and part then
+		text = if string.find(goal.key, ":ripe") then Locale.t("tut.arrow.panen")
+			elseif string.find(goal.key, ":growing") then Locale.t("tut.arrow.tunggu")
+			elseif string.find(goal.key, ":dry") then Locale.t("tut.arrow.siram")
+			else Locale.t("tut.arrow.tanam")
+	elseif running and running.def.steps[running.n + 1] and running.def.steps[running.n + 1].id == "panen_jual" and t1Phase() == "sell" then
+		-- the harvest is in the Tas: the arrow moves to Pak Darmo (never before)
+		part = npcRootOf("pak_darmo")
+		text = Locale.t("tut.arrow.jual")
+	end
+	if not part or not text then
+		if bedArrow then
+			bedArrow.hide()
+		end
+		return
+	end
+	if not bedArrow then
+		bedArrow = WorldArrow.new("TutArrow", 9)
+	end
+	bedArrow.show(part, text)
 end
 
 -- Every frame: lays the chevrons along the route ahead of the player, sliding toward the goal. They sit on the ground (a ray
@@ -503,6 +638,23 @@ local function evalCondition(condition: Onboarding.Condition): boolean
 		return snap ~= nil and typeof(snap.guideSells) == "number" and snap.guideSells >= need
 	elseif kind == "ack" then
 		return acked[condition.id or ""] == true
+	elseif kind == "pondmode" then
+		return GarapController.Active and GarapController.Mode == "pond"
+	elseif kind == "ponds" then
+		local snap = snapshot()
+		return snap ~= nil and typeof(snap.ponds) == "table" and #snap.ponds >= need
+	elseif kind == "fish" then
+		local snap, total = snapshot(), 0
+		local items = if snap then snap.items or {} else {}
+		for itemId, count in items do
+			if string.find(itemId, "@", 1, true) then -- fish items are written <fish>@<size>
+				total += count
+			end
+		end
+		return total >= need
+	elseif kind == "quest" then
+		local snap = snapshot()
+		return snap ~= nil and snap.quests ~= nil and snap.quests.done[condition.id or ""] == true
 	end
 	warn(`[Guide] unknown condition kind {kind}`)
 	return false
@@ -629,26 +781,90 @@ function refreshTutorial()
 	else
 		text = Locale.t(stepDef.text)
 	end
+	-- T1 panen step: the wording and the target follow the phase (wait / harvest / sell), so "Tap Panen" never shows
+	-- before the crop is ripe, and Pak Darmo is named only after the harvest is in the Tas (user, 16 Nov).
+	local phase = if stepDef.id == "panen_jual" then t1Phase() else nil
+	if phase == "wait" then
+		text = Locale.t("tut.t1.s4_wait")
+	elseif phase == "harvest" then
+		text = Locale.t("tut.t1.s4_harvest")
+	elseif phase == "sell" then
+		text = Locale.t("tut.t1.s4_sell")
+	end
+	-- Waiting for a crop or walking to Pak Darmo: no coachmark (its dark overlay hides the bed and the arrow). The hint bar
+	-- carries the text and the ground trail / bed arrow point the way (user, 16 Nov).
+	if phase ~= nil then -- wait / harvest / sell (the T1 panen step)
+		CoachmarkController.Hide()
+		clearRing()
+		GarapController.SetHintHidden(true)
+		local spoken = say(`panen_{phase}`, stuckFor >= Onboarding.STUCK_TEXT) -- Mbok Minah says it: no text in the hint bar
+		if spoken then
+			-- No text anywhere, but still something to look at: glow on Panen when ripe, an arrow over Pak Darmo to sell.
+			-- (block = false: no dark overlay, the bed and the way stay clear.)
+			CoachmarkController.SetSkipAllowed(skipAllowed(current))
+			CoachmarkController.SetPaused(uiBusy())
+			if phase == "harvest" then
+				CoachmarkController.Show({
+					mode = "button",
+					text = nil,
+					block = false,
+					findButton = function(): GuiObject?
+						return findHighlight("PanenButton")
+					end,
+				})
+			elseif phase == "sell" then
+				CoachmarkController.Show({
+					mode = "ground",
+					text = nil,
+					block = false,
+					npcPoint = function(): Vector3?
+						local npc = npcRootOf("pak_darmo")
+						return if npc then npc.Position + Vector3.new(0, 5, 0) else nil
+					end,
+				})
+			end
+		end
+		hint.Visible = not spoken and not GarapController.Active
+		hintText.Text = text
+		skipButton.Visible = false
+		return
+	end
 	-- Coachmark (CoachmarkController): ONE instruction per step. The hint bar is hidden while it shows, and the Garap hint
 	-- line too. The welcome step (ack) keeps the modal instead.
 	if stepDef.done.kind ~= "ack" then
 		local highlight = stepDef.highlight
-		local onGround = stepDef.done.kind == "tiles" and GarapController.Active
-		-- Past the tilling step, Garap mode must be closed: its open state hides the bed pills the next step points at.
-		if stepDef.done.kind ~= "tiles" and GarapController.Active then
+		local kind = stepDef.done.kind
+		local groundKind = kind == "tiles" or kind == "ponds" -- steps done by tapping the ground in Garap mode
+		local onGround = groundKind and GarapController.Active
+		-- Past the tilling / pond steps, Garap mode must be closed: its open state hides the bed pills the next step points at.
+		if not (groundKind or kind == "pondmode") and GarapController.Active then
 			GarapController.Stop()
 		end
 		local coachText = if onGround then Locale.t("tut.coach.ground") elseif stepDef.coach then Locale.t(stepDef.coach) else Locale.t(stepDef.text)
+		if phase == "wait" then
+			-- no ring on the Panen button while the crop grows: the bed arrow is the only pointer
+			highlight = nil
+			coachText = Locale.t("tut.coach.tunggu")
+		elseif phase == "harvest" then
+			coachText = Locale.t("tut.coach.panen_tap")
+		elseif phase == "sell" then
+			highlight = nil
+			coachText = Locale.t("tut.coach.jual")
+		end
 		hint.Visible = false
 		skipButton.Visible = false
 		clearRing()
 		GarapController.SetHintHidden(true)
 		-- A panel or modal is open (seed picker, Atur, a confirm): the coachmark steps aside until it closes.
 		CoachmarkController.SetPaused(uiBusy())
-		local npcId = stepDef.target and stepDef.target.npc
+		-- Pak Darmo is pointed at ONLY in the sell phase (the crop is in the Tas), never while the crop is still growing.
+	local npcId = if stepDef.target and (phase == nil or phase == "sell") then stepDef.target.npc else nil
+		-- Mbok Minah says the instruction; the coachmark then shows no text at all (glow, ring and arrows only).
+		local spoken = say(if onGround then `{stepDef.id}_ground` else stepDef.id, stuckFor >= Onboarding.STUCK_TEXT)
+		CoachmarkController.SetSkipAllowed(skipAllowed(current))
 		CoachmarkController.Show({
 			mode = if onGround then "ground" else "button",
-			text = coachText,
+			text = if spoken then nil else coachText,
 			block = stepDef.block ~= false,
 			findButton = if not onGround and highlight then function(): GuiObject? return findHighlight(highlight) end else nil,
 			npcPoint = if npcId then function(): Vector3?
@@ -661,10 +877,12 @@ function refreshTutorial()
 	CoachmarkController.Hide()
 	GarapController.SetHintHidden(false)
 
+	-- A step that is a dialog of the intro (kind "ack"): T1Ghost speaks it in the dialog box, so no hint bar here.
+	local spoken = say(stepDef.id, false)
 	hintText.Text = text
-	hint.Visible = not uiBusy() -- one instruction at a time: a modal or Atur / Panduan on screen hides this line
+	hint.Visible = not spoken and not uiBusy() -- one instruction at a time: a modal or Atur / Panduan on screen hides this line
 	hint.Position = UDim2.new(0.5, 0, 0, hintTop())
-	skipButton.Visible = true
+	skipButton.Visible = skipAllowed(current) and not spoken -- T1 / T1b cannot be skipped
 	hintPad.PaddingRight = UDim.new(0, 84)
 
 	-- Ring on a HUD button (created once per button, pulsed in RenderStepped).
@@ -809,7 +1027,20 @@ local function showWelcome()
 	if acked[id] or UiKit.confirmOpen() then
 		return
 	end
+	-- The intro cutscene (T1Ghost.client) shows its own Mulai Garap / Lewati; the modal waits. The hold expires on its own
+	-- (os.clock deadline), so a cutscene that dies can never leave the welcome modal blocked.
+	local hold = player:GetAttribute("T1CutsceneUntil")
+	if typeof(hold) == "number" and os.clock() < hold then
+		return
+	end
 	welcomeShown = true
+	if not current.replay then
+		-- Not skippable, and the intro cutscene is not playing (it was not needed, or it failed): no modal with a Lewati on it.
+		-- The welcome step is simply acknowledged and the tutorial goes on.
+		acked[id] = true
+		advance()
+		return
+	end
 	UiKit.confirm({
 		title = Locale.t(stepDef.modal.title),
 		body = Locale.t(stepDef.modal.body),
@@ -950,6 +1181,7 @@ function GuideController.Start()
 		while true do
 			tutorialTick()
 			refresh()
+			updateTutorialBedArrow() -- the T1 bed arrow follows the crop (wait -> harvest) without a state sync
 			local goal = currentGoal()
 			if goal and os.clock() - lastRoute >= REPATH_SECONDS then
 				lastRoute = os.clock()
@@ -987,6 +1219,66 @@ function GuideController.Start()
 		end
 	end)
 	refresh()
+end
+
+-- Used by the intro cutscene (T1Ghost.client): "Mulai Garap" = the welcome modal's Mulai. Returns false while the tutorial
+-- is not at its welcome step yet (the caller retries).
+function GuideController.AckWelcome(): boolean
+	local current = running
+	if not current or current.n ~= 0 then
+		return false
+	end
+	local stepDef = current.def.steps[1]
+	if stepDef.done.kind ~= "ack" then
+		return false
+	end
+	acked[stepDef.done.id or ""] = true
+	welcomeShown = true
+	advance()
+	return true
+end
+
+-- The running tutorial and its step number (steps done), or nil: for T1Ghost, which plays the dialogs of the "ack" steps.
+function GuideController.Current(): (string?, number)
+	local current = running
+	if not current or current.replay then
+		return nil, 0
+	end
+	return current.def.id, current.n
+end
+
+-- Acknowledges the "ack" step `id` of the running tutorial (the player pressed Next on its last line). False if that step
+-- is not the one running.
+function GuideController.AckStep(id: string): boolean
+	local current = running
+	if not current then
+		return false
+	end
+	local stepDef = current.def.steps[current.n + 1]
+	if not stepDef or stepDef.done.kind ~= "ack" or stepDef.done.id ~= id then
+		return false
+	end
+	acked[id] = true
+	advance()
+	return true
+end
+
+-- Used by T1Ghost.client: see instructionSink above. Pass nil to go back to the text GUI.
+function GuideController.SetInstructionSink(sink: ((key: string, stuck: boolean) -> boolean)?)
+	instructionSink = sink
+end
+
+-- Used by the intro cutscene: "Lewati" = the same skip as the hint bar, also when the tutorial has not begun yet.
+function GuideController.SkipTutorial(id: string)
+	local current = running
+	if current and current.def.id == id then
+		onSkip()
+		return
+	end
+	if closed[id] == nil then
+		Net.Send("GuideEvent", "skip", id)
+		closed[id] = "skipped"
+	end
 end
 
 return GuideController

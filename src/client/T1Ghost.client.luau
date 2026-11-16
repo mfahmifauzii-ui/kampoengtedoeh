@@ -1,0 +1,1121 @@
+--!strict
+-- T1 / T1b presenter (CLIENT ONLY, visual only; nothing here touches the server except the tutorial engine's own events).
+--
+-- MBOK MINAH: "MbokMinah_T1_Local" is a local copy of the real NPC (Workspace.Npcs.mbok_minah, which stays ONE NPC in the
+-- market). It exists from the intro until the end of T1b, then it is destroyed. It stands on the real ground (raycast, never a
+-- fixed Y), has no collision, and is posed by code: the stock R15 idle / walk animations do not fit this rig (they crouch it and
+-- open its arms), so it stands in its rest pose and walks with a gait of joint angles. The Humanoid is dropped because it forces
+-- CanCollide back on.
+--
+-- THE INTRO (a fresh T1 only, once per session): the loading screen is up as soon as this script runs; nothing plays until
+-- "Klik untuk Mulai" -> black 0.5 s -> slow fade in with cinematic bars -> Mbok Minah appears 20 studs to the player's RIGHT and
+-- WALKS in, stopping 4.5 studs in front-and-beside the player -> the player turns to her -> the camera stands still at a 3/4 side
+-- view (both faces + the gate) -> 4 lines in the dialog box, each needs Next -> she walks aside of the gate and stays. There is no
+-- Lewati: this tutorial is not skippable.
+--
+-- THE DIALOG: every word of the intro and of the tutorial is the dialog box (T1Dialog: bamboo, the speaker's face, the name,
+-- Next). Nothing draws a bubble in the world and no GUI draws tutorial text: the coachmark only glows / points.
+--
+-- THE TUTORIAL: T1 (garap, tanam, siram, panen, jual) and T1b (warung, pond tool, Mas Joko, first fish, first pond, fish in the
+-- pond) are the tutorial engine's tutorials; GuideController gives each step to the instruction sink below, which shows the line
+-- in the dialog box. The chat is closed from the loading screen to the end of T1b.
+--
+-- GuideController hooks used: AckWelcome, AckStep, Current, SetInstructionSink; the welcome modal is held back during the
+-- intro by the player attribute T1CutsceneUntil (an os.clock deadline, refreshed while the intro lives).
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
+local TextChatService = game:GetService("TextChatService")
+local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
+
+local RS = ReplicatedStorage
+local PlotsConfig = require(RS.Shared.Config.Plots)
+local Net = require(RS.Shared.Modules.Net)
+local State = require(script.Parent:WaitForChild("State"))
+local NpcCamera = require(script.Parent:WaitForChild("NpcCamera"))
+local NpcPose = require(script.Parent:WaitForChild("NpcPose"))
+local T1Dialog = require(script.Parent:WaitForChild("T1Dialog"))
+
+local GHOST_NAME = "MbokMinah_T1_Local"
+local SOURCE_NPC = "mbok_minah"
+local TUTORIAL_ID = "t1_awal"
+local TUTORIAL_B_ID = "t1b_kolam"
+local POLL_SECONDS = 0.25
+local SNAPSHOT_WAIT = 12 -- the loading screen gives up after this long without a snapshot
+
+-- Walking
+local WALK_SPEED = 7 -- studs per second
+local GAIT_CYCLE = 6 -- studs per full walking cycle (two steps)
+local GAIT_HIP, GAIT_KNEE, GAIT_ARM = 28, 48, 20 -- degrees of swing
+
+-- Placement (studs). dir = from the gate spawn toward the land; side = the player's RIGHT while facing the land.
+local RIGHT_START = 16 -- she appears this far to the player's right (on the road)
+local STOP_FORWARD, STOP_SIDE = 3.2, 3.2 -- and stops in front-and-beside the player: 4.5 studs away
+local STATION_FORWARD = 5 -- her place for the tutorial: just inside the gate line ...
+local STATION_SIDE = 9 -- ... and to the side of the gate opening (the gate is 32 wide)
+
+-- Intro timing and camera
+local BLACK_SECONDS = 0.5
+local FADE_IN_SECONDS = 2.5
+local BAR_HEIGHT = 0.06 -- of the screen height, top and bottom
+local CAMERA_AFTER_CHARACTER = 2.4 -- CoachmarkController.gateCamera owns the camera until ~2.1 s after a spawn
+-- Conversation shot: low and far enough that both of them stand fully ABOVE the dialog box (which fills the bottom third), and
+-- leaning a little toward Mbok Minah's side so the player's face turns toward the camera too.
+local CAMERA_DISTANCE, CAMERA_HEIGHT, CAMERA_LEAN, CAMERA_FOV = 13, 3.4, -8, 50
+local CAMERA_FOCUS_DROP = 0.6 -- the camera looks this far below the pair: they sit high in the frame
+local HOLD_SECONDS = 10 -- the welcome-modal hold is refreshed to this far ahead
+local ACK_RETRY_SECONDS = 8
+local INTRO_BOTTOM = 16 -- px above the bottom bar
+local TUTORIAL_BOTTOM = 92 -- px from the bottom of the screen: the dialog sits above the dock
+local HIDE_DURING_INTRO = { "HUD", "QuestUI", "LikeUI", "FarmFloat", "LandMarks" } -- the game's own screens, hidden during the intro
+
+-- Texts -----------------------------------------------------------------------------------------------------------
+
+type Speaker = { name: string, npc: string }
+local SPEAKERS: { [string]: Speaker } = {
+	mbok_minah = { name = "Mbok Minah", npc = "mbok_minah" },
+	pak_darmo = { name = "Pak Darmo", npc = "pak_darmo" },
+	mas_joko = { name = "Mas Joko", npc = "mas_joko" },
+}
+
+local INTRO = {
+	"Nak... akhirnya kamu pulang juga. Mbok kangen!",
+	"Ini lahan peninggalan kakekmu. Sudah lama nggak ada yang merawat.",
+	"Kakekmu dulu rajin sekali di sini. Sekarang giliranmu yang merawatnya, ya?",
+	"Tenang, Mbok temenin. Kita mulai pelan-pelan aja.",
+}
+
+-- T1b, the first beat (Pak Darmo, at the warung, right after the sale): Next after every line.
+local WARUNG = {
+	"Nah, hasil panenmu sudah laku. Warung ini bukan cuma tempat jual, lho.",
+	"Di sini kamu bisa beli bibit baru dan upgrade: tas lebih lega, kolam, sampai warung lebih besar.",
+	"Mulai sekarang kamu bisa punya kolam sendiri. Ayo, Pak Darmo tunjukkan caranya.",
+}
+
+-- What is said for each tutorial step (key = GuideController's step key; "<key>_ground" while Garap mode is open, "<key>_stuck"
+-- after a long wait). No line for a key = the old text GUI teaches that step.
+type Line = { who: string, text: string }
+local STEP_LINES: { [string]: Line } = {
+	-- T1 (Mbok Minah, at the gate)
+	cangkul = { who = "mbok_minah", text = "Coba garap tanah ini dulu, Nak. Ketuk tombol Cangkul yang menyala." },
+	cangkul_ground = { who = "mbok_minah", text = "Nah, ketuk rumput yang menyala itu buat bikin petak tanah." },
+	tanam = {
+		who = "mbok_minah",
+		text = "Sekarang tanam Kangkungnya. Dekati petak kosong, lalu ketuk tombol Tanam yang menyala.",
+	},
+	tanam_stuck = { who = "mbok_minah", text = "Bibit awal ini cepat tumbuhnya, Nak. Ditunggu sebentar ya." },
+	siram = { who = "mbok_minah", text = "Tanamannya haus, Nak. Ketuk petaknya, lalu ketuk Siram yang menyala." },
+	panen_wait = { who = "mbok_minah", text = "Sabar ya, Nak. Tunggu Kangkungnya matang dulu." },
+	panen_harvest = { who = "mbok_minah", text = "Nah, sudah matang! Ketuk tombol Panen yang menyala." },
+	panen_sell = { who = "mbok_minah", text = "Hasil panennya jual ke Pak Darmo di warung. Ikuti panah di tanah ya." },
+	-- T1b
+	kolam_demo = {
+		who = "pak_darmo",
+		text = "Lihat dock di bawah: ketuk tombol Kolam yang menyala. Nanti kolam digali di tanah hijau lahanmu.",
+	},
+	mas_joko = {
+		who = "pak_darmo",
+		text = "Sekarang temui Mas Joko di Toko Pancing buat belajar mancing. Ikuti panah di tanah ya.",
+	},
+	mancing = {
+		who = "mas_joko",
+		text = "Joran bambumu sudah siap, gratis. Ke dermaga di sungai, ketuk Mancing, dan dapatkan 1 ikan.",
+	},
+	bangun_kolam = {
+		who = "mbok_minah",
+		text = "Sekarang balik ke lahan, Nak. Ketuk tombol Kolam yang menyala, lalu gali kolam pertamamu.",
+	},
+	bangun_kolam_ground = { who = "mbok_minah", text = "Ketuk tanah hijau yang menyala itu. Kolam pertama gratis!" },
+	mancing_kolam = {
+		who = "mbok_minah",
+		text = "Kolammu sudah jadi! Ikan di kolam berkembang biak sendiri. Coba mancing 1x di tepi kolam.",
+	},
+}
+-- Steps that are dialogs of the intro (T1Ghost plays them itself): the sink says "handled" without showing a line.
+local NARRATIVE: { [string]: boolean } = { sapa = true, warung = true }
+
+-- Look (the same parchment as UiKit, copied so nothing here has to load UiKit before the loading screen)
+
+local player = Players.LocalPlayer
+
+-- Ghost state
+local ghost: Model? = nil
+local ghostRoot: BasePart? = nil
+local ghostFoot = 3 -- studs from the rig's pivot (its root) down to the soles
+local lastGroundY = 0
+local calibrated = false
+local joints: { [string]: AnimationConstraint } = {} -- her rig's joints by name (RightHip, LeftKnee, ...)
+local sinkSet = false
+local guideModule: any = nil
+
+local introState = "idle" -- "idle" | "running" | "done" (once per session; "done" also when it was never needed)
+local introFinish: (() -> ())? = nil -- cleanup of the running intro (also called if it errors half way)
+local dialogBusy = false -- the intro or the warung beat is playing its own lines: the step sink must not draw over them
+local lastSpoken = ""
+local lastLine: Line? = nil -- the tutorial line on screen (shown again after an NPC conversation hid it)
+local sessionTutorial = false -- this session saw T1 pending: the ghost lives on until T1b is done
+local t1bStartSent = false
+local warungStarted = false
+local chatHidden = false
+local characterAddedAt = os.clock()
+player.CharacterAdded:Connect(function()
+	characterAddedAt = os.clock()
+end)
+
+local function flat(v: Vector3): Vector3
+	return Vector3.new(v.X, 0, v.Z)
+end
+
+-- Tutorial state ----------------------------------------------------------------------------------------------------
+
+local function guideData(): any
+	local snap = State.current
+	return snap and snap.guide
+end
+
+local function isDone(guide: any, id: string): boolean
+	return guide.done[id] == true or guide.skipped[id] == true
+end
+
+-- Known guide state and T1 not finished. Unknown (no snapshot yet) counts as "do not build".
+local function t1Pending(): boolean
+	local guide = guideData()
+	return guide ~= nil and not isDone(guide, TUTORIAL_ID)
+end
+
+-- T1 itself, or the T1b that follows it (it started in this session, or it is the tutorial this save is in the middle of).
+local function tutorialPending(): boolean
+	local guide = guideData()
+	if guide == nil then
+		return false
+	end
+	if not isDone(guide, TUTORIAL_ID) then
+		return true
+	end
+	if isDone(guide, TUTORIAL_B_ID) then
+		return false
+	end
+	return guide.step.id == TUTORIAL_B_ID or sessionTutorial
+end
+
+-- A fresh T1 that has not passed its welcome step: the only case the intro plays (a rejoin mid-T1 skips it).
+local function introEligible(): boolean
+	local guide = guideData()
+	if guide == nil or not t1Pending() then
+		return false
+	end
+	local step = guide.step
+	return (step.id == "" and guide.fresh == true) or (step.id == TUTORIAL_ID and step.n == 0)
+end
+
+-- The chat is closed from the loading screen to the end of T1b (the new chat and the old core chat, and its top-bar button).
+local function setChat(visible: boolean)
+	if chatHidden == not visible then
+		return
+	end
+	chatHidden = not visible
+	player:SetAttribute("T1ChatLocked", not visible) -- DialogueController must not open the chat behind our back
+	pcall(function()
+		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, visible)
+	end)
+	pcall(function()
+		TextChatService.ChatWindowConfiguration.Enabled = visible
+		TextChatService.ChatInputBarConfiguration.Enabled = visible
+	end)
+end
+
+-- Geometry --------------------------------------------------------------------------------------------------------
+
+-- Gate spawn of this player's plot (the same math as PlotService.spawnAtPlot), the direction toward the land, and the
+-- player's right. dir and side are flat unit vectors.
+local function plotAxes(): (Vector3?, Vector3?, Vector3?)
+	local plotName = player:GetAttribute("PlotName")
+	local plots = Workspace:FindFirstChild("Plots")
+	local plot = plots and typeof(plotName) == "string" and plots:FindFirstChild(plotName)
+	local origin = plot and plot:FindFirstChild("Origin")
+	if not origin or not origin:IsA("BasePart") then
+		return nil
+	end
+	local spawnPos = origin.CFrame * PlotsConfig.GATE_SPAWN -- CFrame * Vector3 = Vector3 (world point)
+	local inward = origin.CFrame * Vector3.new(0, PlotsConfig.GATE_SPAWN.Y, PlotsConfig.FRONT_Z - 6)
+	local toward = flat(inward - spawnPos)
+	if toward.Magnitude < 0.01 then
+		return nil
+	end
+	local dir = toward.Unit
+	return spawnPos, dir, dir:Cross(Vector3.yAxis)
+end
+
+local function stationPosition(spawnPos: Vector3, dir: Vector3, side: Vector3): Vector3
+	return spawnPos + dir * STATION_FORWARD + side * STATION_SIDE
+end
+
+-- Ground ----------------------------------------------------------------------------------------------------------
+
+-- Height of the ground under (x, z): a ray from a little above refY down. Solid things only (RespectCanCollide), and never
+-- her own body or the player's.
+local function groundHeight(x: number, z: number, refY: number): number?
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.RespectCanCollide = true
+	local ignore: { Instance } = {}
+	if ghost then
+		table.insert(ignore, ghost)
+	end
+	if player.Character then
+		table.insert(ignore, player.Character)
+	end
+	params.FilterDescendantsInstances = ignore
+	local hit = Workspace:Raycast(Vector3.new(x, refY + 10, z), Vector3.new(0, -90, 0), params)
+	return if hit then hit.Position.Y else nil
+end
+
+-- Puts her at (pos.X, pos.Z) with her soles on the ground there, facing lookAt (flat). pos.Y is only the ray's reference.
+local function placeGhost(pos: Vector3, lookAt: Vector3?)
+	local root = ghostRoot
+	if not root then
+		return
+	end
+	local ground = groundHeight(pos.X, pos.Z, pos.Y)
+	if ground then
+		lastGroundY = ground
+	end
+	local at = Vector3.new(pos.X, lastGroundY + ghostFoot, pos.Z)
+	local target = lookAt or (at + root.CFrame.LookVector)
+	root.CFrame = CFrame.lookAt(at, Vector3.new(target.X, at.Y, target.Z))
+end
+
+-- Ghost -----------------------------------------------------------------------------------------------------------
+
+local function destroyGhost()
+	if ghost then
+		ghost:Destroy()
+	end
+	ghost, ghostRoot = nil, nil
+	joints = {}
+	calibrated = false
+end
+
+-- Pose -----------------------------------------------------------------------------------------------------------
+-- This rig's joints (AnimationConstraints) do not follow the stock R15 conventions: Roblox's own idle and walk animations bend
+-- its knees ~95 degrees and leave its arms open (a crouching T-pose). So no stock animation plays. The rig is put in its REST
+-- pose (every joint Transform = identity, the two attachments of each joint aligned): she stands straight, arms down. Her walk
+-- is a gait driven here, a few joint angles per frame. In that pose every limb joint turns about X (forward / back).
+
+local gaitPhase = 0
+local walking = false
+
+-- Straight legs again after a walk (the arms are driven by NpcPose.Idle while she stands, see below).
+local function restPose()
+	NpcPose.StandStraight(joints)
+end
+
+-- One frame of the walk: the hips swing, the knee of the leg that swings forward bends, the arms swing against the legs.
+local function applyGait(phase: number)
+	NpcPose.Gait(joints, phase, GAIT_HIP, GAIT_KNEE, GAIT_ARM)
+end
+
+-- While she stands: the relaxed idle (arms near the body, soft elbows, a slow breath), not the stiff rest pose.
+RunService.RenderStepped:Connect(function()
+	if ghost and not walking then
+		NpcPose.Idle(joints, os.clock())
+	end
+end)
+
+-- Puts the rig in its rest pose, then her soles on the ground by what that pose really measures (the lowest foot).
+local function calibrate(model: Model)
+	joints = NpcPose.Prepare(model)
+	NpcPose.Idle(joints, os.clock())
+	task.wait(0.4)
+	if ghost ~= model then
+		return
+	end
+	local lowest = math.huge
+	for _ = 1, 5 do
+		task.wait(0.06)
+		if ghost ~= model then
+			return
+		end
+		for _, name in { "LeftFoot", "RightFoot" } do
+			local foot = model:FindFirstChild(name)
+			if foot and foot:IsA("BasePart") then
+				lowest = math.min(lowest, foot.Position.Y - foot.Size.Y / 2)
+			end
+		end
+	end
+	local root = ghostRoot
+	if root and lowest < math.huge then
+		local ground = groundHeight(root.Position.X, root.Position.Z, root.Position.Y)
+		if ground then
+			ghostFoot -= (lowest - ground) - 0.02
+			placeGhost(root.Position, nil)
+		end
+	end
+	calibrated = true
+end
+
+-- Builds her (a client-only copy of the real NPC) standing at pos on the ground, facing lookAt. pos.Y is a ray reference.
+local function buildGhost(pos: Vector3, lookAt: Vector3): boolean
+	if ghost then
+		return true
+	end
+	local npcs = Workspace:FindFirstChild("Npcs")
+	local source = npcs and npcs:FindFirstChild(SOURCE_NPC)
+	if not source or not source:IsA("Model") then
+		return false -- the real NPC has not replicated yet
+	end
+	local copy = source:Clone()
+	copy.Name = GHOST_NAME
+	local root = copy:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") then
+		copy:Destroy()
+		return false
+	end
+	for _, d in copy:GetDescendants() do
+		-- No prompt, scripts, name tag or Humanoid: the Humanoid forces CanCollide back on for the rig's parts, and she is moved
+		-- by code (a rest pose and a gait of joint angles).
+		if
+			d:IsA("ProximityPrompt")
+			or d:IsA("Script")
+			or d:IsA("LocalScript")
+			or d:IsA("ClickDetector")
+			or d:IsA("Humanoid")
+			or d:IsA("BillboardGui")
+		then
+			d:Destroy()
+		elseif d:IsA("BallSocketConstraint") then
+			d.Enabled = false -- ragdoll joints: the AnimationConstraints carry the pose
+		elseif d:IsA("BasePart") then
+			d.CanCollide = false
+			d.CanTouch = false
+			d.CanQuery = false
+			d.Massless = true
+			d.Anchored = d == root -- only the root: the limbs follow it and stay free to animate
+		end
+	end
+	copy.PrimaryPart = root
+
+	-- Pivot (root) to soles, measured on the untouched rig: she is put on the ground by this, never by a fixed Y.
+	local boxCf, boxSize = copy:GetBoundingBox()
+	ghostFoot = root.Position.Y - (boxCf.Position.Y - boxSize.Y / 2)
+	lastGroundY = pos.Y - 3
+	calibrated = false
+
+	local controller = Instance.new("AnimationController")
+	controller.Parent = copy
+	local animator = Instance.new("Animator") -- the rig expects an animator; no track ever plays on it
+	animator.Parent = controller
+
+	ghost, ghostRoot = copy, root
+	placeGhost(pos, lookAt)
+	copy.Parent = Workspace -- created on the client only: not replicated, not visible to other players
+	task.spawn(calibrate, copy)
+	return true
+end
+
+local function setWalking(on: boolean)
+	walking = on
+	gaitPhase = 0
+	if not on then
+		restPose()
+	end
+end
+
+-- Walks her to target (flat), her feet following the ground. False if she was cut short (alive() false or she is gone).
+local function walkTo(target: Vector3, alive: () -> boolean): boolean
+	local root = ghostRoot
+	if not root then
+		return false
+	end
+	setWalking(true)
+	while true do
+		if not alive() or not root.Parent then
+			return false
+		end
+		local here = root.Position
+		local delta = flat(target - here)
+		local distance = delta.Magnitude
+		if distance < 0.15 then
+			break
+		end
+		local dt = RunService.RenderStepped:Wait()
+		local dir = delta.Unit
+		local step = math.min(distance, WALK_SPEED * dt)
+		placeGhost(here + dir * step, here + dir * 10)
+		gaitPhase += dt * 2 * math.pi * WALK_SPEED / GAIT_CYCLE
+		applyGait(gaitPhase)
+	end
+	setWalking(false)
+	return true
+end
+
+-- Turns a part (flat) to face point over `seconds`.
+local function faceTo(part: BasePart, point: Vector3, seconds: number)
+	local from = part.CFrame
+	local to = CFrame.lookAt(from.Position, Vector3.new(point.X, from.Position.Y, point.Z))
+	local t = 0
+	while t < seconds do
+		t += RunService.RenderStepped:Wait()
+		if not part.Parent then
+			return
+		end
+		part.CFrame = from:Lerp(to, math.min(t / seconds, 1))
+	end
+end
+
+-- Dialog ----------------------------------------------------------------------------------------------------------
+
+local function showLine(who: string, text: string, showNext: boolean, bottom: number, onNext: (() -> ())?)
+	local speaker = SPEAKERS[who] or SPEAKERS.mbok_minah
+	T1Dialog.Show({
+		name = speaker.name,
+		text = text,
+		avatar = T1Dialog.NpcModel(speaker.npc),
+		showNext = showNext,
+		bottom = bottom,
+		onNext = onNext,
+	})
+end
+
+-- Shows one line and waits for the player to press Next (nothing advances by itself). False if alive() said stop.
+local function waitNext(who: string, text: string, bottom: number, alive: () -> boolean): boolean
+	local pressed = false
+	showLine(who, text, true, bottom, function()
+		pressed = true
+	end)
+	while not pressed do
+		if not alive() then
+			return false
+		end
+		task.wait(0.05)
+	end
+	return true
+end
+
+-- The dialog box and the ghost wait for the end of the menu (a missing MenuFlow counts as done).
+local function menuDone(): boolean
+	local state = player:GetAttribute("KTMenu")
+	return state == nil or state == "done"
+end
+
+-- Tutorial speech: GuideController hands each step to this sink; the line goes in the dialog box and the GUI shows no text.
+local function ensureSink()
+	if sinkSet then
+		return
+	end
+	local ok, guide = pcall(function()
+		return require(script.Parent:WaitForChild("Controllers"):WaitForChild("GuideController") :: ModuleScript) :: any
+	end)
+	if not ok then
+		return
+	end
+	guideModule = guide
+	guide.SetInstructionSink(function(key: string, stuck: boolean): boolean
+		if NARRATIVE[key] then
+			return true -- an intro dialog: played by the intro / the warung beat
+		end
+		local line = (stuck and STEP_LINES[`{key}_stuck`]) or STEP_LINES[key]
+		if not line then
+			return false -- no line for this step: the text GUI teaches instead
+		end
+		if not dialogBusy and menuDone() and lastSpoken ~= line.text then
+			lastSpoken = line.text
+			lastLine = line
+			showLine(line.who, line.text, false, TUTORIAL_BOTTOM, nil)
+		end
+		return true
+	end)
+	sinkSet = true
+end
+
+local function clearSink()
+	if guideModule and sinkSet then
+		pcall(function()
+			guideModule.SetInstructionSink(nil)
+		end)
+	end
+	sinkSet = false
+	lastSpoken = ""
+	lastLine = nil
+	T1Dialog.Hide()
+end
+
+-- The intro --------------------------------------------------------------------------------------------------------
+
+local function holdWelcomeModal(seconds: number)
+	player:SetAttribute("T1CutsceneUntil", os.clock() + seconds)
+end
+
+local function releaseWelcomeModal()
+	player:SetAttribute("T1CutsceneUntil", nil)
+end
+
+local function getControls(): any
+	local ok, controls = pcall(function()
+		local playerScripts = player:WaitForChild("PlayerScripts", 5)
+		local module = playerScripts and playerScripts:WaitForChild("PlayerModule", 5)
+		return if module then (require(module :: ModuleScript) :: any):GetControls() else nil
+	end)
+	return if ok then controls else nil
+end
+
+type Intro = {
+	gui: ScreenGui,
+	cover: Frame,
+	barTop: Frame,
+	barBottom: Frame,
+}
+
+-- The intro's screen furniture: the black cover and the cinematic bars. (The loading screen and the PLAY button are MenuFlow's.)
+local function buildIntroUi(): Intro
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "T1Cutscene"
+	gui.ResetOnSpawn = false
+	gui.IgnoreGuiInset = true
+	gui.DisplayOrder = 110
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+	-- Black cover: hidden until PLAY, then 0.5 s of pure black and a slow fade in.
+	local cover = Instance.new("Frame")
+	cover.Name = "Cover"
+	cover.Size = UDim2.fromScale(1, 1)
+	cover.BackgroundColor3 = Color3.new(0, 0, 0)
+	cover.BorderSizePixel = 0
+	cover.ZIndex = 30
+	cover.Active = false
+	cover.Visible = false
+	cover.Parent = gui
+
+	local function bar(name: string, anchorY: number): Frame
+		local b = Instance.new("Frame")
+		b.Name = name
+		b.AnchorPoint = Vector2.new(0, anchorY)
+		b.Position = UDim2.fromScale(0, anchorY)
+		b.Size = UDim2.fromScale(1, BAR_HEIGHT)
+		b.BackgroundColor3 = Color3.new(0, 0, 0)
+		b.BorderSizePixel = 0
+		b.ZIndex = 31
+		b.Visible = false
+		b.Parent = gui
+		return b
+	end
+	local barTop, barBottom = bar("BarTop", 0), bar("BarBottom", 1)
+
+	gui.Parent = player:WaitForChild("PlayerGui")
+	return {
+		gui = gui,
+		cover = cover,
+		barTop = barTop,
+		barBottom = barBottom,
+	}
+end
+
+local function runIntro()
+	-- Everything the intro needs: the real NPC (to copy), the plot, the character.
+	local spawnPos: Vector3? = nil
+	local dir: Vector3? = nil
+	local side: Vector3? = nil
+	local waited = 0
+	while waited < 10 do
+		holdWelcomeModal(HOLD_SECONDS)
+		spawnPos, dir, side = plotAxes()
+		local npcs = Workspace:FindFirstChild("Npcs")
+		local character = player.Character
+		if
+			spawnPos
+			and npcs
+			and npcs:FindFirstChild(SOURCE_NPC)
+			and character
+			and character:FindFirstChild("HumanoidRootPart")
+		then
+			break
+		end
+		task.wait(0.1)
+		waited += 0.1
+	end
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	local okGuide, Guide = pcall(function()
+		return require(script.Parent:WaitForChild("Controllers"):WaitForChild("GuideController") :: ModuleScript) :: any
+	end)
+	if not spawnPos or not dir or not side or not humanoid or not root or not okGuide then
+		-- No intro: the tutorial runs without it (she is placed at the gate by the poll).
+		releaseWelcomeModal()
+		introState = "done"
+		return
+	end
+	local ui = buildIntroUi()
+	guideModule = Guide
+	local rootPart = root :: BasePart
+	local camera = Workspace.CurrentCamera :: Camera
+	local controls = getControls()
+	local playerGui = player:WaitForChild("PlayerGui")
+	-- The game's own UI steps aside for the cinematic: collected and hidden once the menu is over (MenuFlow hides everything
+	-- until then and gives it back at PLAY), restored in finish.
+	local guideGui: Instance? = nil
+	local guideGuiWasEnabled = false
+	local hiddenGuis: { ScreenGui } = {}
+	local previousFov = camera.FieldOfView
+
+	local ended = false
+	local cameraTaken = false
+	local shotCf = camera.CFrame
+	local shotFov = CAMERA_FOV
+	local wideShot = camera.CFrame -- the two-shot while she walks in; the conversation shot replaces it when she has arrived
+	local conn: RBXScriptConnection? = nil
+
+	local function finish()
+		if ended then
+			return
+		end
+		ended = true
+		if conn then
+			conn:Disconnect()
+		end
+		pcall(function()
+			if controls then
+				controls:Enable()
+			end
+		end)
+		pcall(function()
+			humanoid.AutoRotate = true
+		end)
+		if cameraTaken then
+			camera.CameraType = Enum.CameraType.Custom
+			camera.FieldOfView = previousFov
+		end
+		if guideGui and guideGui:IsA("ScreenGui") and guideGuiWasEnabled then
+			guideGui.Enabled = true
+		end
+		for _, other in hiddenGuis do
+			other.Enabled = true
+		end
+		dialogBusy = false
+		NpcCamera.SetBlur(false)
+		player:SetAttribute("KTIntroRunning", nil)
+		ui.gui:Destroy()
+		releaseWelcomeModal()
+		introState = "done"
+	end
+	introFinish = finish
+
+	-- True while the intro should keep going; also keeps the welcome modal held back.
+	local function alive(): boolean
+		if ended then
+			return false
+		end
+		if not t1Pending() or not rootPart.Parent or humanoid.Health <= 0 then
+			finish()
+			return false
+		end
+		holdWelcomeModal(HOLD_SECONDS)
+		return true
+	end
+
+	local function pause(seconds: number): boolean
+		local t = 0
+		while t < seconds do
+			if not alive() then
+				return false
+			end
+			t += task.wait(0.05)
+		end
+		return alive()
+	end
+
+	-- The camera: held still at the conversation shot once it is taken (and taken again if anything gives it back).
+	conn = RunService.RenderStepped:Connect(function(dt: number)
+		if not cameraTaken or ended then
+			return
+		end
+		if camera.CameraType ~= Enum.CameraType.Scriptable then
+			camera.CameraType = Enum.CameraType.Scriptable
+		end
+		-- Glides toward the wanted shot (the cut from the two-shot to the conversation shot is not a jump).
+		local alpha = 1 - math.exp(-dt * 4)
+		camera.CFrame = camera.CFrame:Lerp(shotCf, alpha)
+		camera.FieldOfView += (shotFov - camera.FieldOfView) * alpha
+	end)
+
+	-- Mbok Minah is made NOW, behind the loading screen (it covers the whole screen), so that her pose is calibrated by the time
+	-- the player clicks and the black screen after the click stays short.
+	do
+		local p0 = rootPart.Position
+		local s0 = p0 + (dir :: Vector3) * STOP_FORWARD + (side :: Vector3) * RIGHT_START
+		buildGhost(Vector3.new(s0.X, p0.Y, s0.Z), p0)
+	end
+
+	-- A. The menu (MenuFlow): loading screen -> Play screen -> PLAY. Nothing of the intro shows before that. While it runs, the
+	-- player stays locked (MenuFlow leaves the controls to us because of KTIntroRunning).
+	player:SetAttribute("KTIntroRunning", true)
+	pcall(function()
+		if controls then
+			controls:Disable()
+		end
+	end)
+	humanoid.AutoRotate = false
+	while player:GetAttribute("KTMenu") ~= "done" do
+		if not alive() then
+			return
+		end
+		task.wait(0.1)
+	end
+	-- The menu is over and has given the game's screens back (under its black): now the cinematic hides them.
+	guideGui = playerGui:FindFirstChild("GuideUI")
+	guideGuiWasEnabled = guideGui ~= nil and guideGui:IsA("ScreenGui") and guideGui.Enabled
+	for _, name in HIDE_DURING_INTRO do
+		local other = playerGui:FindFirstChild(name)
+		if other and other:IsA("ScreenGui") and other.Enabled then
+			table.insert(hiddenGuis, other)
+		end
+	end
+	previousFov = camera.FieldOfView
+	if guideGui and guideGui:IsA("ScreenGui") then
+		guideGui.Enabled = false
+	end
+	for _, other in hiddenGuis do
+		other.Enabled = false
+	end
+
+	-- B. Dark screen: black for BLACK_SECONDS, then a slow fade in; the bars are there from now on.
+	ui.cover.Visible = true
+	ui.cover.BackgroundTransparency = 0
+	ui.barTop.Visible, ui.barBottom.Visible = true, true
+	dialogBusy = true
+
+	-- Behind the black: her start place (16 studs to the player's right, on the road), and the camera's conversation shot.
+	local pp = rootPart.Position
+	local startPos = pp + (dir :: Vector3) * STOP_FORWARD + (side :: Vector3) * RIGHT_START
+	local stopPos = pp + (dir :: Vector3) * STOP_FORWARD + (side :: Vector3) * STOP_SIDE
+	if not ghost and not buildGhost(Vector3.new(startPos.X, pp.Y, startPos.Z), pp) then
+		finish()
+		return
+	end
+	placeGhost(Vector3.new(startPos.X, pp.Y, startPos.Z), pp)
+	ensureSink()
+
+	-- Conversation camera, 3/4 from the side: the line between the two of them is u; the camera stands on the road side, a bit
+	-- behind the player, looking across that line, so both faces and the gate are in one frame. Then pulled in if anything
+	-- (a sign, a fence post) is between it and the pair.
+	local u = flat(stopPos - pp).Unit
+	local across = (-(dir :: Vector3) + (side :: Vector3)).Unit -- perpendicular to u, on the road side
+	local lean = math.rad(CAMERA_LEAN)
+	local mid = (pp + stopPos) / 2
+	local away = across * math.cos(lean) - u * math.sin(lean)
+	local eye = mid + away * CAMERA_DISTANCE + Vector3.new(0, CAMERA_HEIGHT, 0)
+	local focus = mid - Vector3.new(0, CAMERA_FOCUS_DROP, 0)
+	do
+		local params = RaycastParams.new()
+		params.FilterType = Enum.RaycastFilterType.Exclude
+		params.RespectCanCollide = true
+		params.FilterDescendantsInstances = { character :: Instance, ghost :: Instance }
+		local from = mid + Vector3.new(0, 2.5, 0)
+		local hit = Workspace:Raycast(from, eye - from, params)
+		if hit then
+			eye = from + (eye - from).Unit * math.max((hit.Position - from).Magnitude - 0.8, 3)
+		end
+	end
+	shotCf = CFrame.lookAt(eye, focus)
+	wideShot = shotCf
+
+	if not pause(BLACK_SECONDS) then
+		return
+	end
+	while os.clock() < characterAddedAt + CAMERA_AFTER_CHARACTER or not calibrated do
+		if not pause(0.05) then
+			return
+		end
+		if os.clock() > characterAddedAt + 8 then
+			break
+		end
+	end
+	camera.CameraType = Enum.CameraType.Scriptable
+	camera.FieldOfView = CAMERA_FOV
+	camera.CFrame = shotCf
+	cameraTaken = true
+	TweenService:Create(ui.cover, TweenInfo.new(FADE_IN_SECONDS), { BackgroundTransparency = 1 }):Play()
+	task.delay(FADE_IN_SECONDS + 0.1, function()
+		ui.cover.Visible = false
+	end)
+	if not pause(1.2) then
+		return
+	end
+
+	-- C. She walks in from the right (the rig's walk animation) and stops in front-and-beside the player; the player turns to her.
+	if not walkTo(stopPos, alive) then
+		return
+	end
+	local npcRoot = ghostRoot
+	if npcRoot then
+		faceTo(npcRoot, rootPart.Position, 0.35)
+	end
+	faceTo(rootPart, stopPos, 0.5)
+	if not pause(0.3) then
+		return
+	end
+	-- The conversation: over the player's shoulder onto her face (the player a blurred sliver at the left), the rest blurred.
+	local face = ghost and ghost:FindFirstChild("Head")
+	if face and face:IsA("BasePart") then
+		local cf, focusDistance = NpcCamera.Shot(face.Position, character, { ghost :: Instance })
+		shotCf, shotFov = cf, NpcCamera.FOV
+		NpcCamera.SetBlur(true, focusDistance)
+		if not pause(0.9) then
+			return
+		end
+	end
+	local intro = math.floor(camera.ViewportSize.Y * BAR_HEIGHT) + INTRO_BOTTOM
+	for _, line in INTRO do
+		if not waitNext("mbok_minah", line, intro, alive) then
+			return
+		end
+	end
+	T1Dialog.Hide()
+	shotCf, shotFov = wideShot, CAMERA_FOV -- the conversation is over: back to the wide shot while she walks aside
+	NpcCamera.SetBlur(false)
+
+	-- D. She walks to the side of the gate and stays there for the whole tutorial.
+	local station = stationPosition(spawnPos, dir :: Vector3, side :: Vector3)
+	if not walkTo(station, alive) then
+		return
+	end
+	if ghostRoot then
+		faceTo(ghostRoot, spawnPos, 0.35)
+	end
+
+	-- The welcome step is done: the tutorial starts (acknowledged BEFORE the hold ends, so no modal ever shows).
+	local t = 0
+	while t < ACK_RETRY_SECONDS and not Guide.AckWelcome() do
+		if not alive() then
+			return
+		end
+		t += task.wait(0.2)
+	end
+	finish()
+end
+
+-- T1b, the warung beat -------------------------------------------------------------------------------------------
+
+-- Pak Darmo's three lines (Next after each) once the shop panel is closed after the sale, then the step is acknowledged.
+-- If the player is at the warung (near him), the camera goes over their shoulder onto his face with the blur, like any talk.
+local function runWarung(guide: any)
+	dialogBusy = true
+	local camera = Workspace.CurrentCamera :: Camera
+	local controls: any = nil
+	local camConn: RBXScriptConnection? = nil
+	local savedFov = camera.FieldOfView
+	local cameraTaken = false
+
+	local function leave()
+		if camConn then
+			camConn:Disconnect()
+			camConn = nil
+		end
+		if cameraTaken then
+			cameraTaken = false
+			NpcCamera.SetBlur(false)
+			camera.CameraType = Enum.CameraType.Custom
+			camera.FieldOfView = savedFov
+		end
+		if controls then
+			pcall(function()
+				controls:Enable()
+			end)
+		end
+		dialogBusy = false
+	end
+
+	local function alive(): boolean
+		local id, n = guide.Current()
+		return tutorialPending() and id == TUTORIAL_B_ID and n == 0
+	end
+	local function shopOpen(): boolean
+		local panel = player:WaitForChild("PlayerGui"):FindFirstChild("ShopPanel")
+		return panel ~= nil and panel:IsA("ScreenGui") and panel.Enabled
+	end
+	while shopOpen() do
+		if not alive() then
+			leave()
+			return
+		end
+		task.wait(0.2)
+	end
+
+	local npc = T1Dialog.NpcModel("pak_darmo")
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	local head = npc and npc:FindFirstChild("Head")
+	if
+		npc
+		and root
+		and root:IsA("BasePart")
+		and head
+		and head:IsA("BasePart")
+		and (head.Position - root.Position).Magnitude < 22
+	then
+		controls = getControls()
+		pcall(function()
+			if controls then
+				controls:Disable()
+			end
+		end)
+		local cf, focusDistance = NpcCamera.Shot(head.Position, character, { npc })
+		savedFov = camera.FieldOfView
+		camera.CameraType = Enum.CameraType.Scriptable
+		cameraTaken = true
+		NpcCamera.SetBlur(true, focusDistance)
+		camConn = RunService.RenderStepped:Connect(function(dt: number)
+			if camera.CameraType ~= Enum.CameraType.Scriptable then
+				camera.CameraType = Enum.CameraType.Scriptable
+			end
+			local alpha = 1 - math.exp(-dt * 4)
+			camera.CFrame = camera.CFrame:Lerp(cf, alpha)
+			camera.FieldOfView += (NpcCamera.FOV - camera.FieldOfView) * alpha
+		end)
+	end
+
+	for _, line in WARUNG do
+		if not waitNext("pak_darmo", line, TUTORIAL_BOTTOM, alive) then
+			leave()
+			return
+		end
+	end
+	T1Dialog.Hide()
+	lastSpoken = ""
+	leave()
+	guide.AckStep("warung")
+end
+
+-- A screen the tutorial line must not cover. (The seed picker and the tile panel are left out: the player needs the line there.)
+local BIG_PANELS = {
+	"ShopPanel",
+	"InventoryPanel",
+	"SettingsPanel",
+	"GuidePanel",
+	"BookPanel",
+	"OrdersPanel",
+	"RewardsPanel",
+	"SocialPanel",
+	"StorePanel",
+}
+local function bigPanelOpen(): boolean
+	local playerGui = player:FindFirstChildOfClass("PlayerGui")
+	if not playerGui then
+		return false
+	end
+	for _, name in BIG_PANELS do
+		local panel = playerGui:FindFirstChild(name)
+		if panel and panel:IsA("ScreenGui") and panel.Enabled then
+			return true
+		end
+	end
+	return false
+end
+
+-- Poll -------------------------------------------------------------------------------------------------------------
+
+-- Decides, once the guide state is known, whether the intro plays (it then waits for MenuFlow's PLAY).
+local pendingSince = os.clock()
+setChat(false) -- no chat on the loading / play screens either (it is opened again if no tutorial is pending)
+
+task.spawn(function()
+	while true do
+		local guide = guideData()
+		if guide == nil then
+			-- Still loading. Give up (and let the player in) if the snapshot never comes.
+			if introState == "idle" and os.clock() - pendingSince > SNAPSHOT_WAIT then
+				introState = "done"
+				setChat(true)
+			end
+		else
+			if t1Pending() then
+				sessionTutorial = true
+			end
+			if introState == "idle" then
+				if introEligible() then
+					introState = "running"
+					holdWelcomeModal(HOLD_SECONDS) -- before GuideController can open the welcome modal
+					task.spawn(function()
+						local ok, err = pcall(runIntro)
+						if not ok then
+							warn(`[T1Ghost] intro failed: {err}`)
+							if introFinish then
+								introFinish() -- unlock controls, give the camera back, close the UI
+							end
+							player:SetAttribute("KTIntroRunning", nil)
+							releaseWelcomeModal()
+							introState = "done"
+						end
+					end)
+				else
+					introState = "done" -- not a fresh T1: no intro
+				end
+			end
+
+			if tutorialPending() then
+				setChat(false)
+				if introState ~= "running" then
+					-- No intro (or it is over): she stands at the gate until the end of T1b, and speaks the tutorial.
+					if not ghost then
+						local spawnPos, dir, side = plotAxes()
+						if spawnPos and dir and side then
+							buildGhost(stationPosition(spawnPos, dir, side), spawnPos)
+						end
+					end
+					ensureSink()
+					-- A big panel (the shop, the bag, Atur ...) would be covered by the tutorial line: it steps aside while one is
+					-- open and comes back when it closes. During a conversation with a town NPC the dialog box is the
+					-- conversation's own: hands off (DialogueController closes it, then the line comes back here).
+					if
+						sinkSet
+						and lastLine
+						and not dialogBusy
+						and menuDone()
+						and player:GetAttribute("NpcTalkOpen") ~= true
+					then
+						if bigPanelOpen() then
+							if T1Dialog.IsShown() then
+								T1Dialog.Hide()
+							end
+						elseif not T1Dialog.IsShown() then
+							showLine(lastLine.who, lastLine.text, false, TUTORIAL_BOTTOM, nil)
+						end
+					end
+				end
+				-- T1 is over (the sale): T1b starts, once.
+				if
+					isDone(guide, TUTORIAL_ID)
+					and not isDone(guide, TUTORIAL_B_ID)
+					and guide.step.id ~= TUTORIAL_B_ID
+					and not t1bStartSent
+				then
+					t1bStartSent = true
+					Net.Send("GuideEvent", "start", TUTORIAL_B_ID)
+				end
+				-- T1b's first beat: Pak Darmo at the warung.
+				if guideModule and not warungStarted then
+					local id, n = guideModule.Current()
+					if id == TUTORIAL_B_ID and n == 0 then
+						warungStarted = true
+						task.spawn(function()
+							local ok, err = pcall(runWarung, guideModule)
+							if not ok then
+								warn(`[T1Ghost] warung dialog failed: {err}`)
+								dialogBusy = false
+							end
+						end)
+					end
+				end
+			elseif introState ~= "running" then
+				-- Nothing pending (T1b done, or this save finished the tutorials long ago).
+				destroyGhost()
+				clearSink()
+				setChat(true)
+			end
+		end
+		task.wait(POLL_SECONDS)
+	end
+end)
