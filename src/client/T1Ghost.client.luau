@@ -26,8 +26,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local StarterGui = game:GetService("StarterGui")
-local TextChatService = game:GetService("TextChatService")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
@@ -163,7 +161,6 @@ local sessionTutorial = false -- this session saw T1 pending: the ghost lives on
 local t1bStartSent = false
 local warungStarted = false
 local firstSaleNpc: string? = nil -- who the first sale went to (server event OnFirstSellSuccess); runWarung plays the cutscene for it
-local chatHidden = false
 local characterAddedAt = os.clock()
 player.CharacterAdded:Connect(function()
 	characterAddedAt = os.clock()
@@ -220,22 +217,6 @@ local function introEligible(): boolean
 	end
 	local step = guide.step
 	return (step.id == "" and guide.fresh == true) or (step.id == TUTORIAL_ID and step.n == 0)
-end
-
--- The chat is closed from the loading screen to the end of T1b (the new chat and the old core chat, and its top-bar button).
-local function setChat(visible: boolean)
-	if chatHidden == not visible then
-		return
-	end
-	chatHidden = not visible
-	player:SetAttribute("T1ChatLocked", not visible) -- DialogueController must not open the chat behind our back
-	pcall(function()
-		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, visible)
-	end)
-	pcall(function()
-		TextChatService.ChatWindowConfiguration.Enabled = visible
-		TextChatService.ChatInputBarConfiguration.Enabled = visible
-	end)
 end
 
 -- Geometry --------------------------------------------------------------------------------------------------------
@@ -1031,7 +1012,6 @@ end
 
 -- Decides, once the guide state is known, whether the intro plays (it then waits for MenuFlow's PLAY).
 local pendingSince = os.clock()
-setChat(false) -- no chat on the loading / play screens either (it is opened again if no tutorial is pending)
 
 task.spawn(function()
 	while true do
@@ -1040,7 +1020,6 @@ task.spawn(function()
 			-- Still loading. Give up (and let the player in) if the snapshot never comes.
 			if introState == "idle" and os.clock() - pendingSince > SNAPSHOT_WAIT then
 				introState = "done"
-				setChat(true)
 			end
 		else
 			if t1Pending() then
@@ -1068,7 +1047,6 @@ task.spawn(function()
 			end
 
 			if tutorialPending() then
-				setChat(false)
 				if introState ~= "running" then
 					-- No intro (or it is over): she stands at the gate until the end of T1b, and speaks the tutorial.
 					if not ghost then
@@ -1127,7 +1105,6 @@ task.spawn(function()
 				-- Nothing pending (T1b done, or this save finished the tutorials long ago).
 				destroyGhost()
 				clearSink()
-				setChat(true)
 			end
 		end
 		task.wait(POLL_SECONDS)

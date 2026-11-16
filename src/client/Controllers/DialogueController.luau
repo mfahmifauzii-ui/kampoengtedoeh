@@ -161,12 +161,10 @@ local function showOtherGuis()
 		end
 	end
 	hiddenGuis = {}
-	-- The tutorial keeps the chat closed (T1Ghost sets T1ChatLocked): do not open it behind its back.
-	if player:GetAttribute("T1ChatLocked") ~= true then
-		pcall(function()
-			StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, true)
-		end)
-	end
+	-- The chat is open again whenever a talk ends (it is hidden only while the talk box is up).
+	pcall(function()
+		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, true)
+	end)
 end
 
 local function close()
