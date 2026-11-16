@@ -93,7 +93,7 @@ local INTRO = {
 local WARUNG = {
 	"Nah, hasil panenmu sudah laku. Warung ini bukan cuma tempat jual, lho.",
 	"Di sini kamu bisa beli bibit baru dan upgrade: tas lebih lega, kolam, sampai warung lebih besar.",
-	"Mulai sekarang kamu bisa punya kolam sendiri. Ayo, Pak Darmo tunjukkan caranya.",
+	"Sekarang temui Mas Joko di Toko Pancing, dia punya alat pancing buat kamu. Ikuti panah di tanah ya.",
 }
 
 -- What is said for each tutorial step (key = GuideController's step key; "<key>_ground" while Garap mode is open, "<key>_stuck"
@@ -911,6 +911,12 @@ local function runWarung(guide: any)
 	dialogBusy = true
 	local endCutscene: (() -> ())? = nil -- Cutscene.Begin's End: camera and controls back (Cutscene.luau)
 
+	-- Fase 2 (Plan v3 3.5): the first sale ever (OnFirstSellSuccess) plays this beat RIGHT AWAY: the shop closes, the camera
+	-- goes to Pak Darmo, and the screen fades to black and back (FadeManager) with the controls off. It does not wait for the
+	-- shop to be closed by the player, and it does not need the T1b step. Any other visit keeps the plain beat.
+	local firstSale = firstSaleNpc == "pak_darmo"
+	firstSaleNpc = nil
+
 	local function leave()
 		if endCutscene then
 			endCutscene()
@@ -920,6 +926,9 @@ local function runWarung(guide: any)
 	end
 
 	local function alive(): boolean
+		if firstSale then
+			return true -- the first sale is its own beat; the rest of its lines do not depend on the tutorial step
+		end
 		local id, n = guide.Current()
 		return tutorialPending() and id == TUTORIAL_B_ID and n == 0
 	end
@@ -927,18 +936,20 @@ local function runWarung(guide: any)
 		local panel = player:WaitForChild("PlayerGui"):FindFirstChild("ShopPanel")
 		return panel ~= nil and panel:IsA("ScreenGui") and panel.Enabled
 	end
-	while shopOpen() do
-		if not alive() then
-			leave()
-			return
+	if firstSale then
+		-- The cutscene takes the screen: the shop closes at once (Plan 3.5: no shop, inventory or other GUI during it).
+		pcall(function()
+			require(script.Parent:WaitForChild("Controllers"):WaitForChild("ShopController") :: ModuleScript).Close()
+		end)
+	else
+		while shopOpen() do
+			if not alive() then
+				leave()
+				return
+			end
+			task.wait(0.2)
 		end
-		task.wait(0.2)
 	end
-
-	-- Fase 2: the first sale ever (OnFirstSellSuccess) plays this beat as the cutscene: the same lines and camera, but the
-	-- screen fades to black and back (FadeManager) and the controls stay off. Any other visit keeps the plain beat.
-	local firstSale = firstSaleNpc == "pak_darmo"
-	firstSaleNpc = nil
 
 	local npc = T1Dialog.NpcModel("pak_darmo")
 	local character = player.Character
@@ -1088,7 +1099,7 @@ task.spawn(function()
 				-- T1b's first beat: Pak Darmo at the warung.
 				if guideModule and not warungStarted then
 					local id, n = guideModule.Current()
-					if id == TUTORIAL_B_ID and n == 0 then
+					if firstSaleNpc == "pak_darmo" or (id == TUTORIAL_B_ID and n == 0) then
 						warungStarted = true
 						task.spawn(function()
 							local ok, err = pcall(runWarung, guideModule)
