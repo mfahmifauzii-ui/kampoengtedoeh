@@ -46,10 +46,11 @@ local function ensure(): Frame
 	return frame
 end
 
--- The player's movement is held by PlayerLock (PlayerModule when the place has it, else the humanoid). task.spawn: a fade
--- never waits for it.
+-- The player's movement is held by PlayerLock (PlayerModule when the place has it, else the humanoid). Called directly, NOT
+-- in a spawned thread: a deferred release ran after onDone's Cutscene.Relock and left the player unlocked during a cutscene
+-- (IsLocked false while held). PlayerLock.Set never yields, so a fade does not wait on it.
 local function setControls(enabled: boolean)
-	task.spawn(PlayerLock.Set, not enabled)
+	PlayerLock.Set(not enabled)
 end
 
 -- Plays the fade. onBlack (optional) runs while the screen is fully dark, for example to open the shop the talk led to.
