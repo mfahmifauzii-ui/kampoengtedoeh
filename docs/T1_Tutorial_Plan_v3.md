@@ -90,11 +90,11 @@ Muncul coachmark dan arrow ke lokasi Mas Joko.
 
 ### Langkah 4: Mas Joko kasih joran
 
-Dialog kenalan lagi, lalu Mas Joko memberi joran gratis.
+Dialog kenalan lagi, lalu Mas Joko membuka akses memancing. Joran tidak diberikan di sini, pemain sudah punya Joran Bambu dari starter (Opsi A, lihat bagian 1.3).
 Tombolnya: Terima Hadiah, bukan Jual / Beli.
 Setelah ditekan:
-- Server memberi Joran Bambu kalau belum punya
-- Muncul feedback: Kamu mendapatkan Joran Bambu! Sekarang kamu bisa mancing
+- Server set hasMetJoko = true dan fishingTutorialUnlocked = true, lalu memberi hadiah pendukung (satu pilihan, lihat bagian 1.3). Tidak ada joran duplikat
+- Muncul feedback: Kamu mendapatkan hadiah dari Mas Joko! Sekarang kamu bisa mancing
 - Tutorial menunjukkan lokasi mancing di dermaga
 
 ### Langkah 5: Di lokasi mancing
@@ -196,7 +196,7 @@ Jika hasMet = true:
 
 Template dialog per NPC:
 - Pak Darmo: Sapaan pulang, perkenalan jual dan beli kebutuhan panen
-- Mas Joko: Kenalan, perkenalan alat pancing, kasih joran gratis
+- Mas Joko: Kenalan, perkenalan alat pancing, Terima Hadiah (unlock memancing plus hadiah pendukung, bukan joran)
 - Mbok Minah: Kenalan, perkenalan lahan dan kolam
 
 Gunakan placeholder [Nama Player] yang diisi dari nama player, bukan nama statis.
