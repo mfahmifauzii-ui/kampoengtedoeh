@@ -6,9 +6,18 @@ local anims = RS:WaitForChild("CustomAnims")
 local template = workspace:WaitForChild("FishingRod")
 local player = Players.LocalPlayer
 
+-- RegisterKeyframeSequence only works in Studio; on a live server it errors. Without it the rod plays no keyframe
+-- animation (the game still runs), so a failure is logged once and skipped instead of stopping this whole script.
 local ids = {}
 for _, name in ipairs({"FishingIdle", "FishingCast", "FishingReel", "FishingCatch"}) do
-	ids[name] = KSP:RegisterKeyframeSequence(anims:WaitForChild(name))
+	local ok, id = pcall(function()
+		return KSP:RegisterKeyframeSequence(anims:WaitForChild(name))
+	end)
+	if ok then
+		ids[name] = id
+	else
+		warn(`[RodAnim] keyframe {name} not registered: {id}`)
+	end
 end
 
 local Sfx = require(RS.Shared.Sfx)

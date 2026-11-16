@@ -30,7 +30,13 @@ local function registerIds()
 	for name, action in pairs(ACTIONS) do
 		local seq = anims:FindFirstChild(action.clip)
 		if seq then
-			ids[name] = KSP:RegisterKeyframeSequence(seq)
+			-- Studio only (see RodAnimController): on a live server the animation is skipped, the effect still runs.
+			local ok, id = pcall(function()
+				return KSP:RegisterKeyframeSequence(seq)
+			end)
+			if ok then
+				ids[name] = id
+			end
 		end
 	end
 end
