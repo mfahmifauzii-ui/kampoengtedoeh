@@ -14,10 +14,6 @@ export type Picture = { image: string, aspect: number } -- a plain picture (not 
 return {
 	-- Coachmark hole corner (assets/gui/coach_corner.png, 256 x 256: a black corner with a quarter-circle cut-out). Empty = the
 	-- hole stays square, as before.
-	-- Round portrait mask for the NPC face in the dialog (assets/gui/portrait_mask.png, 256 x 256: parchment outside a circle,
-	-- transparent inside). Empty = the face stays a square (its corners show the model's shoulders).
-	PORTRAIT_MASK = { image = "rbxassetid://126691676296236" }, -- Image (Texture) of Decal 117788379650628; the Decal id itself does not render as an Image
-
 	-- 2D head-and-shoulders portrait per NPC (assets/portraits/<npc>.png, circle with transparent corners), drawn like the
 	-- player's own photo. Keyed by the NPC model name. Bang Tarno is one portrait for every Bang Tarno on the map.
 	-- Image = the Texture id of each uploaded Decal (the Decal id itself does not render as an Image).

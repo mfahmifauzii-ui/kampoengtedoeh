@@ -180,16 +180,6 @@ local function ensure()
 	local vpRound = Instance.new("UICorner")
 	vpRound.CornerRadius = UDim.new(1, 0)
 	vpRound.Parent = vp
-	-- The round mask: parchment outside the circle, so the 3D face (a square viewport) shows only inside the circle.
-	if UiAssets.PORTRAIT_MASK.image ~= "" then
-		local mask = Instance.new("ImageLabel")
-		mask.Name = "PortraitMask"
-		mask.BackgroundTransparency = 1
-		mask.Image = UiAssets.PORTRAIT_MASK.image
-		mask.Size = UDim2.fromScale(1, 1)
-		mask.ZIndex = 4
-		mask.Parent = well
-	end
 	local cam = Instance.new("Camera")
 	cam.FieldOfView = 26
 	cam.Parent = vp
