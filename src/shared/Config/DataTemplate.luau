@@ -64,7 +64,6 @@ local template: Types.PlayerData = {
 
 	visits = { count = 0, lastDay = "", pending = false }, -- Kunjungan Harian (cumulative). pending = today's bonus can be claimed (after T1, user 16 Nov)
 	playtime = { day = "", seconds = 0, claimed = 0 }, -- Hadiah playtime: active seconds today, chests opened today (Config/Progression PLAYTIME)
-	playtime = { day = "", seconds = 0, claimed = 0 }, -- Hadiah playtime: active seconds today, chests opened today (Config/Progression PLAYTIME)
 
 	book = {
 		crops = {}, -- [id] = true
