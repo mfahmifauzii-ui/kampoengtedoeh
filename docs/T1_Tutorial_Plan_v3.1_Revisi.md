@@ -27,7 +27,7 @@ Syarat Fase 1:
 - Tidak mengubah t1b_kolam
 - Tidak mengubah FishService.luau
 - Tidak mengubah quest kolam_pertama
-- Tidak mengubah starter inventory joran
+- Tidak mengubah starter inventory joran (berlaku untuk Fase 1 saja; Opsi B di bagian 3A mengubah starter pada Fase 3)
 - Harus bisa di-rollback dengan menghapus satu modul saja
 
 Yang Ditahan:
@@ -87,7 +87,7 @@ Opsi A: joran tetap dari awal, Terima Hadiah jadi unlock plus hadiah pendukung.
 - Feedback tetap: "Kamu mendapatkan hadiah dari Mas Joko! Sekarang kamu bisa mancing"
 - Jangan ubah teks feedback menjadi "Kamu mendapatkan Joran Bambu", karena itu bohong kalau player sudah punya
 
-Opsi B yang ditolak untuk sekarang: hapus joran dari starter inventory dan beri lewat Mas Joko. Ditolak karena butuh migrasi pemain lama, mengubah tutorial awal, dan berisiko softlock kalau player tidak ketemu Mas Joko. Jika di masa depan mau Opsi B, buat migrasi terpisah, bukan di dalam Fase 3.
+Opsi B (joran dari Mas Joko) sekarang FINAL, lihat bagian 3A. Opsi B sebelumnya ditunda karena dikira butuh migrasi yang mencabut joran; ternyata tidak, karena default template hanya mengisi kunci yang hilang dan tidak menimpa joran yang sudah ada.
 
 ## 3A. Revisi 16 Nov: Joran Diberi Mas Joko (Opsi B, menggantikan Opsi A)
 
@@ -121,8 +121,8 @@ Akun baru setelah update:
 - Mulai tanpa joran. Mancing ditolak server sampai Terima Hadiah Mas Joko dilakukan
 
 Risiko softlock (wajib ditutup sebelum rilis):
-- Pemain yang melewati tutorial (Lewati) belum pernah bertemu Mas Joko dan tidak punya joran. Mitigasi yang diusulkan: Terima Hadiah Mas Joko tetap bisa dilakukan dari menu Mas Joko kapan saja, bukan hanya di tutorial. Keputusan tambahan yang perlu dijawab: apakah Lewati juga memberi joran?
-- Mancing tanpa joran harus menampilkan petunjuk "Temui Mas Joko dulu", bukan diam saja
+- SELESAI: tidak ada fitur Lewati (keputusan final), jadi risiko pemain melewati Mas Joko tidak ada. Mas Joko selalu ada di map dan dialognya menampilkan Terima Hadiah sampai rodGift true, jadi tidak perlu menu terpisah.
+- Mancing tanpa joran menampilkan pesan fish.need_rod ("Kamu belum punya joran. Temui Mas Joko di Toko Pancing dulu"), bukan diam saja
 
 Urutan implementasi (setelah disetujui):
 1. DataTemplate: ownedRods = {}, rod = "" untuk akun baru
@@ -229,12 +229,16 @@ Catatan: butir "Gate tombol Panen Semua hanya Lv 3" di bagian 1 sudah dibatalkan
 Yang sudah ada di kode:
 - Starter tanpa joran untuk akun baru (DataTemplate fishing.rod = "", ownedRods = {}). Akun lama tidak dicabut
 - FishService menolak mancing tanpa joran yang dimiliki (fish.need_rod). Fallback ke joran bambu dihapus
-- Terima Hadiah Mas Joko (Function MeetJoko): joran Bambu + 5 pelet, sekali saja (guide.rodGift), idempotent. Sudah diuji di Studio: panggilan kedua tidak memberi apa-apa
+- Terima Hadiah Mas Joko (Function MeetJoko): joran Bambu + 5 pelet, sekali saja (guide.rodGift), idempotent. Uji Studio 16 Nov: akun owner sudah rodGift = true, jadi dua panggilan berurutan keduanya gave = false dan rodGift tetap true. Cabang gave = true belum teruji langsung (perlu akun dengan rodGift false)
 - Dialog Mas Joko menampilkan Terima Hadiah (bukan Jual / Beli) sampai rodGift true
-- Dialog dan coachmark hilang selama mancing (atribut FishingActive), dan kembali setelah selesai (Plan 3.6)
+- Dialog dan coachmark hilang selama mancing (atribut FishingActive), dan kembali setelah selesai (Plan 3.6). Kode sudah ada; uji Studio belum konklusif (lihat di bawah)
 - Lewati tetap tidak ada (keputusan final)
 
+Draf teks (DRAFT, menunggu persetujuan user, sudah ada di src/shared/Locale/id.luau sebagai draft.joko.intro dan draft.joko.after_catch, belum dipakai kode):
+- Perkenalan Mas Joko (Plan 3.4): "Halo, {name}! Saya Mas Joko, penjual alat pancing di sini. Mau belajar mancing? Saya kasih Joran Bambu gratis buat kamu, lengkap dengan pelet untuk umpan. Terima hadiahnya ya!"
+- Setelah dapat ikan: "Selamat, kamu berhasil dapat ikan! Ikan ini bisa kamu jual ke penjual, atau kamu budidayakan di kolam. Sekarang bawa ikanmu ke Kolam. Belum punya kolam? Buat dulu ya."
+
 Yang belum:
-- Teks perkenalan Mas Joko (kenalan, alat pancing) sesuai Plan 3.4. Masih teks lama
-- Dialog setelah dapat ikan (jual atau budidaya, bawa ikan ke kolam). Teks belum dibuat
-- Uji Studio: gate mancing tanpa joran, dialog hilang saat mancing, dan Terima Hadiah di dialog
+- Persetujuan user atas draf teks di atas, lalu pemasangan ke kode
+- Uji gate fish.need_rod pada akun tanpa joran (belum dijalankan: akun owner sudah punya joran)
+- Uji dialog hilang saat mancing (belum konklusif: dialog tidak tampil di uji, penyebabnya belum ketemu)

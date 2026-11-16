@@ -151,6 +151,10 @@ return {
 	["fish.need_rod"] = "Kamu belum punya joran. Temui Mas Joko di Toko Pancing dulu",
 	["rod.gift"] = "Kamu mendapatkan Joran Bambu dan pelet dari Mas Joko! Sekarang kamu bisa mancing",
 	["rod.gift_again"] = "Mas Joko sudah memberimu joran. Selamat memancing!",
+	-- DRAFT (belum disetujui user, belum dipakai di kode): teks perkenalan Mas Joko, Plan 3.4
+	["draft.joko.intro"] = "Halo, {name}! Saya Mas Joko, penjual alat pancing di sini. Mau belajar mancing? Saya kasih Joran Bambu gratis buat kamu, lengkap dengan pelet untuk umpan. Terima hadiahnya ya!",
+	-- DRAFT (belum disetujui user, belum dipakai di kode): dialog setelah dapat ikan pertama, Plan 3.4 langkah 5
+	["draft.joko.after_catch"] = "Selamat, kamu berhasil dapat ikan! Ikan ini bisa kamu jual ke penjual, atau kamu budidayakan di kolam. Sekarang bawa ikanmu ke Kolam. Belum punya kolam? Buat dulu ya.",
 	["pond.count"] = "{n}/{cap} ikan",
 	["pond.empty"] = "Kolam belum ada ikan",
 	["pond.collected"] = "+{n} ikan dari kolam",
