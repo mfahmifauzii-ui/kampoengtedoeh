@@ -223,3 +223,18 @@ Checklist verifikasi Fase 1:
 - [x] Setuju Fase 1 belum selesai tanpa checklist verifikasi Studio
 
 Catatan: butir "Gate tombol Panen Semua hanya Lv 3" di bagian 1 sudah dibatalkan, lihat [T1_Tutorial_Plan_v3.md](T1_Tutorial_Plan_v3.md) bagian 3.3 (Panen Semua terkunci Gamepass, disembunyikan sementara).
+
+## Status Fase 3 (dikerjakan, belum diuji penuh di Studio)
+
+Yang sudah ada di kode:
+- Starter tanpa joran untuk akun baru (DataTemplate fishing.rod = "", ownedRods = {}). Akun lama tidak dicabut
+- FishService menolak mancing tanpa joran yang dimiliki (fish.need_rod). Fallback ke joran bambu dihapus
+- Terima Hadiah Mas Joko (Function MeetJoko): joran Bambu + 5 pelet, sekali saja (guide.rodGift), idempotent. Sudah diuji di Studio: panggilan kedua tidak memberi apa-apa
+- Dialog Mas Joko menampilkan Terima Hadiah (bukan Jual / Beli) sampai rodGift true
+- Dialog dan coachmark hilang selama mancing (atribut FishingActive), dan kembali setelah selesai (Plan 3.6)
+- Lewati tetap tidak ada (keputusan final)
+
+Yang belum:
+- Teks perkenalan Mas Joko (kenalan, alat pancing) sesuai Plan 3.4. Masih teks lama
+- Dialog setelah dapat ikan (jual atau budidaya, bawa ikan ke kolam). Teks belum dibuat
+- Uji Studio: gate mancing tanpa joran, dialog hilang saat mancing, dan Terima Hadiah di dialog
