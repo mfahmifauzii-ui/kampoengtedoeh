@@ -6,9 +6,11 @@
 -- switched a prompt on while the conversation was open, that change wins and the prompt is left as it is. Nothing is restored
 -- from a snapshot taken earlier.
 --
--- Known limit (TODO, ticket FISH-PROMPT-OWNER): if another system switches a prompt OFF during the conversation, Show() still
--- turns it back on, because we cannot tell that apart from our own switch-off. Proper fix: every prompt owner registers
--- its own desired state (a reference count or an owner attribute), and PromptGate only asks each owner to refresh.
+-- Any change to a prompt's Enabled by another system during the conversation (on OR off) counts as taking it over, and Show()
+-- leaves that prompt as it was set. Remaining gap (TODO, ticket FISH-PROMPT-OWNER): PromptGate does not know WHY another
+-- system changed a prompt, so an owner that switches a prompt off temporarily and forgets to switch it back on leaves it off.
+-- Proper fix: every prompt owner registers its own desired state (a reference count or an owner attribute), and PromptGate
+-- only asks each owner to refresh.
 --
 -- Client only. Visual gate: the server still checks every action (fishing, pond, talk), so this never grants anything.
 -- Rollback: delete this module and the calls in DialogueController.
