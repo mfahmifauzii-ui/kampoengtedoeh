@@ -48,6 +48,13 @@ return {
 		image = "rbxassetid://74663602008475",
 		aspect = 1024 / 541,
 	} :: Picture,
+	-- Loading screen background: the town from above (assets/gui/ready/loading_bg_map.jpg, 2000 x 1125). Empty until it is
+	-- uploaded (Studio > Asset Manager > Bulk Import, then copy the id here). While empty, the loading screen shows the blurred
+	-- orbit camera as before. It is removed when the Play screen appears.
+	LOADING_BG = {
+		image = "",
+		aspect = 2000 / 1125,
+	} :: Picture,
 	LOADING_BAR = { -- empty bamboo frame of the loading bar (1024 x 226, transparent hollow). The green fill sits behind it:
 		-- the hollow is x 3.3 % .. 96.8 %, y 13.7 % .. 86.3 % of the picture.
 		image = "rbxassetid://137316042779728",

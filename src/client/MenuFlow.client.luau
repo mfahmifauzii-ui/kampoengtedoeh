@@ -35,7 +35,7 @@ local player = Players.LocalPlayer
 -- Background camera and blur
 local ORBIT_CENTER = Vector3.new(0, 6, 0) -- the middle of the map (the town)
 local ORBIT_RADIUS, ORBIT_HEIGHT, ORBIT_SPEED, ORBIT_FOV = 190, 95, 0.03, 55 -- one lap takes ~3.5 minutes
-local BLUR_FOCUS, BLUR_RADIUS, BLUR_FAR = 12, 2, 0.85 -- everything beyond ~14 studs (all of it, from up there) is blurred
+local BLUR_FOCUS, BLUR_RADIUS, BLUR_FAR = 12, 0, 1 -- very strong: nothing is in focus from up there (16 Nov: "blur banget")
 
 -- Loading
 local MIN_LOAD_SECONDS = 2.4 -- the bar never finishes faster than this
@@ -234,6 +234,19 @@ local function image(parent: Instance, id: string, name: string): ImageLabel
 	picture.ScaleType = Enum.ScaleType.Fit
 	picture.Parent = parent
 	return picture
+end
+
+-- Loading background: the town picture, drawn over the orbit camera. It is removed when the Play screen appears, so the
+-- eagle-eye camera shows (blurred) behind the Play button. Empty id = no picture (the camera shows through).
+local loadingBackdrop: ImageLabel? = nil
+if UiAssets.LOADING_BG.image ~= "" then
+	loadingBackdrop = Instance.new("ImageLabel")
+	loadingBackdrop.Name = "LoadingBackdrop"
+	loadingBackdrop.BackgroundTransparency = 1
+	loadingBackdrop.Size = UDim2.fromScale(1, 1)
+	loadingBackdrop.Image = UiAssets.LOADING_BG.image
+	loadingBackdrop.ScaleType = Enum.ScaleType.Crop
+	loadingBackdrop.Parent = gui
 end
 
 -- Logo (stays through both screens).
@@ -680,8 +693,15 @@ local function showPlayScreen()
 	playGroup.Visible = true
 	TweenService:Create(loadingGroup, TweenInfo.new(FADE_SECONDS), { GroupTransparency = 1 }):Play()
 	TweenService:Create(playGroup, TweenInfo.new(FADE_SECONDS), { GroupTransparency = 0 }):Play()
+	local loadingImage = loadingBackdrop
+	if loadingImage then
+		TweenService:Create(loadingImage, TweenInfo.new(FADE_SECONDS), { ImageTransparency = 1 }):Play()
+	end
 	task.delay(FADE_SECONDS, function()
 		loadingGroup.Visible = false
+		if loadingImage then
+			loadingImage.Visible = false -- the picture is gone: only the blurred eagle-eye camera remains
+		end
 	end)
 end
 
