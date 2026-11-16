@@ -52,7 +52,7 @@ return {
 	-- uploaded (Studio > Asset Manager > Bulk Import, then copy the id here). While empty, the loading screen shows the blurred
 	-- orbit camera as before. It is removed when the Play screen appears.
 	LOADING_BG = {
-		image = "",
+		image = "rbxassetid://130043072685288", -- uploaded 16 Nov via Open Cloud (moderation: Reviewing at upload time)
 		aspect = 2000 / 1125,
 	} :: Picture,
 	LOADING_BAR = { -- empty bamboo frame of the loading bar (1024 x 226, transparent hollow). The green fill sits behind it:
