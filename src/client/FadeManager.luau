@@ -45,11 +45,18 @@ local function ensure(): Frame
 	return frame
 end
 
+-- The player's controls (PlayerModule). Roblox normally has it under PlayerScripts; if it is missing (this happened in a
+-- Studio test session) the lock is skipped with one warning. Never yields: a missing module must not stall a fade.
+local warnedNoModule = false
 local function setControls(enabled: boolean)
-	pcall(function()
-		local scripts = player:WaitForChild("PlayerScripts", 5)
-		local module = scripts and scripts:WaitForChild("PlayerModule", 5)
+	local ok, err = pcall(function()
+		local scripts = player:FindFirstChild("PlayerScripts")
+		local module = scripts and scripts:FindFirstChild("PlayerModule")
 		if not module then
+			if not warnedNoModule then
+				warnedNoModule = true
+				warn("[FadeManager] PlayerModule not found: controls are not locked during a fade")
+			end
 			return
 		end
 		local controls = (require(module :: ModuleScript) :: any):GetControls()
@@ -59,10 +66,16 @@ local function setControls(enabled: boolean)
 			controls:Disable()
 		end
 	end)
+	if not ok then
+		warn(`[FadeManager] controls {if enabled then "enable" else "disable"} failed: {err}`)
+	end
 end
 
 -- Plays the fade. onBlack (optional) runs while the screen is fully dark, for example to open the shop the talk led to.
 -- onDone (optional) runs after the screen is clear again. Returns immediately; the sequence runs in its own thread.
+--
+-- Timing comes from task.wait, not from the tween's Completed event: the steps happen on time even if a tween does not
+-- report back (a stalled tween must never leave the screen black or the controls locked). The release at the end always runs.
 function FadeManager.Play(onBlack: (() -> ())?, onDone: (() -> ())?)
 	local frame = ensure()
 	running += 1
@@ -72,38 +85,47 @@ function FadeManager.Play(onBlack: (() -> ())?, onDone: (() -> ())?)
 	frame.Visible = true
 
 	task.spawn(function()
-		local fadeIn =
-			TweenService:Create(frame, TweenInfo.new(FADE_IN, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-				BackgroundTransparency = 0,
-			})
-		fadeIn:Play()
-		fadeIn.Completed:Wait()
+		local ok, err = pcall(function()
+			local fadeIn =
+				TweenService:Create(frame, TweenInfo.new(FADE_IN, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+					BackgroundTransparency = 0,
+				})
+			fadeIn:Play()
+			task.wait(FADE_IN)
 
-		if onBlack then
-			local ok, err = pcall(onBlack)
-			if not ok then
-				warn(`[FadeManager] onBlack failed: {err}`)
+			if onBlack then
+				local okBlack, errBlack = pcall(onBlack)
+				if not okBlack then
+					warn(`[FadeManager] onBlack failed: {errBlack}`)
+				end
 			end
+			task.wait(HOLD)
+
+			local dissolve = TweenService:Create(
+				frame,
+				TweenInfo.new(DISSOLVE_OUT, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+				{
+					BackgroundTransparency = 1,
+				}
+			)
+			dissolve:Play()
+			task.wait(DISSOLVE_OUT)
+		end)
+		if not ok then
+			warn(`[FadeManager] fade failed: {err}`)
 		end
-		task.wait(HOLD)
 
-		local dissolve =
-			TweenService:Create(frame, TweenInfo.new(DISSOLVE_OUT, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-				BackgroundTransparency = 1,
-			})
-		dissolve:Play()
-		dissolve.Completed:Wait()
-
-		running -= 1
-		if running <= 0 then
-			running = 0
+		-- Always runs, even after an error: the cover is cleared and the controls come back when the last fade ends.
+		running = math.max(running - 1, 0)
+		if running == 0 then
+			frame.BackgroundTransparency = 1
 			frame.Visible = false
 			setControls(true)
 		end
 		if onDone then
-			local ok, err = pcall(onDone)
-			if not ok then
-				warn(`[FadeManager] onDone failed: {err}`)
+			local okDone, errDone = pcall(onDone)
+			if not okDone then
+				warn(`[FadeManager] onDone failed: {errDone}`)
 			end
 		end
 	end)
