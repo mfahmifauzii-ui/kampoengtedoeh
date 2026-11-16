@@ -59,6 +59,8 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	BookClaim = "Event", -- C->S (key: string) claim a Book reward: "cat:<category>" or a milestone id (Config/Book)
 
 	GuideEvent = "Event", -- C->S (action: "start"|"step"|"skip"|"replay", tutorialId: string, n: number?) tutorial engine, see TutorialService
+	HasMet = "Function", -- C->S (npcId: string) -> alreadyMet: boolean. Records the first talk with that NPC (TutorialService)
+	OnFirstSellSuccess = "Event", -- S->C (npcId: string) the player's first sale went through (TutorialService, Fase 2 cutscene)
 }
 
 local FOLDER_NAME = "Remotes"

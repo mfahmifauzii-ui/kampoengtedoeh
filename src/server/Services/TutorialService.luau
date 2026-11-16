@@ -13,6 +13,7 @@ local AnalyticsService = game:GetService("AnalyticsService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local Npcs = require(ReplicatedStorage.Shared.Config.Npcs)
 local Onboarding = require(ReplicatedStorage.Shared.Config.Onboarding)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local DataService = require(script.Parent.DataService)
@@ -139,6 +140,32 @@ local function onGuideEvent(player: Player, action: any, tutorialId: any, n: any
 	InventoryService.Sync(player)
 end
 
+-- First-meet and first-sale (Fase 2) ------------------------------------------------------------
+
+-- Client asks HasMet(npcId) when the player starts a talk. Returns true if that NPC was already met before this call, and
+-- records the meeting either way. The client shows the sapaan only when it returns false (the first talk).
+local function onHasMet(player: Player, npcId: any): boolean
+	if typeof(npcId) ~= "string" or not Npcs.byId[npcId] then
+		return true -- unknown NPC: treat as met, so no sapaan plays
+	end
+	local data = DataService.Get(player)
+	if not data then
+		return true
+	end
+	local met = data.guide.hasMet
+	if met[npcId] then
+		return true
+	end
+	met[npcId] = true
+	return false
+end
+
+-- ShopService calls this once, when a sale with at least one item goes through and it is the player's first sale ever
+-- (data.guide.sells was 0). The server only tells the client; the cutscene and the dialogue are the client's.
+function TutorialService.OnFirstSellSuccess(player: Player, npcId: string)
+	Net.Fire("OnFirstSellSuccess", player, npcId)
+end
+
 function TutorialService.Init()
 	register(Onboarding.TEST_TUTORIAL)
 	for _, tutorial in Onboarding.TUTORIALS do
@@ -162,6 +189,7 @@ end
 
 function TutorialService.Start()
 	Net.On("GuideEvent", onGuideEvent, { rate = 4, burst = 8 })
+	Net.On("HasMet", onHasMet, { rate = 4, burst = 8 })
 end
 
 return TutorialService

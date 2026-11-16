@@ -25,6 +25,7 @@ local FishService = require(script.Parent.FishService)
 local PondService = require(script.Parent.PondService)
 local InventoryService = require(script.Parent.InventoryService)
 local NpcService = require(script.Parent.NpcService)
+local TutorialService = require(script.Parent.TutorialService)
 local UpgradeService = require(script.Parent.UpgradeService)
 local Upgrades = require(ReplicatedStorage.Shared.Modules.Upgrades)
 
@@ -135,10 +136,14 @@ local function onSell(player: Player, npcId: any, target: any, amount: any)
 	end
 
 	if total > 0 then
+		local firstSale = data.guide.sells == 0 -- Fase 2: the very first sale of this save (cutscene on the client)
 		data.guide.sells += 1 -- one finished sale trip for the new-player guide (Config/Onboarding)
 		EconomyService.Add(player, "koin", total, if target == "all" then "sell:all" else `sell:{target}`)
 		Net.Fire("Notify", player, "sell.sold", { n = total }) -- (AnalyticsHooks logs first_sell from the Koin gain)
 		InventoryService.Sync(player)
+		if firstSale then
+			TutorialService.OnFirstSellSuccess(player, npc.id)
+		end
 	end
 	if limited then
 		Net.Fire("Notify", player, "sell.quota_full")
