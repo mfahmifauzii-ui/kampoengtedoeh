@@ -21,6 +21,8 @@ local NpcCamera = require(script.Parent.Parent.NpcCamera)
 local ShopController = require(script.Parent.ShopController)
 local State = require(script.Parent.Parent.State)
 local T1Dialog = require(script.Parent.Parent.T1Dialog)
+local FadeManager = require(script.Parent.Parent.FadeManager) -- Plan v3 3.1: fade after a talk ends
+local PromptGate = require(script.Parent.Parent.PromptGate) -- Plan v3 3.2: no proximity prompts while talking
 
 local CHECK_SECONDS = 0.5
 
@@ -171,6 +173,7 @@ local function close()
 	player:SetAttribute("NpcTalkOpen", nil)
 	T1Dialog.Hide()
 	showOtherGuis()
+	PromptGate.Show()
 	releaseCamera()
 end
 
@@ -189,12 +192,21 @@ local function refresh(npcId: string)
 				onChoose = function()
 					local id = currentNpc
 					close()
-					if id then
-						ShopController.Open(id)
-					end
+					-- Fade from the talk into the shop: the shop opens while the screen is dark.
+					FadeManager.Play(function()
+						if id then
+							ShopController.Open(id)
+						end
+					end)
 				end,
 			},
-			{ text = Locale.t("dialog.bye"), onChoose = close },
+			{
+				text = Locale.t("dialog.bye"),
+				onChoose = function()
+					close()
+					FadeManager.Play()
+				end,
+			},
 		},
 	})
 end
@@ -207,6 +219,7 @@ local function open(npcId: any)
 	currentNpc = npcId
 	player:SetAttribute("NpcTalkOpen", true)
 	hideOtherGuis()
+	PromptGate.Hide()
 	refresh(npcId)
 	Sfx.play("npc_hello")
 	focusNpc(npcId)

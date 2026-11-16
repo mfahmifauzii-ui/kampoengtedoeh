@@ -350,6 +350,7 @@ return {
 	["tut.coach.tanam"] = "Dekati petak kosong, lalu tap bibit",
 	["tut.coach.siram"] = "Tap Siram di petak ini",
 	["tut.coach.panen"] = "Tap Panen, lalu jual ke Pak Darmo",
+	["tut.coach.panen_semua"] = "Panen Semua membuka panen sekaligus, tidak perlu panen satu per satu",
 	["tut.coach.tunggu"] = "Tunggu matang",
 	["tut.coach.panen_tap"] = "Tap Panen",
 	["tut.coach.jual"] = "Jual ke Pak Darmo",

@@ -170,7 +170,7 @@ Kondisi sekarang: Tidak ada syarat level di kode, makanya muncul di Lv 1.
 
 Spesifikasi:
 - Gate di client saja, karena tombol hanya mengirim panen satu per satu yang sudah sah di server
-- Di level 1 dan 2, tombol tidak dirender sama sekali, bukan hanya di-disable
+- Di level 1 dan 2, tombol tidak tampil (Visible = false), bukan hanya di-disable (revisi 17 Nov, sesuai review Fase 1)
 - Saat pertama kali mencapai level 3, tampilkan coachmark sekali saja
 - Coachmark: Panen Semua membuka panen sekaligus, tidak perlu panen satu per satu
 - Simpan flag coachmark sudah ditampilkan, supaya tidak spam tiap buka lahan
