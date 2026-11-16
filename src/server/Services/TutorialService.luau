@@ -167,6 +167,7 @@ local function onMeetJoko(player: Player): any
 	end
 	local guide = data.guide
 	if guide.rodGift then
+		Net.Fire("Notify", player, "rod.gift_again")
 		return { ok = true, gave = false }
 	end
 	guide.rodGift = true
@@ -180,6 +181,7 @@ local function onMeetJoko(player: Player): any
 	InventoryService.Add(player, JOKO_BAIT.id, JOKO_BAIT.amount)
 	InventoryService.Sync(player)
 	logEvent(player, "tut_joko_gift", "mas_joko")
+	Net.Fire("Notify", player, "rod.gift")
 	return { ok = true, gave = true }
 end
 

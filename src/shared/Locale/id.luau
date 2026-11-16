@@ -207,6 +207,7 @@ return {
 	["ui.shop"] = "Toko",
 	["prompt.talk"] = "Ngobrol",
 	["dialog.trade"] = "Jual / Beli",
+	["dialog.receive_gift"] = "Terima Hadiah",
 	["dialog.bye"] = "Sampai jumpa",
 	["npc.pak_darmo"] = "Pak Darmo",
 	["npc.pak_darmo.role"] = "Pengepul hasil panen & penjual bibit",

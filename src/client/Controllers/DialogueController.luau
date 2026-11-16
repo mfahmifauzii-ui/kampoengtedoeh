@@ -184,33 +184,51 @@ local function close(instantCamera: boolean?)
 end
 
 -- The dialogue box: the NPC's face, name and greeting, and the numbered choices as a row of buttons inside it:
--- 1. Jual / Beli opens the NPC's shop, 2. Sampai jumpa closes. (Redrawn whenever the state syncs, so the choices are passed each time.)
+-- 1. Jual / Beli opens the NPC's shop (Mas Joko, until his gift is taken: Terima Hadiah), 2. Sampai jumpa closes.
+-- (Redrawn whenever the state syncs, so the choices are passed each time.)
+local function gotRodGift(): boolean
+	local snap = State.current
+	return snap ~= nil and snap.guide ~= nil and snap.guide.rodGift == true
+end
+
 local function refresh(npcId: string)
+	local choices = {}
+	if npcId == "mas_joko" and not gotRodGift() then
+		table.insert(choices, {
+			text = Locale.t("dialog.receive_gift"),
+			onChoose = function()
+				-- Terima Hadiah: the server gives the Joran Bambu and the pelet once (TutorialService); the sync redraws the choices.
+				task.spawn(function()
+					pcall(Net.Invoke, "MeetJoko")
+				end)
+			end,
+		})
+	else
+		table.insert(choices, {
+			text = Locale.t("dialog.trade"),
+			onChoose = function()
+				local id = currentNpc
+				-- Jual / Beli: no fade and no camera tween. The shop simply opens (only Sampai jumpa fades).
+				close(true)
+				if id then
+					ShopController.Open(id)
+				end
+			end,
+		})
+	end
+	table.insert(choices, {
+		text = Locale.t("dialog.bye"),
+		onChoose = function()
+			close() -- Sampai jumpa: no fade (cutscenes keep their own fades)
+		end,
+	})
 	T1Dialog.Show({
 		name = Locale.t(`npc.{npcId}`),
 		text = Locale.t(`npc.{npcId}.greet`),
 		avatar = npcModel(npcId),
 		showNext = false,
 		bottom = 16,
-		choices = {
-			{
-				text = Locale.t("dialog.trade"),
-				onChoose = function()
-					local id = currentNpc
-					-- Jual / Beli: no fade and no camera tween. The shop simply opens (only Sampai jumpa fades).
-					close(true)
-					if id then
-						ShopController.Open(id)
-					end
-				end,
-			},
-			{
-				text = Locale.t("dialog.bye"),
-				onChoose = function()
-					close() -- Sampai jumpa: no fade (cutscenes keep their own fades)
-				end,
-			},
-		},
+		choices = choices,
 	})
 end
 

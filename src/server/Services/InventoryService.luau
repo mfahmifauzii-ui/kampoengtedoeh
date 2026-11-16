@@ -114,6 +114,7 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 			done = table.clone(data.guide.done),
 			skipped = table.clone(data.guide.skipped),
 			fastLeft = data.guide.fastLeft,
+			rodGift = data.guide.rodGift, -- Mas Joko's Terima Hadiah was taken (the dialog shows it until then)
 			-- a save that has not started playing: the "newPlayer" tutorial trigger
 			fresh = #data.farm.tiles == 0 and data.onboarding.first_plant ~= true and data.guide.sells == 0,
 		},
