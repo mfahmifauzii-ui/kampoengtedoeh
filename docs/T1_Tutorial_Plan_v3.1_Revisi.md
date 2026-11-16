@@ -104,6 +104,10 @@ Yang berubah:
 Keputusan pemilik (16 Nov):
 - Umpan: pelet (umpan paling basic, Config/Fishing BAIT), jumlah 5
 - Tidak boleh ada fitur Lewati Tutorial sama sekali. Tutorial di map ini penting. Tombol Lewati di hint bar, di Panduan, dan di welcome modal dihapus. Server menolak aksi "skip"
+- STATUS: MENUNGGU PERSETUJUAN USER. Penghapusan Lewati sudah ada di kode (commit e18783c), tapi belum final. Jangan dianggap final sampai user memutuskan: tetap tanpa Lewati, atau dikembalikan.
+  - Yang sudah berubah di kode: welcome modal hanya punya Mulai (tidak ada Batal atau Lewati, tap di luar tidak menutup), tombol Lewati di hint bar dan coachmark dihapus, cabang aksi skip di TutorialService dihapus
+  - Data lama dengan guide.skipped tetap dibaca, tidak ditulis lagi
+  - Jangan kembalikan dan jangan hapus lagi fitur lain sebelum user memutuskan
 - Konsekuensi: risiko softlock dari Lewati hilang. Tidak perlu aturan "Lewati memberi joran"
 
 ### Rencana migrasi
