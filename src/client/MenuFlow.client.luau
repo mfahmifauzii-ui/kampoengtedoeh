@@ -36,6 +36,9 @@ local player = Players.LocalPlayer
 local ORBIT_CENTER = Vector3.new(0, 6, 0) -- the middle of the map (the town)
 local ORBIT_RADIUS, ORBIT_HEIGHT, ORBIT_SPEED, ORBIT_FOV = 190, 95, 0.03, 55 -- one lap takes ~3.5 minutes
 local BLUR_FOCUS, BLUR_RADIUS, BLUR_FAR = 12, 0, 1 -- very strong: nothing is in focus from up there (16 Nov: "blur banget")
+-- DepthOfFieldEffect is not drawn on many phones (low picture quality), so a plain BlurEffect goes with it: that one is drawn
+-- everywhere. It blurs the 3D map only, never the menu's own screens.
+local BLUR_FULL_SIZE = 20
 
 -- Loading
 local MIN_LOAD_SECONDS = 6 -- the bar never finishes faster than this (slower on purpose: the real load is shown, not a fake one)
@@ -110,13 +113,7 @@ local function showGame()
 		end
 	end
 	hidden = {}
-	setCore(true)
-	-- The tutorial keeps the chat closed (T1Ghost sets T1ChatLocked): do not open it behind its back.
-	if player:GetAttribute("T1ChatLocked") == true then
-		pcall(function()
-			StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false)
-		end)
-	end
+	setCore(true) -- the chat comes back with the rest of Roblox's screens (the tutorial no longer locks it)
 end
 
 task.spawn(setCore, false)
@@ -173,6 +170,10 @@ blur.InFocusRadius = BLUR_RADIUS
 blur.NearIntensity = 0
 blur.FarIntensity = BLUR_FAR
 blur.Parent = Lighting
+local blurFull = Instance.new("BlurEffect")
+blurFull.Name = "KTMenuBlurFull"
+blurFull.Size = BLUR_FULL_SIZE
+blurFull.Parent = Lighting
 
 RunService:BindToRenderStep("KTMenuCamera", Enum.RenderPriority.Camera.Value + 1, function(dt: number)
 	orbitAngle += ORBIT_SPEED * dt
@@ -812,6 +813,7 @@ local function leaveMenu()
 	-- Under the black: the menu goes away and the game's screens come back.
 	RunService:UnbindFromRenderStep("KTMenuCamera")
 	blur:Destroy()
+	blurFull:Destroy()
 	if loadConn then
 		loadConn:Disconnect()
 	end
@@ -822,7 +824,29 @@ local function leaveMenu()
 	putCameraBehindCharacter() -- still under the black
 	task.wait() -- one frame with the placed view, then the player's camera takes over from it
 	camera.CameraType = Enum.CameraType.Custom
+	-- The camera must follow THIS character's humanoid. After the menu's orbit it can be left on nothing (or on an old
+	-- character), and then the player walks and the view stays.
+	local function followHumanoid()
+		local character = player.Character
+		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+		if humanoid and camera.CameraSubject ~= humanoid then
+			camera.CameraSubject = humanoid
+		end
+	end
+	followHumanoid()
 	showGame()
+	-- Safety net: a few seconds after PLAY, if nothing that owns the camera (the intro, a talk) is running and it is still
+	-- scripted, the player's camera is given back.
+	task.delay(3.5, function()
+		if player:GetAttribute("KTIntroRunning") ~= true and player:GetAttribute("NpcTalkOpen") ~= true then
+			local current = Workspace.CurrentCamera :: Camera
+			camera = current
+			if current.CameraType ~= Enum.CameraType.Custom then
+				current.CameraType = Enum.CameraType.Custom
+			end
+			followHumanoid()
+		end
+	end)
 	if player:GetAttribute("KTIntroRunning") ~= true and controls then
 		pcall(function()
 			controls:Enable()
