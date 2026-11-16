@@ -41,3 +41,8 @@ Status: WIP. Lint sudah jalan untuk file Fase 1. Belum diuji di Studio. Jangan p
 - **Branch berisi lebih dari Fase 1.** `feat/t1-tutorial-v3` memuat commit `1367304` (WIP audio, VFX, dialog T1, dan perubahan tutorial lain, 57 file). Fase 1 bergantung pada kode itu (T1Dialog, DialogueController), jadi belum bisa dipisah tanpa keputusan.
 - **Tiket terpisah, tidak diperbaiki di Fase 1:** MENUFLOW-LOADING, GARAP-HINT-FORWARD-DECL (GarapController:415), dan dua folder `Remotes` di ReplicatedStorage.
 
+## Asal kode di branch bersih (feat/t1-tutorial-v3-clean)
+
+- **Drag siram di `FarmController` ikut terbawa dari WIP, bukan fitur baru Fase 1.** Panen Semua dan drag siram ada dalam satu hunk yang sama, jadi belum dipisah. Base `43ce5c7` tidak punya kode drag siram (`dragWater` = 0 baris); branch bersih punya 9 baris. Fitur ini ikut dibiarkan di Fase 1.
+- **Audio dan VFX yang sudah ada di base `43ce5c7` dibiarkan.** Tidak ada audio atau VFX baru dari WIP yang ikut masuk.
+
