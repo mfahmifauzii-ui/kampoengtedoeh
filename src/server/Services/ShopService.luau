@@ -136,12 +136,14 @@ local function onSell(player: Player, npcId: any, target: any, amount: any)
 	end
 
 	if total > 0 then
-		local firstSale = data.guide.sells == 0 -- Fase 2: the very first sale of this save (cutscene on the client)
+		-- The first-sale cutscene follows the tutorial's state: T1 not finished (or reset with !tut reset) and the cutscene not played yet.
+		local firstSale = data.guide.saleCutscene ~= true and data.guide.done.t1_awal ~= true and data.guide.skipped.t1_awal ~= true
 		data.guide.sells += 1 -- one finished sale trip for the new-player guide (Config/Onboarding)
 		EconomyService.Add(player, "koin", total, if target == "all" then "sell:all" else `sell:{target}`)
 		Net.Fire("Notify", player, "sell.sold", { n = total }) -- (AnalyticsHooks logs first_sell from the Koin gain)
 		InventoryService.Sync(player)
 		if firstSale then
+			data.guide.saleCutscene = true
 			TutorialService.OnFirstSellSuccess(player, npc.id)
 		end
 	end

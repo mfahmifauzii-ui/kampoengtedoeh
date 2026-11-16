@@ -173,6 +173,31 @@ local function showOtherGuis()
 	end)
 end
 
+-- Puts the camera back on the player for good: cancels any dialogue tween, the NPC turns back, the blur goes, and the
+-- camera follows the character's Humanoid again. Used by every way a talk ends and on respawn, so a Scriptable camera
+-- can never stay on an NPC (a tween that was cancelled never reached its "back to Custom" step).
+local function resetCameraToPlayer()
+	if cameraTween then
+		cameraTween:Cancel()
+		cameraTween = nil
+	end
+	if focusedModel and focusedPivot and focusedModel.Parent then
+		focusedModel:PivotTo(focusedPivot)
+	end
+	focusedModel, focusedPivot = nil, nil
+	saved = nil
+	NpcCamera.SetBlur(false)
+	local camera = Workspace.CurrentCamera
+	if camera then
+		camera.CameraType = Enum.CameraType.Custom
+		local character = player.Character
+		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			camera.CameraSubject = humanoid
+		end
+	end
+end
+
 local function close(instantCamera: boolean?)
 	currentNpc = nil
 	holdFor = nil
@@ -304,6 +329,14 @@ end
 
 function DialogueController.Start()
 	Net.Listen("NpcTalk", open)
+	-- Respawn: a talk that was open on the old character ends now, and the camera is back on the new character.
+	player.CharacterAdded:Connect(function()
+		if currentNpc then
+			close(true)
+		end
+		ShopController.Close()
+		resetCameraToPlayer()
+	end)
 	State.Changed:Connect(function()
 		if currentNpc and holdFor == nil then
 			refresh(currentNpc)

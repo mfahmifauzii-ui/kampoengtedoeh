@@ -55,6 +55,23 @@ local KEEP: { [string]: boolean } = { KTMenu = true, KTSettings = true, KTMenuCo
 local playerGui = player:WaitForChild("PlayerGui")
 player:SetAttribute("KTMenu", "loading")
 
+-- Nothing of the game shows before PLAY: the land names ("Kebun <nama>", world billboards) stay off until the menu is done.
+RunService.Heartbeat:Connect(function()
+	local plots = Workspace:FindFirstChild("Plots")
+	if not plots then
+		return
+	end
+	-- On while the game is up (and the plot has an owner), off during the menu.
+	local shown = player:GetAttribute("KTMenu") == "done"
+	for _, plot in plots:GetChildren() do
+		local origin = plot.PrimaryPart
+		local float = origin and origin:FindFirstChild("KebunFloat")
+		if float and float:IsA("BillboardGui") then
+			float.Enabled = shown and plot:GetAttribute("OwnerUserId") ~= nil
+		end
+	end
+end)
+
 -- Hiding the game and Roblox's own screens ---------------------------------------------------------------------------
 
 local hidden: { ScreenGui } = {}

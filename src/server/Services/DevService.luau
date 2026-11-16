@@ -167,6 +167,11 @@ local function onChatted(player: Player, message: string)
 				data.guide.step = { id = "", n = 0 }
 				data.guide.done = {}
 				data.guide.skipped = {}
+				-- the tutorial's flags go back to 'not done': the cutscenes play again, and the unlock gates are closed again
+				data.guide.saleCutscene = false
+				data.guide.kolamUnlocked = false
+				data.guide.decorUnlocked = false
+				data.guide.fishCaught = false
 				InventoryService.Sync(player)
 			elseif arg == "fast" then
 				data.guide.fastLeft = 6

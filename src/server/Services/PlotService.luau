@@ -201,7 +201,7 @@ end
 -- A new player: T1 not finished or skipped, and no sale yet (the same "brand-new save" the tutorial uses).
 local function isNewPlayer(data: any): boolean
 	local guide = data.guide
-	return guide.sells == 0 and data.onboarding.first_plant ~= true and not guide.done.t1_awal and not guide.skipped.t1_awal
+	return not guide.done.t1_awal and not guide.skipped.t1_awal -- the tutorial state, not the save's age (a !tut reset plays the T1 spawn again)
 end
 
 local function spawnAtPlot(player: Player)

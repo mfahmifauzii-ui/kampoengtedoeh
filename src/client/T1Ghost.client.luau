@@ -216,7 +216,8 @@ local function introEligible(): boolean
 		return false
 	end
 	local step = guide.step
-	return (step.id == "" and guide.fresh == true) or (step.id == TUTORIAL_ID and step.n == 0)
+	-- The cutscene follows the tutorial's state, not the save's age: T1 not finished (or reset with !tut reset) = the intro plays.
+	return (step.id == "" or (step.id == TUTORIAL_ID and step.n == 0))
 end
 
 -- Geometry --------------------------------------------------------------------------------------------------------

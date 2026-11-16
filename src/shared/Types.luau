@@ -129,6 +129,7 @@ export type PlayerData = {
 		fishCaught: boolean, -- the first fish of any kind was caught (the t1b "after_catch" step needs it)
 		kolamUnlocked: boolean, -- the t1b "after_catch" step is done: pond building opens (Mbok Minah teaches it)
 		decorUnlocked: boolean, -- the t1b tutorial is finished: decorating (hias) opens
+		saleCutscene: boolean, -- the first-sale cutscene was played for this tutorial run (it is played once per run)
 	},
 	purchaseIdCache: { string },
 }

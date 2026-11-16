@@ -674,7 +674,8 @@ end
 local function triggerHolds(trigger: Onboarding.Trigger): boolean
 	local guide = guideData()
 	if trigger.kind == "newPlayer" then
-		return guide ~= nil and guide.fresh == true
+		-- T1 not finished (or reset) and not started in the middle: it starts by itself
+		return guide ~= nil and guide.done.t1_awal ~= true and guide.skipped.t1_awal ~= true and guide.step.id == ""
 	elseif trigger.kind == "level" then
 		local level = player:GetAttribute("Level")
 		return typeof(level) == "number" and level >= (trigger.n or 1)
