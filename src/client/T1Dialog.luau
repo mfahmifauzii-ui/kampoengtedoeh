@@ -46,6 +46,7 @@ local viewportCamera: Camera? = nil
 local avatarModel: Model? = nil -- the NPC currently drawn (the source, to skip a rebuild)
 local avatarWell: Frame? = nil -- the round face frame (see ensure)
 local avatarPhoto: ImageLabel? = nil -- the 2D portrait when the NPC has one (UiAssets.PORTRAIT_IMAGES)
+local dialogWanted = false -- the box is meant to be on screen (Show until Hide); it is hidden only while fishing (Plan 3.6)
 local nextHandler: (() -> ())? = nil
 local choicesRow: Frame? = nil
 local choiceButtons: { TextButton } = {}
@@ -405,10 +406,12 @@ function T1Dialog.Show(opts: Options)
 		end
 	end
 	setAvatar(opts.avatar)
-	screen.Enabled = true
+	dialogWanted = true
+	screen.Enabled = player:GetAttribute("FishingActive") ~= true
 end
 
 function T1Dialog.Hide()
+	dialogWanted = false
 	if gui then
 		gui.Enabled = false
 	end
@@ -416,9 +419,18 @@ function T1Dialog.Hide()
 	activeChoices = nil
 end
 
+-- Still counts as shown while fishing (the box is only hidden on screen), so the tutorial does not re-open it.
 function T1Dialog.IsShown(): boolean
-	return gui ~= nil and gui.Enabled
+	return gui ~= nil and dialogWanted
 end
+
+-- Plan 3.6: while the fishing UI is on (FishingController sets FishingActive), the conversation box is hidden entirely
+-- and comes back, with the same text, when the fishing ends.
+player:GetAttributeChangedSignal("FishingActive"):Connect(function()
+	if gui then
+		gui.Enabled = dialogWanted and player:GetAttribute("FishingActive") ~= true
+	end
+end)
 
 -- The dialog box of the NPC `id` ("mbok_minah", "pak_darmo", "mas_joko"): the model to draw as the face (the real NPC).
 function T1Dialog.NpcModel(id: string): Model?

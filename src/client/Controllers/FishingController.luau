@@ -222,6 +222,7 @@ end
 -- States --------------------------------------------------------------------------
 
 local function showIdle()
+	player:SetAttribute("FishingActive", nil) -- Plan 3.6: dialog and coachmark come back
 	reeling = false
 	holding = false
 	statusFrame.Visible = false
@@ -311,6 +312,7 @@ function FishingController.Start()
 			reelFrame.Visible = false
 			statusLabel.Text = Locale.t("fish.waiting")
 			statusFrame.Visible = true
+			player:SetAttribute("FishingActive", true) -- Plan 3.6: the fishing GUI is on top, the dialog steps aside
 			placeBobber(spot)
 		elseif state == "bite" then
 			statusLabel.Text = Locale.t("fish.bite")

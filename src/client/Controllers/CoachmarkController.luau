@@ -331,7 +331,8 @@ function CoachmarkController.Update()
 	local view = camera.ViewportSize
 	local t = os.clock()
 
-	if paused then
+	-- While the fishing UI is on (Plan 3.6), the coachmark steps aside like a panel does.
+	if paused or player:GetAttribute("FishingActive") == true then
 		overlayGui.Enabled = false
 		highlight.Visible = false
 		bubble.Visible = false
