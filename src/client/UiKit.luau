@@ -1987,6 +1987,11 @@ function UiKit.autoScale()
 	local scales: { UIScale } = {}
 
 	local function attach(gui: Instance)
+		-- Roblox's own touch controls (the thumbstick and the jump button) live in "TouchGui". Leave them alone:
+		-- no UIScale, no ZIndex or safe-inset change, otherwise the jump button shrinks on a phone.
+		if gui.Name == "TouchGui" then
+			return
+		end
 		if gui:IsA("ScreenGui") then
 			gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling -- skins (ZIndex 0) must sit above their parent but below its text overlay
 		end
