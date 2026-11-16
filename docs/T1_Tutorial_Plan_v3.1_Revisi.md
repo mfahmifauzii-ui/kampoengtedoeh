@@ -74,7 +74,7 @@ Aturan tambahan:
 
 Fakta kode: komentar di t1b_kolam bilang joran bambu sudah gratis dan dimiliki dari awal. Plan v3 bilang pemain baru mulai tanpa joran.
 
-Resolusi yang dipilih: Opsi A, karena paling aman dan tidak butuh migrasi.
+Resolusi awal (SUPERSEDED 16 Nov, lihat bagian 3A): Opsi A, karena paling aman dan tidak butuh migrasi.
 
 Opsi A: joran tetap dari awal, Terima Hadiah jadi unlock plus hadiah pendukung.
 
@@ -88,6 +88,43 @@ Opsi A: joran tetap dari awal, Terima Hadiah jadi unlock plus hadiah pendukung.
 - Jangan ubah teks feedback menjadi "Kamu mendapatkan Joran Bambu", karena itu bohong kalau player sudah punya
 
 Opsi B yang ditolak untuk sekarang: hapus joran dari starter inventory dan beri lewat Mas Joko. Ditolak karena butuh migrasi pemain lama, mengubah tutorial awal, dan berisiko softlock kalau player tidak ketemu Mas Joko. Jika di masa depan mau Opsi B, buat migrasi terpisah, bukan di dalam Fase 3.
+
+## 3A. Revisi 16 Nov: Joran Diberi Mas Joko (Opsi B, menggantikan Opsi A)
+
+Keputusan pemilik: pemain baru TIDAK punya joran dan umpan dari awal. Keduanya diberikan Mas Joko lewat Terima Hadiah. Opsi A di bagian 3 di atas SUPERSEDED dan tidak dipakai lagi.
+
+Yang berubah:
+- Starter pemain baru: tanpa joran (ownedRods kosong, rod kosong). Starter inventory joran DIHAPUS untuk akun baru
+- Terima Hadiah Mas Joko memberi Joran Bambu dan umpan, idempotent: kalau sudah punya joran, tidak diduplikasi, tombol tetap memberi feedback dan lanjut
+- Set flag hasMetJoko = true dan fishingTutorialUnlocked = true, sama seperti sebelumnya
+- Feedback: "Kamu mendapatkan Joran Bambu dan umpan dari Mas Joko! Sekarang kamu bisa mancing"
+- Server WAJIB menolak mancing tanpa joran yang dimiliki. Fallback `or Fishing.rods.bambu` di FishService.luau:207 dihapus untuk kasus ini
+- Toko tidak menjual joran bambu (price 0 diblokir ShopService.luau:161). Satu-satunya sumber joran bambu baru adalah Terima Hadiah Mas Joko
+
+Jumlah umpan dan jenisnya BELUM DIPUTUSKAN. Isi nanti sebelum implementasi.
+
+### Rencana migrasi
+
+Akun lama (sudah punya data):
+- Tidak ada yang dicabut. Akun dengan ownedRods.bambu = true tetap memegang joran. Tidak ada migrasi yang menghapus
+- ProfileStore hanya mengisi kunci yang hilang dari template. Kunci ownedRods yang sudah ada tidak ditimpa, jadi akun lama aman. Ini harus diverifikasi di Studio dengan profil lama
+- Akun yang sudah T1_completed tidak diulang tutorialnya (lihat bagian 1.6 Plan v3)
+
+Akun baru setelah update:
+- Mulai tanpa joran. Mancing ditolak server sampai Terima Hadiah Mas Joko dilakukan
+
+Risiko softlock (wajib ditutup sebelum rilis):
+- Pemain yang melewati tutorial (Lewati) belum pernah bertemu Mas Joko dan tidak punya joran. Mitigasi yang diusulkan: Terima Hadiah Mas Joko tetap bisa dilakukan dari menu Mas Joko kapan saja, bukan hanya di tutorial. Keputusan tambahan yang perlu dijawab: apakah Lewati juga memberi joran?
+- Mancing tanpa joran harus menampilkan petunjuk "Temui Mas Joko dulu", bukan diam saja
+
+Urutan implementasi (setelah disetujui):
+1. DataTemplate: ownedRods = {}, rod = "" untuk akun baru
+2. FishService: tolak mancing tanpa joran yang dimiliki, hapus fallback bambu
+3. TutorialService: Terima Hadiah idempotent (joran + umpan + flag)
+4. ShopService: tidak ada perubahan (joran bambu tetap tidak dijual)
+5. Uji Studio: profil baru (tanpa joran), profil lama (punya joran), profil Lewati, dan profil yang sudah T1_completed
+
+Rollback: kembalikan DataTemplate dan fallback FishService. Tidak ada data yang perlu dipulihkan karena tidak ada yang dicabut.
 
 ## 4. Tabrakan 3: Sistem Kolam
 
@@ -172,7 +209,7 @@ Checklist verifikasi Fase 1:
 
 - [x] Setuju Fase 1 jalan sekarang, Fase 2 sampai 5 ditahan
 - [x] Setuju pemetaan alur lama ke Plan v3 di bagian 2
-- [x] Setuju Opsi A untuk joran: tetap dari awal, Terima Hadiah jadi unlock plus hadiah pendukung
+- [x] ~~Setuju Opsi A untuk joran~~ SUPERSEDED 16 Nov: Opsi B, joran dan umpan dari Mas Joko (bagian 3A)
 - [x] Setuju kolam lama tetap passive sampai migrasi, kolam baru pakai breeding
 - [x] Setuju quest kolam_pertama tidak ditimpa, buat versi baru untuk pemain baru
 - [x] Setuju branch baru setelah working tree dibersihkan
