@@ -117,7 +117,8 @@ local function focusNpc(npcId: string)
 	NpcCamera.SetBlur(true, focusDistance)
 end
 
-local function releaseCamera()
+-- instant = true: the camera goes back at once, with no tween (Jual / Beli opens the shop straight away).
+local function releaseCamera(instant: boolean?)
 	if focusedModel and focusedPivot and focusedModel.Parent then
 		focusedModel:PivotTo(focusedPivot)
 	end
@@ -127,6 +128,12 @@ local function releaseCamera()
 	saved = nil
 	local camera = Workspace.CurrentCamera
 	if not back or not camera then
+		return
+	end
+	if instant then
+		camera.CFrame = back.cframe
+		camera.FieldOfView = back.fov
+		camera.CameraType = Enum.CameraType.Custom
 		return
 	end
 	tweenCamera(back.cframe, back.fov, RETURN_TIME, function()
@@ -167,14 +174,14 @@ local function showOtherGuis()
 	end)
 end
 
-local function close()
+local function close(instantCamera: boolean?)
 	currentNpc = nil
 	holdFor = nil
 	player:SetAttribute("NpcTalkOpen", nil)
 	T1Dialog.Hide()
 	showOtherGuis()
 	PromptGate.Show()
-	releaseCamera()
+	releaseCamera(instantCamera)
 end
 
 -- The dialogue box: the NPC's face, name and greeting, and the numbered choices as a row of buttons inside it:
@@ -191,13 +198,11 @@ local function refresh(npcId: string)
 				text = Locale.t("dialog.trade"),
 				onChoose = function()
 					local id = currentNpc
-					close()
-					-- Fade from the talk into the shop: the shop opens while the screen is dark.
-					FadeManager.Play(function()
-						if id then
-							ShopController.Open(id)
-						end
-					end)
+					-- Jual / Beli: no fade and no camera tween. The shop simply opens (only Sampai jumpa fades).
+					close(true)
+					if id then
+						ShopController.Open(id)
+					end
 				end,
 			},
 			{
