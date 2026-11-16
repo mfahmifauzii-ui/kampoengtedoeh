@@ -228,6 +228,22 @@ local function buttonRect(button: GuiObject): (Vector2, Vector2)
 	return button.AbsolutePosition + Vector2.new(0, inset), button.AbsoluteSize
 end
 
+-- The corner radius in pixels of a button's shape: the first UICorner on the button or on one of its parts (GarapButton's
+-- bamboo ring has an offset corner, other buttons use a scale). Capped at half the smaller side. nil = no corner.
+local function cornerRadiusPx(button: GuiObject, size: Vector2): number?
+	for _, shape in button:GetDescendants() do
+		if shape:IsA("UICorner") and shape.Parent and shape.Parent:IsA("GuiObject") then
+			local frame = shape.Parent :: GuiObject
+			local side = math.min(frame.AbsoluteSize.X, frame.AbsoluteSize.Y)
+			local radius = shape.CornerRadius.Scale * side + shape.CornerRadius.Offset
+			if radius > 0 then
+				return math.min(radius, math.min(size.X, size.Y) / 2)
+			end
+		end
+	end
+	return nil
+end
+
 -- Button mode: the four dark zones around the hole.
 local function layoutHole(position: Vector2, size: Vector2, view: Vector2, radius: number)
 	local left, top = position.X - PAD, position.Y - PAD
@@ -336,24 +352,17 @@ function CoachmarkController.Update()
 		else
 			local position, size = buttonRect(button)
 			-- One highlight in the target's own shape: round for round buttons, a rounded box otherwise.
-			-- Round if the button or any of its parts is round (GarapButton has no UICorner itself: its bamboo "Plate" child is round).
-			local round = false
-			for _, shape in button:GetDescendants() do
-				if shape:IsA("UICorner") and shape.CornerRadius.Scale >= 0.5 then
-					round = true
-					break
-				end
-			end
+			-- The button's own corner radius in pixels (see cornerRadiusPx). The hole and the highlight take that radius plus the
+			-- PAD around the button, so the hole has the same corners as the button; 12 px when the button has no corner.
+			local shapeRadius = cornerRadiusPx(button, size)
 			if spec.block then
-				-- The hole has the same corners as the button: a full round hole for round buttons, 12 px otherwise (as the highlight).
-				local holeRadius = if round then math.min(size.X, size.Y) / 2 + PAD else 12
-				layoutHole(position, size, view, holeRadius)
+				layoutHole(position, size, view, if shapeRadius then shapeRadius + PAD else 12)
 			end
 			local width, height = size.X + PAD * 2, size.Y + PAD * 2
 			highlight.Visible = true
 			highlight.Size = UDim2.fromOffset(width, height)
 			highlight.Position = UDim2.fromOffset(position.X + size.X / 2, position.Y + size.Y / 2)
-			highlightRound.CornerRadius = if round then UDim.new(0.5, 0) else UDim.new(0, 12)
+			highlightRound.CornerRadius = UDim.new(0, if shapeRadius then shapeRadius + PAD else 12)
 			highlightStroke.Thickness = 4 + (math.sin(t * 4) + 1) * 1.5
 			highlightStroke.Transparency = 0.1 + (math.sin(t * 4) + 1) * 0.15
 
