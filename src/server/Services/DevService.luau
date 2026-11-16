@@ -188,11 +188,15 @@ local function onChatted(player: Player, message: string)
 	end
 end
 
+-- The owner's own account (RafikoFauzo) may use the dev commands on the LIVE server too; every other player gets nothing
+-- in live. In Studio everyone can use them, as before.
+local OWNER_USER_ID = 9416491408
+
 function DevService.Start()
-	if not RunService:IsStudio() then
-		return
-	end
 	local function hook(player: Player)
+		if not RunService:IsStudio() and player.UserId ~= OWNER_USER_ID then
+			return
+		end
 		player.Chatted:Connect(function(message)
 			onChatted(player, message)
 		end)
