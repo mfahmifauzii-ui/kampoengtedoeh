@@ -28,7 +28,7 @@ export type Options = {
 
 local BOX_HEIGHT = 112
 local BOX_MAX_WIDTH = 520
-local AVATAR = 66
+local AVATAR = 50
 local INK = Color3.fromRGB(80, 52, 32)
 local LEAF_DARK = Color3.fromRGB(62, 100, 38)
 local PARCHMENT = Color3.fromRGB(250, 240, 214)
