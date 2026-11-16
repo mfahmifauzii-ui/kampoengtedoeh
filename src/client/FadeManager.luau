@@ -45,30 +45,47 @@ local function ensure(): Frame
 	return frame
 end
 
--- The player's controls (PlayerModule). Roblox normally has it under PlayerScripts; if it is missing (this happened in a
--- Studio test session) the lock is skipped with one warning. Never yields: a missing module must not stall a fade.
+-- The player's controls (PlayerModule under PlayerScripts). On a fresh join it can arrive a moment after this script starts,
+-- so it is waited for (up to 5 s) in its own thread, and kept once found. Setting the controls never blocks a fade: if the
+-- module never shows up, the lock is skipped with one warning.
 local warnedNoModule = false
+local controlsCache: any = nil
+local function resolveControls(): any
+	if controlsCache then
+		return controlsCache
+	end
+	local ok, value = pcall(function()
+		local scripts = player:WaitForChild("PlayerScripts", 5)
+		local module = scripts and scripts:WaitForChild("PlayerModule", 5)
+		return if module then (require(module :: ModuleScript) :: any):GetControls() else nil
+	end)
+	if ok and value then
+		controlsCache = value
+	end
+	return controlsCache
+end
+
 local function setControls(enabled: boolean)
-	local ok, err = pcall(function()
-		local scripts = player:FindFirstChild("PlayerScripts")
-		local module = scripts and scripts:FindFirstChild("PlayerModule")
-		if not module then
-			if not warnedNoModule then
-				warnedNoModule = true
-				warn("[FadeManager] PlayerModule not found: controls are not locked during a fade")
+	task.spawn(function()
+		local ok, err = pcall(function()
+			local controls = resolveControls()
+			if not controls then
+				if not warnedNoModule then
+					warnedNoModule = true
+					warn("[FadeManager] PlayerModule not found: controls are not locked during a fade")
+				end
+				return
 			end
-			return
-		end
-		local controls = (require(module :: ModuleScript) :: any):GetControls()
-		if enabled then
-			controls:Enable()
-		else
-			controls:Disable()
+			if enabled then
+				controls:Enable()
+			else
+				controls:Disable()
+			end
+		end)
+		if not ok then
+			warn(`[FadeManager] controls {if enabled then "enable" else "disable"} failed: {err}`)
 		end
 	end)
-	if not ok then
-		warn(`[FadeManager] controls {if enabled then "enable" else "disable"} failed: {err}`)
-	end
 end
 
 -- Plays the fade. onBlack (optional) runs while the screen is fully dark, for example to open the shop the talk led to.
