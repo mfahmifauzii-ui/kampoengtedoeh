@@ -746,7 +746,7 @@ local function uiBusy(): boolean
 	if not playerGui then
 		return false
 	end
-	for _, name in { "SettingsPanel", "GuidePanel", "BookPanel", "OrdersPanel", "RewardsPanel", "SocialPanel", "StorePanel", "SeedPicker", "TilePanel" } do
+	for _, name in { "SettingsPanel", "GuidePanel", "BookPanel", "OrdersPanel", "RewardsPanel", "SocialPanel", "StorePanel", "SeedPicker", "TilePanel", "ShopPanel", "InventoryPanel" } do
 		local screen = playerGui:FindFirstChild(name)
 		if screen and screen:IsA("ScreenGui") and screen.Enabled then
 			return true
