@@ -17,6 +17,21 @@ return {
 	-- Round portrait mask for the NPC face in the dialog (assets/gui/portrait_mask.png, 256 x 256: parchment outside a circle,
 	-- transparent inside). Empty = the face stays a square (its corners show the model's shoulders).
 	PORTRAIT_MASK = { image = "rbxassetid://126691676296236" }, -- Image (Texture) of Decal 117788379650628; the Decal id itself does not render as an Image
+
+	-- 2D head-and-shoulders portrait per NPC (assets/portraits/<npc>.png, circle with transparent corners), drawn like the
+	-- player's own photo. Keyed by the NPC model name. Bang Tarno is one portrait for every Bang Tarno on the map.
+	-- Image = the Texture id of each uploaded Decal (the Decal id itself does not render as an Image).
+	PORTRAIT_IMAGES = {
+		mbok_minah = "rbxassetid://96449478759279",
+		pak_darmo = "rbxassetid://127316328668016",
+		mas_joko = "rbxassetid://94820077841893",
+		bu_wati = "rbxassetid://107418142230003",
+		mbak_arsi = "rbxassetid://101959981771860",
+		bang_tarno_1 = "rbxassetid://130689703059417",
+		bang_tarno_2 = "rbxassetid://130689703059417",
+		bang_tarno_3 = "rbxassetid://130689703059417",
+		bang_tarno_4 = "rbxassetid://130689703059417",
+	} :: { [string]: string },
 	COACH_CORNER = { image = "rbxassetid://127913048754516" },-- Image (Texture) of Decal 94914653634111; the Decal id itself does not render as an Image
 
 	PANEL = {

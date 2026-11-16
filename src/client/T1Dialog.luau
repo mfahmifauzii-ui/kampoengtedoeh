@@ -44,6 +44,8 @@ local nextButton: TextButton? = nil
 local viewport: ViewportFrame? = nil
 local viewportCamera: Camera? = nil
 local avatarModel: Model? = nil -- the NPC currently drawn (the source, to skip a rebuild)
+local avatarWell: Frame? = nil -- the round face frame (see ensure)
+local avatarPhoto: ImageLabel? = nil -- the 2D portrait when the NPC has one (UiAssets.PORTRAIT_IMAGES)
 local nextHandler: (() -> ())? = nil
 local choicesRow: Frame? = nil
 local choiceButtons: { TextButton } = {}
@@ -151,6 +153,7 @@ local function ensure()
 	well.ClipsDescendants = true -- the 3D face is cut to the circle (a UICorner alone does not clip a ViewportFrame)
 	well.ZIndex = 2
 	well.Parent = frame
+	avatarWell = well
 	local wellRound = Instance.new("UICorner")
 	wellRound.CornerRadius = UDim.new(1, 0)
 	wellRound.Parent = well
@@ -297,6 +300,28 @@ local function setAvatar(model: Model?)
 	end
 	avatarModel = model
 	local vp, cam = viewport, viewportCamera
+	if avatarPhoto then
+		avatarPhoto:Destroy()
+		avatarPhoto = nil
+	end
+	-- An NPC with a 2D portrait is drawn like the player's own photo (round, no 3D box). Others keep the 3D face.
+	local image = if model then UiAssets.PORTRAIT_IMAGES[model.Name] else nil
+	if image and avatarWell and vp then
+		vp.Visible = false
+		local photo = Instance.new("ImageLabel")
+		photo.Name = "Portrait"
+		photo.BackgroundTransparency = 1
+		photo.Image = image
+		photo.ScaleType = Enum.ScaleType.Fit
+		photo.Size = UDim2.fromScale(1, 1)
+		photo.ZIndex = 3
+		photo.Parent = avatarWell
+		avatarPhoto = photo
+		return
+	end
+	if vp then
+		vp.Visible = true
+	end
 	if not vp or not cam then
 		return
 	end
