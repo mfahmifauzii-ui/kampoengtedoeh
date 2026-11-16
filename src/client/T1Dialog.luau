@@ -38,6 +38,7 @@ local player = Players.LocalPlayer
 
 local gui: ScreenGui? = nil
 local box: Frame? = nil
+local boxLimit: UISizeConstraint? = nil -- caps the box size; raised for a dialog with choices (the box grows to fit its text)
 local nameLabel: TextLabel? = nil
 local textLabel: TextLabel? = nil
 local nextButton: TextButton? = nil
@@ -120,6 +121,7 @@ local function ensure()
 	limit.MaxSize = Vector2.new(BOX_MAX_WIDTH, BOX_HEIGHT)
 	limit.MinSize = Vector2.new(300, BOX_HEIGHT)
 	limit.Parent = frame
+	boxLimit = limit
 
 	-- The bamboo background (the existing panel skin). A fixed-size child, never part of a layout.
 	local skin = Instance.new("ImageLabel")
@@ -377,9 +379,33 @@ function T1Dialog.Show(opts: Options)
 	nextHandler = if next.Visible then opts.onNext else nil
 	-- With choices the text is two lines high and the whole width (the choices sit on the bottom row), else three lines and
 	-- narrower on the right (Next sits there).
-	text.Size = if choices
-		then UDim2.new(1, -(34 + AVATAR + 14 + 34), 0, 44)
-		else UDim2.new(1, -(34 + AVATAR + 14 + 34 + 100), 0, 54)
+	if choices then
+		-- Choices sit on a row at the bottom (under the text). The box grows to fit the whole text above that row, so the
+		-- text is never covered by the buttons, at any screen width.
+		local camera = workspace.CurrentCamera
+		local viewWidth = if camera then camera.ViewportSize.X else 800
+		local textWidth = math.min(BOX_MAX_WIDTH, viewWidth * 0.92) - (34 + AVATAR + 14 + 34)
+		local ok, measured = pcall(function()
+			return game:GetService("TextService"):GetTextSize(opts.text, 14, Enum.Font.Gotham, Vector2.new(textWidth, 1000))
+		 end)
+		local textHeight = if ok then (measured :: Vector2).Y + 8 else 64
+		local boxHeight = math.max(BOX_HEIGHT, 34 + textHeight + 10 + 40 + 16)
+		text.Size = UDim2.new(1, -(34 + AVATAR + 14 + 34), 0, textHeight)
+		if box then
+			box.Size = UDim2.new(0.92, 0, 0, boxHeight)
+		end
+		if boxLimit then
+			boxLimit.MaxSize = Vector2.new(BOX_MAX_WIDTH, boxHeight)
+		end
+	else
+		text.Size = UDim2.new(1, -(34 + AVATAR + 14 + 34 + 100), 0, 54)
+		if box then
+			box.Size = UDim2.new(0.92, 0, 0, BOX_HEIGHT)
+		end
+		if boxLimit then
+			boxLimit.MaxSize = Vector2.new(BOX_MAX_WIDTH, BOX_HEIGHT)
+		end
+	end
 	for _, button in choiceButtons do
 		button:Destroy()
 	end

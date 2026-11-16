@@ -152,7 +152,10 @@ local introState = "idle" -- "idle" | "running" | "done" (once per session; "don
 local introFinish: (() -> ())? = nil -- cleanup of the running intro (also called if it errors half way)
 local dialogBusy = false -- the intro or the warung beat is playing its own lines: the step sink must not draw over them
 local lastSpoken = ""
+local afterCatchAnswered = false -- Mengerti was pressed for the current step: the explanation is not shown again
+local afterCatchPending = false -- the first-fish explanation is due and not yet answered (Mengerti): it is shown again if it was closed
 local lineDismissed = false -- the player pressed Next on the current step line: it stays closed until the step changes
+local sinkKey = "" -- the step key the sink last saw; a new step forgets the old step's line (no re-show of an old line)
 local lastLine: Line? = nil -- the tutorial line on screen (shown again after an NPC conversation hid it)
 local sessionTutorial = false -- this session saw T1 pending: the ghost lives on until T1b is done
 local t1bStartSent = false
@@ -530,12 +533,10 @@ task.spawn(function()
 end)
 
 -- After the first fish: Mas Joko explains the pond. One button, "Mengerti": the step is acked and the server opens the pond.
-local afterCatchShown = false
 local function showAfterCatch()
-	if afterCatchShown or guideModule == nil then
+	if guideModule == nil then
 		return
 	end
-	afterCatchShown = true
 	T1Dialog.Show({
 		name = Locale.t("npc.mas_joko"),
 		text = Locale.t("npc.mas_joko.after_catch"),
@@ -545,6 +546,8 @@ local function showAfterCatch()
 			{
 				text = Locale.t("dialog.understand"),
 				onChoose = function()
+					afterCatchPending = false
+					afterCatchAnswered = true
 					guideModule.AckStep("after_catch")
 				end,
 			},
@@ -564,18 +567,29 @@ local function ensureSink()
 	end
 	guideModule = guide
 	guide.SetInstructionSink(function(key: string, stuck: boolean): boolean
+		if key ~= sinkKey then
+			sinkKey = key
+			lastLine = nil -- the old step's line must not come back over the new step (e.g. after the fish dialog)
+			lineDismissed = false
+			afterCatchAnswered = false
+		end
 		if key ~= "bangun_kolam" then
 			landLinePending = false
 		elseif not stuck then
-			landLinePending = true -- said only once the player is back on the land
+			if not lineDismissed then
+				landLinePending = true -- said only once the player is back on the land (and not again after Next)
+			end
 			return true
 		end
 		if NARRATIVE[key] then
 			return true -- an intro dialog: played by the intro / the warung beat
 		end
 		if key == "after_catch" then
-			if not dialogBusy and menuDone() then
-				showAfterCatch()
+			if not afterCatchAnswered then
+				afterCatchPending = true
+				if not dialogBusy and menuDone() then
+					showAfterCatch()
+				end
 			end
 			return true
 		end
@@ -598,7 +612,7 @@ local function ensureSink()
 end
 
 local function clearSink()
-	afterCatchShown = false
+	afterCatchPending = false
 	landLinePending = false
 	if guideModule and sinkSet then
 		pcall(function()
@@ -1150,6 +1164,9 @@ task.spawn(function()
 					-- A big panel (the shop, the bag, Atur ...) would be covered by the tutorial line: it steps aside while one is
 					-- open and comes back when it closes. During a conversation with a town NPC the dialog box is the
 					-- conversation's own: hands off (DialogueController closes it, then the line comes back here).
+					if afterCatchPending and not dialogBusy and menuDone() and player:GetAttribute("NpcTalkOpen") ~= true and not T1Dialog.IsShown() then
+						showAfterCatch() -- closed by accident before Mengerti: it comes back
+					end
 					if
 						sinkSet
 						and lastLine
