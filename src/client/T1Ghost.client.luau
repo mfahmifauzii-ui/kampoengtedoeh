@@ -1116,6 +1116,8 @@ task.spawn(function()
 							local ok, err = pcall(runWarung, guideModule)
 							if not ok then
 								warn(`[T1Ghost] warung dialog failed: {err}`)
+								-- A failed beat must not leave the camera on the NPC or the controls off.
+								Cutscene.End()
 								dialogBusy = false
 							end
 						end)
