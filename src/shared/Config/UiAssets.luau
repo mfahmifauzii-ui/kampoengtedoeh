@@ -14,7 +14,7 @@ export type Picture = { image: string, aspect: number } -- a plain picture (not 
 return {
 	-- Coachmark hole corner (assets/gui/coach_corner.png, 256 x 256: a black corner with a quarter-circle cut-out). Empty = the
 	-- hole stays square, as before.
-	COACH_CORNER = { image = "" },
+	COACH_CORNER = { image = "rbxassetid://94914653634111" },
 
 	PANEL = {
 		image = "rbxassetid://96943091231295",
