@@ -160,6 +160,7 @@ local lastLine: Line? = nil -- the tutorial line on screen (shown again after an
 local sessionTutorial = false -- this session saw T1 pending: the ghost lives on until T1b is done
 local t1bStartSent = false
 local warungStarted = false
+local firstSaleNpc: string? = nil -- who the first sale went to (server event OnFirstSellSuccess); runWarung plays the cutscene for it
 local chatHidden = false
 local characterAddedAt = os.clock()
 player.CharacterAdded:Connect(function()
@@ -169,6 +170,13 @@ end)
 local function flat(v: Vector3): Vector3
 	return Vector3.new(v.X, 0, v.Z)
 end
+
+-- The player's first sale (sent by the server once, TutorialService.OnFirstSellSuccess).
+Net.Listen("OnFirstSellSuccess", function(npcId: any)
+	if typeof(npcId) == "string" then
+		firstSaleNpc = npcId
+	end
+end)
 
 -- Tutorial state ----------------------------------------------------------------------------------------------------
 
@@ -930,6 +938,11 @@ local function runWarung(guide: any)
 		task.wait(0.2)
 	end
 
+	-- Fase 2: the first sale ever (OnFirstSellSuccess) plays this beat as the cutscene: the same lines and camera, but the
+	-- screen fades to black and back (FadeManager) and the controls stay off. Any other visit keeps the plain beat.
+	local firstSale = firstSaleNpc == "pak_darmo"
+	firstSaleNpc = nil
+
 	local npc = T1Dialog.NpcModel("pak_darmo")
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
@@ -942,7 +955,15 @@ local function runWarung(guide: any)
 		and head:IsA("BasePart")
 		and (head.Position - root.Position).Magnitude < 22
 	then
-		endCutscene = Cutscene.Begin(npc, head)
+		local npcRig: Model = npc
+		local npcHead: BasePart = head
+		if firstSale then
+			Cutscene.Transition(function()
+				endCutscene = Cutscene.Begin(npcRig, npcHead)
+			end)
+		else
+			endCutscene = Cutscene.Begin(npcRig, npcHead)
+		end
 	end
 
 	for _, line in WARUNG do
