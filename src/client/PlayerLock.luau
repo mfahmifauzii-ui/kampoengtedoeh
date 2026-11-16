@@ -47,12 +47,15 @@ local function lockHumanoid()
 	end
 	-- The values to give back. A 0 here is never a real "normal" speed (it is what a lock leaves behind), so the Roblox
 	-- defaults are used instead: otherwise the player stays stuck at WalkSpeed 0 after the unlock.
-	saved = {
-		humanoid = humanoid,
-		walk = if humanoid.WalkSpeed > 0 then humanoid.WalkSpeed else DEFAULT_WALK_SPEED,
-		jump = if humanoid.JumpPower > 0 then humanoid.JumpPower else DEFAULT_JUMP_POWER,
-		rotate = humanoid.AutoRotate,
-	}
+	local walk = humanoid.WalkSpeed
+	if walk <= 0 then
+		walk = DEFAULT_WALK_SPEED
+	end
+	local jump = humanoid.JumpPower
+	if jump <= 0 then
+		jump = DEFAULT_JUMP_POWER
+	end
+	saved = { humanoid = humanoid, walk = walk, jump = jump, rotate = humanoid.AutoRotate }
 	humanoid.WalkSpeed = 0
 	humanoid.JumpPower = 0
 	humanoid.AutoRotate = false
