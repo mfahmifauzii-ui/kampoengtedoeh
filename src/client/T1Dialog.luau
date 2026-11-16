@@ -324,11 +324,27 @@ local function setAvatar(model: Model?)
 	end
 	copy:PivotTo(CFrame.new(0, 0, 0)) -- identity rotation: the rig faces -Z
 	copy.Parent = vp
+	-- Frame the whole head (hair and accessories included) and the shoulders below it, for any rig: the view height comes from
+	-- the model's own top and the head's size, so no NPC's head is cut by the square viewport or the round mask.
 	local head = copy:FindFirstChild("Head")
 	if head and head:IsA("BasePart") then
+		local topY = head.Position.Y + head.Size.Y / 2
+		for _, d in copy:GetDescendants() do
+			if d:IsA("BasePart") then
+				local top = d.Position.Y + d.Size.Y / 2
+				if top > topY and d.Position.Y > head.Position.Y - head.Size.Y then
+					topY = top -- hair, hats and other accessories above the head
+				end
+			end
+		end
+		local bottomY = head.Position.Y - head.Size.Y * 1.6 -- down to the shoulders
+		local centerY = (topY + bottomY) / 2
+		local viewHeight = (topY - bottomY) * 1.3 -- a margin around the top so the head is never at the edge
+		local halfFov = math.rad(cam.FieldOfView / 2)
+		local distance = (viewHeight / 2) / math.tan(halfFov)
+		local center = Vector3.new(head.Position.X, centerY, head.Position.Z)
 		local look = head.CFrame.LookVector
-		local target = head.Position + Vector3.new(0, -0.35, 0)
-		cam.CFrame = CFrame.lookAt(target + look * 3.6 + Vector3.new(0, 0.15, 0), target)
+		cam.CFrame = CFrame.lookAt(center + look * distance, center)
 	end
 end
 
