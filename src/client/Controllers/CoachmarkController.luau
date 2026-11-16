@@ -336,8 +336,14 @@ function CoachmarkController.Update()
 		else
 			local position, size = buttonRect(button)
 			-- One highlight in the target's own shape: round for round buttons, a rounded box otherwise.
-			local corner = button:FindFirstChildOfClass("UICorner")
-			local round = corner ~= nil and corner.CornerRadius.Scale >= 0.5
+			-- Round if the button or any of its parts is round (GarapButton has no UICorner itself: its bamboo "Plate" child is round).
+			local round = false
+			for _, shape in button:GetDescendants() do
+				if shape:IsA("UICorner") and shape.CornerRadius.Scale >= 0.5 then
+					round = true
+					break
+				end
+			end
 			if spec.block then
 				-- The hole has the same corners as the button: a full round hole for round buttons, 12 px otherwise (as the highlight).
 				local holeRadius = if round then math.min(size.X, size.Y) / 2 + PAD else 12
