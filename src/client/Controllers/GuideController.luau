@@ -775,6 +775,15 @@ local function uiBusy(): boolean
 end
 
 -- The hint bar + ring for the running tutorial. A step with an action shows the coachmark instead (CoachmarkController).
+-- True when the player stands in the land zone (the same 60-stud radius as the land target's arrive).
+local function inLandZone(radius: number): boolean
+	local center, root = myLandCenter(), myRoot()
+	if not center or not root then
+		return false
+	end
+	return (Vector3.new(root.Position.X, 0, root.Position.Z) - Vector3.new(center.X, 0, center.Z)).Magnitude <= radius
+end
+
 function refreshTutorial()
 	local current = running
 	if not current then
@@ -782,6 +791,14 @@ function refreshTutorial()
 	end
 	local steps = current.def.steps
 	local stepDef = steps[math.min(current.n + 1, #steps)]
+	-- The land step (bangun_kolam): nothing at all until the player is in the land zone. No coachmark, no Kolam glow,
+	-- no hint line. Only the trail (placeTrail) leads the way; the land dialog and the coachmark come with the zone.
+	if stepDef.target and stepDef.target.land and not inLandZone(stepDef.arrive or 60) then
+		CoachmarkController.Hide()
+		clearRing()
+		hint.Visible = false
+		return
+	end
 	local now = os.clock()
 	local stuckFor = now - current.progressAt
 	local text: string
@@ -843,14 +860,6 @@ function refreshTutorial()
 	if stepDef.done.kind ~= "ack" then
 		local highlight = stepDef.highlight
 		local kind = stepDef.done.kind
-		-- A land step (walk back home): the button glow waits until the player is in the land zone; the trail leads there.
-		if stepDef.target and stepDef.target.land then
-			local center, root = myLandCenter(), myRoot()
-			local inside = center ~= nil and root ~= nil and (Vector3.new(root.Position.X, 0, root.Position.Z) - Vector3.new(center.X, 0, center.Z)).Magnitude <= (stepDef.arrive or 60)
-			if not inside then
-				highlight = nil
-			end
-		end
 		local groundKind = kind == "tiles" or kind == "ponds" -- steps done by tapping the ground in Garap mode
 		local onGround = groundKind and GarapController.Active
 		-- Past the tilling / pond steps, Garap mode must be closed: its open state hides the bed pills the next step points at.

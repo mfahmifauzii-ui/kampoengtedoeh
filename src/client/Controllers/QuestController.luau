@@ -112,6 +112,38 @@ local function addRow(order: number, questId: string, progress: { step: number, 
 	text.Parent = row
 end
 
+-- The kolam quest card (kolam_pertama) is part of the t1b land step: it shows only once the player stands on his land
+-- (bangun_kolam, 60 studs from the plot centre), together with Mbok Minah's line. Before that there is no card at all.
+local KOLAM_QUEST = "kolam_pertama"
+local function inOwnLand(): boolean
+	local character = Players.LocalPlayer.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") then
+		return false
+	end
+	for _, plot in workspace.Plots:GetChildren() do
+		if plot:GetAttribute("OwnerUserId") == Players.LocalPlayer.UserId then
+			local center = plot:GetPivot().Position
+			return (Vector3.new(root.Position.X, 0, root.Position.Z) - Vector3.new(center.X, 0, center.Z)).Magnitude <= 60
+		end
+	end
+	return false
+end
+
+local function kolamCardWanted(snapshot: any): boolean
+	local step = snapshot and snapshot.guide and snapshot.guide.step
+	if not step or step.id ~= "t1b_kolam" then
+		return true
+	end
+	if (step.n or 0) < 4 then
+		return false -- before bangun_kolam (warung, Mas Joko, mancing, after_catch)
+	end
+	if (step.n or 0) == 4 then
+		return inOwnLand() -- bangun_kolam is the current step: only on the land
+	end
+	return true -- bangun_kolam done: the card stays
+end
+
 local function refresh()
 	for _, child in tracker:GetChildren() do
 		if child:IsA("Frame") then
@@ -125,7 +157,7 @@ local function refresh()
 	if active then
 		for _, quest in Quests.list do
 			local progress = active[quest.id]
-			if progress then
+			if progress and (quest.id ~= KOLAM_QUEST or kolamCardWanted(snapshot)) then
 				order += 1
 				addRow(order, quest.id, progress)
 			end
@@ -169,6 +201,18 @@ end
 function QuestController.Start()
 	State.Changed:Connect(refresh)
 	refresh()
+	-- Walking onto the land changes the kolam card without a state sync: check a few times a second, rebuild only on a change.
+	task.spawn(function()
+		local last: boolean? = nil
+		while true do
+			local wanted = kolamCardWanted(State.current)
+			if wanted ~= last then
+				last = wanted
+				refresh()
+			end
+			task.wait(0.5)
+		end
+	end)
 end
 
 return QuestController

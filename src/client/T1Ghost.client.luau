@@ -152,6 +152,7 @@ local introState = "idle" -- "idle" | "running" | "done" (once per session; "don
 local introFinish: (() -> ())? = nil -- cleanup of the running intro (also called if it errors half way)
 local dialogBusy = false -- the intro or the warung beat is playing its own lines: the step sink must not draw over them
 local lastSpoken = ""
+local lineDismissed = false -- the player pressed Next on the current step line: it stays closed until the step changes
 local lastLine: Line? = nil -- the tutorial line on screen (shown again after an NPC conversation hid it)
 local sessionTutorial = false -- this session saw T1 pending: the ghost lives on until T1b is done
 local t1bStartSent = false
@@ -518,7 +519,11 @@ task.spawn(function()
 				landLinePending = false
 				lastSpoken = line.text
 				lastLine = line
-				showLine(line.who, line.text, false, TUTORIAL_BOTTOM, nil)
+				lineDismissed = false
+				showLine(line.who, line.text, true, TUTORIAL_BOTTOM, function()
+				lineDismissed = true
+				T1Dialog.Hide() -- Next closes the line: a line never stays on screen without a way out
+			end)
 			end
 		end
 	end
@@ -581,7 +586,11 @@ local function ensureSink()
 		if not dialogBusy and menuDone() and lastSpoken ~= line.text then
 			lastSpoken = line.text
 			lastLine = line
-			showLine(line.who, line.text, false, TUTORIAL_BOTTOM, nil)
+			lineDismissed = false
+			showLine(line.who, line.text, true, TUTORIAL_BOTTOM, function()
+				lineDismissed = true
+				T1Dialog.Hide() -- Next closes the line: a line never stays on screen without a way out
+			end)
 		end
 		return true
 	end)
@@ -1147,13 +1156,17 @@ task.spawn(function()
 						and not dialogBusy
 						and menuDone()
 						and player:GetAttribute("NpcTalkOpen") ~= true
+						and not lineDismissed
 					then
 						if bigPanelOpen() then
 							if T1Dialog.IsShown() then
 								T1Dialog.Hide()
 							end
 						elseif not T1Dialog.IsShown() then
-							showLine(lastLine.who, lastLine.text, false, TUTORIAL_BOTTOM, nil)
+							showLine(lastLine.who, lastLine.text, true, TUTORIAL_BOTTOM, function()
+								lineDismissed = true
+								T1Dialog.Hide() -- Next closes it: a re-shown line is dismissable too
+							end)
 						end
 					end
 				end
