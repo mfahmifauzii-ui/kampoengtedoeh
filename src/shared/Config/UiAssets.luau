@@ -12,6 +12,10 @@ export type Skin = { image: string, slice: Rect, sliceScale: number }
 export type Picture = { image: string, aspect: number } -- a plain picture (not 9-sliced), aspect = width / height
 
 return {
+	-- Coachmark hole corner (assets/gui/coach_corner.png, 256 x 256: a black corner with a quarter-circle cut-out). Empty = the
+	-- hole stays square, as before.
+	COACH_CORNER = { image = "" },
+
 	PANEL = {
 		image = "rbxassetid://96943091231295",
 		slice = Rect.new(145, 145, 879, 424), -- corners/border of ready/panel_v1.png (1024 x 569, trimmed)

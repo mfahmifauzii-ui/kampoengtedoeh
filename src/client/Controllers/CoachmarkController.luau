@@ -26,6 +26,7 @@ local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Locale = require(ReplicatedStorage.Shared.Locale)
+local UiAssets = require(ReplicatedStorage.Shared.Config.UiAssets)
 local UiKit = require(script.Parent.Parent.UiKit)
 
 local player = Players.LocalPlayer
@@ -51,6 +52,7 @@ local CARD_WIDTH = 300 -- px: the player card at the bottom left
 local overlayGui: ScreenGui
 local topGui: ScreenGui
 local pieces: { Frame } = {}
+local corners: { ImageLabel } = {} -- rounded hole: one dark corner per hole corner (UiAssets.COACH_CORNER), empty = square hole
 local hudPool: { Frame } = {} -- ground mode: one dark blocking frame per visible HUD panel
 local highlight: Frame
 local highlightStroke: UIStroke
@@ -97,6 +99,23 @@ function CoachmarkController.Init()
 	pieces = {}
 	for _, name in { "Top", "Bottom", "Left", "Right" } do
 		table.insert(pieces, frame(name, overlayGui))
+	end
+	-- Rounded hole corners: four copies of the same corner picture, turned to each corner. Only when the picture is uploaded.
+	if UiAssets.COACH_CORNER.image ~= "" then
+		for _, rotation in { 0, 90, 180, 270 } do
+			local piece = Instance.new("ImageLabel")
+			piece.Name = `HoleCorner{rotation}`
+			piece.BackgroundTransparency = 1
+			piece.BorderSizePixel = 0
+			piece.Image = UiAssets.COACH_CORNER.image
+			piece.ImageColor3 = Color3.fromRGB(0, 0, 0)
+			piece.ImageTransparency = OVERLAY_TRANSPARENCY
+			piece.Rotation = rotation
+			piece.Active = true -- swallows taps like the dark pieces
+			piece.Visible = false
+			piece.Parent = overlayGui
+			table.insert(corners, piece)
+		end
 	end
 
 	-- Above the HUD and the overlay: the highlight, the bubble, the NPC arrow, and "Lewati".
@@ -244,7 +263,7 @@ local function buttonRect(button: GuiObject): (Vector2, Vector2)
 end
 
 -- Button mode: the four dark zones around the hole.
-local function layoutHole(position: Vector2, size: Vector2, view: Vector2)
+local function layoutHole(position: Vector2, size: Vector2, view: Vector2, radius: number)
 	local left, top = position.X - PAD, position.Y - PAD
 	local width, height = size.X + PAD * 2, size.Y + PAD * 2
 	local right, bottom = left + width, top + height
@@ -260,6 +279,16 @@ local function layoutHole(position: Vector2, size: Vector2, view: Vector2)
 	place(pieces[2], 0, b, view.X, view.Y - b) -- bottom: b .. screen bottom
 	place(pieces[3], 0, t, l, b - t) -- left: t .. b
 	place(pieces[4], r, t, view.X - r, b - t) -- right: t .. b
+	-- Rounded corners: each corner piece covers the square corner of the hole outside its arc (radius, at most half the hole).
+	if #corners > 0 then
+		local rad = math.floor(math.min(radius, (r - l) / 2, (b - t) / 2))
+		local spots = { { l, t }, { r - rad, t }, { r - rad, b - rad }, { l, b - rad } } -- top-left, top-right, bottom-right, bottom-left
+		for i, piece in corners do
+			piece.Visible = rad > 0
+			piece.Position = UDim2.fromOffset(spots[i][1], spots[i][2])
+			piece.Size = UDim2.fromOffset(rad, rad)
+		end
+	end
 	highlight.Position = UDim2.fromOffset(left + width / 2, top + height / 2)
 	highlight.Size = UDim2.fromOffset(width, height)
 end
@@ -268,6 +297,9 @@ end
 -- card), padded by 4 px. Everything else (the land, the sky, the road) stays bright.
 local function layoutHudZones(view: Vector2)
 	for _, piece in pieces do
+		piece.Visible = false
+	end
+	for _, piece in corners do
 		piece.Visible = false
 	end
 	local playerGui = player:FindFirstChildOfClass("PlayerGui")
@@ -337,12 +369,14 @@ function CoachmarkController.Update()
 			overlayGui.Enabled = false
 		else
 			local position, size = buttonRect(button)
-			if spec.block then
-				layoutHole(position, size, view)
-			end
 			-- One highlight in the target's own shape: round for round buttons, a rounded box otherwise.
 			local corner = button:FindFirstChildOfClass("UICorner")
 			local round = corner ~= nil and corner.CornerRadius.Scale >= 0.5
+			if spec.block then
+				-- The hole has the same corners as the button: a full round hole for round buttons, 12 px otherwise (as the highlight).
+				local holeRadius = if round then math.min(size.X, size.Y) / 2 + PAD else 12
+				layoutHole(position, size, view, holeRadius)
+			end
 			local width, height = size.X + PAD * 2, size.Y + PAD * 2
 			highlight.Visible = true
 			highlight.Size = UDim2.fromOffset(width, height)
