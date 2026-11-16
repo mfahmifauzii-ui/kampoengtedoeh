@@ -288,11 +288,12 @@ local function buildTerrain()
 	-- (see Land), so the paint blocks below are 0.5 smaller than the cells they fill.
 	local drop = -Land.SURFACE_OFFSET
 	terrain:FillBlock(CFrame.new(0, -Map.GRASS_DEPTH / 2 + drop, 0), Vector3.new(total, Map.GRASS_DEPTH, total), Enum.Material.Sand)
-	-- Forest floor (dark Grass): the part of every plot's reserved square the player does not own yet, and the four
-	-- corners between the plots. Trees stand on it (see buildNature); the start land is painted bright on top of it.
+	-- Every plot's reserved square is LeafyGrass by default (the whole Garap grid, including the part the player does not
+	-- own yet), so the grid never sits on a different material. The four corners between the plots stay dark Grass (forest
+	-- floor). Trees stand on it (see buildNature); the start land is painted bright on top of it.
 	local region = Plots.SIZE
 	for _, slot in Plots.LAYOUT do
-		terrain:FillBlock(CFrame.new(slot.x, -2 + drop, slot.z), Vector3.new(region - 0.5, 4, region - 0.5), Enum.Material.Grass)
+		terrain:FillBlock(CFrame.new(slot.x, -2 + drop, slot.z), Vector3.new(region - 0.5, 4, region - 0.5), Enum.Material.LeafyGrass)
 	end
 	local cornerCenter = Plots.INNER + region / 2
 	for _, sx in { 1, -1 } do
