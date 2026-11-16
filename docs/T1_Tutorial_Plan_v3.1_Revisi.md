@@ -101,7 +101,10 @@ Yang berubah:
 - Server WAJIB menolak mancing tanpa joran yang dimiliki. Fallback `or Fishing.rods.bambu` di FishService.luau:207 dihapus untuk kasus ini
 - Toko tidak menjual joran bambu (price 0 diblokir ShopService.luau:161). Satu-satunya sumber joran bambu baru adalah Terima Hadiah Mas Joko
 
-Jumlah umpan dan jenisnya BELUM DIPUTUSKAN. Isi nanti sebelum implementasi.
+Keputusan pemilik (16 Nov):
+- Umpan: pelet (umpan paling basic, Config/Fishing BAIT), jumlah 5
+- Tidak boleh ada fitur Lewati Tutorial sama sekali. Tutorial di map ini penting. Tombol Lewati di hint bar, di Panduan, dan di welcome modal dihapus. Server menolak aksi "skip"
+- Konsekuensi: risiko softlock dari Lewati hilang. Tidak perlu aturan "Lewati memberi joran"
 
 ### Rencana migrasi
 
