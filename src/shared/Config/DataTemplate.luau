@@ -29,8 +29,10 @@ local template: Types.PlayerData = {
 	},
 
 	fishing = {
-		rod = "bambu", -- equipped rod id
-		ownedRods = { bambu = true },
+		-- New accounts start WITHOUT a rod (Plan v3.1 3A, Opsi B): Mas Joko gives the Joran Bambu (Terima Hadiah).
+		-- Old accounts keep the rod they already have: this default only fills keys that are missing.
+		rod = "", -- equipped rod id ("" = none)
+		ownedRods = {},
 	},
 
 	tools = { gembor = false }, -- Stage 2: owned farm tools (Config/Farm TOOLS), bought with Koin
@@ -95,7 +97,7 @@ local template: Types.PlayerData = {
 	-- done/skipped = [tutorialId] = true, fastLeft = plantings still on the fast tutorial timer (-1 = not decided yet:
 	-- TutorialService sets 6 for a brand-new save and 0 for an old one on load).
 	-- hasMet = [npcId] = true once the player has had the first talk with that NPC (Fase 2: sapaan, then the choices).
-	guide = { sells = 0, step = { id = "", n = 0 }, done = {}, skipped = {}, fastLeft = -1, hasMet = {} },
+	guide = { sells = 0, step = { id = "", n = 0 }, done = {}, skipped = {}, fastLeft = -1, hasMet = {}, rodGift = false, fishingUnlocked = false },
 	purchaseIdCache = {}, -- last N dev product PurchaseIds (ProfileStore pattern; prevents double-grant)
 }
 

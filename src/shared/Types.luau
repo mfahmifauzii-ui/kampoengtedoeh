@@ -124,6 +124,8 @@ export type PlayerData = {
 		skipped: { [string]: boolean },
 		fastLeft: number, -- plantings left on the 20 s tutorial timer (-1 = not decided yet)
 		hasMet: { [string]: boolean }, -- [npcId] = true after the first talk with that NPC (Fase 2 sapaan)
+		rodGift: boolean, -- Terima Hadiah from Mas Joko was taken (idempotent: the rod and bait are given once)
+		fishingUnlocked: boolean, -- set with rodGift: the fishing tutorial is open
 	},
 	purchaseIdCache: { string },
 }

@@ -157,6 +157,32 @@ function TutorialService.OnFirstSellSuccess(player: Player, npcId: string)
 	Net.Fire("OnFirstSellSuccess", player, npcId)
 end
 
+-- Mas Joko's Terima Hadiah (Plan v3.1 3A, Opsi B): the Joran Bambu and some pelet, given ONCE and only on the server.
+-- A second press (or an old save that already has the rod) gives nothing more; the client just shows the feedback.
+local JOKO_BAIT = { id = "pelet", amount = 5 }
+local function onMeetJoko(player: Player): any
+	local data = DataService.Get(player)
+	if not data then
+		return { ok = false }
+	end
+	local guide = data.guide
+	if guide.rodGift then
+		return { ok = true, gave = false }
+	end
+	guide.rodGift = true
+	guide.fishingUnlocked = true
+	if data.fishing.ownedRods.bambu ~= true then
+		data.fishing.ownedRods.bambu = true
+	end
+	if data.fishing.rod == "" then
+		data.fishing.rod = "bambu"
+	end
+	InventoryService.Add(player, JOKO_BAIT.id, JOKO_BAIT.amount)
+	InventoryService.Sync(player)
+	logEvent(player, "tut_joko_gift", "mas_joko")
+	return { ok = true, gave = true }
+end
+
 function TutorialService.Init()
 	register(Onboarding.TEST_TUTORIAL)
 	for _, tutorial in Onboarding.TUTORIALS do
@@ -181,6 +207,7 @@ end
 function TutorialService.Start()
 	Net.On("GuideEvent", onGuideEvent, { rate = 4, burst = 8 })
 	Net.On("HasMet", onHasMet, { rate = 4, burst = 8 })
+	Net.On("MeetJoko", onMeetJoko, { rate = 2, burst = 4 })
 end
 
 return TutorialService

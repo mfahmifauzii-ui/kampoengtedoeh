@@ -194,6 +194,11 @@ local function startCast(player: Player, spot: BasePart)
 		Net.Fire("Notify", player, "fish.locked", { level = locationConfig.unlockLevel })
 		return
 	end
+	-- No rod without Mas Joko's gift (Opsi B): the server checks ownership itself, the client never decides this.
+	if data.fishing.rod == "" or data.fishing.ownedRods[data.fishing.rod] ~= true or Fishing.rods[data.fishing.rod] == nil then
+		Net.Fire("Notify", player, "fish.need_rod")
+		return
+	end
 	if not isNear(player, spot, Fishing.CAST_DISTANCE) then
 		return
 	end
@@ -204,7 +209,10 @@ local function startCast(player: Player, spot: BasePart)
 		return
 	end
 
-	local rod = Fishing.rods[data.fishing.rod] or Fishing.rods.bambu
+	local rod = Fishing.rods[data.fishing.rod]
+	if not rod then
+		return -- cannot happen after the rod check above; kept so the type stays exact
+	end
 	local fishId = rollFish(location, rod.rareBonus, rod.legendaryBonus, nil)
 	if not fishId then
 		Net.Fire("Notify", player, "fish.none_here")
