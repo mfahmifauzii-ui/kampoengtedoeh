@@ -38,7 +38,7 @@ local ORBIT_RADIUS, ORBIT_HEIGHT, ORBIT_SPEED, ORBIT_FOV = 190, 95, 0.03, 55 -- 
 local BLUR_FOCUS, BLUR_RADIUS, BLUR_FAR = 12, 0, 1 -- very strong: nothing is in focus from up there (16 Nov: "blur banget")
 
 -- Loading
-local MIN_LOAD_SECONDS = 2.4 -- the bar never finishes faster than this
+local MIN_LOAD_SECONDS = 6 -- the bar never finishes faster than this (slower on purpose: the real load is shown, not a fake one)
 local FADE_SECONDS = 0.5 -- loading -> play crossfade
 local BLACK_SECONDS = 0.5 -- PLAY -> black
 
@@ -190,10 +190,13 @@ task.spawn(function()
 	while hiding do
 		local eye = ORBIT_CENTER
 			+ Vector3.new(math.cos(orbitAngle) * ORBIT_RADIUS * 0.5, 0, math.sin(orbitAngle) * ORBIT_RADIUS * 0.5)
-		pcall(function()
+		-- Counts as loaded only when the streaming request really returned (not when it was just asked for).
+		local ok = pcall(function()
 			player:RequestStreamAroundAsync(eye, 6)
 		end)
-		streamed = true
+		if ok then
+			streamed = true
+		end
 		task.wait(4)
 	end
 end)
@@ -630,6 +633,7 @@ end)
 -- Loading: the bar follows the real load ---------------------------------------------------------------------------------
 
 local assetShare = 0 -- the UI pictures preloaded, 0..1
+local mapShare = 0 -- the map's meshes, textures and decals preloaded, 0..1
 task.spawn(function()
 	local ids: { string } = {}
 	local function add(id: string?)
@@ -656,13 +660,38 @@ task.spawn(function()
 		add(id)
 	end
 	local done = 0
-	pcall(function()
+	local okUi = pcall(function()
 		ContentProvider:PreloadAsync(ids, function()
 			done += 1
 			assetShare = math.min(done / math.max(#ids, 1), 1)
 		end)
 	end)
+	if not okUi then
+		warn("[MenuFlow] UI preload failed; the bar continues without it")
+	end
 	assetShare = 1
+
+	-- The town itself: every mesh, texture and decal in the map is really loaded before the bar can finish.
+	if not game:IsLoaded() then
+		game.Loaded:Wait() -- the list must be the whole map, not the part that happened to exist when this ran
+	end
+	local parts: { Instance } = {}
+	for _, d in Workspace:GetDescendants() do
+		if d:IsA("MeshPart") or d:IsA("Decal") or d:IsA("Texture") or d:IsA("SpecialMesh") then
+			table.insert(parts, d)
+		end
+	end
+	local mapDone = 0
+	local okMap = pcall(function()
+		ContentProvider:PreloadAsync(parts, function()
+			mapDone += 1
+			mapShare = math.min(mapDone / math.max(#parts, 1), 1)
+		end)
+	end)
+	if not okMap then
+		warn("[MenuFlow] map preload failed; the bar continues without it")
+	end
+	mapShare = 1
 end)
 
 local function loadTarget(): number
@@ -671,6 +700,7 @@ local function loadTarget(): number
 	local ready = 0
 	ready += if game:IsLoaded() then 1 else 0
 	ready += 3 * assetShare
+	ready += 2 * mapShare
 	ready += if snapshot ~= nil then 2 else 0
 	ready += if character
 			and character:FindFirstChild("HumanoidRootPart")
@@ -678,7 +708,7 @@ local function loadTarget(): number
 		then 1
 		else 0
 	ready += if streamed then 1 else 0
-	return ready / 8
+	return ready / 10
 end
 
 local phase = "loading"
