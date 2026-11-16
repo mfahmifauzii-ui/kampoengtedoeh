@@ -4,4 +4,6 @@
 # To add a new tool, add an entry to this table.
 [tools]
 rojo = "rojo-rbx/rojo@7.7.1"
+selene = "Kampfkarren/selene@0.32.0" # Fase 1: lint Luau (pinned, official repo)
+StyLua = "JohnnyMorganz/StyLua@2.6.0" # Fase 1: format check (pinned, official repo)
 # rojo = "rojo-rbx/rojo@6.2.0"

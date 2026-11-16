@@ -32,13 +32,12 @@ function PromptGate.Hide()
 	for _, descendant in Workspace:GetDescendants() do
 		if descendant:IsA("ProximityPrompt") and descendant.Enabled then
 			local entry: Entry = { prompt = descendant, changedByOthers = false, connection = nil :: any }
-			-- Any switch-on that is not ours (we only ever switch OFF here) means another system wants this prompt.
+			descendant.Enabled = false -- our own switch-off; the watcher below is connected after it, so it is not counted
+			-- Any later change to Enabled is another system taking the prompt over (on or off). From then on it is theirs:
+			-- Show() leaves it exactly as they set it.
 			entry.connection = descendant:GetPropertyChangedSignal("Enabled"):Connect(function()
-				if descendant.Enabled then
-					entry.changedByOthers = true
-				end
+				entry.changedByOthers = true
 			end)
-			descendant.Enabled = false
 			table.insert(held, entry)
 		end
 	end

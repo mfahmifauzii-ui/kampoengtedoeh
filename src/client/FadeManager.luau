@@ -18,7 +18,6 @@ local HOLD = 0.15
 local DISSOLVE_OUT = 0.5
 
 local player = Players.LocalPlayer
-local gui: ScreenGui? = nil
 local cover: Frame? = nil
 local running = 0 -- how many Play() calls are still in progress (overlapping calls share one cover)
 
@@ -42,7 +41,6 @@ local function ensure(): Frame
 	frame.Visible = false
 	frame.Parent = screen
 	screen.Parent = player:WaitForChild("PlayerGui")
-	gui = screen
 	cover = frame
 	return frame
 end
@@ -74,9 +72,10 @@ function FadeManager.Play(onBlack: (() -> ())?, onDone: (() -> ())?)
 	frame.Visible = true
 
 	task.spawn(function()
-		local fadeIn = TweenService:Create(frame, TweenInfo.new(FADE_IN, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-			BackgroundTransparency = 0,
-		})
+		local fadeIn =
+			TweenService:Create(frame, TweenInfo.new(FADE_IN, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+				BackgroundTransparency = 0,
+			})
 		fadeIn:Play()
 		fadeIn.Completed:Wait()
 
@@ -88,9 +87,10 @@ function FadeManager.Play(onBlack: (() -> ())?, onDone: (() -> ())?)
 		end
 		task.wait(HOLD)
 
-		local dissolve = TweenService:Create(frame, TweenInfo.new(DISSOLVE_OUT, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			BackgroundTransparency = 1,
-		})
+		local dissolve =
+			TweenService:Create(frame, TweenInfo.new(DISSOLVE_OUT, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+				BackgroundTransparency = 1,
+			})
 		dissolve:Play()
 		dissolve.Completed:Wait()
 
