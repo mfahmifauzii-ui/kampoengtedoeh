@@ -32,6 +32,7 @@ local DialogueController = {}
 
 local gui: ScreenGui
 local currentNpc: string? = nil
+local holdFor: string? = nil -- the NPC whose sapaan decision / greeting is on screen (see open and FirstMeetDialogue)
 
 -- Talk camera: while the conversation is open the camera glides to the over-the-shoulder shot (NpcCamera) and the NPC turns to you
 -- (client-side only); closing glides back to where the camera was and hands it back to the player.
@@ -170,6 +171,7 @@ end
 
 local function close()
 	currentNpc = nil
+	holdFor = nil
 	player:SetAttribute("NpcTalkOpen", nil)
 	T1Dialog.Hide()
 	showOtherGuis()
@@ -211,18 +213,50 @@ local function refresh(npcId: string)
 	})
 end
 
+-- First talk with an NPC (Fase 2): the sapaan and the introduction (Npcs.meet) with Next, then the choices as usual.
+local function FirstMeetDialogue(npcId: string)
+	local npc = Npcs.byId[npcId]
+	T1Dialog.Show({
+		name = Locale.t(`npc.{npcId}`),
+		text = Locale.t(npc.meet, { name = player.DisplayName }),
+		avatar = npcModel(npcId),
+		showNext = true,
+		bottom = 16,
+		onNext = function()
+			if holdFor == npcId and currentNpc == npcId then
+				holdFor = nil
+				refresh(npcId)
+			end
+		end,
+	})
+end
+
 local function open(npcId: any)
 	if typeof(npcId) ~= "string" or not Npcs.byId[npcId] then
 		return
 	end
 	ShopController.Close()
 	currentNpc = npcId
+	-- holdFor = this NPC while the choose-or-sapaan decision is pending: State.Changed must not draw the choices first.
+	holdFor = npcId
 	player:SetAttribute("NpcTalkOpen", true)
 	hideOtherGuis()
 	PromptGate.Hide()
-	refresh(npcId)
 	Sfx.play("npc_hello")
 	focusNpc(npcId)
+	task.spawn(function()
+		-- HasMet records the meeting on the server and tells us whether it was already there (false = first talk).
+		local ok, alreadyMet = pcall(Net.Invoke, "HasMet", npcId)
+		if currentNpc ~= npcId or holdFor ~= npcId then
+			return -- closed meanwhile
+		end
+		if ok and alreadyMet == false then
+			FirstMeetDialogue(npcId)
+		else
+			holdFor = nil
+			refresh(npcId)
+		end
+	end)
 end
 
 -- World position of an NPC rig (Workspace.Npcs.<id>), nil if it isn't loaded. (The pivot the NPC had BEFORE it turned to face
@@ -244,7 +278,7 @@ end
 function DialogueController.Start()
 	Net.Listen("NpcTalk", open)
 	State.Changed:Connect(function()
-		if currentNpc then
+		if currentNpc and holdFor == nil then
 			refresh(currentNpc)
 		end
 	end)

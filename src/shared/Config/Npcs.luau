@@ -22,6 +22,7 @@ export type Sells = {
 
 export type Npc = {
 	id: string,
+	meet: string, -- Locale key: the first talk's sapaan and perkenalan, {name} = the player (Client DialogueController)
 	stand: { x: number, z: number, y: number?, yaw: number },
 	look: { skin: Color3, shirt: Color3, pants: Color3 },
 	buys: { [string]: number },
@@ -43,6 +44,7 @@ local list: { Npc } = {
 	{
 		-- Behind the counter of the Warung stall. Best price (1.0x), but only up to the daily quota per crop.
 		id = "pak_darmo",
+		meet = "npc.pak_darmo.meet",
 		stand = { x = -3.832, z = 55.594, y = 5.8, yaw = math.rad(-32.99) }, -- spot picked in Studio (x -3.832, z 55.594, yaw -32.99 deg); y lowered from 8.449 to 5.8 so the feet touch the plank (plank top ~5.1 here; pivot = feet + 0.68). Explicit y: NpcService does not re-seat him
 		look = { skin = Color3.fromRGB(198, 148, 102), shirt = Color3.fromRGB(220, 206, 176), pants = Color3.fromRGB(96, 70, 50) },
 		buys = { crop = 1.0 },
@@ -52,6 +54,7 @@ local list: { Npc } = {
 	{
 		-- Toko Bibit (shop slot 1)
 		id = "bu_wati",
+		meet = "npc.bu_wati.meet",
 		stand = atShop(1), -- shop 1
 		look = { skin = Color3.fromRGB(190, 140, 98), shirt = Color3.fromRGB(150, 168, 128), pants = Color3.fromRGB(110, 84, 66) },
 		buys = {},
@@ -60,6 +63,7 @@ local list: { Npc } = {
 	{
 		-- Toko Pancing (shop slot 5)
 		id = "mas_joko",
+		meet = "npc.mas_joko.meet",
 		stand = atShop(5), -- shop 5
 		look = { skin = Color3.fromRGB(176, 128, 90), shirt = Color3.fromRGB(122, 148, 164), pants = Color3.fromRGB(70, 76, 86) },
 		buys = {},
@@ -68,6 +72,7 @@ local list: { Npc } = {
 	{
 		-- Pasar Ikan (shop slot 2)
 		id = "mbok_minah",
+		meet = "npc.mbok_minah.meet",
 		stand = atShop(2), -- shop 2
 		look = { skin = Color3.fromRGB(200, 152, 110), shirt = Color3.fromRGB(196, 120, 90), pants = Color3.fromRGB(96, 70, 50) },
 		buys = { fish = 1.0 },
@@ -76,6 +81,7 @@ local list: { Npc } = {
 	{
 		-- Toko Tukang (shop slot 4): the builder. Sells decor blueprints.
 		id = "mbak_arsi",
+		meet = "npc.mbak_arsi.meet",
 		stand = atShop(4), -- shop 4
 		look = { skin = Color3.fromRGB(196, 146, 104), shirt = Color3.fromRGB(228, 176, 76), pants = Color3.fromRGB(86, 96, 120) },
 		buys = {},
@@ -91,6 +97,7 @@ local MINI_BUY_MULT = 0.9
 for i = 1, MINI_COUNT do
 	table.insert(list, {
 		id = `bang_tarno_{i}`,
+		meet = "npc.bang_tarno.meet",
 		stand = { x = 0, z = 0, yaw = 0 }, -- unused: placed beside the stall at runtime (miniIndex)
 		miniIndex = i,
 		model = "bang_tarno",
