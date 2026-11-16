@@ -255,6 +255,7 @@ end
 
 -- Logo (stays through both screens).
 local logoHolder = pictureHolder(gui, "Logo", UiAssets.LOGO.aspect, LOGO_BOX, Vector2.new(0.5, 0.27))
+logoHolder.Position = UDim2.new(0.5, 0, 0.27, 20) -- 20 px lower than the scale centre (Play screen layout)
 image(logoHolder, UiAssets.LOGO.image, "Picture")
 
 -- Loading group: the bar and "Loading...".
@@ -354,7 +355,7 @@ playGroup.Parent = gui
 -- The word PLAY (not an icon) goes through UiKit.button's own caption: cream letters with the same dark outline as every button.
 local playButton = UiKit.button(playGroup, "PlayButton", Locale.t("menu.play"), UiKit.BUTTON) :: TextButton
 playButton.AnchorPoint = Vector2.new(0.5, 0.5)
-playButton.Position = UDim2.fromScale(0.5, 0.7)
+playButton.Position = UDim2.new(0.5, 0, 0.7, 20) -- 20 px lower than the scale position (Play screen layout)
 playButton.Size = UDim2.fromOffset(270, 68)
 playButton.TextSize = 36
 
