@@ -30,7 +30,7 @@ export type Step = {
 	textStuck: string?, -- Locale key shown after 90 s without progress (more explicit); default = text + "tut.stuck_suffix"
 	done: Condition, -- the step counts as done when this holds (always ">=" style, never "exactly")
 	highlight: string?, -- name of a button to ring + point at, in any open screen (e.g. "GarapButton", "KolamButton")
-	target: { npc: string?, pos: Vector3?, spot: string? }?, -- the ground arrow points here until the player is within `arrive` studs (spot = the nearest fishing spot of that Location, e.g. "sungai")
+	target: { npc: string?, pos: Vector3?, spot: string?, land: boolean? }?, -- the ground arrow points here until the player is within `arrive` studs (spot = the nearest fishing spot of that Location, e.g. "sungai")
 	arrive: number?, -- studs (default 25)
 	reward: Reward?, -- paid once when the step completes (never on replay)
 	modal: { title: string, body: string }?, -- kind "ack" only: the welcome modal (Locale keys); Mulai acks it, Lewati skips T1
@@ -180,6 +180,9 @@ local TUTORIALS: { Tutorial } = {
 				text = "tut.t1b.bangun_kolam",
 				done = { kind = "ponds" },
 				highlight = "KolamButton",
+				-- Walk back to the land: the trail leads there (route, stops at the land). Mbok Minah talks only once the player is in the land zone.
+				target = { land = true },
+				arrive = 60,
 			},
 			{
 				-- Fish once in your own pond: it finishes the "kolam_pertama" quest (pond_built + catch_pond).

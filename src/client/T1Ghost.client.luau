@@ -490,6 +490,40 @@ local function menuDone(): boolean
 end
 
 -- Tutorial speech: GuideController hands each step to this sink; the line goes in the dialog box and the GUI shows no text.
+-- Mbok Minah's "balik ke lahan" line waits until the player is in the land zone (not when the fishing ends).
+local LAND_RADIUS = 60 -- studs from the plot centre: the same radius as the trail's arrival (Onboarding arrive)
+local landLinePending = false
+local function landDistance(): number?
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") then
+		return nil
+	end
+	for _, plot in Workspace.Plots:GetChildren() do
+		if plot:GetAttribute("OwnerUserId") == player.UserId then
+			local center = plot:GetPivot().Position
+			return (Vector3.new(root.Position.X, 0, root.Position.Z) - Vector3.new(center.X, 0, center.Z)).Magnitude
+		end
+	end
+	return nil
+end
+
+task.spawn(function()
+	while true do
+		task.wait(0.25)
+		if landLinePending then
+			local distance = landDistance()
+			local line = STEP_LINES.bangun_kolam
+			if line and distance and distance <= LAND_RADIUS and not dialogBusy and menuDone() then
+				landLinePending = false
+				lastSpoken = line.text
+				lastLine = line
+				showLine(line.who, line.text, false, TUTORIAL_BOTTOM, nil)
+			end
+		end
+	end
+end)
+
 -- After the first fish: Mas Joko explains the pond. One button, "Mengerti": the step is acked and the server opens the pond.
 local afterCatchShown = false
 local function showAfterCatch()
@@ -525,6 +559,12 @@ local function ensureSink()
 	end
 	guideModule = guide
 	guide.SetInstructionSink(function(key: string, stuck: boolean): boolean
+		if key ~= "bangun_kolam" then
+			landLinePending = false
+		elseif not stuck then
+			landLinePending = true -- said only once the player is back on the land
+			return true
+		end
 		if NARRATIVE[key] then
 			return true -- an intro dialog: played by the intro / the warung beat
 		end
@@ -550,6 +590,7 @@ end
 
 local function clearSink()
 	afterCatchShown = false
+	landLinePending = false
 	if guideModule and sinkSet then
 		pcall(function()
 			guideModule.SetInstructionSink(nil)

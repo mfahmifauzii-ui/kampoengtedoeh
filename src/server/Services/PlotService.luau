@@ -150,6 +150,47 @@ local function buildPlaceholderPlots(): Folder
 	return folder
 end
 
+-- The float over an owned land: "Kebun <name>", big and high enough to be read from the dock. Off on an empty land.
+-- Always on top, so it shows through trees, and it stays up during the tutorial and after it (it is a landmark, not a dialog).
+local function setOwnerFloat(plot: Model, text: string?)
+	local origin = plot.PrimaryPart
+	if not origin then
+		return
+	end
+	local float = origin:FindFirstChild("KebunFloat")
+	if text == nil then
+		if float and float:IsA("BillboardGui") then
+			float.Enabled = false
+		end
+		return
+	end
+	if not float then
+		float = Instance.new("BillboardGui")
+		float.Name = "KebunFloat"
+		float.AlwaysOnTop = true
+		float.Size = UDim2.fromOffset(340, 64)
+		float.StudsOffsetWorldSpace = Vector3.new(0, 26, 0)
+		float.Adornee = origin
+		float.LightInfluence = 0
+		local label = Instance.new("TextLabel")
+		label.Name = "Text"
+		label.Size = UDim2.fromScale(1, 1)
+		label.BackgroundTransparency = 1
+		label.Font = Enum.Font.GothamBlack
+		label.TextSize = 40
+		label.TextColor3 = Color3.fromRGB(255, 246, 220)
+		label.TextStrokeColor3 = Color3.fromRGB(40, 24, 12)
+		label.TextStrokeTransparency = 0
+		label.Parent = float
+		float.Parent = origin
+	end
+	local label = float:FindFirstChild("Text")
+	if label and label:IsA("TextLabel") then
+		label.Text = text
+	end
+	float.Enabled = true
+end
+
 local function setOwnerLabel(plot: Model, text: string)
 	local label = plot:FindFirstChild("OwnerLabel", true)
 	if label and label:IsA("TextLabel") then
@@ -209,6 +250,7 @@ local function assign(player: Player)
 	plot:SetAttribute("OwnerUserId", player.UserId)
 	player:SetAttribute("PlotName", plot.Name)
 	setOwnerLabel(plot, Locale.t("plot.owner", { name = player.DisplayName }))
+	setOwnerFloat(plot, Locale.t("plot.owner", { name = player.DisplayName }))
 	spawnAtPlot(player)
 	PlotService.Assigned:Fire(player, plot)
 end
@@ -224,6 +266,7 @@ local function release(player: Player)
 	plot:SetAttribute("OwnerUserId", nil)
 	plot:SetAttribute("Likes", nil)
 	setOwnerLabel(plot, Locale.t("plot.empty"))
+	setOwnerFloat(plot, nil)
 end
 
 function PlotService.GetPlot(player: Player): Model?

@@ -340,6 +340,16 @@ local function t1BedGoal(kind: string): Goal?
 	return { key = `bed:{best:GetAttribute("Index")}:{kind}`, target = best.Position, point = best.Position, radius = 5, part = best }
 end
 
+-- The centre of the player's own land (plot), the "land" target. Nil when the player has no plot yet.
+local function myLandCenter(): Vector3?
+	for _, plot in Workspace.Plots:GetChildren() do
+		if plot:GetAttribute("OwnerUserId") == player.UserId then
+			return plot:GetPivot().Position
+		end
+	end
+	return nil
+end
+
 -- Where the trail leads right now: the current tutorial step's target, else (old guide) the buyer when there is something to sell/buy.
 local function currentGoal(): Goal?
 	if running then
@@ -367,6 +377,11 @@ local function currentGoal(): Goal?
 			end
 		elseif target.pos then
 			return { key = `pos:{target.pos}`, target = target.pos, point = target.pos, radius = radius }
+		elseif target.land then
+			local center = myLandCenter()
+			if center then
+				return { key = `land:{player.UserId}`, target = center, point = center, radius = radius }
+			end
 		elseif target.spot then
 			-- The nearest fishing spot of that Location (e.g. the river dock "sungai").
 			local here = myRoot()
@@ -828,6 +843,14 @@ function refreshTutorial()
 	if stepDef.done.kind ~= "ack" then
 		local highlight = stepDef.highlight
 		local kind = stepDef.done.kind
+		-- A land step (walk back home): the button glow waits until the player is in the land zone; the trail leads there.
+		if stepDef.target and stepDef.target.land then
+			local center, root = myLandCenter(), myRoot()
+			local inside = center ~= nil and root ~= nil and (Vector3.new(root.Position.X, 0, root.Position.Z) - Vector3.new(center.X, 0, center.Z)).Magnitude <= (stepDef.arrive or 60)
+			if not inside then
+				highlight = nil
+			end
+		end
 		local groundKind = kind == "tiles" or kind == "ponds" -- steps done by tapping the ground in Garap mode
 		local onGround = groundKind and GarapController.Active
 		-- Past the tilling / pond steps, Garap mode must be closed: its open state hides the bed pills the next step points at.
