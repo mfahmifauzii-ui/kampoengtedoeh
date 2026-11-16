@@ -34,3 +34,10 @@ Status: WIP. Lint sudah jalan untuk file Fase 1. Belum diuji di Studio. Jangan p
   - `DialogueController.luau`, `FarmController.luau`: gagal `--check`, tapi versi HEAD juga gagal. Pelanggaran ini sudah ada sebelum Fase 1, jadi file itu tidak diformat ulang.
 - **Tidak terverifikasi:** `lune` dan `luau` (type check) belum terpasang. Jangan klaim type check sudah lolos.
 - **Studio:** belum diuji. Daftar uji ada di `Fase1-Review-TestPlan`.
+
+## Limitasi yang diketahui (sebelum merge)
+
+- **Kunci kontrol saat fade belum terverifikasi.** Di sesi uji tool, `PlayerModule` tidak ada di `PlayerScripts`, jadi `FadeManager` tidak bisa mengunci kontrol. Guard sudah mencegah fade macet dan memastikan kontrol dilepas kembali. Yang belum terbukti: pemain benar-benar tidak bisa bergerak selama fade. Ini harus dicek di playtest manual sungguhan.
+- **Branch berisi lebih dari Fase 1.** `feat/t1-tutorial-v3` memuat commit `1367304` (WIP audio, VFX, dialog T1, dan perubahan tutorial lain, 57 file). Fase 1 bergantung pada kode itu (T1Dialog, DialogueController), jadi belum bisa dipisah tanpa keputusan.
+- **Tiket terpisah, tidak diperbaiki di Fase 1:** MENUFLOW-LOADING, GARAP-HINT-FORWARD-DECL (GarapController:415), dan dua folder `Remotes` di ReplicatedStorage.
+
