@@ -637,6 +637,7 @@ local function runIntro()
 	end)
 	if not spawnPos or not dir or not side or not humanoid or not root or not okGuide then
 		-- No intro: the tutorial runs without it (she is placed at the gate by the poll).
+		warn(`[T1Ghost] intro skipped: spawn={tostring(spawnPos ~= nil)} npc={tostring(Workspace:FindFirstChild("Npcs") ~= nil and Workspace.Npcs:FindFirstChild(SOURCE_NPC) ~= nil)} humanoid={tostring(humanoid ~= nil)}`)
 		releaseWelcomeModal()
 		introState = "done"
 		return

@@ -42,6 +42,7 @@ local function adopt(npc: Npcs.Npc): boolean
 		return true
 	end
 	existing.PrimaryPart = root
+	existing.ModelStreamingMode = Enum.ModelStreamingMode.Persistent -- see build(): always replicated, streaming radius or not
 	models[npc.id] = existing
 	for _, descendant in existing:GetDescendants() do
 		if descendant:IsA("BasePart") then
@@ -126,6 +127,9 @@ local function build(npc: Npcs.Npc)
 	end
 	local model = rig :: Model
 	model.Name = npc.id
+	-- Persistent: the NPC is always replicated to every client, whatever the player's streaming radius. Without it the
+	-- T1 intro (T1Ghost copies this model) finds no NPC far from the shop and skips the cutscene, and the NPC is missing.
+	model.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
 	model:SetAttribute("NpcId", npc.id)
 	-- Only the root is anchored: the limbs stay free so the idle animation can move them (they hang on the Motor6Ds).
 	for _, descendant in model:GetDescendants() do
