@@ -38,6 +38,7 @@ local State = require(script.Parent:WaitForChild("State"))
 local NpcCamera = require(script.Parent:WaitForChild("NpcCamera"))
 local NpcPose = require(script.Parent:WaitForChild("NpcPose"))
 local T1Dialog = require(script.Parent:WaitForChild("T1Dialog"))
+local Cutscene = require(script.Parent:WaitForChild("Cutscene"))
 
 local GHOST_NAME = "MbokMinah_T1_Local"
 local SOURCE_NPC = "mbok_minah"
@@ -903,27 +904,12 @@ end
 -- If the player is at the warung (near him), the camera goes over their shoulder onto his face with the blur, like any talk.
 local function runWarung(guide: any)
 	dialogBusy = true
-	local camera = Workspace.CurrentCamera :: Camera
-	local controls: any = nil
-	local camConn: RBXScriptConnection? = nil
-	local savedFov = camera.FieldOfView
-	local cameraTaken = false
+	local endCutscene: (() -> ())? = nil -- Cutscene.Begin's End: camera and controls back (Cutscene.luau)
 
 	local function leave()
-		if camConn then
-			camConn:Disconnect()
-			camConn = nil
-		end
-		if cameraTaken then
-			cameraTaken = false
-			NpcCamera.SetBlur(false)
-			camera.CameraType = Enum.CameraType.Custom
-			camera.FieldOfView = savedFov
-		end
-		if controls then
-			pcall(function()
-				controls:Enable()
-			end)
+		if endCutscene then
+			endCutscene()
+			endCutscene = nil
 		end
 		dialogBusy = false
 	end
@@ -956,25 +942,7 @@ local function runWarung(guide: any)
 		and head:IsA("BasePart")
 		and (head.Position - root.Position).Magnitude < 22
 	then
-		controls = getControls()
-		pcall(function()
-			if controls then
-				controls:Disable()
-			end
-		end)
-		local cf, focusDistance = NpcCamera.Shot(head.Position, character, { npc })
-		savedFov = camera.FieldOfView
-		camera.CameraType = Enum.CameraType.Scriptable
-		cameraTaken = true
-		NpcCamera.SetBlur(true, focusDistance)
-		camConn = RunService.RenderStepped:Connect(function(dt: number)
-			if camera.CameraType ~= Enum.CameraType.Scriptable then
-				camera.CameraType = Enum.CameraType.Scriptable
-			end
-			local alpha = 1 - math.exp(-dt * 4)
-			camera.CFrame = camera.CFrame:Lerp(cf, alpha)
-			camera.FieldOfView += (NpcCamera.FOV - camera.FieldOfView) * alpha
-		end)
+		endCutscene = Cutscene.Begin(npc, head)
 	end
 
 	for _, line in WARUNG do
