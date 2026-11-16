@@ -39,6 +39,7 @@ local T1Dialog = require(script.Parent:WaitForChild("T1Dialog"))
 local Locale = require(RS.Shared.Locale)
 local Onboarding = require(RS.Shared.Config.Onboarding)
 local Cutscene = require(script.Parent:WaitForChild("Cutscene"))
+local FadeManager = require(script.Parent:WaitForChild("FadeManager"))
 
 local GHOST_NAME = "MbokMinah_T1_Local"
 local SOURCE_NPC = "mbok_minah"
@@ -691,7 +692,11 @@ local function runIntro()
 		player:SetAttribute("KTIntroRunning", nil)
 		ui.gui:Destroy()
 		releaseWelcomeModal()
-		introState = "done"
+		-- Plan: after the first talk with Mbok Minah, a fade (dark, then dissolve) comes BEFORE the first coachmark (Garap).
+		-- The tutorial only goes on (introState "done", so the coachmark can show) once the screen is clear again.
+		FadeManager.Play(nil, function()
+			introState = "done"
+		end)
 	end
 	introFinish = finish
 
