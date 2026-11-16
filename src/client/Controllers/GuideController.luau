@@ -10,13 +10,13 @@
 -- While Garap mode is open the guide stays quiet: Garap has its own hint line in the same place.
 --
 -- TUTORIAL ENGINE (on top of the above): runs the tutorials of Config/Onboarding TUTORIALS, one at a time. While one runs
--- it owns the hint bar (text of the current step, a small "Lewati" button), the ground trail (step.target), and a pulsing ring on
+-- it owns the hint bar (text of the current step; there is no skip button), the ground trail (step.target), and a pulsing ring on
 -- a HUD button (step.highlight); the old guide stays quiet. Steps are NEVER blocking: every step whose condition already
 -- holds is ticked at once, conditions are ">=". The server (TutorialService) saves the step counter, pays rewards and logs
 -- analytics; this side only watches the world and asks. No progress for 45 s = stronger ring, 90 s = the explicit text.
 -- Replay (Atur > Panduan) runs the same steps with no save and no reward.
 --
--- UI CONTRACT: ScreenGui "GuideUI" > TextLabel "Hint" (> TextButton "Skip"); the trail is the Folder "GuideTrail" in Workspace
+-- UI CONTRACT: ScreenGui "GuideUI" > TextLabel "Hint"; the trail is the Folder "GuideTrail" in Workspace
 -- (client only); the ring is a Frame "GuideRing" parented to the highlighted HUD button.
 
 local CollectionService = game:GetService("CollectionService")
@@ -82,7 +82,6 @@ local acked: { [string]: boolean } = {} -- welcome modal "Mulai" pressed, per st
 local welcomeShown = false -- the welcome modal of the current run has been opened
 local defs: { Onboarding.Tutorial } = {}
 local defById: { [string]: Onboarding.Tutorial } = {}
-local skipButton: TextButton
 local hintPad: UIPadding
 local ring: Frame? = nil
 local ringFor: string? = nil
@@ -198,12 +197,6 @@ local function say(key: string, stuck: boolean): boolean
 	return sink ~= nil and sink(key, stuck)
 end
 
--- T1 and T1b are not skippable (no Lewati anywhere: the pond and the first fish are the point). A replay from Atur > Panduan
--- can still be left, so nobody is ever trapped in it.
-local function skipAllowed(current: { def: Onboarding.Tutorial, replay: boolean }): boolean
-	return current.replay or not (current.def.id == "t1_awal" or current.def.id == "t1b_kolam")
-end
-
 -- Hint text + whether the arrow shows, for the current step.
 local refreshTutorial: () -> ()
 local findHighlight: (name: string) -> GuiObject?
@@ -214,7 +207,6 @@ local function refresh()
 		refreshTutorial()
 		return
 	end
-	skipButton.Visible = false
 	hintPad.PaddingRight = UDim.new(0, 14)
 	hint.Position = UDim2.new(0.5, 0, 0.12, 0) -- top of the screen, under the coin bar (not the middle)
 	step = computeStep()
@@ -801,7 +793,6 @@ function refreshTutorial()
 		if spoken then
 			-- No text anywhere, but still something to look at: glow on Panen when ripe, an arrow over Pak Darmo to sell.
 			-- (block = false: no dark overlay, the bed and the way stay clear.)
-			CoachmarkController.SetSkipAllowed(skipAllowed(current))
 			CoachmarkController.SetPaused(uiBusy())
 			if phase == "harvest" then
 				CoachmarkController.Show({
@@ -826,7 +817,6 @@ function refreshTutorial()
 		end
 		hint.Visible = not spoken and not GarapController.Active
 		hintText.Text = text
-		skipButton.Visible = false
 		return
 	end
 	-- Coachmark (CoachmarkController): ONE instruction per step. The hint bar is hidden while it shows, and the Garap hint
@@ -852,7 +842,6 @@ function refreshTutorial()
 			coachText = Locale.t("tut.coach.jual")
 		end
 		hint.Visible = false
-		skipButton.Visible = false
 		clearRing()
 		GarapController.SetHintHidden(true)
 		-- A panel or modal is open (seed picker, Atur, a confirm): the coachmark steps aside until it closes.
@@ -861,7 +850,6 @@ function refreshTutorial()
 	local npcId = if stepDef.target and (phase == nil or phase == "sell") then stepDef.target.npc else nil
 		-- Mbok Minah says the instruction; the coachmark then shows no text at all (glow, ring and arrows only).
 		local spoken = say(if onGround then `{stepDef.id}_ground` else stepDef.id, stuckFor >= Onboarding.STUCK_TEXT)
-		CoachmarkController.SetSkipAllowed(skipAllowed(current))
 		CoachmarkController.Show({
 			mode = if onGround then "ground" else "button",
 			text = if spoken then nil else coachText,
@@ -882,8 +870,7 @@ function refreshTutorial()
 	hintText.Text = text
 	hint.Visible = not spoken and not uiBusy() -- one instruction at a time: a modal or Atur / Panduan on screen hides this line
 	hint.Position = UDim2.new(0.5, 0, 0, hintTop())
-	skipButton.Visible = skipAllowed(current) and not spoken -- T1 / T1b cannot be skipped
-	hintPad.PaddingRight = UDim.new(0, 84)
+	hintPad.PaddingRight = UDim.new(0, 14)
 
 	-- Ring on a HUD button (created once per button, pulsed in RenderStepped).
 	local wanted = stepDef.highlight
@@ -1000,20 +987,8 @@ local function advance()
 	end
 end
 
-local function onSkip()
-	local current = running
-	if not current then
-		return
-	end
-	if not current.replay then
-		Net.Send("GuideEvent", "skip", current.def.id)
-		closed[current.def.id] = "skipped"
-	end
-	endTutorial()
-end
-
--- The welcome modal of a step that waits for "ack" (T1 step 0). It stays until Mulai (acks, step 0 completes) or Lewati /
--- a tap outside it (skips the tutorial, same as the hint's Lewati). Opened once per run; never closes by itself.
+-- The welcome modal of a step that waits for "ack" (T1 step 0). It has only Mulai (acks, step 0 completes); there is no way to
+-- skip the tutorial. Opened once per run; never closes by itself.
 local function showWelcome()
 	local current = running
 	if not current or welcomeShown or current.n ~= 0 then
@@ -1027,7 +1002,7 @@ local function showWelcome()
 	if acked[id] or UiKit.confirmOpen() then
 		return
 	end
-	-- The intro cutscene (T1Ghost.client) shows its own Mulai Garap / Lewati; the modal waits. The hold expires on its own
+	-- The intro cutscene (T1Ghost.client) plays first; the modal waits. The hold expires on its own
 	-- (os.clock deadline), so a cutscene that dies can never leave the welcome modal blocked.
 	local hold = player:GetAttribute("T1CutsceneUntil")
 	if typeof(hold) == "number" and os.clock() < hold then
@@ -1035,7 +1010,7 @@ local function showWelcome()
 	end
 	welcomeShown = true
 	if not current.replay then
-		-- Not skippable, and the intro cutscene is not playing (it was not needed, or it failed): no modal with a Lewati on it.
+		-- The intro cutscene is not playing (it was not needed, or it failed): the welcome step is acknowledged without a modal.
 		-- The welcome step is simply acknowledged and the tutorial goes on.
 		acked[id] = true
 		advance()
@@ -1045,14 +1020,12 @@ local function showWelcome()
 		title = Locale.t(stepDef.modal.title),
 		body = Locale.t(stepDef.modal.body),
 		confirmText = Locale.t("tut.start"),
-		cancelText = Locale.t("tut.skip"),
+		noCancel = true, -- Mulai is the only button: no Lewati, a tap outside does nothing
 		confirmColor = Color3.fromRGB(96, 150, 70), -- Mulai: the main action, solid leaf green (UIUX_Spec)
-		cancelMuted = true, -- Lewati: the secondary action, outlined and smaller
 		onConfirm = function()
 			acked[id] = true
 			advance()
 		end,
-		onCancel = onSkip,
 	})
 end
 
@@ -1140,26 +1113,6 @@ function GuideController.Init()
 	hintPad.PaddingLeft, hintPad.PaddingRight = UDim.new(0, 14), UDim.new(0, 14)
 	hintPad.Parent = hintText
 
-	-- Small "Lewati" button inside the bar (only while a tutorial runs).
-	skipButton = Instance.new("TextButton")
-	skipButton.Name = "Skip"
-	skipButton.AnchorPoint = Vector2.new(1, 0.5)
-	skipButton.Position = UDim2.new(1, 76, 0.5, 0) -- children sit inside the bar's padding (right pad 84): +76 puts it 8 px from the edge
-	skipButton.Size = UDim2.fromOffset(66, 28)
-	skipButton.BackgroundColor3 = UiKit.BUTTON_MUTED
-	skipButton.AutoButtonColor = true
-	skipButton.Text = Locale.t("tut.skip")
-	skipButton.TextColor3 = UiKit.TEXT
-	skipButton.Font = UiKit.FONT
-	skipButton.TextSize = 14
-	skipButton.Visible = false
-	skipButton.Parent = hint
-	local skipRound = Instance.new("UICorner")
-	skipRound.CornerRadius = UDim.new(0, 10)
-	skipRound.Parent = skipButton
-	skipButton.Activated:Connect(onSkip)
-
-	CoachmarkController.SetSkip(onSkip)
 	gui.Parent = player:WaitForChild("PlayerGui")
 
 	trailFolder = Instance.new("Folder")
@@ -1266,19 +1219,6 @@ end
 -- Used by T1Ghost.client: see instructionSink above. Pass nil to go back to the text GUI.
 function GuideController.SetInstructionSink(sink: ((key: string, stuck: boolean) -> boolean)?)
 	instructionSink = sink
-end
-
--- Used by the intro cutscene: "Lewati" = the same skip as the hint bar, also when the tutorial has not begun yet.
-function GuideController.SkipTutorial(id: string)
-	local current = running
-	if current and current.def.id == id then
-		onSkip()
-		return
-	end
-	if closed[id] == nil then
-		Net.Send("GuideEvent", "skip", id)
-		closed[id] = "skipped"
-	end
 end
 
 return GuideController

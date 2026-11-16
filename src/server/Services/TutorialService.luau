@@ -121,15 +121,6 @@ local function onGuideEvent(player: Player, action: any, tutorialId: any, n: any
 			end
 			logEvent(player, `tut_{tutorialId}_done`, tutorialId)
 		end
-	elseif action == "skip" then
-		if guide.done[tutorialId] or guide.skipped[tutorialId] then
-			return
-		end
-		guide.skipped[tutorialId] = true
-		if guide.step.id == tutorialId then
-			guide.step = { id = "", n = 0 }
-		end
-		logEvent(player, "tut_skip", tutorialId)
 	elseif action == "replay" then
 		-- No state change and no reward: only the analytics event.
 		logEvent(player, "tut_replay", tutorialId)

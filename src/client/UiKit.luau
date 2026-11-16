@@ -1088,6 +1088,7 @@ export type Confirm = {
 	canConfirm: boolean?, -- false greys Setuju out
 	onConfirm: () -> (),
 	onCancel: (() -> ())?,
+	noCancel: boolean?, -- true = only the confirm button; a tap outside does nothing (the tutorial welcome uses it: no Lewati)
 }
 
 local confirmGui: ScreenGui? = nil
@@ -1113,6 +1114,9 @@ local function buildConfirm()
 
 	local function cancel()
 		local current = confirmCurrent
+		if current and current.noCancel then
+			return -- the modal only closes through its confirm button
+		end
 		UiKit.closeConfirm()
 		if current and current.onCancel then
 			current.onCancel()
@@ -1287,11 +1291,12 @@ function UiKit.confirm(opts: Confirm)
 	elseif not muted then
 		parts.no.BackgroundColor3 = UiKit.RED
 	end
+	parts.no.Visible = opts.noCancel ~= true
 	parts.no.Size = if muted then UDim2.new(0.36, -6, 1, 0) else UDim2.new(0.5, -6, 1, 0)
 	parts.no.TextSize = if muted then 16 else 22
 	setButtonEnabled(parts.yes, opts.canConfirm ~= false) -- enabled colour first (it resets BackgroundColor3)
 	styleButton(parts.yes, opts.confirmColor, false) -- then the requested colour (Hapus Petak = brick red) wins
-	parts.yes.Size = if muted then UDim2.new(0.64, -6, 1, 0) else UDim2.new(0.5, -6, 1, 0)
+	parts.yes.Size = if opts.noCancel then UDim2.new(1, -12, 1, 0) elseif muted then UDim2.new(0.64, -6, 1, 0) else UDim2.new(0.5, -6, 1, 0)
 	-- Fit the current screen (rotation included): max 86% of the width and 86% of the height, never the fixed 480.
 	if confirmLimit then
 		local view = (Workspace.CurrentCamera :: Camera).ViewportSize

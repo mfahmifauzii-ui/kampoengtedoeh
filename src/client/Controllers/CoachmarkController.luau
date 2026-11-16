@@ -4,7 +4,7 @@
 --
 -- Shared look (every step): a 60 % black overlay (transparency 0.4) built from four dark frames that meet with a 1 px overlap,
 -- so there is no seam. The info bubble sits above the target with an arrow down (below it if there is no room above).
--- "Lewati" is always top-right, above everything in this controller.
+-- There is no skip button in the tutorial (no Lewati): the tutorial is part of the game.
 --
 -- Modes (GuideController picks one per step):
 --   * "button": the overlay covers the whole screen except a HOLE around a named button (GarapButton, TanamButton,
@@ -61,9 +61,7 @@ local bubble: Frame
 local bubbleText: TextLabel
 local arrow: TextLabel
 local npcArrow: TextLabel
-local skipButton: TextButton
 local current: Spec? = nil
-local skipHandler: (() -> ())? = nil
 
 local function frame(name: string, parent: Instance): Frame
 	local piece = Instance.new("Frame")
@@ -79,11 +77,6 @@ end
 local function place(piece: Frame, x: number, y: number, w: number, h: number)
 	piece.Position = UDim2.fromOffset(x, y)
 	piece.Size = UDim2.fromOffset(math.max(0, w), math.max(0, h))
-end
-
--- Called once by GuideController.Init: the "Lewati" action of the running tutorial.
-function CoachmarkController.SetSkip(handler: () -> ())
-	skipHandler = handler
 end
 
 function CoachmarkController.Init()
@@ -118,7 +111,7 @@ function CoachmarkController.Init()
 		end
 	end
 
-	-- Above the HUD and the overlay: the highlight, the bubble, the NPC arrow, and "Lewati".
+	-- Above the HUD and the overlay: the highlight, the bubble and the NPC arrow.
 	topGui = Instance.new("ScreenGui")
 	topGui.Name = "CoachTop"
 	topGui.ResetOnSpawn = false
@@ -197,40 +190,13 @@ function CoachmarkController.Init()
 	npcArrow.Active = false
 	npcArrow.Parent = topGui
 
-	skipButton = Instance.new("TextButton")
-	skipButton.Name = "Skip"
-	skipButton.AnchorPoint = Vector2.new(1, 0)
-	skipButton.Position = UDim2.new(1, -12, 0, 12)
-	skipButton.Size = UDim2.fromOffset(88, 44) -- 44 px hitbox (UIUX_Spec)
-	skipButton.BackgroundColor3 = UiKit.BUTTON_MUTED
-	skipButton.Text = Locale.t("tut.skip")
-	skipButton.TextColor3 = UiKit.TEXT
-	skipButton.Font = UiKit.FONT
-	skipButton.TextSize = 16
-	skipButton.Parent = topGui
-	local skipRound = Instance.new("UICorner")
-	skipRound.CornerRadius = UDim.new(0, 12)
-	skipRound.Parent = skipButton
-	skipButton.Activated:Connect(function()
-		if skipHandler then
-			skipHandler()
-		end
-	end)
-
 	RunService.RenderStepped:Connect(CoachmarkController.Update)
-end
-
--- GuideController: false for a tutorial that cannot be skipped (T1, T1b): the Lewati button is then never shown.
-local skipAllowed = true
-function CoachmarkController.SetSkipAllowed(allowed: boolean)
-	skipAllowed = allowed
 end
 
 function CoachmarkController.Show(spec: Spec)
 	current = spec
 	bubbleText.Text = spec.text or ""
 	bubble.Visible = spec.text ~= nil
-	skipButton.Visible = skipAllowed
 	topGui.Enabled = true
 end
 
@@ -244,8 +210,8 @@ function CoachmarkController.Hide()
 	end
 end
 
--- A panel or modal is open (the seed picker, Atur, a confirm): the coachmark steps aside (no overlay, no highlight, no bubble),
--- but "Lewati" stays. It comes back by itself when the panel closes.
+-- A panel or modal is open (the seed picker, Atur, a confirm): the coachmark steps aside (no overlay, no highlight, no bubble).
+-- It comes back by itself when the panel closes.
 local paused = false
 function CoachmarkController.SetPaused(on: boolean)
 	paused = on
