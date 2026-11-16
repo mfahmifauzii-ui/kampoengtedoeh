@@ -14,7 +14,10 @@ export type Picture = { image: string, aspect: number } -- a plain picture (not 
 return {
 	-- Coachmark hole corner (assets/gui/coach_corner.png, 256 x 256: a black corner with a quarter-circle cut-out). Empty = the
 	-- hole stays square, as before.
-	COACH_CORNER = { image = "rbxassetid://127913048754516" }, -- Image (Texture) of Decal 94914653634111; the Decal id itself does not render as an Image
+	-- Round portrait mask for the NPC face in the dialog (assets/gui/portrait_mask.png, 256 x 256: parchment outside a circle,
+	-- transparent inside). Empty = the face stays a square (its corners show the model's shoulders).
+	PORTRAIT_MASK = { image = "" },
+	COACH_CORNER = { image = "rbxassetid://127913048754516" },-- Image (Texture) of Decal 94914653634111; the Decal id itself does not render as an Image
 
 	PANEL = {
 		image = "rbxassetid://96943091231295",
