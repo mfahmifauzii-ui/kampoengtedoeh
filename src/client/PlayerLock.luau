@@ -19,6 +19,8 @@ local controls: any = nil -- found in the background at load (see below); nil = 
 local locked = false
 local lockedVia: string = "" -- "controls" | "humanoid": the way the current lock was taken (the release uses the same)
 local saved: { humanoid: Humanoid, walk: number, jump: number, rotate: boolean }? = nil
+local DEFAULT_WALK_SPEED = 16 -- Roblox default, used when the humanoid is already at 0 (see lockHumanoid)
+local DEFAULT_JUMP_POWER = 50
 
 -- Looked up in its own thread, so requiring this module never yields. Until it is found, locks use the humanoid.
 task.spawn(function()
@@ -43,7 +45,14 @@ local function lockHumanoid()
 	if not humanoid then
 		return
 	end
-	saved = { humanoid = humanoid, walk = humanoid.WalkSpeed, jump = humanoid.JumpPower, rotate = humanoid.AutoRotate }
+	-- The values to give back. A 0 here is never a real "normal" speed (it is what a lock leaves behind), so the Roblox
+	-- defaults are used instead: otherwise the player stays stuck at WalkSpeed 0 after the unlock.
+	saved = {
+		humanoid = humanoid,
+		walk = if humanoid.WalkSpeed > 0 then humanoid.WalkSpeed else DEFAULT_WALK_SPEED,
+		jump = if humanoid.JumpPower > 0 then humanoid.JumpPower else DEFAULT_JUMP_POWER,
+		rotate = humanoid.AutoRotate,
+	}
 	humanoid.WalkSpeed = 0
 	humanoid.JumpPower = 0
 	humanoid.AutoRotate = false
