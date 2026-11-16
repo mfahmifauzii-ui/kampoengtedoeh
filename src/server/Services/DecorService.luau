@@ -117,6 +117,10 @@ local function onPlace(player: Player, itemId: any, x: any, z: any, r: any)
 	if not data or not plot or not item then
 		return
 	end
+	if data.guide.decorUnlocked ~= true then
+		Net.Fire("Notify", player, "decor.tut_locked")
+		return
+	end
 	if not isInt(x, DecorGrid.X_MIN, DecorGrid.X_MAX) or not isInt(z, DecorGrid.Z_MIN, DecorGrid.Z_MAX) or not isInt(r, 0, 3) then
 		return
 	end

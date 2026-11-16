@@ -190,6 +190,11 @@ local function startCast(player: Player, spot: BasePart)
 	if location == "kolam" and spot:GetAttribute("Owner") ~= player.UserId then
 		return
 	end
+	-- Tutorial gate (not a level): the dock and the pond open at Lv 1, but only after Mas Joko's gift (fishingUnlocked).
+	if data.guide.fishingUnlocked ~= true then
+		Net.Fire("Notify", player, "fish.tut_locked")
+		return
+	end
 	if data.level < locationConfig.unlockLevel then
 		Net.Fire("Notify", player, "fish.locked", { level = locationConfig.unlockLevel })
 		return
@@ -249,6 +254,10 @@ local function onReel(player: Player, score: any)
 	sessions[player] = nil
 	if InventoryService.Add(player, FishService.ItemId(session.fishId, size), 1) then
 		Net.Fire("Notify", player, "fish.caught", { item = `fish.{session.fishId}`, size = `size.{size}` })
+		local caughtData = DataService.Get(player)
+		if caughtData then
+			caughtData.guide.fishCaught = true -- the t1b "after_catch" step only passes after a real catch
+		end
 		local fish = FishConfig.byId[session.fishId]
 		ProgressionService.AddXp(player, Progression.FISH_XP[fish.rarity] or 0, `catch:{fish.id}`)
 		BookService.RecordFish(player, fish.id, size)

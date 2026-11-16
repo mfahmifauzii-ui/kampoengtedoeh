@@ -146,29 +146,22 @@ local TUTORIALS: { Tutorial } = {
 		steps = {
 			{
 				-- Pak Darmo, at the warung: seeds and upgrades are sold here. Next to continue (kind "ack").
-				-- Pays 20 XP once: it is what opens Lv 2, the level the pond and the fishing spots need.
+				-- Pays 20 XP once (Lv 2). Pak Darmo only sends the player to Mas Joko: no pond talk here (pond = Mbok Minah later).
 				id = "warung",
 				text = "tut.t1b.warung",
 				done = { kind = "ack", id = "warung" },
 				reward = { xp = 20 },
 			},
 			{
-				-- Show how to open a pond: the Kolam tool in the dock glows until the player has turned it on.
-				id = "kolam_demo",
-				text = "tut.t1b.kolam_demo",
-				done = { kind = "pondmode" },
-				highlight = "KolamButton",
-			},
-			{
-				-- The fishing shop: Mas Joko (Toko Pancing).
+				-- The fishing shop: Mas Joko (Toko Pancing). Done only when Terima Hadiah was taken (rodGift), never by walking near.
 				id = "mas_joko",
 				text = "tut.t1b.mas_joko",
-				done = { kind = "near", id = "mas_joko", dist = 14 },
+				done = { kind = "rodgift" },
 				target = { npc = "mas_joko" },
 				arrive = 14,
 			},
 			{
-				-- One fish at the river dock (the bamboo rod is free and already owned).
+				-- One fish at the river dock (the gift gave the Joran Bambu, so the rod is owned).
 				id = "mancing",
 				text = "tut.t1b.mancing",
 				done = { kind = "fish" },
@@ -176,7 +169,13 @@ local TUTORIALS: { Tutorial } = {
 				arrive = 6,
 			},
 			{
-				-- Back on the land: dig the first pond (it is free).
+				-- Mas Joko's dialog after the first fish: "Mengerti" finishes it. Opens the pond (kolamUnlocked, server).
+				id = "after_catch",
+				text = "npc.mas_joko.after_catch",
+				done = { kind = "ack", id = "after_catch" },
+			},
+			{
+				-- Back on the land: Mbok Minah teaches the first pond (it is free).
 				id = "bangun_kolam",
 				text = "tut.t1b.bangun_kolam",
 				done = { kind = "ponds" },

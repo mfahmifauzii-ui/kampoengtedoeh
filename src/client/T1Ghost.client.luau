@@ -92,9 +92,8 @@ local INTRO = {
 
 -- T1b, the first beat (Pak Darmo, at the warung, right after the sale): Next after every line.
 local WARUNG = {
-	"Nah, hasil panenmu sudah laku. Warung ini bukan cuma tempat jual, lho.",
-	"Di sini kamu bisa beli bibit baru dan upgrade: tas lebih lega, kolam, sampai warung lebih besar.",
-	"Sekarang temui Mas Joko di Toko Pancing, dia punya alat pancing buat kamu. Ikuti panah di tanah ya.",
+	"Nah, hasil panenmu sudah laku. Selamat, kamu naik ke Lv 2!",
+	"Sekarang temui Mas Joko di Toko Pancing. Dia punya joran dan umpan buat kamu. Ikuti panah di tanah ya.",
 }
 
 -- What is said for each tutorial step (key = GuideController's step key; "<key>_ground" while Garap mode is open, "<key>_stuck"
@@ -114,13 +113,9 @@ local STEP_LINES: { [string]: Line } = {
 	panen_harvest = { who = "mbok_minah", text = "Nah, sudah matang! Ketuk tombol Panen yang menyala." },
 	panen_sell = { who = "mbok_minah", text = "Hasil panennya jual ke Pak Darmo di warung. Ikuti panah di tanah ya." },
 	-- T1b
-	kolam_demo = {
-		who = "pak_darmo",
-		text = "Lihat dock di bawah: ketuk tombol Kolam yang menyala. Nanti kolam digali di tanah hijau lahanmu.",
-	},
 	mas_joko = {
 		who = "pak_darmo",
-		text = "Sekarang temui Mas Joko di Toko Pancing buat belajar mancing. Ikuti panah di tanah ya.",
+		text = "Ikuti panah ke Toko Pancing. Mas Joko punya joran dan umpan buat kamu.",
 	},
 	mancing = {
 		who = "mas_joko",
@@ -495,6 +490,29 @@ local function menuDone(): boolean
 end
 
 -- Tutorial speech: GuideController hands each step to this sink; the line goes in the dialog box and the GUI shows no text.
+-- After the first fish: Mas Joko explains the pond. One button, "Mengerti": the step is acked and the server opens the pond.
+local afterCatchShown = false
+local function showAfterCatch()
+	if afterCatchShown or guideModule == nil then
+		return
+	end
+	afterCatchShown = true
+	T1Dialog.Show({
+		name = Locale.t("npc.mas_joko"),
+		text = Locale.t("npc.mas_joko.after_catch"),
+		showNext = false,
+		bottom = TUTORIAL_BOTTOM,
+		choices = {
+			{
+				text = Locale.t("dialog.understand"),
+				onChoose = function()
+					guideModule.AckStep("after_catch")
+				end,
+			},
+		},
+	})
+end
+
 local function ensureSink()
 	if sinkSet then
 		return
@@ -509,6 +527,12 @@ local function ensureSink()
 	guide.SetInstructionSink(function(key: string, stuck: boolean): boolean
 		if NARRATIVE[key] then
 			return true -- an intro dialog: played by the intro / the warung beat
+		end
+		if key == "after_catch" then
+			if not dialogBusy and menuDone() then
+				showAfterCatch()
+			end
+			return true
 		end
 		local line = (stuck and STEP_LINES[`{key}_stuck`]) or STEP_LINES[key]
 		if not line then
@@ -525,6 +549,7 @@ local function ensureSink()
 end
 
 local function clearSink()
+	afterCatchShown = false
 	if guideModule and sinkSet then
 		pcall(function()
 			guideModule.SetInstructionSink(nil)

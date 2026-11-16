@@ -628,6 +628,10 @@ local function evalCondition(condition: Onboarding.Condition): boolean
 	elseif kind == "sells" then
 		local snap = snapshot()
 		return snap ~= nil and typeof(snap.guideSells) == "number" and snap.guideSells >= need
+	elseif kind == "rodgift" then
+		-- Mas Joko's Terima Hadiah was taken (the server gives the rod and the bait once)
+		local snap = snapshot()
+		return snap ~= nil and snap.guide ~= nil and snap.guide.rodGift == true
 	elseif kind == "ack" then
 		return acked[condition.id or ""] == true
 	elseif kind == "pondmode" then

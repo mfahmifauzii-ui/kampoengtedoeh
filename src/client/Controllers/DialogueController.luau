@@ -193,13 +193,18 @@ end
 
 local function refresh(npcId: string)
 	local choices = {}
-	if npcId == "mas_joko" and not gotRodGift() then
+	local giftMode = npcId == "mas_joko" and not gotRodGift()
+	if giftMode then
+		-- GIFT MODE: the only choice is Terima Hadiah (no Sampai jumpa, no tap-outside close). The box is drawn again after the gift.
 		table.insert(choices, {
 			text = Locale.t("dialog.receive_gift"),
 			onChoose = function()
-				-- Terima Hadiah: the server gives the Joran Bambu and the pelet once (TutorialService); the sync redraws the choices.
+				-- Terima Hadiah: the server gives the Joran Bambu and the pelet once (TutorialService).
 				task.spawn(function()
 					pcall(Net.Invoke, "MeetJoko")
+					if currentNpc == npcId then
+						refresh(npcId)
+					end
 				end)
 			end,
 		})
@@ -216,12 +221,15 @@ local function refresh(npcId: string)
 			end,
 		})
 	end
-	table.insert(choices, {
-		text = Locale.t("dialog.bye"),
-		onChoose = function()
-			close() -- Sampai jumpa: no fade (cutscenes keep their own fades)
-		end,
-	})
+	-- TRADE MODE (after the gift): Jual / Beli and Sampai jumpa.
+	if not giftMode then
+		table.insert(choices, {
+			text = Locale.t("dialog.bye"),
+			onChoose = function()
+				close() -- Sampai jumpa: no fade (cutscenes keep their own fades)
+			end,
+		})
+	end
 	T1Dialog.Show({
 		name = Locale.t(`npc.{npcId}`),
 		text = Locale.t(`npc.{npcId}.greet`),

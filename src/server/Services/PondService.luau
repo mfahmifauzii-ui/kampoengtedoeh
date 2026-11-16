@@ -376,6 +376,10 @@ local function onBuild(player: Player, cx: any, cz: any)
 	if not data or not plot or not origin then
 		return
 	end
+	if data.guide.kolamUnlocked ~= true then
+		Net.Fire("Notify", player, "pond.tut_locked")
+		return
+	end
 	local unlock = Fishing.LOCATIONS.kolam.unlockLevel
 	if data.level < unlock then
 		Net.Fire("Notify", player, "fish.locked", { level = unlock })

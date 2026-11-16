@@ -106,16 +106,32 @@ local function onGuideEvent(player: Player, action: any, tutorialId: any, n: any
 		if n <= guide.step.n or n > total then
 			return -- only forward
 		end
+		-- No skipping ahead: a step that needs the gift, a fish, or the Mengerti of the first fish only passes when it really happened.
+		for index = guide.step.n + 1, n do
+			local step = tutorial.steps[index]
+			if step.done.kind == "rodgift" and guide.rodGift ~= true then
+				return
+			end
+			if (step.done.kind == "fish" or step.id == "after_catch") and guide.fishCaught ~= true then
+				return
+			end
+		end
 		for index = guide.step.n + 1, n do
 			local step = tutorial.steps[index]
 			pay(player, step.reward, tutorialId)
 			logEvent(player, `tut_{tutorialId}_{step.id}`, tutorialId)
+			if step.id == "after_catch" then
+				guide.kolamUnlocked = true -- the pond opens once the first fish was explained (Mbok Minah teaches it)
+			end
 		end
 		guide.step.n = n
 		if n >= total then
 			guide.done[tutorialId] = true
 			guide.step = { id = "", n = 0 }
 			pay(player, tutorial.reward, tutorialId)
+			if tutorialId == "t1b_kolam" then
+				guide.decorUnlocked = true -- decorating opens when the whole second tutorial is finished
+			end
 			if tutorialId == "t1_awal" then
 				ProgressionService.CheckDailyVisit(player) -- Kunjungan Harian hari 1 waits for T1 (user, 16 Nov)
 			end
@@ -193,6 +209,19 @@ function TutorialService.Init()
 
 	DataService.Loaded:Connect(function(player: Player, data)
 		local guide = data.guide
+		-- Old saves (before the Mas Joko gift and the pond/decor gates): keep what they already have, never take it away.
+		-- Owners of a rod, a pond, or a finished second tutorial keep fishing, the pond and decorating.
+		if data.fishing.ownedRods.bambu == true or #data.pond.list > 0 or guide.done.t1b_kolam == true or guide.skipped.t1b_kolam == true then
+			guide.fishingUnlocked = true
+			guide.rodGift = guide.rodGift or data.fishing.ownedRods.bambu == true
+		end
+		if #data.pond.list > 0 or guide.done.t1b_kolam == true or guide.skipped.t1b_kolam == true then
+			guide.kolamUnlocked = true
+			guide.fishCaught = guide.fishCaught or #data.pond.list > 0
+		end
+		if guide.done.t1b_kolam == true or guide.skipped.t1b_kolam == true or #data.pond.list > 0 then
+			guide.decorUnlocked = true
+		end
 		-- A save from before the tutorial engine: nothing to catch up, and no fast timer (that is for brand-new saves only).
 		if guide.fastLeft < 0 then
 			local isNew = #data.farm.tiles == 0 and data.onboarding.first_plant ~= true and guide.sells == 0
