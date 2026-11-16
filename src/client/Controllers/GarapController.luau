@@ -383,6 +383,9 @@ local function bedPartAt(cx: number, cz: number): BasePart?
 	return nil
 end
 
+-- Forward declaration: refreshHint is defined further down, but setBedHover (below) calls it. Declared here so the name exists.
+local refreshHint: () -> () -- defined below (forward declaration)
+
 -- A yellow outline around the bed under the pointer (a Highlight, no fill): "this is an existing bed, not a place to put one".
 local bedHighlight: Highlight? = nil
 local hoverPart: BasePart? = nil
@@ -417,7 +420,6 @@ local function setBedHover(part: BasePart?)
 end
 
 -- The arrow above the ghost: green = tap here, gray = not here.
-local refreshHint: () -> () -- defined below (forward declaration)
 local function setArrow(valid: boolean)
 	if ghostLabel then
 		ghostLabel.TextColor3 = if valid then ARROW_VALID else ARROW_INVALID
