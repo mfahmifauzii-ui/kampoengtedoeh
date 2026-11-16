@@ -692,11 +692,8 @@ local function runIntro()
 		player:SetAttribute("KTIntroRunning", nil)
 		ui.gui:Destroy()
 		releaseWelcomeModal()
-		-- Plan: after the first talk with Mbok Minah, a fade (dark, then dissolve) comes BEFORE the first coachmark (Garap).
-		-- The tutorial only goes on (introState "done", so the coachmark can show) once the screen is clear again.
-		FadeManager.Play(nil, function()
-			introState = "done"
-		end)
+		-- The fade already ran right after Mbok Minah's last line (see runIntro); the coachmark can show now.
+		introState = "done"
 	end
 	introFinish = finish
 
@@ -871,6 +868,8 @@ local function runIntro()
 		end
 	end
 	T1Dialog.Hide()
+	-- The last line was pressed: the fade starts at once (dark, then dissolve), before the walk-off and the coachmark.
+	FadeManager.Play()
 	shotCf, shotFov = wideShot, CAMERA_FOV -- the conversation is over: back to the wide shot while she walks aside
 	NpcCamera.SetBlur(false)
 
