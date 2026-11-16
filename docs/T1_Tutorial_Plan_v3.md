@@ -29,12 +29,15 @@ Aturan baru:
 
 ### 1.3 Joran
 
-Jawaban: Pemain baru mulai tanpa joran. Tombol Terima Hadiah adalah grant beneran di server, tapi idempotent.
+Jawaban: Opsi A. Joran tetap dari awal, sesuai starter inventory sekarang (Joran Bambu). Tombol Terima Hadiah dari Mas Joko menjadi unlock plus hadiah pendukung, bukan pemberian joran.
 
 Detail:
-- Kalau player belum punya joran, server memberi Joran Bambu
-- Kalau player lama sudah punya joran, tombol hanya memberi feedback dan lanjut, tidak duplikasi
+- Pemain baru tetap mulai dengan Joran Bambu, tidak ada perubahan starter inventory
+- Tombol Terima Hadiah melakukan 3 hal di server: set hasMetJoko = true, set fishingTutorialUnlocked = true, dan beri satu hadiah pendukung (contoh: 5 umpan, skin joran, atau 1 slot tas pancing; pilih satu saat implementasi)
+- Tombol Terima Hadiah tidak memberi joran duplikat
+- Feedback: "Kamu mendapatkan hadiah dari Mas Joko! Sekarang kamu bisa mancing". Jangan tulis "mendapatkan Joran Bambu", karena pemain sudah punya joran
 - Tidak ada migrasi massal yang menghapus joran lama
+- Opsi B (hapus joran dari starter, beri lewat Mas Joko) ditolak untuk sekarang, lihat T1_Tutorial_Plan_v3.1_Revisi.md bagian 3
 
 ### 1.4 Petak baru di penutup
 
