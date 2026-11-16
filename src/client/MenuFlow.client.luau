@@ -355,7 +355,7 @@ playGroup.Parent = gui
 -- The word PLAY (not an icon) goes through UiKit.button's own caption: cream letters with the same dark outline as every button.
 local playButton = UiKit.button(playGroup, "PlayButton", Locale.t("menu.play"), UiKit.BUTTON) :: TextButton
 playButton.AnchorPoint = Vector2.new(0.5, 0.5)
-playButton.Position = UDim2.new(0.5, 0, 0.7, 20) -- 20 px lower than the scale position (Play screen layout)
+playButton.Position = UDim2.fromScale(0.5, 0.7) -- gap to the logo: 20 px less than when the logo moved down (Play screen layout)
 playButton.Size = UDim2.fromOffset(270, 68)
 playButton.TextSize = 36
 
