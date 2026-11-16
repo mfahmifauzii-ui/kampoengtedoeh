@@ -16,7 +16,7 @@ return {
 	-- hole stays square, as before.
 	-- Round portrait mask for the NPC face in the dialog (assets/gui/portrait_mask.png, 256 x 256: parchment outside a circle,
 	-- transparent inside). Empty = the face stays a square (its corners show the model's shoulders).
-	PORTRAIT_MASK = { image = "" },
+	PORTRAIT_MASK = { image = "rbxassetid://126691676296236" }, -- Image (Texture) of Decal 117788379650628; the Decal id itself does not render as an Image
 	COACH_CORNER = { image = "rbxassetid://127913048754516" },-- Image (Texture) of Decal 94914653634111; the Decal id itself does not render as an Image
 
 	PANEL = {
