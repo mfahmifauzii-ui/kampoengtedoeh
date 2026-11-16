@@ -9,6 +9,12 @@ local MAX_TILES = 100
 return {
 	MAX_TILES = MAX_TILES,
 
+	-- STAGE 2: alat siram. Bought with Koin from Pak Darmo (Alat section). Gembor waters a 3x3 block of beds in one tap.
+	-- Sprinkler (Lv 7, Koin 800) is NOT built yet (see docs/OVERNIGHT_LOG.md).
+	TOOLS = {
+		gembor = { price = 300, unlockLevel = 4, radius = 1 }, -- radius 1 = 3x3 beds around the tapped one
+	},
+
 	-- A bed = soil painted on the terrain (flat, the dark furrow color you see in the gaps) + a low soil slab (a Part)
 	-- on top. Beds are adjacent on the 8-stud grid; the slab is BED_SIZE wide, so a 1-stud furrow shows between them,
 	-- like in any farming game. (Smooth terrain alone can't make a crisp gap: it blurs about 2 studs each side.)

@@ -33,6 +33,8 @@ local template: Types.PlayerData = {
 		ownedRods = { bambu = true },
 	},
 
+	tools = { gembor = false }, -- Stage 2: owned farm tools (Config/Farm TOOLS), bought with Koin
+
 	pond = {
 		list = {},-- { PondEntry } ponds the player built (the Lv 2 quest gives the first one free)
 		nextUid = 1,
@@ -57,9 +59,10 @@ local template: Types.PlayerData = {
 	quests = {
 		active = {}, -- [questId] = { step = 1, count = 0 } (see Config/Quests)
 		done = {}, -- [questId] = true
+		daily = { day = "", kind = "", progress = 0, claimed = false }, -- Stage 7: Daily Quest (Config/Quests DAILY), reset 05:00 WIB
 	},
 
-	visits = { count = 0, lastDay = "" }, -- Kunjungan Harian (cumulative)
+	visits = { count = 0, lastDay = "", pending = false }, -- Kunjungan Harian (cumulative). pending = today's bonus can be claimed (after T1, user 16 Nov)
 	playtime = { day = "", seconds = 0, claimed = 0 }, -- Hadiah playtime: active seconds today, chests opened today (Config/Progression PLAYTIME)
 	playtime = { day = "", seconds = 0, claimed = 0 }, -- Hadiah playtime: active seconds today, chests opened today (Config/Progression PLAYTIME)
 
@@ -83,7 +86,7 @@ local template: Types.PlayerData = {
 		likedToday = {}, -- [ownerUserId as string] = true (plots you liked today)
 	},
 
-	settings = { music = true, ambient = true, sfx = true },
+	settings = { music = true, ambient = true, sfx = true, musicVol = 1, sfxVol = 1, quality = 2 }, -- volumes are a share (0..1) of Audio.VOLUME; quality 1 Rendah, 2 Sedang, 3 Tinggi
 
 	passes = {}, -- [passKey] = true; cache of confirmed game pass ownership (fallback if API is down)
 	instantGrow = { tokens = 0, day = "", usedToday = 0 },

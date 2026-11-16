@@ -30,7 +30,7 @@ export type Step = {
 	textStuck: string?, -- Locale key shown after 90 s without progress (more explicit); default = text + "tut.stuck_suffix"
 	done: Condition, -- the step counts as done when this holds (always ">=" style, never "exactly")
 	highlight: string?, -- name of a button to ring + point at, in any open screen (e.g. "GarapButton", "KolamButton")
-	target: { npc: string? , pos: Vector3? }?, -- the ground arrow points here until the player is within `arrive` studs
+	target: { npc: string?, pos: Vector3?, spot: string? }?, -- the ground arrow points here until the player is within `arrive` studs (spot = the nearest fishing spot of that Location, e.g. "sungai")
 	arrive: number?, -- studs (default 25)
 	reward: Reward?, -- paid once when the step completes (never on replay)
 	modal: { title: string, body: string }?, -- kind "ack" only: the welcome modal (Locale keys); Mulai acks it, Lewati skips T1
@@ -67,7 +67,11 @@ export type Tutorial = {
 --   "panel"                   the screen/panel named `id` is open (ScreenGui Enabled)
 --   "garap"                   Garap mode is open
 --   "sells"                   n or more sale trips to the buyer (data.guide.sells, snapshot.guideSells)
---   "ack"                     the player tapped the welcome modal's Mulai (id = step key); shown by GuideController, never by time
+--   "ack"                     the player pressed Next / Mulai in a dialog of the intro (id = step key); never by time
+--   "pondmode"                Garap is open in its Kolam mode (the player opened the pond tool)
+--   "ponds"                   n or more ponds of mine are built
+--   "fish"                    n or more fish in the bag (any item written <fish>@<size>)
+--   "quest"                   the quest named `id` is done (snapshot.quests.done)
 -- TRIGGER KINDS:
 --   "newPlayer"   a save with no beds and nothing planted yet (starts at once on join)
 --   "level"       level >= n
@@ -126,6 +130,63 @@ local TUTORIALS: { Tutorial } = {
 			},
 		},
 		reward = { koin = 30 },
+	},
+
+	-- T1b: right after the first sale to Pak Darmo (T1Ghost.client starts it): the warung, the pond tool, the first fish and
+	-- the first pond. Not auto-started (manual trigger), so a save that finished T1 long ago never gets it. Progress is saved
+	-- like any tutorial, so a rejoin resumes it. The dialogs are Mbok Minah's / Pak Darmo's / Mas Joko's (T1Dialog); the
+	-- coachmark only highlights. NO skip: the pond and the first fish are the point of this tutorial.
+	{
+		id = "t1b_kolam",
+		title = "tut.t1b.title",
+		trigger = { kind = "manual" },
+		auto = false,
+		steps = {
+			{
+				-- Pak Darmo, at the warung: seeds and upgrades are sold here. Next to continue (kind "ack").
+				-- Pays 20 XP once: it is what opens Lv 2, the level the pond and the fishing spots need.
+				id = "warung",
+				text = "tut.t1b.warung",
+				done = { kind = "ack", id = "warung" },
+				reward = { xp = 20 },
+			},
+			{
+				-- Show how to open a pond: the Kolam tool in the dock glows until the player has turned it on.
+				id = "kolam_demo",
+				text = "tut.t1b.kolam_demo",
+				done = { kind = "pondmode" },
+				highlight = "KolamButton",
+			},
+			{
+				-- The fishing shop: Mas Joko (Toko Pancing).
+				id = "mas_joko",
+				text = "tut.t1b.mas_joko",
+				done = { kind = "near", id = "mas_joko", dist = 14 },
+				target = { npc = "mas_joko" },
+				arrive = 14,
+			},
+			{
+				-- One fish at the river dock (the bamboo rod is free and already owned).
+				id = "mancing",
+				text = "tut.t1b.mancing",
+				done = { kind = "fish" },
+				target = { spot = "sungai" },
+				arrive = 6,
+			},
+			{
+				-- Back on the land: dig the first pond (it is free).
+				id = "bangun_kolam",
+				text = "tut.t1b.bangun_kolam",
+				done = { kind = "ponds" },
+				highlight = "KolamButton",
+			},
+			{
+				-- Fish once in your own pond: it finishes the "kolam_pertama" quest (pond_built + catch_pond).
+				id = "mancing_kolam",
+				text = "tut.t1b.mancing_kolam",
+				done = { kind = "quest", id = "kolam_pertama" },
+			},
+		},
 	},
 }
 

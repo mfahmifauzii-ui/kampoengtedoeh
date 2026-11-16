@@ -13,7 +13,7 @@ return {
 	valueTarget = function(level: number): number
 		return 40 + level * 15
 	end,
-	MAX_CROP_COUNT = 12,
+	MAX_CROP_COUNT = 8, -- Stage 3: daily orders ask 5-8 items max
 	MAX_FISH_COUNT = 4,
 
 	REWARD_MULT = 1.5, -- reward Koin = request value × this

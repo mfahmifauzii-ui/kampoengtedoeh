@@ -115,6 +115,9 @@ local function onGuideEvent(player: Player, action: any, tutorialId: any, n: any
 			guide.done[tutorialId] = true
 			guide.step = { id = "", n = 0 }
 			pay(player, tutorial.reward, tutorialId)
+			if tutorialId == "t1_awal" then
+				ProgressionService.CheckDailyVisit(player) -- Kunjungan Harian hari 1 waits for T1 (user, 16 Nov)
+			end
 			logEvent(player, `tut_{tutorialId}_done`, tutorialId)
 		end
 	elseif action == "skip" then

@@ -9,6 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Quests = require(ReplicatedStorage.Shared.Config.Quests)
+local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
 local InventoryService = require(script.Parent.InventoryService)
@@ -25,6 +26,7 @@ local function startAvailable(player: Player, data: Types.PlayerData): boolean
 			and data.quests.active[quest.id] == nil
 			and data.level >= quest.unlockLevel
 			and (quest.after == nil or data.quests.done[quest.after] == true)
+			and (quest.requireTutorial ~= true or data.guide.done.t1_awal == true)
 		then
 			data.quests.active[quest.id] = { step = 1, count = 0 }
 			started = true
@@ -34,11 +36,37 @@ local function startAvailable(player: Player, data: Types.PlayerData): boolean
 	return started
 end
 
-local function evaluate(player: Player)
-	local data = DataService.Get(player)
-	if data and startAvailable(player, data) then
-		InventoryService.Sync(player)
+
+-- Stage 7 Daily: one random kind per WIB day, starting at Quests.DAILY_RESET_HOUR. Progress is counted, never lost:
+-- an unfinished daily is replaced by a new one the next day (no fail state).
+local function rollDaily(data: Types.PlayerData, now: number)
+	local day = TimeKeys.day(now - Quests.DAILY_RESET_HOUR * 3600)
+	if data.quests.daily.day == day then
+		return
 	end
+	local pick = Quests.DAILY[math.random(1, #Quests.DAILY)]
+	data.quests.daily = { day = day, kind = pick.id, progress = 0, claimed = false }
+end
+
+local function reportDaily(player: Player, data: Types.PlayerData, event: string, add: number)
+	rollDaily(data, os.time())
+	local daily = data.quests.daily
+	local def = nil
+	for _, candidate in Quests.DAILY do
+		if candidate.id == daily.kind then
+			def = candidate
+		end
+	end
+	if not def or def.event ~= event or daily.claimed then
+		return
+	end
+	daily.progress = math.min(daily.progress + add, def.count)
+	if daily.progress >= def.count then
+		daily.claimed = true
+		ProgressionService.Grant(player, Quests.DAILY_REWARD, `daily:{def.id}`)
+		Net.Fire("Notify", player, "quest.done", { title = `daily.{def.id}.title` })
+	end
+	InventoryService.Sync(player)
 end
 
 function QuestService.Report(player: Player, event: string, amount: number?)
@@ -47,6 +75,7 @@ function QuestService.Report(player: Player, event: string, amount: number?)
 		return
 	end
 	local add = amount or 1
+	reportDaily(player, data, event, add)
 	local changed = false
 
 	for questId, progress in data.quests.active do
@@ -62,6 +91,9 @@ function QuestService.Report(player: Player, event: string, amount: number?)
 					data.quests.active[questId] = nil
 					data.quests.done[questId] = true
 					ProgressionService.Grant(player, quest.reward, `quest:{questId}`)
+					if quest.bonusDecor then
+						data.decor.stock[quest.bonusDecor] = (data.decor.stock[quest.bonusDecor] or 0) + 1
+					end
 					Net.Fire("Notify", player, "quest.done", { title = `quest.{questId}.title` })
 				else
 					Net.Fire("Notify", player, "quest.step", { title = `quest.{questId}.title` })
@@ -74,6 +106,25 @@ function QuestService.Report(player: Player, event: string, amount: number?)
 		startAvailable(player, data) -- finishing a quest can unlock the next one (`after`)
 		InventoryService.Sync(player)
 	end
+end
+
+-- On join: rolls today's Daily (Stage 7) and starts any quest the player now qualifies for.
+local function evaluate(player: Player)
+	local data = DataService.Get(player)
+	if not data then
+		return
+	end
+	-- DEV ONLY (Studio test hook, 16 Nov): Workspace attribute "DevStartLevel" raises the level of the loaded save so the
+	-- Gembor / Sprinkler tests can run (chat commands are not reachable in the Studio tool). REMOVE BEFORE LAUNCH.
+	if game:GetService("RunService"):IsStudio() then
+		local wanted = game:GetService("Workspace"):GetAttribute("DevStartLevel")
+		if typeof(wanted) == "number" and data.level < wanted then
+			data.level = wanted
+		end
+	end
+	rollDaily(data, os.time())
+	startAvailable(player, data)
+	InventoryService.Sync(player)
 end
 
 function QuestService.Init()

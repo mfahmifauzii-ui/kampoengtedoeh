@@ -151,6 +151,15 @@ local function render()
 
 	UiKit.header(panel.list, Locale.t("rewards.calendar"), nextOrder())
 	renderCalendar(nextOrder(), snapshot.visits or 0)
+	if snapshot.visitPending == true then
+		-- Stage fix (user, 16 Nov): today's bonus waits for a tap here (only after T1).
+		local claim = UiKit.button(panel.list, "VisitClaim", Locale.t("rewards.visit_claim"), UiKit.BUTTON)
+		claim.LayoutOrder = nextOrder()
+		claim.Size = UDim2.new(1, 0, 0, UiKit.TOUCH)
+		claim.Activated:Connect(function()
+			Net.Send("VisitClaim")
+		end)
+	end
 	local note = Instance.new("TextLabel")
 	note.Name = "Hint"
 	note.BackgroundTransparency = 1

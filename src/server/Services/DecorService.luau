@@ -12,6 +12,7 @@ local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
+local QuestService = require(script.Parent.QuestService)
 local InventoryService = require(script.Parent.InventoryService)
 local PlotService = require(script.Parent.PlotService)
 local BookService = require(script.Parent.BookService)
@@ -134,6 +135,9 @@ local function onPlace(player: Player, itemId: any, x: any, z: any, r: any)
 	elseif item.blueprint and data.decor.blueprints[item.blueprint] ~= true then
 		Net.Fire("Notify", player, "blueprint.needed", { name = `blueprint.{item.blueprint}` })
 		return
+	elseif item.unlockLevel and data.level < item.unlockLevel then
+		Net.Fire("Notify", player, "shop.locked", { level = item.unlockLevel })
+		return
 	elseif item.event and not EventService.IsActive(item.event) then
 		Net.Fire("Notify", player, "event.over")
 		return
@@ -148,6 +152,7 @@ local function onPlace(player: Player, itemId: any, x: any, z: any, r: any)
 	spawnModel(player, plot, entry)
 	InventoryService.Sync(player)
 	BookService.RecordDecor(player, item.id)
+	QuestService.Report(player, "decor_placed")
 end
 
 local function onMove(player: Player, uid: any, x: any, z: any, r: any)
@@ -188,6 +193,8 @@ local function onStore(player: Player, uid: any)
 		return
 	end
 	table.remove(data.decor.placed, index)
+	-- "Hapus" (remove) = the piece goes back to the Tas (stock) and can be placed again for free. NO Koin refund here:
+	-- selling a decor piece for half its price is a separate action (not built yet).
 	data.decor.stock[entry.id] = (data.decor.stock[entry.id] or 0) + 1
 	local model = findModel(plot, entry.uid)
 	if model then

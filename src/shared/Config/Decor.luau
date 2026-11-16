@@ -18,6 +18,8 @@ export type Item = {
 	id: string,
 	set: string?, -- Collection Book category
 	blueprint: string?, -- Config/Blueprints id needed to BUY it (nil = always available). Owned stock never needs it.
+	unlockLevel: number?, -- Stage 8/2: player level needed to BUY it (server checks; the Sprinkler needs Lv 7)
+	waters: boolean?, -- Stage 2: a Sprinkler, waters the 3x3 beds around it every 60 s (FarmService)
 	w: number,
 	d: number,
 	currency: "koin" | "bunga",
@@ -171,6 +173,40 @@ local list: { Item } = {
 		p(2.4, 1.8, 1.8, 0, 2.1, 0, Color3.fromRGB(150, 104, 66), nil, "wheel"),
 	} },
 }
+
+-- Stage 6: toko hias awal, bisa dibeli dengan Koin tanpa blueprint. Ukuran sesuai spek: 2 stud = 1 sel, 4x4 stud = 2x2 sel.
+local STARTER_HIAS: { Item } = {
+	{ id = "pagar_bambu", set = "taman", w = 1, d = 1, currency = "koin", price = 30, parts = {
+		p(1.8, 1.2, 0.3, 0, 0.6, 0, BAMBOO),
+		p(1.8, 0.2, 0.3, 0, 0.9, 0, BAMBOO_GREEN),
+	} },
+	{ id = "bunga_kamboja", set = "taman", w = 1, d = 1, currency = "koin", price = 25, parts = {
+		p(1.4, 0.4, 1.4, 0, 0.2, 0, LEAF),
+		p(0.6, 0.6, 0.6, 0, 0.7, 0, Color3.fromRGB(236, 196, 210), nil, "ball"),
+	} },
+	{ id = "lampu_taman", set = "taman", w = 1, d = 1, currency = "koin", price = 60, parts = {
+		p(0.3, 1.8, 0.3, 0, 0.9, 0, METAL),
+		p(0.8, 0.5, 0.8, 0, 2.0, 0, Color3.fromRGB(255, 226, 150), Enum.Material.Neon, "ball"),
+	} },
+	{ id = "kursi_kayu", set = "taman", w = 2, d = 2, currency = "koin", price = 80, parts = {
+		p(3.2, 0.3, 3.2, 0, 1.0, 0, WOOD),
+		p(3.2, 1.6, 0.3, 0, 1.9, -1.45, WOOD),
+	} },
+	-- Stage 2: Sprinkler Bambu (Lv 7, 800 Koin). Put it on the land; every 60 s it waters the beds around it (3x3).
+	{ id = "sprinkler_bambu", set = "taman", unlockLevel = 7, waters = true, w = 1, d = 1, currency = "koin", price = 800, parts = {
+		p(0.6, 1.4, 0.6, 0, 0.7, 0, BAMBOO_GREEN),
+		p(1.6, 0.2, 0.2, 0, 1.5, 0, BAMBOO),
+		p(0.4, 0.3, 0.4, 0, 1.6, 0, METAL, nil, "ball"),
+	} },
+	{ id = "pohon_pisang_hias", set = "taman", w = 2, d = 2, currency = "koin", price = 120, parts = {
+		p(0.6, 3.6, 0.6, 0, 1.8, 0, DARKWOOD),
+		p(3.4, 0.2, 1.0, 0, 3.8, 0, LEAF),
+		p(1.0, 0.2, 3.4, 0, 3.9, 0, LEAF),
+	} },
+}
+for _, item in STARTER_HIAS do
+	table.insert(list, item)
+end
 
 local byId: { [string]: Item } = {}
 for _, item in list do

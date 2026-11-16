@@ -146,6 +146,23 @@ local function placeTemplate(template: Model, parent: Instance, name: string, cf
 end
 
 local function lampPost(parent: Instance, cf: CFrame)
+	local lampTemplate = getTemplate("LampuJalanBambu")
+	if lampTemplate then
+		-- Imported bamboo lamp (6 studs). Its bulb is the part named bola_lampu: it gets the same DecorLight tag and light.
+		local lamp = placeTemplate(lampTemplate, parent, "Lamp", cf, 6)
+		local bulb = lamp:FindFirstChild("bola_lampu", true)
+		if bulb and bulb:IsA("BasePart") then
+			local light = Instance.new("PointLight")
+			light.Color = Color3.fromRGB(255, 214, 160)
+			light.Brightness = 1.2
+			light.Range = 16
+			light.Shadows = false
+			light.Enabled = false -- WorldController switches DecorLight lamps on at night
+			light.Parent = bulb
+			CollectionService:AddTag(bulb, "DecorLight")
+		end
+		return
+	end
 	block(parent, "Pole", Vector3.new(0.5, 7, 0.5), cf * CFrame.new(0, 3.5, 0), C.DARKWOOD, Enum.Material.Wood)
 	local bulb = block(parent, "Lamp", Vector3.new(1.3, 1.3, 1.3), cf * CFrame.new(0, 7.4, 0), Color3.fromRGB(236, 206, 150))
 	bulb.Shape = Enum.PartType.Ball
@@ -637,8 +654,25 @@ end
 -- A low bamboo fence around the land each player owns (not solid: visitors can walk in, you just see where the land
 -- ends). It follows the owned blocks, so it moves out when the player buys one. The road side has a 32-stud gate in
 -- the middle. One folder per plot (Map.LandFences.Plot<n>); MapService.RebuildFence redoes a single plot.
-local FENCE_SEGMENT = 8 -- studs between posts
-local GATE_HALF = 16 -- no fence within this distance of the middle of the road side
+local FENCE_PITCH = 3.7 -- studs per bamboo segment: centre of the first post to the centre of the last post (model geometry)
+local FENCE_OUT = 4.45 -- studs the fence stands outside the land edge
+local GATE_HALF = 16.65 -- gate opening 33.3 studs (9 segments) in the middle of the road side
+
+-- Consecutive chunk indices in [CHUNK_MIN, CHUNK_MAX] for which ok(i) holds, as {first, last} pairs.
+local function runsOf(ok: (number) -> boolean): { { number } }
+	local out = {}
+	local first = nil
+	for i = Land.CHUNK_MIN, Land.CHUNK_MAX + 1 do
+		local on = i <= Land.CHUNK_MAX and ok(i)
+		if on and first == nil then
+			first = i
+		elseif not on and first ~= nil then
+			table.insert(out, { first, i - 1 })
+			first = nil
+		end
+	end
+	return out
+end
 
 local function buildPlotFence(plotIndex: number, chunks: Land.Chunks?)
 	local root = fenceRoot :: Folder
@@ -649,6 +683,7 @@ local function buildPlotFence(plotIndex: number, chunks: Land.Chunks?)
 	local slot = Plots.LAYOUT[plotIndex]
 	local fences = folder(root, `Plot{plotIndex}`)
 	local frame = CFrame.new(slot.x, 0, slot.z) * CFrame.Angles(0, slot.yaw, 0)
+	local fenceTemplate = getTemplate("PagarBambu")
 	local posts: { [string]: boolean } = {}
 
 	local function world(x: number, z: number): Vector3
@@ -663,41 +698,76 @@ local function buildPlotFence(plotIndex: number, chunks: Land.Chunks?)
 		local part = block(fences, "Post", Vector3.new(0.5, 2.4, 0.5), CFrame.new(world(x, z) + Vector3.new(0, 1.2, 0)), C.BAMBOO, Enum.Material.Wood)
 		part.CanCollide = false
 	end
-	-- One edge of a block as FENCE_SEGMENT-long rails between posts. gate = leave the middle of the road side open.
-	local function edge(ax: number, az: number, bx: number, bz: number, gate: boolean)
-		local count = math.max(1, math.floor((math.abs(bx - ax) + math.abs(bz - az)) / FENCE_SEGMENT + 0.5))
-		for i = 0, count - 1 do
-			local x0, z0 = ax + (bx - ax) * i / count, az + (bz - az) * i / count
-			local x1, z1 = ax + (bx - ax) * (i + 1) / count, az + (bz - az) * (i + 1) / count
-			if not (gate and math.abs((x0 + x1) / 2) < GATE_HALF) then
-				post(x0, z0)
-				post(x1, z1)
-				local from, to = world(x0, z0), world(x1, z1)
-				local mid = (from + to) / 2 + Vector3.new(0, 1.7, 0)
-				local rail = block(fences, "Rail", Vector3.new(0.25, 0.25, (to - from).Magnitude), CFrame.lookAt(mid, mid + (to - from)), C.BAMBOO, Enum.Material.Wood)
-				rail.CanCollide = false
+
+	-- One side of the land, from corner A to corner B, as ONE run. Segment i sits at A + dir * (i + 0.5) * FENCE_PITCH,
+	-- so its posts (at +-1.85 from its centre) land exactly on the joints: a corner post is shared by the two sides.
+	-- gate = leave the middle of the road side open.
+	local function side(ax: number, az: number, bx: number, bz: number, gate: boolean)
+		local from, to = world(ax, az), world(bx, bz)
+		local len = (to - from).Magnitude
+		local dir = (to - from).Unit
+		if not fenceTemplate then
+			-- fallback without the imported model: one rail with posts at its ends
+			post(ax, az)
+			post(bx, bz)
+			local mid = (from + to) / 2 + Vector3.new(0, 1.7, 0)
+			local rail = block(fences, "Rail", Vector3.new(0.25, 0.25, len), CFrame.lookAt(mid, mid + (to - from)), C.BAMBOO, Enum.Material.Wood)
+			rail.CanCollide = false
+			return
+		end
+		-- n whole segments, each stretched a few percent (uniformly) so the run ends exactly on its corner posts: no
+		-- segment pokes past a corner and crosses the perpendicular side.
+		local n = math.max(1, math.floor(len / FENCE_PITCH + 0.5))
+		local pitch = len / n
+		local fit = pitch / FENCE_PITCH
+		for i = 0, n - 1 do
+			local along = (i + 0.5) * pitch
+			local lx = ax + (bx - ax) * along / len -- plot-local x of this segment's centre
+			if not (gate and math.abs(lx) < GATE_HALF) then
+				placeTemplate(fenceTemplate, fences, "Pagar", CFrame.fromMatrix(from + dir * along, dir, Vector3.yAxis), 2.5 * fit)
 			end
 		end
 	end
 
+	local function owned(ix: number, iz: number): boolean
+		return Land.isOwned(ix, iz, chunks)
+	end
 	local frontRow = Land.FRONT_Z // Land.CHUNK - 1
+
+	-- Where a side ends: at a convex (outer) corner it runs OUT past the land edge so it meets the perpendicular side;
+	-- at a concave (inner) corner, where the next block along the side is owned, it pulls back OUT so the two sides
+	-- meet in one post instead of crossing. `before` = the owned block just past that end of the run.
+	local function lo(edge: number, before: boolean): number
+		return if before then edge + FENCE_OUT else edge - FENCE_OUT
+	end
+	local function hi(edge: number, after: boolean): number
+		return if after then edge - FENCE_OUT else edge + FENCE_OUT
+	end
+
+	-- left and right sides: one run per column, grouped over the rows that touch the open side
 	for ix = Land.CHUNK_MIN, Land.CHUNK_MAX do
-		for iz = Land.CHUNK_MIN, Land.CHUNK_MAX do
-			if Land.isOwned(ix, iz, chunks) then
-				local r = Land.chunkRect(ix, iz)
-				if not Land.isOwned(ix - 1, iz, chunks) then
-					edge(r.minX, r.minZ, r.minX, r.maxZ, false)
-				end
-				if not Land.isOwned(ix + 1, iz, chunks) then
-					edge(r.maxX, r.minZ, r.maxX, r.maxZ, false)
-				end
-				if not Land.isOwned(ix, iz - 1, chunks) then
-					edge(r.minX, r.minZ, r.maxX, r.minZ, false)
-				end
-				if not Land.isOwned(ix, iz + 1, chunks) then
-					edge(r.minX, r.maxZ, r.maxX, r.maxZ, iz == frontRow)
-				end
-			end
+		for _, run in runsOf(function(iz: number) return owned(ix, iz) and not owned(ix - 1, iz) end) do
+			local a, b = Land.chunkRect(ix, run[1]), Land.chunkRect(ix, run[2])
+			local z0, z1 = lo(a.minZ, owned(ix, run[1] - 1)), hi(b.maxZ, owned(ix, run[2] + 1))
+			side(a.minX - FENCE_OUT, z0, a.minX - FENCE_OUT, z1, false)
+		end
+		for _, run in runsOf(function(iz: number) return owned(ix, iz) and not owned(ix + 1, iz) end) do
+			local a, b = Land.chunkRect(ix, run[1]), Land.chunkRect(ix, run[2])
+			local z0, z1 = lo(a.minZ, owned(ix, run[1] - 1)), hi(b.maxZ, owned(ix, run[2] + 1))
+			side(a.maxX + FENCE_OUT, z0, a.maxX + FENCE_OUT, z1, false)
+		end
+	end
+	-- bottom and top sides: one run per row, grouped over the columns that touch the open side
+	for iz = Land.CHUNK_MIN, Land.CHUNK_MAX do
+		for _, run in runsOf(function(ix: number) return owned(ix, iz) and not owned(ix, iz - 1) end) do
+			local a, b = Land.chunkRect(run[1], iz), Land.chunkRect(run[2], iz)
+			local x0, x1 = lo(a.minX, owned(run[1] - 1, iz)), hi(b.maxX, owned(run[2] + 1, iz))
+			side(x0, a.minZ - FENCE_OUT, x1, a.minZ - FENCE_OUT, false)
+		end
+		for _, run in runsOf(function(ix: number) return owned(ix, iz) and not owned(ix, iz + 1) end) do
+			local a, b = Land.chunkRect(run[1], iz), Land.chunkRect(run[2], iz)
+			local x0, x1 = lo(a.minX, owned(run[1] - 1, iz)), hi(b.maxX, owned(run[2] + 1, iz))
+			side(x0, a.maxZ + FENCE_OUT, x1, a.maxZ + FENCE_OUT, iz == frontRow)
 		end
 	end
 end

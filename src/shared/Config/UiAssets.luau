@@ -9,6 +9,7 @@
 --   icon_<name>.png 256 x 256 transparent icons
 
 export type Skin = { image: string, slice: Rect, sliceScale: number }
+export type Picture = { image: string, aspect: number } -- a plain picture (not 9-sliced), aspect = width / height
 
 return {
 	PANEL = {
@@ -41,6 +42,17 @@ return {
 		slice = Rect.new(110, 60, 658, 140),
 		sliceScale = 0.22,
 	} :: Skin,
+
+	-- Loading screen / Play screen (assets/gui/ready, uploaded 16 Nov 2026).
+	LOGO = { -- "Kampoeng Tedoeh" bamboo letters on the brown plank, leaves (logo v2, transparent, 1024 x 541)
+		image = "rbxassetid://74663602008475",
+		aspect = 1024 / 541,
+	} :: Picture,
+	LOADING_BAR = { -- empty bamboo frame of the loading bar (1024 x 226, transparent hollow). The green fill sits behind it:
+		-- the hollow is x 3.3 % .. 96.8 %, y 13.7 % .. 86.3 % of the picture.
+		image = "rbxassetid://137316042779728",
+		aspect = 1024 / 226,
+	} :: Picture,
 
 	PLATE = { image = "rbxassetid://86005759010163", slice = Rect.new(0, 0, 0, 0), sliceScale = 1 } :: Skin, -- round menu plate (256), drawn Fit
 	CLOSE = { image = "rbxassetid://107235699931445", slice = Rect.new(0, 0, 0, 0), sliceScale = 1 } :: Skin, -- round red close badge (256), drawn Fit

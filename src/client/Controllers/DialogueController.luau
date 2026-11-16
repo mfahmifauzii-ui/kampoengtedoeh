@@ -1,10 +1,11 @@
 --!strict
--- NPC dialogue (The Forge style): ONE button ("Ngobrol", a server-side ProximityPrompt) opens this box:
--- the NPC's name, role and greeting, and two choices: [Jual / Beli] opens the NPC's shop, [Sampai jumpa] closes.
+-- NPC dialogue: ONE button ("Ngobrol", a server-side ProximityPrompt) opens a conversation:
+--   * the camera goes over the player's shoulder onto the NPC's face, with a depth-of-field blur (NpcCamera),
+--   * the NPC's greeting is in the bamboo dialogue box (T1Dialog: face, name, text),
+--   * the choices are a row of numbered UiKit buttons inside that box: 1. Jual / Beli opens the NPC's shop, 2. Sampai jumpa closes.
+--     Tap / click, the number key (PC) or A / X (gamepad) picks one.
 --
--- UI CONTRACT (replace with your designed UI, keep the names):
---   ScreenGui "DialogueUI" > Frame "Box" > TextLabel "NpcName", TextLabel "Role", TextLabel "Line",
---   TextButton "TradeButton", TextButton "ByeButton".
+-- The old on-screen box ("DialogueUI") is no longer drawn; an empty ScreenGui with that name stays so nothing that looks for it breaks.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -16,9 +17,10 @@ local Npcs = require(ReplicatedStorage.Shared.Config.Npcs)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Sfx = require(ReplicatedStorage.Shared.Sfx)
+local NpcCamera = require(script.Parent.Parent.NpcCamera)
 local ShopController = require(script.Parent.ShopController)
 local State = require(script.Parent.Parent.State)
-local UiKit = require(script.Parent.Parent.UiKit)
+local T1Dialog = require(script.Parent.Parent.T1Dialog)
 
 local CHECK_SECONDS = 0.5
 
@@ -27,32 +29,12 @@ local player = Players.LocalPlayer
 local DialogueController = {}
 
 local gui: ScreenGui
-local nameLabel: TextLabel
-local roleLabel: TextLabel
-local lineLabel: TextLabel
 local currentNpc: string? = nil
 
-local function label(parent: Instance, name: string, size: number, font: Enum.Font, position: UDim2, labelSize: UDim2): TextLabel
-	local text = Instance.new("TextLabel")
-	text.Name = name
-	text.BackgroundTransparency = 1
-	text.Position = position
-	text.Size = labelSize
-	text.TextXAlignment = Enum.TextXAlignment.Left
-	text.TextYAlignment = Enum.TextYAlignment.Top
-	text.TextWrapped = true
-	text.TextColor3 = UiKit.TEXT
-	text.Font = font
-	text.TextSize = size
-	text.Parent = parent
-	return text
-end
-
--- Talk camera: while the dialogue is open the camera glides to a close, slightly-from-the-side shot of the NPC's face and the NPC
--- turns to you (client-side only); closing glides back to where the camera was and hands it back to the player.
-local FOCUS_TIME = 0.55
-local RETURN_TIME = 0.4
-local FOCUS_FOV = 52
+-- Talk camera: while the conversation is open the camera glides to the over-the-shoulder shot (NpcCamera) and the NPC turns to you
+-- (client-side only); closing glides back to where the camera was and hands it back to the player.
+local FOCUS_TIME = 0.6
+local RETURN_TIME = 0.45
 local saved: { cframe: CFrame, fov: number }? = nil
 local focusedModel: Model? = nil
 local focusedPivot: CFrame? = nil
@@ -76,7 +58,11 @@ local function tweenCamera(cframe: CFrame, fov: number, seconds: number, onDone:
 	if cameraTween then
 		cameraTween:Cancel()
 	end
-	local tween = TweenService:Create(camera, TweenInfo.new(seconds, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), { CFrame = cframe, FieldOfView = fov })
+	local tween = TweenService:Create(
+		camera,
+		TweenInfo.new(seconds, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut),
+		{ CFrame = cframe, FieldOfView = fov }
+	)
 	cameraTween = tween
 	if onDone then
 		tween.Completed:Once(function(state)
@@ -97,7 +83,9 @@ local function focusNpc(npcId: string)
 		return
 	end
 	local head = model:FindFirstChild("Head")
-	local headPosition = if head and head:IsA("BasePart") then head.Position else model:GetPivot().Position + Vector3.new(0, 2.5, 0)
+	local headPosition = if head and head:IsA("BasePart")
+		then head.Position
+		else model:GetPivot().Position + Vector3.new(0, 2.5, 0)
 	local toPlayer = flat(root.Position - headPosition)
 	if toPlayer.Magnitude < 0.1 then
 		return
@@ -117,20 +105,13 @@ local function focusNpc(npcId: string)
 	local pivot = (focusedPivot :: CFrame).Position
 	model:PivotTo(CFrame.lookAt(pivot, pivot + toPlayer))
 
-	-- Shot: 7 studs out toward you, a little to the side and above eye level, aimed a touch low so the face sits above the dialogue box.
-	local side = toPlayer:Cross(Vector3.yAxis).Unit
-	local wanted = toPlayer * 7 + side * 2.4 + Vector3.new(0, 0.9, 0)
-	-- Walls between the NPC and the camera (a stall's back wall, a roof): pull the camera in so it never films the inside of one.
-	local params = RaycastParams.new()
-	params.FilterType = Enum.RaycastFilterType.Exclude
-	params.FilterDescendantsInstances = { model, player.Character :: Instance }
-	local hit = Workspace:Raycast(headPosition, wanted, params)
-	if hit then
-		wanted = wanted.Unit * math.max(hit.Distance - 0.6, 2.2)
-	end
-	local position = headPosition + wanted
+	-- The head after the NPC has turned (it may have moved a little).
+	local turned = model:FindFirstChild("Head")
+	local face = if turned and turned:IsA("BasePart") then turned.Position else headPosition
+	local shot, focusDistance = NpcCamera.Shot(face, character, { model })
 	camera.CameraType = Enum.CameraType.Scriptable
-	tweenCamera(CFrame.lookAt(position, headPosition + Vector3.new(0, -0.7, 0) - side * 0.5), FOCUS_FOV, FOCUS_TIME, nil)
+	tweenCamera(shot, NpcCamera.FOV, FOCUS_TIME, nil)
+	NpcCamera.SetBlur(true, focusDistance)
 end
 
 local function releaseCamera()
@@ -138,6 +119,7 @@ local function releaseCamera()
 		focusedModel:PivotTo(focusedPivot)
 	end
 	focusedModel, focusedPivot = nil, nil
+	NpcCamera.SetBlur(false)
 	local back = saved
 	saved = nil
 	local camera = Workspace.CurrentCamera
@@ -149,10 +131,10 @@ local function releaseCamera()
 	end)
 end
 
--- While a conversation is open every other screen is hidden (HUD, pills, hints, bars): only the NPC, the camera and the dialogue
--- box remain. They come back, exactly as they were, when it closes.
+-- While a conversation is open every other screen is hidden (HUD, pills, hints, bars): only the NPC, the camera, the dialogue
+-- box and the choices remain. They come back, exactly as they were, when it closes.
 local hiddenGuis: { ScreenGui } = {}
-local KEEP_VISIBLE = { DialogueUI = true }
+local KEEP_VISIBLE = { DialogueUI = true, T1Dialog = true }
 
 local function hideOtherGuis()
 	if #hiddenGuis > 0 then
@@ -176,23 +158,45 @@ local function showOtherGuis()
 		end
 	end
 	hiddenGuis = {}
-	pcall(function()
-		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, true)
-	end)
+	-- The tutorial keeps the chat closed (T1Ghost sets T1ChatLocked): do not open it behind its back.
+	if player:GetAttribute("T1ChatLocked") ~= true then
+		pcall(function()
+			StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, true)
+		end)
+	end
 end
 
 local function close()
 	currentNpc = nil
-	gui.Enabled = false
+	player:SetAttribute("NpcTalkOpen", nil)
+	T1Dialog.Hide()
 	showOtherGuis()
 	releaseCamera()
 end
 
--- Fills the box: the NPC's name, role and greeting.
+-- The dialogue box: the NPC's face, name and greeting, and the numbered choices as a row of buttons inside it:
+-- 1. Jual / Beli opens the NPC's shop, 2. Sampai jumpa closes. (Redrawn whenever the state syncs, so the choices are passed each time.)
 local function refresh(npcId: string)
-	nameLabel.Text = Locale.t(`npc.{npcId}`)
-	roleLabel.Text = Locale.t(`npc.{npcId}.role`)
-	lineLabel.Text = Locale.t(`npc.{npcId}.greet`)
+	T1Dialog.Show({
+		name = Locale.t(`npc.{npcId}`),
+		text = Locale.t(`npc.{npcId}.greet`),
+		avatar = npcModel(npcId),
+		showNext = false,
+		bottom = 16,
+		choices = {
+			{
+				text = Locale.t("dialog.trade"),
+				onChoose = function()
+					local id = currentNpc
+					close()
+					if id then
+						ShopController.Open(id)
+					end
+				end,
+			},
+			{ text = Locale.t("dialog.bye"), onChoose = close },
+		},
+	})
 end
 
 local function open(npcId: any)
@@ -201,9 +205,9 @@ local function open(npcId: any)
 	end
 	ShopController.Close()
 	currentNpc = npcId
-	refresh(npcId)
+	player:SetAttribute("NpcTalkOpen", true)
 	hideOtherGuis()
-	gui.Enabled = true
+	refresh(npcId)
 	Sfx.play("npc_hello")
 	focusNpc(npcId)
 end
@@ -216,50 +220,11 @@ local function npcPosition(npcId: string): Vector3?
 end
 
 function DialogueController.Init()
+	-- Kept (empty, hidden) for the old UI contract; the conversation is drawn by T1Dialog.
 	gui = Instance.new("ScreenGui")
 	gui.Name = "DialogueUI"
 	gui.ResetOnSpawn = false
 	gui.Enabled = false
-
-	local box = Instance.new("Frame")
-	box.Name = "Box"
-	box.AnchorPoint = Vector2.new(0.5, 1)
-	box.Position = UDim2.new(0.5, 0, 1, -14) -- the dock is hidden while talking: sit near the bottom edge
-	box.Size = UDim2.new(0.8, 0, 0, 176)
-	box.BackgroundColor3 = UiKit.BG
-	box.BackgroundTransparency = 0.05
-	box.Parent = gui
-	Instance.new("UICorner").Parent = box
-	local limit = Instance.new("UISizeConstraint")
-	limit.MaxSize = Vector2.new(330, 176)
-	limit.Parent = box
-
-	nameLabel = label(box, "NpcName", 18, Enum.Font.GothamBold, UDim2.fromOffset(12, 8), UDim2.new(1, -24, 0, 22))
-	roleLabel = label(box, "Role", 11, Enum.Font.Gotham, UDim2.fromOffset(12, 28), UDim2.new(1, -24, 0, 14))
-	roleLabel.TextTransparency = 0.3
-	lineLabel = label(box, "Line", 14, Enum.Font.GothamMedium, UDim2.fromOffset(12, 46), UDim2.new(1, -24, 0, 38))
-
-	local tradeButton = UiKit.button(box, "TradeButton", Locale.t("dialog.trade"), UiKit.BUTTON)
-	-- The choices are stacked vertically (one per line, full width), like a conversation menu.
-	tradeButton.AnchorPoint = Vector2.new(0.5, 1)
-	tradeButton.Position = UDim2.new(0.5, 0, 1, -46)
-	tradeButton.Size = UDim2.new(1, -24, 0, 32)
-	tradeButton.TextSize = 15
-	tradeButton.Activated:Connect(function()
-		local npcId = currentNpc
-		close()
-		if npcId then
-			ShopController.Open(npcId)
-		end
-	end)
-
-	local byeButton = UiKit.button(box, "ByeButton", Locale.t("dialog.bye"), UiKit.BUTTON_MUTED)
-	byeButton.AnchorPoint = Vector2.new(0.5, 1)
-	byeButton.Position = UDim2.new(0.5, 0, 1, -10)
-	byeButton.Size = UDim2.new(1, -24, 0, 32)
-	byeButton.TextSize = 15
-	byeButton.Activated:Connect(close)
-
 	gui.Parent = player:WaitForChild("PlayerGui")
 end
 
@@ -278,7 +243,12 @@ function DialogueController.Start()
 		local character = player.Character
 		local root = character and character:FindFirstChild("HumanoidRootPart")
 		local position = if npcId then npcPosition(npcId) else nil
-		if npcId and root and root:IsA("BasePart") and (not position or (root.Position - position).Magnitude > Npcs.LEAVE_DISTANCE) then
+		if
+			npcId
+			and root
+			and root:IsA("BasePart")
+			and (not position or (root.Position - position).Magnitude > Npcs.LEAVE_DISTANCE)
+		then
 			close()
 			ShopController.Close()
 		end

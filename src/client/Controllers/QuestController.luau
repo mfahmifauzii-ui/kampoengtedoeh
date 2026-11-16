@@ -9,6 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Quests = require(ReplicatedStorage.Shared.Config.Quests)
+local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local State = require(script.Parent.Parent.State)
 local UiKit = require(script.Parent.Parent.UiKit)
 
@@ -17,6 +18,57 @@ local player = Players.LocalPlayer
 local QuestController = {}
 
 local tracker: Frame
+
+-- Stage 7: the Daily row ("Misi Harian  2/5"). Shown only for today's daily; the server re-rolls it after 05:00 WIB.
+local function addDailyRow(order: number)
+	local snapshot = State.current :: any
+	local daily = snapshot and snapshot.quests and snapshot.quests.daily
+	if not daily or daily.kind == nil or daily.kind == "" then
+		return
+	end
+	if daily.day ~= TimeKeys.day(os.time() - Quests.DAILY_RESET_HOUR * 3600) then
+		return
+	end
+	local def = nil
+	for _, candidate in Quests.DAILY do
+		if candidate.id == daily.kind then
+			def = candidate
+		end
+	end
+	if not def then
+		return
+	end
+
+	local row = Instance.new("Frame")
+	row.Name = "daily"
+	row.LayoutOrder = order
+	row.BackgroundTransparency = 1
+	row.Size = UDim2.new(1, 0, 0, 46)
+	row.Parent = tracker
+
+	local title = Instance.new("TextLabel")
+	title.Name = "Title"
+	title.BackgroundTransparency = 1
+	title.Size = UDim2.new(1, 0, 0, 20)
+	title.Font = UiKit.FONT
+	title.TextSize = 14
+	title.TextColor3 = UiKit.TEXT
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.Text = Locale.t("daily.title")
+	title.Parent = row
+
+	local step = Instance.new("TextLabel")
+	step.Name = "Step"
+	step.BackgroundTransparency = 1
+	step.Position = UDim2.new(0, 0, 0, 20)
+	step.Size = UDim2.new(1, 0, 0, 20)
+	step.Font = UiKit.FONT
+	step.TextSize = 13
+	step.TextColor3 = UiKit.TEXT
+	step.TextXAlignment = Enum.TextXAlignment.Left
+	step.Text = `{Locale.t("daily." .. def.id)}  {daily.progress}/{def.count}`
+	step.Parent = row
+end
 
 local function addRow(order: number, questId: string, progress: { step: number, count: number })
 	local quest = Quests.byId[questId]
@@ -79,7 +131,8 @@ local function refresh()
 			end
 		end
 	end
-	tracker.Visible = order > 0
+	addDailyRow(order + 1)
+	tracker.Visible = order > 0 or tracker:FindFirstChild("daily") ~= nil
 end
 
 function QuestController.Init()

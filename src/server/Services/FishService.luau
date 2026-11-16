@@ -182,7 +182,9 @@ local function startCast(player: Player, spot: BasePart)
 	end
 
 	local existing = sessions[player]
-	if existing and os.clock() < existing.biteAt + Fishing.REEL_WINDOW then
+	-- NO TIMEOUT (user, 16 Nov): a fish that bit stays on the line until it is reeled in or the player cancels.
+	-- There is no "kabur" timer any more, so an existing session always means "already fishing".
+	if existing then
 		return -- already fishing
 	end
 	if location == "kolam" and spot:GetAttribute("Owner") ~= player.UserId then
@@ -233,10 +235,7 @@ local function onReel(player: Player, score: any)
 	if elapsed < Fishing.REEL_MIN_SECONDS then
 		return -- too fast to be a real reel; keep the session so a legit reel still lands
 	end
-	if elapsed > Fishing.REEL_WINDOW then
-		endSession(player)
-		return
-	end
+	-- NO TIMEOUT: the bite never expires, the player can reel in whenever they tap (no fail state).
 
 	local size = sizeFor(math.clamp(score, 0, 1))
 	sessions[player] = nil
@@ -246,6 +245,7 @@ local function onReel(player: Player, score: any)
 		ProgressionService.AddXp(player, Progression.FISH_XP[fish.rarity] or 0, `catch:{fish.id}`)
 		BookService.RecordFish(player, fish.id, size)
 		AnalyticsHooks.Step(player, "first_catch")
+		QuestService.Report(player, "catch")
 		if session.spot:GetAttribute("Location") == "kolam" then
 			QuestService.Report(player, "catch_pond")
 		end
@@ -356,6 +356,9 @@ local function setupSpot(spot: BasePart)
 	-- Dermaga pancing punya nama sendiri (Basic / Pro Mancing); kolam milik pemain tetap "Mancing".
 	local actionKey = if location == "sungai" or location == "empang" then `spot.{location}` else "prompt.fish"
 	local prompt = makePrompt(spot, "FishPrompt", actionKey, 0)
+	-- Stage 5 (user, 16 Nov): the fishing prompt of EVERY spot (kolam, dermaga sungai, dermaga empang) shows only within
+	-- 4 studs, the same as a bed's proximity. Outside 4 studs there is no button.
+	prompt.MaxActivationDistance = 4
 	prompt.Triggered:Connect(function(player)
 		startCast(player, spot)
 	end)

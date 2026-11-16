@@ -23,11 +23,11 @@ for _, rod in rodList do
 end
 
 return {
-	BITE_MIN = 4, -- seconds, before rod multiplier
-	BITE_MAX = 10,
+	BITE_MIN = 3, -- seconds, before rod multiplier (Stage 5: gigitan 3-5 dtk)
+	BITE_MAX = 5,
 	REEL_SECONDS = 3, -- client mini-game length
 	REEL_MIN_SECONDS = 2.5, -- server: earliest accepted reel after the bite
-	REEL_WINDOW = 30, -- server: bite expires after this
+	-- REEL_WINDOW removed (user, 16 Nov): NO TIMEOUT. The fish waits on the line until it is reeled in.
 	CAST_DISTANCE = 18, -- studs, server-checked
 
 	LOCATIONS = {

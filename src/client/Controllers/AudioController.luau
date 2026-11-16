@@ -95,7 +95,18 @@ local function applySettings()
 		return
 	end
 	for name, group in groups do
-		group.Volume = if settings[name] == false then 0 else (Audio.VOLUME :: any)[name]
+		local share = settings[`{name}Vol`] -- the slider of Pengaturan (music, sfx): 0..1 of the base volume; the others have none
+		group.Volume = if settings[name] == false
+			then 0
+			else (Audio.VOLUME :: any)[name] * (if typeof(share) == "number" then share else 1)
+	end
+end
+
+-- Live preview while a volume slider is dragged (the saved value follows when the player lets go and the state syncs).
+function AudioController.Preview(name: string, share: number)
+	local group = groups[name]
+	if group then
+		group.Volume = (Audio.VOLUME :: any)[name] * math.clamp(share, 0, 1)
 	end
 end
 
@@ -138,8 +149,11 @@ local function runRiver(group: SoundGroup)
 		local fishing = Workspace:FindFirstChild("Fishing")
 		local candidates: { Instance } = if fishing then fishing:GetDescendants() else {}
 		for _, emitter in candidates do
-			if emitter:IsA("BasePart") and (emitter.Name == "Sungai" or emitter:GetAttribute("RiverSound") == true)
-				and not emitter:FindFirstChild("KT_River") then
+			if
+				emitter:IsA("BasePart")
+				and (emitter.Name == "Sungai" or emitter:GetAttribute("RiverSound") == true)
+				and not emitter:FindFirstChild("KT_River")
+			then
 				local sound = makeSound(riverId, group, true, emitter)
 				sound.Name = "KT_River"
 				sound.Volume = 0.8

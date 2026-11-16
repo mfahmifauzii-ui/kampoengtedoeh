@@ -7,7 +7,7 @@ local function id(n: number?): string?
 end
 
 return {
-	VOLUME = { music = 0.22, ambient = 0.35, sfx = 0.5 },
+	VOLUME = { music = 0.3, ambient = 0.4, sfx = 0.5 }, -- Stage 9: music 0.3, nature 0.4, SFX 0.5
 
 	-- Lo-fi / calm playlist, shuffled with a pause between tracks.
 	MUSIC = {

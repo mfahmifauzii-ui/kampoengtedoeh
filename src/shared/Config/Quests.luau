@@ -17,6 +17,8 @@ export type Quest = {
 	id: string,
 	unlockLevel: number,
 	after: string?,
+	requireTutorial: boolean?, -- Stage 7: starts only after T1 (guide.done.t1_awal)
+	bonusDecor: string?, -- Stage 7: decor item added to the stock as a reward (free)
 	steps: { Step },
 	reward: Progression.Reward,
 }
@@ -31,7 +33,31 @@ local list: { Quest } = {
 		},
 		reward = { koin = 300, xp = 60 },
 	},
+	-- Stage 7: Misi Utama, the 3 steps after T1. Only these 3 + one Daily per day exist for now.
+	{
+		id = "misi_utama",
+		unlockLevel = 1,
+		requireTutorial = true,
+		steps = {
+			{ event = "plant_kangkung", count = 3 }, -- Tanam 3 Kangkung
+			{ event = "catch", count = 1 }, -- Mancing 1 Ikan
+			{ event = "decor_placed", count = 1 }, -- Taruh 1 Hiasan
+		},
+		reward = { koin = 50 },
+		bonusDecor = "pagar_bambu",
+	},
 }
+
+-- Stage 7: Daily Quest, one per day (reset 05:00 WIB), picked at random. Never fails: an unfinished daily is simply
+-- replaced the next day. Reward is paid once when the count is reached.
+export type Daily = { id: string, event: string, count: number }
+local DAILY: { Daily } = {
+	{ id = "tanam", event = "plant", count = 5 }, -- Tanam 5 apa saja
+	{ id = "panen", event = "harvest", count = 5 }, -- Panen 5
+	{ id = "pancing", event = "catch", count = 2 }, -- Mancing 2
+}
+local DAILY_RESET_HOUR = 5 -- WIB
+local DAILY_REWARD = { koin = 40, xp = 10 }
 
 local byId: { [string]: Quest } = {}
 for _, quest in list do
@@ -41,4 +67,7 @@ end
 return {
 	list = list,
 	byId = byId,
+	DAILY = DAILY,
+	DAILY_RESET_HOUR = DAILY_RESET_HOUR,
+	DAILY_REWARD = DAILY_REWARD,
 }

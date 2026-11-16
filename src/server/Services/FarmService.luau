@@ -28,6 +28,7 @@ local WorldService = require(script.Parent.WorldService)
 local MonetizationService = require(script.Parent.MonetizationService)
 local TutorialService = require(script.Parent.TutorialService)
 local AnalyticsHooks = require(script.Parent.AnalyticsHooks)
+local QuestService = require(script.Parent.QuestService)
 
 local TILE_TAG = "FarmTile"
 local RATE = { rate = 8, burst = 12 }
@@ -422,12 +423,35 @@ local function onPlant(player: Player, uid: any, cropId: any)
 	end
 	sync(player, tile)
 	AnalyticsHooks.Step(player, "first_plant")
+	-- Stage 7 quest reports: Misi Utama counts Kangkung only, the Daily counts any planting.
+	QuestService.Report(player, "plant")
+	if crop.id == "kangkung" then
+		QuestService.Report(player, "plant_kangkung")
+	end
 end
 
 local function onWater(player: Player, uid: any)
 	local _, tile = getValidTile(player, uid)
 	if tile and waterTile(tile, os.time()) then
 		sync(player, tile)
+	end
+end
+
+-- Stage 2: Gembor Bambu. Waters the tapped bed and every bed within Farm.TOOLS.gembor.radius cells of it (3x3 at radius 1),
+-- but only beds that are planted, growing and dry. Needs the tool owned; the distance check runs on the tapped bed.
+local function onWaterArea(player: Player, uid: any)
+	local data, tile = getValidTile(player, uid)
+	if not data or not tile or data.tools.gembor ~= true then
+		return
+	end
+	local radius = Farm.TOOLS.gembor.radius
+	local now = os.time()
+	for _, other in data.farm.tiles do
+		if math.abs(other.cx - tile.cx) <= radius and math.abs(other.cz - tile.cz) <= radius then
+			if waterTile(other, now) then
+				sync(player, other)
+			end
+		end
 	end
 end
 
@@ -474,6 +498,7 @@ local function onHarvest(player: Player, uid: any)
 	ProgressionService.AddXp(player, crop.xp, `harvest:{crop.id}`)
 	AnalyticsHooks.Step(player, "first_harvest")
 	BookService.RecordCrop(player, crop.id)
+	QuestService.Report(player, "harvest")
 end
 
 -- Instant Grow: finishes one growing tile using a token (daily cap in MonetizationService).
@@ -510,7 +535,43 @@ function FarmService.DevFinishAll(player: Player)
 	end
 end
 
+-- Stage 2: Sprinkler Bambu (decor, Lv 7). Every SPRINKLER_SECONDS it waters the planted, dry beds within reach of each
+-- sprinkler on its owner's land (3x3 around it). It only waters; it never plants or harvests.
+local SPRINKLER_SECONDS = 60
+local SPRINKLER_REACH = Land.PITCH * 1.5 -- studs from the sprinkler to a bed centre: the 3x3 block of beds around it
+
+local function sprinklersTick()
+	local now = os.time()
+	for _, player in Players:GetPlayers() do
+		local data = DataService.Get(player)
+		local plot = PlotService.GetPlot(player)
+		local decor = plot and plot:FindFirstChild("Decor")
+		if data and decor then
+			for _, model in decor:GetChildren() do
+				if model:GetAttribute("ItemId") == "sprinkler_bambu" and model:IsA("Model") then
+					local center = model:GetPivot().Position
+					local watered = 0
+					for _, tile in data.farm.tiles do
+						local part = getTilePart(player, tile.uid)
+						if part and (part.Position - center).Magnitude <= SPRINKLER_REACH and waterTile(tile, now) then
+							sync(player, tile)
+							watered += 1
+						end
+					end
+					print(`[Sprinkler] {player.Name}: {watered} petak tersiram`)
+				end
+			end
+		end
+	end
+end
+
 function FarmService.Init()
+	task.spawn(function()
+		while true do
+			task.wait(SPRINKLER_SECONDS)
+			sprinklersTick()
+		end
+	end)
 	WorldService.RainChanged:Connect(function(raining: boolean)
 		if raining then
 			waterAllForRain()
@@ -525,6 +586,7 @@ end
 function FarmService.Start()
 	Net.On("FarmPlant", onPlant, RATE)
 	Net.On("FarmWater", onWater, RATE)
+	Net.On("FarmWaterArea", onWaterArea, RATE)
 	Net.On("FarmHarvest", onHarvest, RATE)
 	Net.On("FarmInstantGrow", onInstantGrow, { rate = 1, burst = 2 })
 	Net.On("FarmTill", onTill, RATE_TILL)

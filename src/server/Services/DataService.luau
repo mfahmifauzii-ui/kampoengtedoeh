@@ -28,8 +28,16 @@ local DataService = {}
 DataService.Loaded = Signal.new() -- (player, data) after data is ready
 DataService.Releasing = Signal.new() -- (player, data) right before the session ends
 
+-- DEV ONLY (Studio test hook, 16 Nov): a Workspace attribute "DevSaveSuffix" makes a NEW save key (fresh account) in the
+-- Studio store. Set it in Edit mode, play, and change the value for another fresh account. Only active in Studio.
+-- REMOVE BEFORE LAUNCH (see docs/Launch_Checklist.md).
+local function saveKey(player: Player): string
+	local suffix = if RunService:IsStudio() then game:GetService("Workspace"):GetAttribute("DevSaveSuffix") else nil
+	return tostring(player.UserId) .. (if typeof(suffix) == "string" then "_" .. suffix else "")
+end
+
 local function onPlayerAdded(player: Player)
-	local profile = PlayerStore:StartSessionAsync(tostring(player.UserId), {
+	local profile = PlayerStore:StartSessionAsync(saveKey(player), {
 		Cancel = function()
 			return player.Parent ~= Players
 		end,

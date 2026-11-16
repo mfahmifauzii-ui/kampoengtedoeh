@@ -128,6 +128,13 @@ local function onChatted(player: Player, message: string)
 			data.fishing.rod = arg
 			InventoryService.Sync(player)
 		end
+	elseif command == "tool" and arg == "gembor" then
+		-- Stage 2 test: "!tool gembor" owns the Gembor without paying (Studio only path, same as !rod).
+		local data = DataService.Get(player)
+		if data then
+			data.tools.gembor = true
+			InventoryService.Sync(player)
+		end
 	elseif command == "blueprint" then
 		-- "!blueprint all" or "!blueprint taman": own a blueprint without buying it.
 		local data = DataService.Get(player)

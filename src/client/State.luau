@@ -12,16 +12,18 @@ export type Snapshot = {
 	slotsMax: number,
 	backpackTier: number,
 	visits: number, -- Kunjungan Harian count (cumulative)
+	visitPending: boolean, -- today's Kunjungan Harian bonus is ready to claim (button in Panduan)
 	visitDay: string, -- WIB day of the last visit reward
 	playtime: { day: string, seconds: number, claimed: number }, -- Hadiah playtime (seconds is live via the "PlaytimeSec" attribute)
 	pondTier: number,
 	ponds: { { uid: number, cx: number, cz: number } },
-	quests: { active: { [string]: { step: number, count: number } }, done: { [string]: boolean } },
+	quests: { active: { [string]: { step: number, count: number } }, done: { [string]: boolean }, daily: { day: string, kind: string, progress: number, claimed: boolean } },
 	landChunks: { [string]: boolean }, -- bought chunks of your plot ("ix,iz" keys, Modules/Land)
 	landExtra: number, -- how many chunks you bought
 	landPrice: number, -- price of the next chunk (with the game pass discount)
 	rod: string,
 	ownedRods: { [string]: boolean },
+	tools: { [string]: boolean },
 	decorStock: { [string]: number },
 	decorBlueprints: { [string]: boolean },
 	decorPlaced: number,

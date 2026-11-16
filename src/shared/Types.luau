@@ -113,7 +113,7 @@ export type PlayerData = {
 		likedDay: string,
 		likedToday: { [string]: boolean },
 	},
-	settings: { music: boolean, ambient: boolean, sfx: boolean },
+	settings: { music: boolean, ambient: boolean, sfx: boolean, musicVol: number, sfxVol: number, quality: number }, -- vol 0..1, quality 1..3 (Rendah / Sedang / Tinggi)
 	passes: { [string]: boolean },
 	instantGrow: { tokens: number, day: string, usedToday: number },
 	onboarding: { [string]: boolean },

@@ -38,3 +38,20 @@
 ## Launch day
 - [ ] Make public in the morning WIB (peak malam hari ~15:00–22:00 WIB; pantau segera setelahnya).
 - [ ] Watch the funnel + Error Report on day 1; keep one hotfix slot free.
+
+## Status jujur sesi overnight 16 Nov 2026 (dibuat otomatis, belum diverifikasi manusia)
+Legenda: BERES = kode ada dan Play bersih; BELUM = belum dikerjakan; BELUM DITES = kode ada tapi belum diuji di Studio.
+
+- [ ] Playtest #1 lolos: **BELUM DITES** (checklist ada di Playtest_Plan.md).
+- [ ] Hapus `DevService` command `!tool gembor` dan `!rod` / `!koin` untuk launch: **BELUM** (masih ada, dipakai untuk tes).
+- [ ] `DATA_STAGE = "live"`: **BELUM** (tidak diubah sesi ini).
+- [ ] Performa 60 FPS Studio / 30 FPS HP, batas partikel 50, gabung part: **BELUM** (tidak dikerjakan).
+- [ ] HP cek 844x390 dan 1280x720: **BELUM** (tidak dikerjakan).
+- [ ] Save 3x rejoin tanpa data hilang: **BELUM DITES penuh** (satu akun sudah rejoin sekali, data sama; belum 3x dan belum akun baru).
+- [ ] Audio: SFX pendek (cangkul, siram, panen, dll) **BELUM** (id SFX di Config/Audio masih nil). Volume musik 0,3, alam 0,4, SFX 0,5 **BERES** (config).
+- [ ] Gembor Bambu, Sprinkler: Gembor **BELUM DITES** (pembelian belum terbukti). Sprinkler **BELUM**.
+- [ ] Quest Misi Utama (3 langkah) + Daily: **BERES** kode dan tracker tampil Daily; **BELUM DITES** sampai selesai.
+- [ ] Hias 6 item awal: **BERES** di config (pagar_bambu, jalan_batu, bunga_kamboja, lampu_taman, kursi_kayu, pohon_pisang_hias). Hapus = refund 50 persen: **BERES** kode, **BELUM DITES**. Pindah dengan preview transparan dan menu Pindah/Hapus/Putar: **BELUM DIVERIFIKASI** (sudah ada sebelumnya, tidak diubah).
+- [ ] Mancing Stage 5: harga ikan (Lele 12, Mas 20, Gurame 25), Pancing Kayu (label), gigitan 3-5 dtk, no-fail (REEL_WINDOW 300 dtk): **BERES** config. Tombol Mancing 4 stud di kolam: **BELUM** (prompt masih 12 stud).
+- [ ] Tas 50 di awal dan 100 dari Lv 10: **BERES** kode, **BELUM DITES**.
+- [ ] Toko tiga tab (Bibit, Hias, Alat): **BELUM** (Alat Kebun baru ada sebagai section di Pak Darmo).

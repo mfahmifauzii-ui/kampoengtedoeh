@@ -3,6 +3,7 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
 local Workspace = game:GetService("Workspace")
 
 local PlotsConfig = require(ReplicatedStorage.Shared.Config.Plots)
@@ -17,6 +18,10 @@ PlotService.Released = Signal.new() -- (player, plot: Model)
 local plots: { Model } = {}
 local ownerOf: { [Model]: Player } = {}
 local plotOf: { [Player]: Model } = {}
+
+-- The gate sign ("Kebun [Nama]") stands this far along the plot's local X: negative = to the left of the gate opening for a
+-- player who stands on the road facing the land (the gate is 32 studs wide, so 22 is just outside it).
+local SIGN_X = -22
 
 local function buildPlaceholderPlots(): Folder
 	local folder = Instance.new("Folder")
@@ -48,30 +53,65 @@ local function buildPlaceholderPlots(): Folder
 
 		-- The gate's sign: a wooden plate beside the gate (outside the opening: the gate is 32 studs wide, so the plate sits
 		-- at x = 22 on the road side), facing the road. It shows "Kebun [Nama]" or "Lahan Kosong". No floating text.
-		local plate = Instance.new("Part")
-		plate.Name = "Sign"
-		plate.Anchored = true
-		plate.CanCollide = false
-		plate.CanQuery = false
-		plate.CanTouch = false
-		plate.Material = Enum.Material.Wood
-		plate.Color = Color3.fromRGB(146, 104, 66)
-		plate.Size = Vector3.new(9, 4.2, 0.6)
-		-- Sejajar pagar, di depan gerbang: the plate sits on the fence line (x of the fence), centred on the gate opening, so a
-		-- player who respawns or joins (4 studs out, facing the land) sees it right in front of them.
-		plate.CFrame = origin.CFrame * CFrame.new(0, 4.5, PlotsConfig.FRONT_Z + 0.3) -- centred in front of the gate (the spawn stands 4 studs out, facing it), on the fence line
-		print(`PLANG AFTER {plate.Name} @ {plate.Position} (lot {model.Name}, centred on the gate, fence line)`)
-		plate.Parent = model
-		for _, x in { -3.5, 3.5 } do -- two posts under the plate, on the fence line, either side of its middle
-			local post = Instance.new("Part")
-			post.Name = "SignPost"
-			post.Anchored = true
-			post.CanCollide = false
-			post.Material = Enum.Material.Wood
-			post.Color = Color3.fromRGB(110, 76, 46)
-			post.Size = Vector3.new(0.6, 3, 0.6)
-			post.CFrame = origin.CFrame * CFrame.new(x, 1.5, PlotsConfig.FRONT_Z)
-			post.Parent = model
+		local plangTemplate = ServerStorage:FindFirstChild("MapModels") and ServerStorage.MapModels:FindFirstChild("PlangKebun")
+		local plate: BasePart
+		local fromTemplate = false
+		if plangTemplate and plangTemplate:IsA("Model") then
+			fromTemplate = true
+			-- Imported plang (5 x 4.5 studs, empty board). The owner name is drawn on its board (papan_kayu).
+			local plang = plangTemplate:Clone()
+			plang.Name = "Sign"
+			for _, d in plang:GetDescendants() do
+				if d:IsA("BasePart") then
+					d.Anchored = true
+					d.CanCollide = false
+					d.CanQuery = false
+					d.CanTouch = false
+				end
+			end
+			-- On the fence line, standing on the ground (origin top = y 0), to the LEFT of the gate opening (seen from the
+			-- road, facing the land): SIGN_X studs along the plot's local X. It used to stand in the middle of the gate,
+			-- right in front of a player who joins or respawns, and filled the camera of the intro conversation.
+			local pivotCf = origin.CFrame * CFrame.new(SIGN_X, 0, PlotsConfig.FRONT_Z + 0.3)
+			plang:PivotTo(pivotCf)
+			local bbox, size = plang:GetBoundingBox()
+			local rel = pivotCf:PointToObjectSpace(bbox.Position)
+			local delta = pivotCf:VectorToWorldSpace(Vector3.new(-rel.X, 0, -rel.Z)) + Vector3.new(0, size.Y / 2 - bbox.Position.Y, 0)
+			plang:PivotTo(plang:GetPivot() + delta)
+			plang.Parent = model
+			-- The main board is the biggest papan_kayu (the small status board uses the same slot).
+			local best: BasePart? = nil
+			for _, d in plang:GetDescendants() do
+				if d:IsA("BasePart") and d.Name == "papan_kayu" and (best == nil or d.Size.X * d.Size.Y > best.Size.X * best.Size.Y) then
+					best = d
+				end
+			end
+			plate = best :: BasePart
+		else
+			plate = Instance.new("Part")
+			plate.Name = "Sign"
+			plate.Anchored = true
+			plate.CanCollide = false
+			plate.CanQuery = false
+			plate.CanTouch = false
+			plate.Material = Enum.Material.Wood
+			plate.Color = Color3.fromRGB(146, 104, 66)
+			plate.Size = Vector3.new(9, 4.2, 0.6)
+			-- Sejajar pagar, di depan gerbang: the plate sits on the fence line, centred on the gate opening, so a player who
+			-- respawns or joins (4 studs out, facing the land) sees it right in front of them.
+			plate.CFrame = origin.CFrame * CFrame.new(SIGN_X, 4.5, PlotsConfig.FRONT_Z + 0.3)
+			plate.Parent = model
+			for _, x in { -3.5, 3.5 } do -- two posts under the plate, on the fence line, either side of its middle
+				local post = Instance.new("Part")
+				post.Name = "SignPost"
+				post.Anchored = true
+				post.CanCollide = false
+				post.Material = Enum.Material.Wood
+				post.Color = Color3.fromRGB(110, 76, 46)
+				post.Size = Vector3.new(0.6, 3, 0.6)
+				post.CFrame = origin.CFrame * CFrame.new(SIGN_X + x, 1.5, PlotsConfig.FRONT_Z)
+				post.Parent = model
+			end
 		end
 
 		local surface = Instance.new("SurfaceGui")
@@ -82,9 +122,22 @@ local function buildPlaceholderPlots(): Folder
 
 		local label = Instance.new("TextLabel")
 		label.Name = "OwnerLabel"
-		label.Size = UDim2.fromScale(1, 1)
+		-- One line inside the board's margins (the name must not spill over the edge).
+		if fromTemplate then
+			-- The imported plang's papan_kayu mesh also holds the small status board below the main board, so its
+			-- face runs from the status board (bottom) to the main board top. The main board is the upper ~2/3 of that
+			-- face: the name goes there, not at the centre of the whole mesh.
+			label.AnchorPoint = Vector2.new(0.5, 0)
+			label.Position = UDim2.fromScale(0.5, 0.06)
+			label.Size = UDim2.fromScale(0.84, 0.56)
+		else
+			label.AnchorPoint = Vector2.new(0.5, 0.5)
+			label.Position = UDim2.fromScale(0.5, 0.5)
+			label.Size = UDim2.fromScale(0.84, 0.5)
+		end
 		label.BackgroundTransparency = 1
 		label.TextColor3 = Color3.fromRGB(250, 240, 214)
+		label.TextWrapped = false
 		label.TextScaled = true
 		label.Font = Enum.Font.GothamBold
 		label.Text = Locale.t("plot.empty")

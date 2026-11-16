@@ -16,6 +16,7 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 
 	FarmPlant = "Event", -- C->S (tileIndex: number, cropId: string)
 	FarmWater = "Event", -- C->S (tileIndex: number)
+	FarmWaterArea = "Event", -- C->S (tileIndex: number) Gembor Bambu: waters the 3x3 beds around it (Stage 2)
 	FarmHarvest = "Event", -- C->S (tileIndex: number)
 
 	FishState = "Event", -- S->C ("waiting", spot: BasePart) | ("bite") | ("idle")
@@ -36,7 +37,7 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	OrderDeliver = "Event", -- C->S (orderUid: number)
 	OrderReroll = "Event", -- C->S (orderUid: number) daily orders only
 
-	SettingsSet = "Event", -- C->S (key: "music"|"ambient"|"sfx", value: boolean)
+	SettingsSet = "Event", -- C->S (key: "music"|"ambient"|"sfx", value: boolean) or (key: "musicVol"|"sfxVol", value: 0..1) or (key: "quality", value: 1..3)
 
 	StoreBuy = "Event", -- C->S (kind: "pass"|"product", key: string) server re-checks, then prompts
 	FarmInstantGrow = "Event", -- C->S (tileIndex: number) uses one Instant Grow token
@@ -54,6 +55,7 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	SocialLike = "Event", -- C->S (ownerUserId: number) like the plot you're standing on
 
 	PlaytimeClaim = "Event", -- C->S (index: number) open playtime peti number index (in order, Config/Progression PLAYTIME)
+	VisitClaim = "Event", -- C->S () claim today's Kunjungan Harian bonus (only after T1, Stage fix 16 Nov)
 	BookClaim = "Event", -- C->S (key: string) claim a Book reward: "cat:<category>" or a milestone id (Config/Book)
 
 	GuideEvent = "Event", -- C->S (action: "start"|"step"|"skip"|"replay", tutorialId: string, n: number?) tutorial engine, see TutorialService

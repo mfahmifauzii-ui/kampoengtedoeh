@@ -38,6 +38,9 @@ end
 
 local function slotsMax(player: Player, data: Types.PlayerData): number
 	local base = InventoryConfig.SLOTS[math.clamp(Upgrades.tier(data, "backpack") + 1, 1, #InventoryConfig.SLOTS)]
+	if data.level >= InventoryConfig.LEVEL_100_SLOTS then
+		base = math.max(base, 100) -- Stage 8: Tas 100 from Lv 10
+	end
 	return base + (if MonetizationService.HasPass(player, "backpack") then Monetization.BACKPACK_BONUS_SLOTS else 0)
 end
 
@@ -75,13 +78,14 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		backpackTier = Upgrades.tier(data, "backpack"),
 		pondTier = Upgrades.tier(data, "pond"),
 		ponds = pondCells(data),
-		quests = { active = table.clone(data.quests.active), done = table.clone(data.quests.done) },
+		quests = { active = table.clone(data.quests.active), done = table.clone(data.quests.done), daily = table.clone(data.quests.daily) },
 		farm = { tiles = farmTiles(data), cap = FarmConfig.MAX_TILES },
 		landChunks = table.clone(data.land.chunks),
 		landExtra = Land.extraCount(data.land.chunks),
 		landPrice = Land.chunkPrice(Land.extraCount(data.land.chunks), if passes.plots == true then Plots.CHUNK.PASS_DISCOUNT else 0),
 		rod = data.fishing.rod,
 		ownedRods = table.clone(data.fishing.ownedRods),
+		tools = table.clone(data.tools),
 		decorStock = table.clone(data.decor.stock),
 		decorBlueprints = table.clone(data.decor.blueprints),
 		decorPlaced = #data.decor.placed,
@@ -99,6 +103,7 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		book = data.book,
 		visits = data.visits.count,
 		visitDay = data.visits.lastDay,
+		visitPending = data.visits.pending == true,
 		playtime = table.clone(data.playtime),
 		titles = data.titles,
 		sales = { day = data.sales.day, sold = table.clone(data.sales.sold) },

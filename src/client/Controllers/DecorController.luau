@@ -187,7 +187,7 @@ local function startPlacing(item: Item, existing: Model?)
 			part.CanCollide = false
 			part.CanQuery = false
 			part.CanTouch = false
-			part.Transparency = math.max(part.Transparency, 0.35)
+			part.Transparency = math.max(part.Transparency, 0.5) -- preview 50% transparan (user, 16 Nov)
 		end
 	end
 	local glow = Instance.new("Highlight")
@@ -259,6 +259,74 @@ end
 
 -- Pointer -----------------------------------------------------------------------------
 
+-- Tap on your own decor (Hias mode) -> a small menu: Pindah (green), Hapus (brick red), Putar (cream).
+--   Pindah  = ghost at 50% transparency follows the pointer, tap to place (startPlacing)
+--   Hapus   = confirm, then the piece goes back to the Tas (no Koin refund; a separate Jual would refund 50%)
+--   Putar   = turn it 90 degrees in place
+local menuGui: ScreenGui? = nil
+
+local function closeDecorMenu()
+	if menuGui then
+		menuGui:Destroy()
+		menuGui = nil
+	end
+end
+
+local function openDecorMenu(model: Model, item: Item)
+	closeDecorMenu()
+	local uid = model:GetAttribute("Uid") :: number
+	local x = model:GetAttribute("X") :: number
+	local z = model:GetAttribute("Z") :: number
+	local r = model:GetAttribute("R") :: number
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "DecorMenu"
+	gui.ResetOnSpawn = false
+	gui.DisplayOrder = 20
+	gui.Parent = player:WaitForChild("PlayerGui")
+	menuGui = gui
+
+	local row = Instance.new("Frame")
+	row.Name = "Row"
+	row.AnchorPoint = Vector2.new(0.5, 1)
+	row.Position = UDim2.new(0.5, 0, 0.5, -20)
+	row.Size = UDim2.fromOffset(440, 52)
+	row.BackgroundTransparency = 1
+	row.Parent = gui
+	local layout = Instance.new("UIListLayout")
+	layout.FillDirection = Enum.FillDirection.Horizontal
+	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	layout.Padding = UDim.new(0, 8)
+	layout.Parent = row
+
+	local function option(name: string, textKey: string, order: number, color: Color3, onClick: () -> ())
+		local button = UiKit.button(row, name, Locale.t(textKey), color)
+		button.LayoutOrder = order
+		button.Size = UDim2.fromOffset(100, 48)
+		button.Activated:Connect(function()
+			closeDecorMenu()
+			onClick()
+		end)
+	end
+	option("Move", "decor.menu_move", 1, UiKit.BUTTON, function()
+		startPlacing(item, model)
+	end)
+	option("Delete", "decor.menu_delete", 2, UiKit.TERRACOTTA, function()
+		UiKit.confirm({
+			title = Locale.t("decor.delete_title"),
+			body = Locale.t("decor.delete_body"),
+			confirmText = Locale.t("ui.delete_yes"),
+			confirmColor = UiKit.TERRACOTTA,
+			onConfirm = function()
+				Net.Send("DecorStore", uid)
+			end,
+		})
+	end)
+	option("Rotate", "decor.menu_rotate", 3, UiKit.CREAM, function()
+		Net.Send("DecorMove", uid, x, z, (r + 1) % 4)
+	end)
+	option("Cancel", "ui.cancel", 4, UiKit.BUTTON_MUTED, function() end)
+end
+
 local function trySelectExisting(ray: Ray)
 	local plot = myPlot()
 	local folder = plot and plot:FindFirstChild("Decor")
@@ -279,7 +347,7 @@ local function trySelectExisting(ray: Ray)
 	local itemId = model and model:GetAttribute("ItemId")
 	local item = typeof(itemId) == "string" and Decor.byId[itemId] or nil
 	if model and item then
-		startPlacing(item, model)
+		openDecorMenu(model, item)
 	end
 end
 

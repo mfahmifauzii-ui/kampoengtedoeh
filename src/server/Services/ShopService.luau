@@ -2,7 +2,7 @@
 -- Trading with town NPCs. Every request names an NPC (Config/Npcs) and is distance-checked to it; what an NPC
 -- buys and sells comes from its config, prices from Modules/Trade. The client only sends requests.
 --   Sell(npcId, itemId | "all", amount?)                NPC buys items from the player (amount: whole number 1-99, one item only)
---   ShopBuy(npcId, kind, id, amount?)                   kind: rod | bait | upgrade | seed | seedx | fish | blueprint
+--   ShopBuy(npcId, kind, id, amount?)                   kind: rod | bait | upgrade | seed | seedx | fish | blueprint | tool
 -- Pak Darmo (npc.quota) buys each crop only up to a daily quota; the rest stays in the bag for Bang Tarno at a Warung Mini (0.9x, no limit).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Blueprints = require(ReplicatedStorage.Shared.Config.Blueprints)
 local Crops = require(ReplicatedStorage.Shared.Config.Crops)
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
+local Farm = require(ReplicatedStorage.Shared.Config.Farm)
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
 local Npcs = require(ReplicatedStorage.Shared.Config.Npcs)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
@@ -170,6 +171,26 @@ local function buyRod(player: Player, data: Types.PlayerData, rodId: string): bo
 	return true
 end
 
+-- Stage 2: Gembor Bambu (one-off, Koin only). Owned tools are checked by FarmService when the player waters.
+local function buyTool(player: Player, data: Types.PlayerData, toolId: string): boolean
+	local tool = Farm.TOOLS[toolId]
+	if not tool or data.tools[toolId] == true then
+		return false
+	end
+	if data.level < tool.unlockLevel then
+		Net.Fire("Notify", player, "shop.locked", { level = tool.unlockLevel })
+		return false
+	end
+	if not EconomyService.TrySpend(player, "koin", tool.price, `tool:{toolId}`) then
+		notEnough(player)
+		return false
+	end
+	data.tools[toolId] = true
+	InventoryService.Sync(player)
+	Net.Fire("Notify", player, "shop.bought", { item = `tool.{toolId}` })
+	return true
+end
+
 local function buyBait(player: Player, baitId: string, amount: any): boolean
 	if baitId ~= Fishing.BAIT.id or not validPack(amount) then
 		return false
@@ -280,6 +301,8 @@ local function onBuy(player: Player, npcId: any, kind: any, id: any, amount: any
 		buyFish(player, id, amount)
 	elseif kind == "blueprint" and npc.sells.blueprints then
 		buyBlueprint(player, data, id)
+	elseif kind == "tool" and npc.sells.tools then
+		buyTool(player, data, id)
 	end
 end
 

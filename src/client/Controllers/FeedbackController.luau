@@ -144,7 +144,13 @@ local function playNext()
 	end
 	local item = table.remove(queue, 1)
 	if not item then
+		-- Queue drained: the top bar must show the SERVER total now (it can differ from the last count-up step).
 		displayKoin = nil
+		local label = hudObject("KoinLabel")
+		local server = player:GetAttribute("Koin")
+		if label and typeof(server) == "number" then
+			label.Text = Locale.formatNumber(server)
+		end
 		return
 	end
 	busy = true
@@ -175,7 +181,10 @@ local function playNext()
 				(connection :: RBXScriptConnection):Disconnect()
 				displayKoin = nil -- hand back to the server value (it equals endValue)
 				if target then
-					target.Text = Locale.formatNumber(endValue)
+					-- Only when nothing else is queued: then the server value is the truth (it may already include a
+					-- later gain, e.g. the T1 reward after a sale). The queue-drain branch in playNext sets it too.
+					local server = player:GetAttribute("Koin")
+					target.Text = Locale.formatNumber(if #queue == 0 and typeof(server) == "number" then server else endValue)
 				end
 				plusTag.Visible = false
 				busy = false

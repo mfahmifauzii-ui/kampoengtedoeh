@@ -92,3 +92,31 @@ order rewards → `Orders`; upgrade costs → `Shop`; decor prices/levels → `D
 - Funnel steps 1→4 at target.
 - Runs on at least one low-end phone at ≥ 30 FPS with 8 lahan terisi.
 - Every Launch Checklist item ticked.
+
+## Playtest #1 (checklist, dibuat 16 Nov 2026 oleh sesi overnight)
+Status: BELUM DIJALANKAN. Ini checklist untuk dijalankan manusia di Studio.
+
+- [ ] Akun baru (save kosong): spawn di depan gerbang, kamera di belakang pemain.
+- [ ] Koin awal 100 (Economy.START_KOIN, FINAL).
+- [ ] T1 langkah 1: bicara ke Mbok Minah, pilih Garap.
+- [ ] T1 langkah 2: tanam Kangkung lewat proximity 4 stud.
+- [ ] T1 langkah 3: siram.
+- [ ] T1 langkah 4: panen saat matang (Kangkung 60 dtk, atau pakai !grow).
+- [ ] T1 langkah 5: jual ke Pak Darmo. Reward 30 Koin, muncul sekali.
+- [ ] Koin setelah T1 <= 100.
+- [ ] Save, tutup Play, buka lagi: T1 tidak ulang, Koin dan petak tetap.
+- [ ] Replay T1 dari Panduan: jalan, tidak dapat 30 Koin lagi.
+- [ ] Panen Semua dengan 2+ petak matang: semua masuk Tas.
+- [ ] Drag siram di 3+ petak kering: semua tersiram.
+- [ ] Gembor (Lv 4, Pak Darmo, Alat Kebun): 1 tap menyiram 3x3.
+- [ ] Catat: bingung di bagian mana, error apa, lag di mana.
+
+## Playtest #2 (checklist, dibuat 16 Nov 2026)
+Status: BELUM DIJALANKAN. Main 15 menit: T1 + mancing + hias + quest harian.
+
+- [ ] Tanpa error di Output selama 15 menit.
+- [ ] Mancing dari kolam: tombol muncul, gigitan 3-5 dtk, tarik, ikan terbang ke Tas.
+- [ ] Hias: beli Pagar Bambu, taruh, ghost pas dengan grid 2 stud.
+- [ ] Daily muncul di tracker, progres naik, reward masuk saat selesai.
+- [ ] Save 3x, tidak ada data hilang.
+- [ ] Catat: bagian yang masih membingungkan, error yang masih ada, lag.
