@@ -25,8 +25,6 @@ local Vfx = require(ReplicatedStorage.Shared.Vfx)
 local FarmFloat = require(script.Parent.Parent.FarmFloat)
 local FarmFx = require(script.Parent.Parent.FarmFx)
 local FeedbackController = require(script.Parent.FeedbackController)
-local CoachmarkController = require(script.Parent.CoachmarkController)
-local GuideController = require(script.Parent.GuideController)
 
 local openTilePanel: (index: number) -> ()
 local onTileTapped: (part: BasePart) -> ()
@@ -1115,7 +1113,16 @@ local function myRipeParts(): { BasePart }
 	return parts
 end
 
+-- Panen Semua is LOCKED behind a Gamepass (decided 16 Nov; Plan v3 3.3's level 3 rule is withdrawn). For now it is hidden
+-- completely: the button is never shown and its call is switched off. The harvest code (harvestAll) stays in place.
+-- TODO Gamepass: set PanenSemuaGamepassId, make HasPanenSemuaGamepass real, then set PANEN_SEMUA_ENABLED = true.
+local PANEN_SEMUA_ENABLED = false
+local PanenSemuaGamepassId = "" -- TODO Gamepass: empty until the gamepass exists
+
 local function harvestAll()
+	if not PANEN_SEMUA_ENABLED then
+		return -- locked (Gamepass TODO): the button is hidden, this is a second switch
+	end
 	local parts = myRipeParts()
 	for index, part in parts do
 		task.delay((index - 1) * HARVEST_GAP, function()
@@ -1141,31 +1148,12 @@ local function buildHarvestAllButton()
 	harvestAllButton = button
 end
 
--- Plan v3 3.3: Panen Semua is only for level 3 and up. Below that the button is never shown (client gate only: it just sends
--- the harvests the server already accepts one by one). The first time a player reaches it, one coachmark explains it, once.
-local HARVEST_ALL_LEVEL = 3
-local HARVEST_ALL_COACH_SECONDS = 8
--- Seen flag: in memory only for now (once per session). A saved flag needs a server field; see the Phase 1 report.
-local harvestAllCoachSeen = false
-
-local function showHarvestAllCoach()
-	if harvestAllCoachSeen or GuideController.IsRunning() or CoachmarkController.IsShowing() then
-		return -- a tutorial is running or another coachmark is up: ask again next refresh, never stack
+local function HasPanenSemuaGamepass(): boolean
+	if PanenSemuaGamepassId == "" then
+		return false -- no gamepass id yet
 	end
-	harvestAllCoachSeen = true
-	CoachmarkController.Show({
-		mode = "button",
-		text = Locale.t("tut.coach.panen_semua"),
-		block = false,
-		findButton = function()
-			return harvestAllButton
-		end,
-	})
-	task.delay(HARVEST_ALL_COACH_SECONDS, function()
-		if CoachmarkController.IsShowing() then
-			CoachmarkController.Hide()
-		end
-	end)
+	-- TODO Gamepass: return MarketplaceService:UserOwnsGamePassAsync(player.UserId, tonumber(PanenSemuaGamepassId)) (server-side check)
+	return false
 end
 
 local function refreshHarvestAllButton()
@@ -1173,18 +1161,10 @@ local function refreshHarvestAllButton()
 	if not button then
 		return
 	end
-	local level = player:GetAttribute("Level")
-	if typeof(level) ~= "number" or level < HARVEST_ALL_LEVEL then
-		button.Visible = false -- not shown at all below level 3
-		return
-	end
-	local count = #myRipeParts()
-	button.Visible = count > 0 and not GarapController.Active
-	if count > 0 then
-		button.Text = Locale.t("ui.harvest_all") .. " (" .. count .. ")"
-	end
+	-- Hidden for now. Level and ripe beds no longer decide: only the gamepass will, once it exists.
+	button.Visible = PANEN_SEMUA_ENABLED and HasPanenSemuaGamepass() and #myRipeParts() > 0 and not GarapController.Active
 	if button.Visible then
-		showHarvestAllCoach() -- only once the button is really on screen, so the coachmark has something to point at
+		button.Text = Locale.t("ui.harvest_all") .. " (" .. #myRipeParts() .. ")"
 	end
 end
 

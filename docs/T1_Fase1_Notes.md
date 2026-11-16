@@ -5,7 +5,7 @@ Status: WIP. Lint sudah jalan untuk file Fase 1. Belum diuji di Studio. Jangan p
 ## Keputusan
 
 - **Walk-away sengaja tidak fade, bukan bug.** Walk-away adalah batal mendadak (pemain jalan menjauh), bukan penutup normal. Fade hanya untuk penutup yang dipilih pemain: "Sampai jumpa" dan "Jual / Beli" (layar gelap saat toko terbuka). Satu-satunya tempat yang mengatur ini adalah cabang walk-away di `DialogueController.Start`. Kalau spek nanti minta walk-away juga fade, ubah cabang itu saja.
-- **Panen Semua: tombol di bawah Lv 3 tidak tampil (`Visible = false`).** Spek sudah direvisi di [Plan v3 bagian 3.3](T1_Tutorial_Plan_v3.md).
+- **Panen Semua: terkunci Gamepass dan disembunyikan sementara (16 Nov).** Aturan Lv 3 dibatalkan. Tombol tidak pernah tampil, fungsi panen dimatikan dengan `PANEN_SEMUA_ENABLED = false`, coachmark dimatikan. Lihat [Plan v3 bagian 3.3](T1_Tutorial_Plan_v3.md).
 
 ## Perubahan setelah review
 
@@ -19,7 +19,7 @@ Status: WIP. Lint sudah jalan untuk file Fase 1. Belum diuji di Studio. Jangan p
 
 | ID | Isi | Dampak | Tiket |
 |---|---|---|---|
-| TD-1 | Flag coachmark Panen Semua hanya di memori, sekali per sesi. Setelah login ulang coachmark bisa muncul lagi untuk pemain Lv 3 ke atas. Jangan diklaim "sekali selamanya". | Rendah | Tambah field `hasSeenPanenSemuaCoachmark` di profil server |
+| TD-1 | **Tidak berlaku sampai Gamepass aktif** (coachmark Panen Semua dimatikan, tombolnya disembunyikan). Saat diaktifkan nanti: flag coachmark hanya di memori, sekali per sesi, setelah login ulang bisa muncul lagi. Jangan diklaim "sekali selamanya". | Rendah | Tambah field `hasSeenPanenSemuaCoachmark` di profil server |
 | TD-2 | Lihat bagian "Perubahan setelah review". Sisa: pemilik prompt harus mengatur sendiri kalau mematikan prompt sementara. | Sedang | FISH-PROMPT-OWNER |
 | BUG-GARAP-415 | Error `attempt to call a nil value` di `GarapController` baris 415 (dipanggil dari `setBedHover`, baris 389). Penyebab: `refreshHint()` dipanggil di baris 415, tapi `local refreshHint` (forward declaration) baru ada di baris 420, jadi di baris 415 nama itu masih nil. Sudah ada di HEAD sebelum Fase 1. Perbaikan: pindahkan forward declaration ke atas `setBedHover`. Di luar batas Fase 1, tidak diperbaiki di branch ini. | Sedang (muncul saat pointer keluar dari petak di mode garap) | Tiket terpisah: GARAP-HINT-FORWARD-DECL |
 

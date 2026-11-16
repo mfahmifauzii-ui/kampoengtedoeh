@@ -165,15 +165,17 @@ Spesifikasi:
 
 ### 3.3 Tombol Panen Semua
 
-Aturan: Hanya muncul kalau level 3 ke atas.
-Kondisi sekarang: Tidak ada syarat level di kode, makanya muncul di Lv 1.
+**Status (16 Nov, keputusan baru): terkunci Gamepass dan disembunyikan sementara.** Aturan level 3 di bawah ini DIBATALKAN.
 
-Spesifikasi:
-- Gate di client saja, karena tombol hanya mengirim panen satu per satu yang sudah sah di server
-- Di level 1 dan 2, tombol tidak tampil (Visible = false), bukan hanya di-disable (revisi 17 Nov, sesuai review Fase 1)
-- Saat pertama kali mencapai level 3, tampilkan coachmark sekali saja
-- Coachmark: Panen Semua membuka panen sekaligus, tidak perlu panen satu per satu
-- Simpan flag coachmark sudah ditampilkan, supaya tidak spam tiap buka lahan
+Yang berlaku sekarang:
+- Tombol Panen Semua disembunyikan total (`HarvestAllButton` Visible = false). Tidak tampil di level berapa pun.
+- Fungsi panen (`harvestAll`) tetap ada di kode, tapi dimatikan dengan konstanta `PANEN_SEMUA_ENABLED = false`.
+- Placeholder `PanenSemuaGamepassId` (kosong) dan `HasPanenSemuaGamepass()` (selalu false) ada sebagai TODO.
+- Coachmark Panen Semua dimatikan. Key locale `tut.coach.panen_semua` tetap ada, tidak dihapus.
+
+Untuk nanti, saat Gamepass sudah ada: isi id, buat `HasPanenSemuaGamepass` mengecek kepemilikan di server, lalu set `PANEN_SEMUA_ENABLED = true`. Coachmark sekali saja diaktifkan lagi setelah itu.
+
+Aturan lama (DIBATALKAN, hanya untuk jejak): ~~Hanya muncul kalau level 3 ke atas.~~ ~~Di level 1 dan 2, tombol tidak tampil.~~ ~~Coachmark sekali saat pertama mencapai level 3.~~
 
 ### 3.4 First Meet NPC
 
