@@ -123,6 +123,7 @@ export type PlayerData = {
 		done: { [string]: boolean },
 		skipped: { [string]: boolean },
 		fastLeft: number, -- plantings left on the 20 s tutorial timer (-1 = not decided yet)
+		hasMet: { [string]: boolean }, -- [npcId] = true after the first talk with that NPC (Fase 2 sapaan)
 	},
 	purchaseIdCache: { string },
 }

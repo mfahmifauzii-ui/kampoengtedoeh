@@ -95,7 +95,8 @@ local template: Types.PlayerData = {
 	-- Tutorial engine (Config/Onboarding TUTORIALS, server/TutorialService): step = the running tutorial {id, n = steps done},
 	-- done/skipped = [tutorialId] = true, fastLeft = plantings still on the fast tutorial timer (-1 = not decided yet:
 	-- TutorialService sets 6 for a brand-new save and 0 for an old one on load).
-	guide = { sells = 0, step = { id = "", n = 0 }, done = {}, skipped = {}, fastLeft = -1 },
+	-- hasMet = [npcId] = true once the player has had the first talk with that NPC (Fase 2: sapaan, then the choices).
+	guide = { sells = 0, step = { id = "", n = 0 }, done = {}, skipped = {}, fastLeft = -1, hasMet = {} },
 	purchaseIdCache = {}, -- last N dev product PurchaseIds (ProfileStore pattern; prevents double-grant)
 }
 
