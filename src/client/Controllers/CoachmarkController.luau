@@ -62,6 +62,8 @@ local bubbleText: TextLabel
 local arrow: TextLabel
 local npcArrow: TextLabel
 local current: Spec? = nil
+local FADE_IN = 0.4 -- seconds for the darkness to fade in when a coachmark appears
+local fadeInFrom = 0 -- os.clock() when the current coachmark appeared
 
 local function frame(name: string, parent: Instance): Frame
 	local piece = Instance.new("Frame")
@@ -197,6 +199,9 @@ function CoachmarkController.Show(spec: Spec)
 	current = spec
 	bubbleText.Text = spec.text or ""
 	bubble.Visible = spec.text ~= nil
+	if not topGui.Enabled then
+		fadeInFrom = os.clock() -- a coachmark that was hidden fades in, it does not pop in
+	end
 	topGui.Enabled = true
 end
 
@@ -414,8 +419,10 @@ function CoachmarkController.Update()
 			end
 		end
 	end
+	-- The darkness fades in over FADE_IN seconds after the coachmark appears (no sudden pop-in after the fade to black).
+	local alpha = math.clamp((os.clock() - fadeInFrom) / FADE_IN, 0, 1)
 	for _, piece in pieces do
-		piece.BackgroundTransparency = OVERLAY_TRANSPARENCY -- one darkness on every step
+		piece.BackgroundTransparency = 1 - (1 - OVERLAY_TRANSPARENCY) * alpha
 	end
 end
 
