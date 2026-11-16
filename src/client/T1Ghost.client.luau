@@ -38,6 +38,8 @@ local State = require(script.Parent:WaitForChild("State"))
 local NpcCamera = require(script.Parent:WaitForChild("NpcCamera"))
 local NpcPose = require(script.Parent:WaitForChild("NpcPose"))
 local T1Dialog = require(script.Parent:WaitForChild("T1Dialog"))
+local Locale = require(RS.Shared.Locale)
+local Onboarding = require(RS.Shared.Config.Onboarding)
 local Cutscene = require(script.Parent:WaitForChild("Cutscene"))
 
 local GHOST_NAME = "MbokMinah_T1_Local"
@@ -908,6 +910,20 @@ end
 
 -- T1b, the warung beat -------------------------------------------------------------------------------------------
 
+-- The sapaan of the sale's step (Config/Onboarding, step panen_jual, greet): said first in the first-sale cutscene.
+local function saleGreeting(): string?
+	for _, tutorial in Onboarding.TUTORIALS do
+		if tutorial.id == TUTORIAL_ID then
+			for _, step in tutorial.steps do
+				if step.id == "panen_jual" and step.greet then
+					return Locale.t(step.greet, { name = player.DisplayName })
+				end
+			end
+		end
+	end
+	return nil
+end
+
 -- Pak Darmo's three lines (Next after each) once the shop panel is closed after the sale, then the step is acknowledged.
 -- If the player is at the warung (near him), the camera goes over their shoulder onto his face with the blur, like any talk.
 local function runWarung(guide: any)
@@ -966,7 +982,14 @@ local function runWarung(guide: any)
 		end
 	end
 
-	for _, line in WARUNG do
+	local lines: { string } = WARUNG
+	if firstSale then
+		local greet = saleGreeting()
+		if greet then
+			lines = { greet, table.unpack(WARUNG) }
+		end
+	end
+	for _, line in lines do
 		if not waitNext("pak_darmo", line, TUTORIAL_BOTTOM, alive) then
 			leave()
 			return

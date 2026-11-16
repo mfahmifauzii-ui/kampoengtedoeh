@@ -36,6 +36,7 @@ export type Step = {
 	modal: { title: string, body: string }?, -- kind "ack" only: the welcome modal (Locale keys); Mulai acks it, Lewati skips T1
 	coach: string?, -- Locale key of the coachmark bubble (defaults to text)
 	block: boolean?, -- coachmark overlay blocks every other tap (default true); false = ring + bubble only
+	greet: string?, -- Locale key: a sapaan said first in the cutscene of this step (Fase 2; {name} = the player). Used by panen_jual
 }
 
 export type Trigger = {
@@ -124,6 +125,7 @@ local TUTORIALS: { Tutorial } = {
 				text = "tut.t1.s4",
 				coach = "tut.coach.panen",
 				block = false, -- after Panen the player must reach Pak Darmo (outside the hole): no overlay here
+				greet = "tut.t1.s4_greet", -- Pak Darmo's sapaan at the first sale (the cutscene, T1Ghost runWarung)
 				done = { kind = "sells", n = 1 },
 				target = { npc = "pak_darmo" },
 				highlight = "PanenButton",

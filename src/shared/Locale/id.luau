@@ -372,6 +372,7 @@ return {
 	["tut.t1.s2"] = "Pilih bibit, tap petak kosong",
 	["tut.t1.s3"] = "Tap petak, lalu Siram",
 	["tut.t1.s4"] = "Panen, lalu jual ke Pak Darmo",
+	["tut.t1.s4_greet"] = "Halo, {name}! Senang kamu datang ke warungku.",
 	-- T1b (Config/Onboarding): the lines Mbok Minah / Pak Darmo / Mas Joko actually say live in T1Ghost.client; these are
 	-- the Panduan list title and the plain fallback when nobody can speak.
 	["tut.t1b.title"] = "Kolam dan Mancing",
