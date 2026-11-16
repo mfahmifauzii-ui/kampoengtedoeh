@@ -145,17 +145,26 @@ local function ensure()
 	well.AnchorPoint = Vector2.new(0, 0.5)
 	well.Position = UDim2.new(0, 34, 0.5, 0)
 	well.Size = UDim2.fromOffset(AVATAR, AVATAR)
-	well.BackgroundColor3 = Color3.fromRGB(226, 214, 180)
+	-- Same face frame as the player's own avatar (HudController's photo): a circle on UiKit.ROW with the bamboo ring behind.
+	well.BackgroundColor3 = UiKit.ROW
 	well.BorderSizePixel = 0
+	well.ClipsDescendants = true -- the 3D face is cut to the circle (a UICorner alone does not clip a ViewportFrame)
 	well.ZIndex = 2
 	well.Parent = frame
 	local wellRound = Instance.new("UICorner")
-	wellRound.CornerRadius = UDim.new(0, 14)
+	wellRound.CornerRadius = UDim.new(1, 0)
 	wellRound.Parent = well
-	local wellEdge = Instance.new("UIStroke")
-	wellEdge.Color = BAMBOO
-	wellEdge.Thickness = 3
-	wellEdge.Parent = well
+	-- The bamboo ring sits on the frame, behind the face, centred on it (larger than the face, so it cannot be a child of well).
+	local ring = Instance.new("ImageLabel")
+	ring.Name = "PhotoRing"
+	ring.BackgroundTransparency = 1
+	ring.Image = UiAssets.PLATE.image
+	ring.ScaleType = Enum.ScaleType.Fit
+	ring.AnchorPoint = Vector2.new(0.5, 0.5)
+	ring.Position = UDim2.new(0, 34 + AVATAR / 2, 0.5, 0)
+	ring.Size = UDim2.fromOffset(math.floor(AVATAR * 46 / 32), math.floor(AVATAR * 46 / 32))
+	ring.ZIndex = 1
+	ring.Parent = frame
 	local vp = Instance.new("ViewportFrame")
 	vp.Name = "Face"
 	vp.BackgroundTransparency = 1
@@ -166,7 +175,7 @@ local function ensure()
 	vp.LightDirection = Vector3.new(-0.4, -0.6, -1)
 	vp.Parent = well
 	local vpRound = Instance.new("UICorner")
-	vpRound.CornerRadius = UDim.new(0, 14)
+	vpRound.CornerRadius = UDim.new(1, 0)
 	vpRound.Parent = vp
 	local cam = Instance.new("Camera")
 	cam.FieldOfView = 26
