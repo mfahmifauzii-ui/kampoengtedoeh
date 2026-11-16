@@ -21,7 +21,6 @@ local NpcCamera = require(script.Parent.Parent.NpcCamera)
 local ShopController = require(script.Parent.ShopController)
 local State = require(script.Parent.Parent.State)
 local T1Dialog = require(script.Parent.Parent.T1Dialog)
-local FadeManager = require(script.Parent.Parent.FadeManager) -- Plan v3 3.1: fade after a talk ends
 local PromptGate = require(script.Parent.Parent.PromptGate) -- Plan v3 3.2: no proximity prompts while talking
 
 local CHECK_SECONDS = 0.5
@@ -208,8 +207,7 @@ local function refresh(npcId: string)
 			{
 				text = Locale.t("dialog.bye"),
 				onChoose = function()
-					close()
-					FadeManager.Play()
+					close() -- Sampai jumpa: no fade (cutscenes keep their own fades)
 				end,
 			},
 		},
