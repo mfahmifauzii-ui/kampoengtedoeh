@@ -31,6 +31,9 @@ local ROAD_HALF = Map.ROAD.HALF
 local DECK_Y = Map.BRIDGE.DECK_Y
 -- The four axis directions (east, west, south, north): roads, bridges and lamps run along them.
 local AXES = { Vector3.new(1, 0, 0), Vector3.new(-1, 0, 0), Vector3.new(0, 0, 1), Vector3.new(0, 0, -1) }
+-- The river runs out along each axis (where the old axis roads were): 12 studs wide, half-width here (see buildTerrain).
+local RIVER_HALF = 6
+local GATE_WIDTH = 33.3 -- the plot gate's opening (= 2 * GATE_HALF in the fences section)
 
 local C = {
 	ASPHALT = Color3.fromRGB(70, 68, 66),
@@ -401,6 +404,21 @@ local function buildTerrain()
 	terrain:FillCylinder(CFrame.new(0, -2 + drop, 0), 4, TOWN.ISLAND_R, Enum.Material.LeafyGrass)
 	terrain:FillCylinder(CFrame.new(0, -2 + drop, 0), 4, 40, Enum.Material.Cobblestone)
 
+	-- The river (v2, alun-alun): the four old axis roads are water now, from the canal out to the map edge. Same levels
+	-- as the canal (air above, water to WATER_Y, sand bed under it). Each axis strip is one block per layer.
+	local function riverBlock(top: number, bottom: number, material: Enum.Material)
+		for _, dir in AXES do
+			local from, to = TOWN.CANAL_R - 8, Map.SIZE / 2
+			local length = to - from
+			local center = dir * ((from + to) / 2)
+			local size = if dir.X ~= 0 then Vector3.new(length, top - bottom, RIVER_HALF * 2) else Vector3.new(RIVER_HALF * 2, top - bottom, length)
+			terrain:FillBlock(CFrame.new(center.X, (top + bottom) / 2 + drop, center.Z), size, material)
+		end
+	end
+	riverBlock(0, -river.DEPTH, Enum.Material.Air)
+	riverBlock(river.WATER_Y - drop, -river.DEPTH, Enum.Material.Water) -- water: exact top, like the canal
+	riverBlock(-river.DEPTH, -river.DEPTH - river.BED, Enum.Material.Sand)
+
 	pcall(function()
 		terrain.Decoration = false -- no 3D grass blades anywhere
 	end)
@@ -435,23 +453,10 @@ local function axisBlock(parent: Instance, name: string, dir: Vector3, from: num
 end
 
 local function buildRoad(map: Folder)
-	local road = folder(map, "Road")
 	local lamps = folder(map, "Lamps")
-	local half = Map.SIZE / 2
 
-	-- The four axis roads: dirt, from under the cobblestone ring to the walls.
-	for _, dir in AXES do
-		axisBlock(road, "Dirt", dir, TOWN.RING_R - 4, half, ROAD_HALF * 2, 0.15, 0.3, Map.DIRT_COLOR, Enum.Material.Sand)
-		-- Lamps on both sides, every 56 studs.
-		local perp = Vector3.new(-dir.Z, 0, dir.X)
-		local r = TOWN.RING_R + 24
-		while r < half - 20 do
-			for _, side in { 1, -1 } do
-				lampPost(lamps, CFrame.new(dir * r + perp * side * (ROAD_HALF + 3)))
-			end
-			r += 56
-		end
-	end
+	-- The axis roads are the river now (buildTerrain), so there are no axis roads or axis lamps. Each plot's gate
+	-- has a dirt path to the ring road instead (buildPaths).
 
 	-- Lamps around the ring road's outer edge, except where an axis road meets it.
 	local count = 24
@@ -460,6 +465,31 @@ local function buildRoad(map: Folder)
 		local c, s = math.cos(angle), math.sin(angle)
 		if math.abs(c) < 0.97 and math.abs(s) < 0.97 then
 			lampPost(lamps, CFrame.new((TOWN.RING_R + 2) * c, 0, (TOWN.RING_R + 2) * s))
+		end
+	end
+end
+
+-- Gate paths: from each plot's gate (the middle of its front, facing the alun-alun) straight to the ring road, the same
+-- width as the gate opening. The ring road is the stop: the path ends a little inside its outer edge.
+local function buildPaths(map: Folder)
+	local road = folder(map, "Road")
+	for _, slot in Plots.LAYOUT do
+		local frame = CFrame.new(slot.x, 0, slot.z) * CFrame.Angles(0, slot.yaw, 0)
+		local gate = (frame * CFrame.new(0, 0, Land.FRONT_Z)).Position
+		local front = frame:VectorToWorldSpace(Vector3.new(0, 0, 1))
+		local gx, gz = gate.X, gate.Z
+		local fx, fz = front.X, front.Z
+		-- Walk from the gate toward the center until the ring road's outer edge (smaller root of |g + t f| = R - 2).
+		local stop = TOWN.RING_R - 2
+		local b = 2 * (gx * fx + gz * fz)
+		local c = gx * gx + gz * gz - stop * stop
+		local disc = b * b - 4 * c
+		if disc > 0 then
+			local t = (-b - math.sqrt(disc)) / 2
+			local from, to = -2, t + 1 -- a little into the plot (meets the fence gate), a little into the ring road
+			local mid = Vector3.new(gx + fx * (from + to) / 2, 0.15, gz + fz * (from + to) / 2)
+			local look = mid + Vector3.new(fx, 0, fz)
+			block(road, "GatePath", Vector3.new(GATE_WIDTH, 0.3, to - from), CFrame.lookAt(mid, look), Map.DIRT_COLOR, Enum.Material.Sand)
 		end
 	end
 end
@@ -486,6 +516,13 @@ local function buildBridge(map: Folder)
 				x += 6
 			end
 		end
+	end
+
+	-- The ring road crosses the river on each axis: a short plank deck over it, so the ring road stays walkable.
+	for _, dir in AXES do
+		local ringMid = (TOWN.CANAL_R + TOWN.RING_R) / 2
+		local frame = CFrame.new(dir * ringMid) * (if dir.X ~= 0 then CFrame.identity else CFrame.Angles(0, math.pi / 2, 0))
+		block(bridge, "RingDeck", Vector3.new(TOWN.RING_R - TOWN.CANAL_R + 8, b.THICK, RIVER_HALF * 2 + 8), frame * CFrame.new(0, DECK_Y - b.THICK / 2, 0), C.PLANK, Enum.Material.WoodPlanks)
 	end
 end
 
@@ -922,6 +959,22 @@ local function natureTemplates(group: string, tallOnly: boolean?): { Model }
 	return list
 end
 
+-- Ground that stays clear of trees, bushes and rocks: the river (out along each axis, from the canal) and each plot's
+-- gate path (from the gate to the ring road, 24 studs either side of the gate's middle).
+local function inRiverOrPath(x: number, z: number): boolean
+	local clearR = TOWN.CANAL_R - 10
+	if (math.abs(x) < RIVER_HALF + 10 and math.abs(z) > clearR) or (math.abs(z) < RIVER_HALF + 10 and math.abs(x) > clearR) then
+		return true
+	end
+	for _, slot in Plots.LAYOUT do
+		local lp = (CFrame.new(slot.x, 0, slot.z) * CFrame.Angles(0, slot.yaw, 0)):PointToObjectSpace(Vector3.new(x, 0, z))
+		if math.abs(lp.X) < 24 and lp.Z > Land.FRONT_Z - 6 and lp.Z < Land.FRONT_Z + 60 then
+			return true
+		end
+	end
+	return false
+end
+
 local function buildNature(map: Folder, trees: { Model }, bushes: { Model }, rocks: { Model }, giants: { Model })
 	local nature = folder(map, "Nature")
 	natureFolder = nature
@@ -981,6 +1034,9 @@ local function buildNature(map: Folder, trees: { Model }, bushes: { Model }, roc
 		local extents = template:GetExtentsSize()
 		local footprint = math.max(extents.X, extents.Z) * (height / math.max(extents.Y, 0.01)) / 2
 		if onLand(x, z, footprint + 0.5) then
+			return
+		end
+		if inRiverOrPath(x, z) then
 			return
 		end
 		local lean = math.rad(if group == "Batu" then 14 elseif group == "Semak" then 5 else 3)
@@ -1340,6 +1396,7 @@ function MapService.Init()
 	local map = Instance.new("Folder")
 	map.Name = "Map"
 	buildRoad(map)
+	buildPaths(map)
 	buildBridge(map)
 	buildTown(map)
 	buildFishing(map)

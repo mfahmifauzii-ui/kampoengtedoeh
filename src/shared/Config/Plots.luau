@@ -12,26 +12,32 @@
 -- If Workspace.Plots doesn't exist, placeholders are built from this. Real plots: Workspace > Folder "Plots" > Model
 -- "Plot1".."PlotN", each with PrimaryPart "Origin" (flat part, plot center). Optional TextLabel "OwnerLabel".
 
+local Map = require(script.Parent.Map)
+
 local REGION = 192
 local START = 128
 local ROAD_HALF = 12 -- half width of the axis roads (Config/Map ROAD.HALF)
 local INNER = ROAD_HALF + REGION -- half size of the inner square (town, ring road and plazas) = 204
 local LATERAL = ROAD_HALF + REGION / 2 -- plot center, sideways from the axis = 108
-local DEPTH = INNER + REGION / 2 -- plot center, along the axis = 300
+-- v2 (alun-alun): the plots moved FORWARD toward the ring road, so the gate faces the plaza. The front edge sits
+-- 4 studs outside the ring road's outer edge (Map.TOWN.RING_R = 165); the gap to the ring road at the gate is a short
+-- dirt path (MapService buildPaths). Plot center along the axis = 169 + 96 = 265 (was 300).
+local DEPTH = Map.TOWN.RING_R + 4 + REGION / 2
 
 export type Slot = { name: string, x: number, z: number, yaw: number }
 
 -- yaw turns the plot's local +Z toward its road. Order = plot numbers: spread around the ring, so a server that is
 -- not full still looks alive on every side.
 local LAYOUT: { Slot } = {
-	{ name = "south_left", x = -LATERAL, z = DEPTH, yaw = math.pi / 2 }, -- road is to the east
-	{ name = "north_right", x = LATERAL, z = -DEPTH, yaw = -math.pi / 2 }, -- road is to the west
-	{ name = "east_top", x = DEPTH, z = -LATERAL, yaw = 0 }, -- road is to the south
-	{ name = "west_bottom", x = -DEPTH, z = LATERAL, yaw = math.pi }, -- road is to the north
-	{ name = "south_right", x = LATERAL, z = DEPTH, yaw = -math.pi / 2 },
-	{ name = "north_left", x = -LATERAL, z = -DEPTH, yaw = math.pi / 2 },
-	{ name = "east_bottom", x = DEPTH, z = LATERAL, yaw = math.pi },
-	{ name = "west_top", x = -DEPTH, z = -LATERAL, yaw = 0 },
+	-- Gate (plot-local +Z) faces the alun-alun, straight along the axis. Yaw convention: local +Z = (sin yaw, cos yaw).
+	{ name = "south_left", x = -LATERAL, z = DEPTH, yaw = math.pi }, -- gate faces north (center)
+	{ name = "north_right", x = LATERAL, z = -DEPTH, yaw = 0 }, -- gate faces south
+	{ name = "east_top", x = DEPTH, z = -LATERAL, yaw = -math.pi / 2 }, -- gate faces west
+	{ name = "west_bottom", x = -DEPTH, z = LATERAL, yaw = math.pi / 2 }, -- gate faces east
+	{ name = "south_right", x = LATERAL, z = DEPTH, yaw = math.pi },
+	{ name = "north_left", x = -LATERAL, z = -DEPTH, yaw = 0 },
+	{ name = "east_bottom", x = DEPTH, z = LATERAL, yaw = -math.pi / 2 },
+	{ name = "west_top", x = -DEPTH, z = -LATERAL, yaw = math.pi / 2 },
 }
 
 -- Which plot-local side (+1 = +X, -1 = -X) faces the town / ring road. That side strip of the reserved square is the
