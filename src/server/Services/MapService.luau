@@ -971,6 +971,13 @@ local function inRiverOrPath(x: number, z: number): boolean
 		if math.abs(lp.X) < 24 and lp.Z > Land.FRONT_Z - 6 and lp.Z < Land.FRONT_Z + 60 then
 			return true
 		end
+		-- Front yard (v2): the unowned ground in front of the land, out to the road, is kept free of trees too, but
+		-- not the owned start land (|x| <= 64, z <= FRONT_Z).
+		local front = lp.Z > 56 and lp.Z < 160 and math.abs(lp.X) < 140
+		local onStart = math.abs(lp.X) <= Land.HALF and lp.Z <= Land.FRONT_Z
+		if front and not onStart then
+			return true
+		end
 	end
 	return false
 end
