@@ -757,7 +757,7 @@ end
 -- ends). It follows the owned blocks, so it moves out when the player buys one. The road side has a 32-stud gate in
 -- the middle. One folder per plot (Map.LandFences.Plot<n>); MapService.RebuildFence redoes a single plot.
 local FENCE_PITCH = 3.7 -- studs per bamboo segment: centre of the first post to the centre of the last post (model geometry)
-local FENCE_OUT = 4.45 -- studs the fence stands outside the land edge
+local FENCE_OUT = 2 -- studs the fence stands outside the land edge (was 4.45)
 local GATE_HALF = 16.65 -- gate opening 33.3 studs (9 segments) in the middle of the road side
 
 -- Consecutive chunk indices in [CHUNK_MIN, CHUNK_MAX] for which ok(i) holds, as {first, last} pairs.

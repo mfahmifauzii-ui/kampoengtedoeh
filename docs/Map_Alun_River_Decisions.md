@@ -74,3 +74,9 @@ Backup versi sebelum perubahan ini: `ServerStorage.MapBackup` di place (dibuat 1
 - **Belum disimpan** ke Roblox. Belum dites di Play.
 
 Cek visual: dari atas, sungai dari kanal sampai tepi peta dan jembatan di ring road terlihat. Dari dekat, gerbang menghadap alun-alun dan jalur tanah sampai ke ring road.
+
+## Revisi pagar (18 Nov)
+
+- Jarak pagar dari tepi lahan yang sudah dimiliki: **4,45 → 2 stud** (`FENCE_OUT`).
+- Di tepi kotak cadangan (batas maksimal lahan), pagar tetap di garis tepi (0 stud), supaya pagar tetangga tidak bersilangan.
+- Belum diterapkan ke Studio. Pagar di place masih versi lama sampai dibangun ulang.
