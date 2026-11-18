@@ -179,8 +179,8 @@ end
 -- Terrain ---------------------------------------------------------------------------------
 
 -- Back range (the far row, behind the other two): faceted, saturated peaks in three layers, after the low-poly reference:
--- lush grass on the lower slopes, grey rock in the middle, pale snow on the upper slopes and the crest. Steep, narrow
--- ridges packed close together so they read as ONE range. Own random seed: the two rows in front keep their shapes.
+-- lush grass on the lower slopes, grey rock in the middle, pale snow on the upper slopes and the crest. Wide, soft
+-- ridges (few crossing peaks, so no spikes) that still read as ONE range. Own random seed: the two rows in front keep their shapes.
 -- Snow is the Terrain material Snow (its color is set in buildTerrain).
 local function backRange(terrain: Terrain)
 	local random = Random.new(7741)
@@ -215,17 +215,17 @@ local function backRange(terrain: Terrain)
 		local rotation = CFrame.Angles(0, side * math.pi / 2, 0)
 		local along = -reach
 		while along <= reach do
-			local height = random:NextNumber(230, 340)
-			local length = random:NextNumber(170, 260)
-			local halfBase = height * random:NextNumber(0.8, 1.0) -- steep faces, sharp crest
+			local height = random:NextNumber(180, 270)
+			local length = random:NextNumber(200, 300)
+			local halfBase = height * random:NextNumber(1.25, 1.6) -- wide, soft slopes (not spiky)
 			local distance = INNER + FOOT + halfBase + random:NextNumber(0, 30)
 			local center = rotation * Vector3.new(along, 0, distance)
 			local yaw = side * math.pi / 2 + random:NextNumber(-0.5, 0.5)
 			peak(center.X, center.Z, yaw, length, height, halfBase)
 
 			-- A taller, shorter ridge crossing it, so the crest breaks into several peaks.
-			if random:NextNumber() < 0.6 then
-				local peakHeight = height * random:NextNumber(1.1, 1.3)
+			if random:NextNumber() < 0.25 then
+				local peakHeight = height * random:NextNumber(1.0, 1.15)
 				local offset = rotation * Vector3.new(along + random:NextNumber(-0.3, 0.3) * length, 0, distance)
 				peak(
 					offset.X,
@@ -236,7 +236,7 @@ local function backRange(terrain: Terrain)
 					halfBase * peakHeight / height
 				)
 			end
-			along += 190 * random:NextNumber(0.55, 1.0)
+			along += 260 * random:NextNumber(0.6, 1.0)
 		end
 	end
 end
