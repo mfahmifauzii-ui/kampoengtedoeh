@@ -5,7 +5,7 @@
 --
 -- R2: every plot has a reserved REGION square (Plots.SIZE = 192: x and z from -96 to 96, +Z = toward the road). The
 -- player's land is the START x START (128) square inside it, flush with the road end: x -64 .. 64, z -32 .. 96.
--- (R2b will let the land grow chunk by chunk into the rest of the region; this module is where that rule will live.)
+-- (R2b: the land grows block by block into the rest of the region; the rules for that live in this module.)
 -- TERRAIN GRID (measured with Terrain:ReadVoxels): cells are 4 studs with their edges at multiples of 4, and a block
 -- paints a cell's material when the cell's CENTER lies inside the block. Plot anchors sit on multiples of 4, so in
 -- plot-local studs the land edges are multiples of 4 and a farm tile (8 studs) is exactly 2 x 2 cells. Paint blocks
@@ -55,8 +55,9 @@ function Land.startContains(x: number, z: number, margin: number?): boolean
 end
 
 -- Chunks ------------------------------------------------------------------------------------
--- The reserved square is CHUNK x CHUNK squares: chunk (ix, iz) covers x ix*16 .. ix*16 + 16 and z iz*16 .. iz*16 + 16.
--- The start land is the chunks ix -4 .. 3 and iz -2 .. 5; the others (80) are bought. Owned extra chunks are kept
+-- The reserved square is a 6 x 6 grid of CHUNK x CHUNK (32 x 32) blocks: block (ix, iz) covers x ix*32 .. ix*32 + 32 and
+-- z iz*32 .. iz*32 + 32, with ix and iz in -3 .. 2. The start land is the blocks ix -2 .. 1 and iz -1 .. 2 (16 blocks);
+-- 20 blocks lie outside it, and 14 of those can be bought (the town-facing column is never for sale). Owned extra blocks are kept
 -- as a set of "ix,iz" keys (data.land.chunks on the server, snapshot.landChunks on the client).
 local CH = Plots.CHUNK.SIZE
 Land.CHUNK = CH
@@ -66,6 +67,7 @@ local START_IX0, START_IX1 = -Land.HALF // CH, Land.HALF // CH - 1
 local START_IZ0, START_IZ1 = Land.BACK_Z // CH, Land.FRONT_Z // CH - 1
 Land.START_CHUNKS = (START_IX1 - START_IX0 + 1) * (START_IZ1 - START_IZ0 + 1)
 -- Bought blocks: everything outside the start land except the town-facing column (one block column of the square).
+-- With CHUNK.SIZE = 32 this is 36 - 16 - 6 = 14.
 Land.EXTRA_CHUNKS = (Land.CHUNK_MAX - Land.CHUNK_MIN + 1) ^ 2 - Land.START_CHUNKS - (Land.CHUNK_MAX - Land.CHUNK_MIN + 1)
 
 export type Chunks = { [string]: boolean }

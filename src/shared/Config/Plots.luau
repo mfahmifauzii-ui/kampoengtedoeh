@@ -1,7 +1,7 @@
 --!strict
 -- Village plots (R2 ring map): 8 identical lands, two on each of the four axis roads (see Config/Map), one on each
 -- side of the road, all FACING the road. Every plot has its own reserved square of REGION x REGION studs; the player
--- starts with a START x START land inside it, at the road end, and grows into the rest (R2b: buy 16-stud chunks).
+-- starts with a START x START land inside it, at the road end, and grows into the rest (R2b: buy 32-stud blocks, see CHUNK).
 -- Because every plot has the same square and the same start, all players start and finish with exactly the same land.
 --
 -- Plot-local frame: origin = center of the reserved square, +Z = toward the road (the front), +X = to the right.
@@ -66,10 +66,12 @@ return {
 
 	-- Buying land (R2b): the player grows from the START land into the rest of the reserved square, one BLOCK at a time
 	-- (SIZE x SIZE studs; called a "chunk" in the code). SIZE must divide 128 and 192 and line up with the start land:
-	-- 32 gives a 6 x 6 grid in the square, 4 x 4 of it the start land, so 20 blocks can be bought. A block must touch
-	-- land the player already owns. Price of the n-th extra block (n = 0 for the first): PRICE_BASE * PRICE_GROWTH ^ n,
-	-- rounded to 10: #1 1.500, #5 3.110, #10 7.740, #15 19.260, #20 47.920; all 20 cost about 280.000 Koin (assumption,
-	-- see tools/balance_sim.py). The game pass "plots" gives PASS_DISCOUNT off every block.
+	-- 32 gives a 6 x 6 grid in the square, 4 x 4 of it the start land (16 blocks), so 20 blocks lie outside it. The
+	-- town-facing column of 6 (the front yard, see INWARD) can never be bought, so 14 blocks can be bought. A block must
+	-- touch land the player already owns. Price of the n-th extra block (n = 0 for the first): PRICE_BASE * PRICE_GROWTH ^ n,
+	-- rounded to 10: #1 1.500, #5 3.110, #10 7.740, #15 19.260, #20 47.920. The 14 buyable blocks (n = 0..13) cost about
+	-- 89.000 Koin in total; all 20 outside blocks would cost about 280.000 (assumption, see tools/balance_sim.py).
+	-- The game pass "plots" gives PASS_DISCOUNT off every block.
 	CHUNK = { SIZE = 32, PRICE_BASE = 1500, PRICE_GROWTH = 1.2, PASS_DISCOUNT = 0.2 },
 
 	SPAWN_OFFSET = Vector3.new(0, 4, 70), -- relative to Origin; inside the start land, in front of the house

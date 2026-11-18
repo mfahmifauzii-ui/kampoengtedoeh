@@ -1,9 +1,9 @@
 --!strict
 -- Buying land (R2b). A plot's reserved square is 192 x 192 studs; the player owns the 128 x 128 start land plus the
--- 16 x 16 chunks they bought (data.land.chunks, Modules/Land). Every request is checked on the server: the chunk must
+-- 32 x 32 blocks ("chunks" in the code) they bought (data.land.chunks, Modules/Land). Every request is checked on the server: the chunk must
 -- be inside the square, not owned, and touch owned land; the price comes from Land.chunkPrice (game pass discount).
 -- Buying paints the chunk bright grass, hides the forest on it and moves the fence out (MapService).
---   LandBuy(ix, iz)    chunk indices in plot-local chunks (x = ix * 16, z = iz * 16)
+--   LandBuy(ix, iz)    chunk indices in plot-local blocks (x = ix * 32, z = iz * 32)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 

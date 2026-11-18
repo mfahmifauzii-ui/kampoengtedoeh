@@ -35,7 +35,7 @@ Delapan lahan sama bentuk, sama ukuran, dan setara lewat rotasi + cermin: jarak 
 
 ## 2. Lahan: awal 128, cadangan 192
 
-Setiap lahan punya **kotak cadangan 192 × 192** miliknya sendiri. Pemain mulai dengan **lahan 128 × 128** di dalamnya, **menempel ke jalan**; sisanya (belakang dan samping) dibeli **blok demi blok 32×32** (✅ R2b, 20 blok) sampai 192 × 192. Karena tiap pemain punya kotak cadangan yang sama, awal dan akhir lahan **sama persis** untuk semua pemain.
+Setiap lahan punya **kotak cadangan 192 × 192** miliknya sendiri. Pemain mulai dengan **lahan 128 × 128** di dalamnya, **menempel ke jalan**; sisanya (belakang dan samping) dibeli **blok demi blok 32×32** (✅ R2b, 14 blok yang bisa dibeli; 6 blok di sisi depan tidak dijual) sampai 192 × 192 dalam kotak cadangan. Karena tiap pemain punya kotak cadangan yang sama, awal dan akhir lahan **sama persis** untuk semua pemain.
 
 ```
  plot-lokal (+Z = ke arah jalan, +X = kanan, titik 0 = pusat kotak cadangan)

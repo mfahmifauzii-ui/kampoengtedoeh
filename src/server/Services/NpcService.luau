@@ -68,8 +68,9 @@ local function adopt(npc: Npcs.Npc): boolean
 	return true
 end
 
--- Where Bang Tarno of the n-th "Warung Mini" stands: beside the stall on its road side, on the ground, facing the way the
--- counter faces (the stall's local -Z). Stalls are sorted by position so the numbering is stable.
+-- Where Bang Tarno of the n-th "Warung Mini" stands: in front of the stall (Npcs.MINI_SIDE_OFFSET / MINI_FRONT_OFFSET), on the
+-- ground, facing the stall (turned 180 degrees from the stall's local -Z, so he looks at the counter). Stalls are sorted by
+-- position so the numbering is stable.
 local function miniStand(index: number): CFrame?
 	local stalls: { Model } = {}
 	for _, child in Workspace:GetChildren() do
@@ -92,7 +93,7 @@ local function miniStand(index: number): CFrame?
 	params.FilterDescendantsInstances = { Workspace.Terrain }
 	local hit = Workspace:Raycast(spot.Position + Vector3.new(0, 60, 0), Vector3.new(0, -120, 0), params)
 	local groundY = if hit then hit.Position.Y else pivot.Position.Y - 9
-	return CFrame.new(spot.X, groundY + 3, spot.Z) * (pivot - pivot.Position) -- keeps the stall's yaw
+	return CFrame.new(spot.X, groundY + 3, spot.Z) * (pivot - pivot.Position) * CFrame.Angles(0, math.pi, 0) -- keeps the stall's yaw, facing it
 end
 
 local function build(npc: Npcs.Npc)

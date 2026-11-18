@@ -46,7 +46,7 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	FarmLevel = "Event", -- C->S (tileUid: number) remove an empty bed: back to grass (menu "Hapus Petak", asks first)
 	FarmMove = "Event", -- C->S (tileUid, cx, cz) move an empty bed to another free cell of your land (Pindah)
 
-	LandBuy = "Event", -- C->S (ix: number, iz: number) buy the 16 x 16 chunk (plot-local chunk indices, Modules/Land)
+	LandBuy = "Event", -- C->S (ix: number, iz: number) buy the 32 x 32 block (plot-local chunk indices, Modules/Land)
 
 	PondBuild = "Event", -- C->S (cx: number, cz: number) dig a pond with its min corner at this tile cell
 	PondRemove = "Event", -- C->S (uid: number) fill a pond back in (refund)

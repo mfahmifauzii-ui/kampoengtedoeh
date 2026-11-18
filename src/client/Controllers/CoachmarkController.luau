@@ -294,16 +294,28 @@ local function layoutHudZones(view: Vector2)
 	local rects: { { x: number, y: number, w: number, h: number } } = {}
 	if hud then
 		local inset = GuiService:GetGuiInset().Y
+		local function addRect(obj: GuiObject)
+			table.insert(rects, {
+				x = obj.AbsolutePosition.X,
+				y = obj.AbsolutePosition.Y + inset,
+				w = obj.AbsoluteSize.X,
+				h = obj.AbsoluteSize.Y,
+			})
+		end
 		for _, child in hud:GetChildren() do
 			if child:IsA("GuiObject") and child.Visible and child.AbsoluteSize.X > 0 then
+				if child.Name == "DockBar" then
+					-- Garap and Kolam are the tools this ground step is about: they must stay tappable (they switch the mode off).
+					-- Only the rest of the dock is blocked.
+					for _, button in child:GetChildren() do
+						if button:IsA("GuiObject") and button.Visible and button.AbsoluteSize.X > 0
+							and button.Name ~= "GarapButton" and button.Name ~= "KolamButton" then
+							addRect(button)
+						end
+					end
 				-- skip a full-screen container: it would dim the land too
-				if child.AbsoluteSize.X < view.X * 0.95 or child.AbsoluteSize.Y < view.Y * 0.95 then
-					table.insert(rects, {
-						x = child.AbsolutePosition.X,
-						y = child.AbsolutePosition.Y + inset,
-						w = child.AbsoluteSize.X,
-						h = child.AbsoluteSize.Y,
-					})
+				elseif child.AbsoluteSize.X < view.X * 0.95 or child.AbsoluteSize.Y < view.Y * 0.95 then
+					addRect(child)
 				end
 			end
 		end

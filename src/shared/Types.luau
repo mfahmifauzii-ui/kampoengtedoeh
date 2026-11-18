@@ -100,7 +100,7 @@ export type PlayerData = {
 	},
 	titles: { [string]: boolean },
 	land: {
-		chunks: { [string]: boolean }, -- bought 16 x 16 chunks of the plot, "ix,iz" keys (Modules/Land)
+		chunks: { [string]: boolean }, -- bought 32 x 32 blocks ("chunks" in the code) of the plot, "ix,iz" keys (Modules/Land)
 	},
 	plotSlot: number, -- the plot number this player had last time (0 = none): tried first when they join
 	sales: {

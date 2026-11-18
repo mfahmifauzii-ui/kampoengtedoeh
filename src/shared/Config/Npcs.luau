@@ -28,7 +28,7 @@ export type Npc = {
 	buys: { [string]: number },
 	sells: Sells,
 	quota: boolean?, -- buys each crop only up to the daily quota (Pak Darmo)
-	miniIndex: number?, -- Bang Tarno at the n-th "Warung Mini": stands beside that stall, ignores `stand`
+	miniIndex: number?, -- Bang Tarno at the n-th "Warung Mini": stands in front of that stall, ignores `stand`
 	model: string?, -- ServerStorage.NpcModels.<model> rig to clone (default: the npc id); else a plain colour-only rig is built
 }
 
@@ -116,8 +116,8 @@ return {
 	list = list,
 	byId = byId,
 	MINI_STALL_NAME = "Warung Mini",
-	MINI_SIDE_OFFSET = 13, -- studs along the stall's local X (left of the counter seen from the front)
-	MINI_FRONT_OFFSET = -3, -- studs along the stall's local Z (negative = toward the front, where the counter faces)
+	MINI_SIDE_OFFSET = 0, -- studs along the stall's local X: 0 = centred in front of the stall
+	MINI_FRONT_OFFSET = -12, -- studs along the stall's local Z (negative = in front, where the counter faces). The stall's front edge is at Z -8.8, so this leaves about 3 studs of room
 
 	-- Pak Darmo's daily quota (WIB day): PER_CROP of each crop type at the start, +PER_TIER per "Kapasitas Warung"
 	-- upgrade (Config/Shop). Values are assumptions: simulate with tools/balance_sim.py before locking them.

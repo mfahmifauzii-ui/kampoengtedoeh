@@ -47,11 +47,11 @@ local function tileCFrame(origin: BasePart, cx: number, cz: number): CFrame
 	return origin.CFrame * CFrame.new(x, origin.Size.Y / 2, z)
 end
 
--- A tilled bed is a low mound: the 2 x 2 terrain cells under the tile get a higher occupancy (Farm.BED_OCCUPANCY)
--- instead of the grass layer's 0.5, which raises the surface about Farm.BED_RAISE studs at the center and slopes
--- softly to the ground (MEASURED with raycasts: occupancy 0.85 -> 1.4 studs, linear in between). FillBlock can't do
--- this (it only fills whole cells), so the cells are written with WriteVoxels.
---   "none" = grass again (0.5), "dry" = Ground, "wet" = Mud.
+-- The terrain under a tilled bed stays FLAT: the 2 x 2 cells are painted Ground (dry) or Mud (wet) with occupancy
+-- Farm.BED_OCCUPANCY = 0.5, the same as grass, so the ground does not change height. The raised look is the soil slab
+-- Part (makeTilePart, Farm.TILE_HEIGHT / BED_RAISE). An older version used occupancy 0.85 for a soft mound (1.4 studs);
+-- that is no longer the value. The cells are written with WriteVoxels so the paint matches the cell boundaries exactly.
+--   "none" = grass again (GROUND_OCCUPANCY 0.5), "dry" = Ground, "wet" = Mud.
 -- Tiles line up with the terrain cells (Land) and plots sit on multiples of 4 and turn in quarter turns, so the
 -- tile's world box is already cell-aligned and the top layer is the one just under the ground.
 local function paintSoil(origin: BasePart, cx: number, cz: number, state: string)
