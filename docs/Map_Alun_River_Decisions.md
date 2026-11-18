@@ -63,3 +63,14 @@ Backup versi sebelum perubahan ini: `ServerStorage.MapBackup` di place (dibuat 1
 | StyLua parse `Plots.luau` | Format tidak lolos, sama seperti sebelumnya (file repo tidak mengikuti StyLua). Bukan gerbang |
 | `rojo build` | Lolos |
 | Test di Studio | **Belum** |
+
+## Status penerapan (18 Nov, Studio, Edit mode)
+
+- **Bug ditemukan dan diperbaiki:** `Config/Map.luau` punya dua key `RING_R` (165 untuk ring road, 62 untuk radius toko). Lua memakai yang terakhir, jadi ring road batu tidak pernah dibangun. Sekarang radius toko `SHOP_R = 62`, dan `RING_R = 165` (commit `277babd`). Posisi toko dan warung tidak berubah. Efek lain: ring road batu terlihat, dan jarak bersih pohon dari ring road ikut sesuai desain (`RING_R + 10`).
+- **Terrain** dibangun ulang (1,2 detik): sungai, ring road, lahan baru.
+- **`Workspace.Map`** dibangun ulang dari generator (1,5 detik): jalan sumbu jadi sungai, jalur gerbang, jembatan ring road, pagar, pohon. `Workspace.Fishing` dikosongkan lalu diisi ulang.
+- **Warung Mini** dipindah: utara `(50, -139)`, selatan `(-50, 139)`, timur `(139, 50)`, barat `(-139, -50)`. Rotasi tidak diubah.
+- **Map lama** (versi sebelum ini) disimpan di `ServerStorage.MapBackup` sebagai `Map_prev`.
+- **Belum disimpan** ke Roblox. Belum dites di Play.
+
+Cek visual: dari atas, sungai dari kanal sampai tepi peta dan jembatan di ring road terlihat. Dari dekat, gerbang menghadap alun-alun dan jalur tanah sampai ke ring road.
