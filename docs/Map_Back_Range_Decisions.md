@@ -30,6 +30,14 @@
 - **Dinding, margin, dan ukuran peta** (`Config/Map.luau`). Tidak disentuh.
 - **Tidak ada commit git.** Perubahan masih di working tree.
 
+## Penerapan ke place (18 Nov, Edit mode)
+
+- Backup dulu: clone `Workspace.Map` + 49 potongan terrain di `ServerStorage.MapBackup`. Place disimpan ke Roblox sebagai versi 384 (backup ikut tersimpan).
+- Terrain dibangun ulang dengan `buildTerrain` dari `MapService` (2,61 detik). `Workspace.Map` dan objek lain di workspace tidak disentuh.
+- Cara: `MapService.RebuildTerrain` ditambahkan sementara, dipanggil di Edit, lalu baris itu dihapus lagi. Tidak ada kode tambahan yang tertinggal di repo.
+- Hasil: pegunungan belakang tampil puncak bersalju bergerigi (kamera dari luar peta).
+- Belum disimpan ke Roblox. Simpan setelah dicek.
+
 ## Backup
 
 Isi `_backup/map_2026-11-18/`:
@@ -61,3 +69,11 @@ Untuk kembali: salin dua file itu kembali ke `src/server/Services/` dan `src/sha
 
 - [[Map_Plan]] (peta cincin, bagian pegunungan di luar dinding)
 - Generator: `src/server/Services/MapService.luau` → `backRange`, `buildMountains`, `buildTerrain`
+
+## Revisi 2: lebih halus (18 Nov)
+
+- Permintaan: pegunungan belakang terlalu runcing.
+- Perubahan: tinggi puncak 180–270 (dari 230–340); lereng lebar (`halfBase` 1,25–1,6× tinggi, dari 0,8–1,0×); puncak silang hanya 25% (dari 60%) dan lebih pendek; jarak antar puncak lebih lebar (260 × 0,6–1,0).
+- Dibangun ulang di Studio (Edit, 2,86 detik), `Workspace.Map` tidak disentuh. Hasil: lereng lebih landai, puncak tidak lagi runcing.
+- Catatan: puncak runcing yang masih terlihat di tengah gambar berasal dari baris pegunungan tengah, yang sengaja tidak diubah.
+- Belum disimpan ke Roblox.
