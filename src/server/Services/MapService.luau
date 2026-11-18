@@ -215,7 +215,7 @@ local function backRange(terrain: Terrain)
 		local rotation = CFrame.Angles(0, side * math.pi / 2, 0)
 		local along = -reach
 		while along <= reach do
-			local height = random:NextNumber(180, 270)
+			local height = random:NextNumber(110, 160)
 			local length = random:NextNumber(200, 300)
 			local halfBase = height * random:NextNumber(1.25, 1.6) -- wide, soft slopes (not spiky)
 			local distance = INNER + FOOT + halfBase + random:NextNumber(0, 30)
