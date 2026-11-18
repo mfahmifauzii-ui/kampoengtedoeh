@@ -805,6 +805,10 @@ local function buildPlotFence(plotIndex: number, chunks: Land.Chunks?)
 	-- so its posts (at +-1.85 from its centre) land exactly on the joints: a corner post is shared by the two sides.
 	-- gate = leave the middle of the road side open.
 	local function side(ax: number, az: number, bx: number, bz: number, gate: boolean)
+		-- Never past the reserved square (v2): neighbouring squares only touch at the corners, so a fence that ran out
+		-- past the square's edge would cross the next player's fence. Clamped, a side on the square's edge sits ON the edge.
+		local R = Land.REGION_HALF
+		ax, az, bx, bz = math.clamp(ax, -R, R), math.clamp(az, -R, R), math.clamp(bx, -R, R), math.clamp(bz, -R, R)
 		local from, to = world(ax, az), world(bx, bz)
 		local len = (to - from).Magnitude
 		local dir = (to - from).Unit
