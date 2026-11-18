@@ -24,7 +24,10 @@ local TOWN = {
 	-- The ring is centered on the banyan's CANOPY (its visual middle), not on the trunk. The trunk stays at TREE_Z (grass).
 	RING_X = 0,
 	RING_Z = -3,
-	RING_R = 62, -- shop footprint centers, measured from the canopy center (fits inside ISLAND_R with the footprint)
+	-- SHOP_R, not RING_R: this key used to be a second RING_R that overwrote the ring road's 165 (Lua keeps the last key),
+	-- so the cobblestone ring road was never built. Shops and the warung still use 62 (footprint centers, measured from
+	-- the canopy center; fits inside ISLAND_R with the footprint).
+	SHOP_R = 62,
 	STAND_IN = 12, -- the shopkeeper stands this far in from the shop's center, just in front of its front wall (~9 studs deep)
 	GRASS_R = 22, -- grass disk around the trunk (covers the base under the canopy)
 }
@@ -32,7 +35,7 @@ local TOWN = {
 -- The warung stall on the ring, on the south side of the tree (the side the bridge customers come from).
 -- Its counter faces the tree (yaw pi: local +Z points north, toward the tree); Pak Darmo stands behind it, on the
 -- south side (see Config/Npcs).
-local WARUNG = { x = TOWN.RING_X, z = TOWN.RING_Z + TOWN.RING_R, FLOOR_Y = 7.05, yaw = math.pi } -- FLOOR_Y: top of the warung's wooden floor (the seller stands on it)
+local WARUNG = { x = TOWN.RING_X, z = TOWN.RING_Z + TOWN.SHOP_R, FLOOR_Y = 7.05, yaw = math.pi } -- FLOOR_Y: top of the warung's wooden floor (the seller stands on it)
 
 export type Shop = { x: number, z: number, yaw: number, standX: number, standZ: number, standYaw: number }
 
@@ -44,10 +47,10 @@ local SHOPS: { Shop } = {}
 for slot = 1, 8 do
 	local angle = math.rad(90 + 40 * slot)
 	local c, s = math.cos(angle), math.sin(angle)
-	local standR = TOWN.RING_R - TOWN.STAND_IN
+	local standR = TOWN.SHOP_R - TOWN.STAND_IN
 	table.insert(SHOPS, {
-		x = TOWN.RING_X + TOWN.RING_R * c,
-		z = TOWN.RING_Z + TOWN.RING_R * s,
+		x = TOWN.RING_X + TOWN.SHOP_R * c,
+		z = TOWN.RING_Z + TOWN.SHOP_R * s,
 		yaw = math.atan2(-c, -s),
 		standX = TOWN.RING_X + standR * c,
 		standZ = TOWN.RING_Z + standR * s,
