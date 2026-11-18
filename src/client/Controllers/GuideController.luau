@@ -861,7 +861,7 @@ function refreshTutorial()
 	if stepDef.done.kind ~= "ack" then
 		local highlight = stepDef.highlight
 		local kind = stepDef.done.kind
-		local groundKind = kind == "tiles" or kind == "ponds" -- steps done by tapping the ground in Garap mode
+		local groundKind = kind == "tiles" or kind == "ponds" or kind == "planted" or kind == "watered" or kind == "garap" -- steps done by tapping the ground in Garap mode (planting and watering too)
 		local onGround = groundKind and GarapController.Active
 		-- Past the tilling / pond steps, Garap mode must be closed: its open state hides the bed pills the next step points at.
 		if not (groundKind or kind == "pondmode") and GarapController.Active then
