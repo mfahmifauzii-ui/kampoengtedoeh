@@ -215,7 +215,7 @@ local function backRange(terrain: Terrain)
 		local rotation = CFrame.Angles(0, side * math.pi / 2, 0)
 		local along = -reach
 		while along <= reach do
-			local height = random:NextNumber(110, 160)
+			local height = random:NextNumber(140, 200)
 			local length = random:NextNumber(200, 300)
 			local halfBase = height * random:NextNumber(1.25, 1.6) -- wide, soft slopes (not spiky)
 			local distance = INNER + FOOT + halfBase + random:NextNumber(0, 30)
@@ -308,8 +308,8 @@ local function buildMountains(terrain: Terrain)
 		end
 	end
 
-	row(0, 14, 28, 90, 160, 110) -- foothills, right behind the woods (lowered: half the old height)
-	row(70, 55, 95, 130, 240, 170) -- the range, its foot behind the foothills (lowered: about half)
+	row(0, 20, 40, 90, 160, 110) -- foothills, right behind the woods (between the old and the lowered heights)
+	row(70, 75, 120, 130, 240, 170) -- the range, its foot behind the foothills (between the old and the lowered heights)
 	backRange(terrain) -- tall back range: faceted green/rock/snow peaks (see backRange above)
 end
 

@@ -85,3 +85,11 @@ Untuk kembali: salin dua file itu kembali ke `src/server/Services/` dan `src/sha
 - Dibangun ulang di Studio dengan salinan modul baru (0,90 detik). `Workspace.Map` tidak disentuh.
 - **Gotcha:** `require` di Studio mengembalikan modul yang di-cache, sehingga rebuild pertama setelah edit bisa memakai kode lama. Untuk memuat kode terbaru, pakai salinan modul (`m:Clone()` lalu `require`). Dua rebuild sebelumnya (tinggi 110–160 dan baris tengah) hasilnya belum benar-benar terlihat, dan sekarang sudah dibangun ulang dengan benar.
 - Belum disimpan ke Roblox.
+
+## Revisi 4: ketinggian tengah-tengah (18 Nov)
+
+- Permintaan: revisi 3 terlalu rendah.
+- Perubahan: kaki bukit 20–40; pegunungan tengah 75–120; pegunungan belakang 140–200.
+- Dibangun ulang di Studio (1,15 detik). `Workspace.Map` tidak disentuh.
+- Catatan sinkronisasi: Rojo sempat tidak menyinkronkan baris terakhir ke Studio. Setelah komentar baris itu diubah, sinkron jalan lagi.
+- Belum disimpan ke Roblox.
