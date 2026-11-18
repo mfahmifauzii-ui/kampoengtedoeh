@@ -19,10 +19,11 @@ local START = 128
 local ROAD_HALF = 12 -- half width of the axis roads (Config/Map ROAD.HALF)
 local INNER = ROAD_HALF + REGION -- half size of the inner square (town, ring road and plazas) = 204
 local LATERAL = ROAD_HALF + REGION / 2 -- plot center, sideways from the axis = 108
--- v2 (alun-alun): the plots moved FORWARD toward the ring road, so the gate faces the plaza. The front edge sits
--- 4 studs outside the ring road's outer edge (Map.TOWN.RING_R = 165); the gap to the ring road at the gate is a short
--- dirt path (MapService buildPaths). Plot center along the axis = 169 + 96 = 265 (was 300).
-local DEPTH = Map.TOWN.RING_R + 4 + REGION / 2
+-- Plot center along the axis = 300 (INNER + REGION / 2). Do NOT move it forward: the reserved squares of two plots at
+-- neighbouring corners overlap as soon as the center comes closer (at 265 they overlap 35 x 35 studs at every corner,
+-- so buyable land overlapped between players). The gate still faces the plaza
+-- (yaw below); the front yard between the gate and the ring road is cleared of trees and crossed by a dirt path.
+local DEPTH = INNER + REGION / 2
 
 export type Slot = { name: string, x: number, z: number, yaw: number }
 
