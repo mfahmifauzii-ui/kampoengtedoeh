@@ -33,7 +33,6 @@ local DECK_Y = Map.BRIDGE.DECK_Y
 local AXES = { Vector3.new(1, 0, 0), Vector3.new(-1, 0, 0), Vector3.new(0, 0, 1), Vector3.new(0, 0, -1) }
 -- The river runs out along each axis (where the old axis roads were): 12 studs wide, half-width here (see buildTerrain).
 local RIVER_HALF = 6
-local GATE_WIDTH = 33.3 -- the plot gate's opening (= 2 * GATE_HALF in the fences section)
 
 local C = {
 	ASPHALT = Color3.fromRGB(70, 68, 66),
@@ -456,7 +455,7 @@ local function buildRoad(map: Folder)
 	local lamps = folder(map, "Lamps")
 
 	-- The axis roads are the river now (buildTerrain), so there are no axis roads or axis lamps. Each plot's gate
-	-- has a dirt path to the ring road instead (buildPaths).
+	-- front yard in front of each gate stays open (no dirt path, by request).
 
 	-- Lamps around the ring road's outer edge, except where an axis road meets it.
 	local count = 24
@@ -465,31 +464,6 @@ local function buildRoad(map: Folder)
 		local c, s = math.cos(angle), math.sin(angle)
 		if math.abs(c) < 0.97 and math.abs(s) < 0.97 then
 			lampPost(lamps, CFrame.new((TOWN.RING_R + 2) * c, 0, (TOWN.RING_R + 2) * s))
-		end
-	end
-end
-
--- Gate paths: from each plot's gate (the middle of its front, facing the alun-alun) straight to the ring road, the same
--- width as the gate opening. The ring road is the stop: the path ends a little inside its outer edge.
-local function buildPaths(map: Folder)
-	local road = folder(map, "Road")
-	for _, slot in Plots.LAYOUT do
-		local frame = CFrame.new(slot.x, 0, slot.z) * CFrame.Angles(0, slot.yaw, 0)
-		local gate = (frame * CFrame.new(0, 0, Land.FRONT_Z)).Position
-		local front = frame:VectorToWorldSpace(Vector3.new(0, 0, 1))
-		local gx, gz = gate.X, gate.Z
-		local fx, fz = front.X, front.Z
-		-- Walk from the gate toward the center until the ring road's outer edge (smaller root of |g + t f| = R - 2).
-		local stop = TOWN.RING_R - 2
-		local b = 2 * (gx * fx + gz * fz)
-		local c = gx * gx + gz * gz - stop * stop
-		local disc = b * b - 4 * c
-		if disc > 0 then
-			local t = (-b - math.sqrt(disc)) / 2
-			local from, to = -2, t + 1 -- a little into the plot (meets the fence gate), a little into the ring road
-			local mid = Vector3.new(gx + fx * (from + to) / 2, 0.15, gz + fz * (from + to) / 2)
-			local look = mid + Vector3.new(fx, 0, fz)
-			block(road, "GatePath", Vector3.new(GATE_WIDTH, 0.3, to - from), CFrame.lookAt(mid, look), Map.DIRT_COLOR, Enum.Material.Sand)
 		end
 	end
 end
@@ -787,6 +761,7 @@ local function buildPlotFence(plotIndex: number, chunks: Land.Chunks?)
 	local frame = CFrame.new(slot.x, 0, slot.z) * CFrame.Angles(0, slot.yaw, 0)
 	local fenceTemplate = getTemplate("PagarBambu")
 	local posts: { [string]: boolean } = {}
+	local placedSegments: { { centre: Vector3, dir: Vector3 } } = {}
 
 	local function world(x: number, z: number): Vector3
 		return (frame * CFrame.new(x, 0, z)).Position
@@ -829,8 +804,19 @@ local function buildPlotFence(plotIndex: number, chunks: Land.Chunks?)
 		for i = 0, n - 1 do
 			local along = (i + 0.5) * pitch
 			local lx = ax + (bx - ax) * along / len -- plot-local x of this segment's centre
-			if not (gate and math.abs(lx) < GATE_HALF) then
-				placeTemplate(fenceTemplate, fences, "Pagar", CFrame.fromMatrix(from + dir * along, dir, Vector3.yAxis), 2.5 * fit)
+			local centre = from + dir * along
+			-- Corner doubling (v2): at a corner two perpendicular runs both end on the corner post and their end segments
+			-- overlap (about 2.6 studs). The first run to place a segment there keeps it; the other one skips it.
+			local doubled = false
+			for _, s in placedSegments do
+				if math.abs(s.dir:Dot(dir)) < 0.3 and (s.centre - centre).Magnitude < 3.2 then
+					doubled = true
+					break
+				end
+			end
+			if not doubled and not (gate and math.abs(lx) < GATE_HALF) then
+				table.insert(placedSegments, { centre = centre, dir = dir })
+				placeTemplate(fenceTemplate, fences, "Pagar", CFrame.fromMatrix(centre, dir, Vector3.yAxis), 2.5 * fit)
 			end
 		end
 	end
@@ -1407,7 +1393,6 @@ function MapService.Init()
 	local map = Instance.new("Folder")
 	map.Name = "Map"
 	buildRoad(map)
-	buildPaths(map)
 	buildBridge(map)
 	buildTown(map)
 	buildFishing(map)

@@ -92,7 +92,7 @@ local list: { Npc } = {
 -- Bang Tarno runs every "Warung Mini" (hand-placed models named "Warung Mini" in Workspace, one per ring-road axis).
 -- He replaces the old Lapak Tarno: pays MINI_BUY_MULT x Pak Darmo's price for crops, with no daily quota. One NPC per
 -- stall (ids bang_tarno_1 .. _N, same name and dialogue); NpcService stands each beside its stall, see miniStand.
-local MINI_COUNT = 4
+local MINI_COUNT = 8 -- one per plot gate (v2): every land has its own Warung Mini in front of its gate
 local MINI_BUY_MULT = 0.9
 for i = 1, MINI_COUNT do
 	table.insert(list, {
