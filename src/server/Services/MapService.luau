@@ -308,8 +308,8 @@ local function buildMountains(terrain: Terrain)
 		end
 	end
 
-	row(0, 28, 55, 90, 160, 110) -- foothills, right behind the woods
-	row(70, 110, 190, 130, 240, 170) -- the range, its foot behind the foothills
+	row(0, 14, 28, 90, 160, 110) -- foothills, right behind the woods (lowered: half the old height)
+	row(70, 55, 95, 130, 240, 170) -- the range, its foot behind the foothills (lowered: about half)
 	backRange(terrain) -- tall back range: faceted green/rock/snow peaks (see backRange above)
 end
 

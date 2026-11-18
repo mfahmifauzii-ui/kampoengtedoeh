@@ -77,3 +77,11 @@ Untuk kembali: salin dua file itu kembali ke `src/server/Services/` dan `src/sha
 - Dibangun ulang di Studio (Edit, 2,86 detik), `Workspace.Map` tidak disentuh. Hasil: lereng lebih landai, puncak tidak lagi runcing.
 - Catatan: puncak runcing yang masih terlihat di tengah gambar berasal dari baris pegunungan tengah, yang sengaja tidak diubah.
 - Belum disimpan ke Roblox.
+
+## Revisi 3: semua baris diturunkan (18 Nov)
+
+- Permintaan: gunung masih terlalu tinggi.
+- Perubahan: kaki bukit 14–28 (dari 28–55); pegunungan tengah 55–95 (dari 110–190); pegunungan belakang 110–160 (dari 180–270).
+- Dibangun ulang di Studio dengan salinan modul baru (0,90 detik). `Workspace.Map` tidak disentuh.
+- **Gotcha:** `require` di Studio mengembalikan modul yang di-cache, sehingga rebuild pertama setelah edit bisa memakai kode lama. Untuk memuat kode terbaru, pakai salinan modul (`m:Clone()` lalu `require`). Dua rebuild sebelumnya (tinggi 110–160 dan baris tengah) hasilnya belum benar-benar terlihat, dan sekarang sudah dibangun ulang dengan benar.
+- Belum disimpan ke Roblox.
