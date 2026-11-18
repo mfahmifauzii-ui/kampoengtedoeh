@@ -120,3 +120,5 @@ File di `assets/models/` (±4,5 ribu segitiga, 1 mesh, tekstur PBR): `Warung.glb
 - `Terrain:FillCylinder` dipakai untuk kanal, pulau, dan cincin jalan; hasilnya bundar tapi bertangga per sel 4 stud.
 - Tekstur "CobbleStylized" terlalu gelap untuk cincin jalan, jadi jalan batu memakai Cobblestone polos berwarna abu-abu.
 - Outline kuning di sekitar lahan adalah seleksi Studio, bukan kode game.
+
+> **Keputusan pegunungan belakang (18 Nov 2026):** lihat [Map_Back_Range_Decisions.md](Map_Back_Range_Decisions.md).

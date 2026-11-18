@@ -178,6 +178,69 @@ end
 
 -- Terrain ---------------------------------------------------------------------------------
 
+-- Back range (the far row, behind the other two): faceted, saturated peaks in three layers, after the low-poly reference:
+-- lush grass on the lower slopes, grey rock in the middle, pale snow on the upper slopes and the crest. Steep, narrow
+-- ridges packed close together so they read as ONE range. Own random seed: the two rows in front keep their shapes.
+-- Snow is the Terrain material Snow (its color is set in buildTerrain).
+local function backRange(terrain: Terrain)
+	local random = Random.new(7741)
+	local half = Map.SIZE / 2
+	local BASE_DEPTH = 6 -- same as buildMountains: ridges start this far below the ground
+	local INNER = half + 110 -- same as buildMountains: the woods stay free
+	local FOOT = 230 -- same distance as the old back row
+
+	-- A horizontal slab of one ridge between `bottom` and `top`, `base` studs wide on each side of the crest line.
+	local function prism(frame: CFrame, length: number, bottom: number, top: number, base: number, material: Enum.Material)
+		local sizeY = top - bottom
+		local centerY = (top + bottom) / 2
+		terrain:FillWedge(frame * CFrame.new(0, centerY, -base / 2), Vector3.new(length, sizeY, base), material)
+		terrain:FillWedge(frame * CFrame.new(0, centerY, base / 2) * CFrame.Angles(0, math.pi, 0), Vector3.new(length, sizeY, base), material)
+	end
+
+	-- One peak: green over the whole ridge, rock from 50% of its height, snow from 78% up. Each layer is the same slope
+	-- shifted up a little (like the rock skin in buildMountains), so the layers sit on each other without seams.
+	local function peak(x: number, z: number, yaw: number, length: number, height: number, halfBase: number)
+		local frame = CFrame.new(x, 0, z) * CFrame.Angles(0, yaw, 0)
+		local top = height * 1.06
+		local slope = halfBase / (height + BASE_DEPTH)
+		prism(frame, length, -BASE_DEPTH, height, halfBase, Enum.Material.LeafyGrass)
+		local rockFrom = height * 0.5
+		prism(frame, length, rockFrom, top, (top - rockFrom) * slope, Enum.Material.Rock)
+		local snowFrom = height * 0.78
+		prism(frame, length, snowFrom, top, (top - snowFrom) * slope, Enum.Material.Snow)
+	end
+
+	local reach = INNER + 340 * 1.5 + 260
+	for side = 0, 3 do
+		local rotation = CFrame.Angles(0, side * math.pi / 2, 0)
+		local along = -reach
+		while along <= reach do
+			local height = random:NextNumber(230, 340)
+			local length = random:NextNumber(170, 260)
+			local halfBase = height * random:NextNumber(0.8, 1.0) -- steep faces, sharp crest
+			local distance = INNER + FOOT + halfBase + random:NextNumber(0, 30)
+			local center = rotation * Vector3.new(along, 0, distance)
+			local yaw = side * math.pi / 2 + random:NextNumber(-0.5, 0.5)
+			peak(center.X, center.Z, yaw, length, height, halfBase)
+
+			-- A taller, shorter ridge crossing it, so the crest breaks into several peaks.
+			if random:NextNumber() < 0.6 then
+				local peakHeight = height * random:NextNumber(1.1, 1.3)
+				local offset = rotation * Vector3.new(along + random:NextNumber(-0.3, 0.3) * length, 0, distance)
+				peak(
+					offset.X,
+					offset.Z,
+					yaw + math.pi / 2 + random:NextNumber(-0.4, 0.4),
+					length * random:NextNumber(0.4, 0.6),
+					peakHeight,
+					halfBase * peakHeight / height
+				)
+			end
+			along += 190 * random:NextNumber(0.55, 1.0)
+		end
+	end
+end
+
 -- Mountains: three rows of terrain RIDGES around the map (foothills, a range, a tall back range), so the camera never
 -- sees the void or the horizon. A ridge is a long triangular prism (two terrain wedges back to back) with steep,
 -- straight slopes and a sharp crest; ridges lean at random angles, vary in height and cross each other, and the tall
@@ -247,7 +310,7 @@ local function buildMountains(terrain: Terrain)
 
 	row(0, 28, 55, 90, 160, 110) -- foothills, right behind the woods
 	row(70, 110, 190, 130, 240, 170) -- the range, its foot behind the foothills
-	row(230, 220, 330, 200, 320, 260) -- tall back range, far back so the slopes stay gentle in view
+	backRange(terrain) -- tall back range: faceted green/rock/snow peaks (see backRange above)
 end
 
 -- Stylized PBR materials (MaterialService > MaterialVariants made for this map): used for the terrain and for any
@@ -354,6 +417,7 @@ local function buildTerrain()
 	terrain:SetMaterialColor(Enum.Material.Cobblestone, Map.COBBLE_COLOR)
 	tint(Enum.Material.Grass, "GrassStylized", Map.FOREST_COLOR, Color3.fromRGB(176, 206, 150)) -- forest floor: darker than the start land
 	tint(Enum.Material.Rock, "RockStylized", Color3.fromRGB(110, 102, 92), Color3.fromRGB(189, 189, 189)) -- mountain tops (white was too bright, 128/120/110 too dark)
+	terrain:SetMaterialColor(Enum.Material.Snow, Color3.fromRGB(236, 242, 248)) -- back range caps: pale, not pure white
 	terrain.WaterColor = Map.WATER_COLOR
 	terrain.WaterTransparency = 0.5 -- was 0.8: the sand bed showed through and the canal looked muddy
 	terrain.WaterReflectance = 0.2 -- less sky/white sheen, so the blue reads deeper
