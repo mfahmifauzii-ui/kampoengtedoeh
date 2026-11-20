@@ -70,6 +70,15 @@ end
 
 -- Two small bamboo-brown cards at the bottom centre: STATUS (waiting / bite, with Batal) and REEL (the mini-game). Only one is
 -- visible at a time. The reel bar is a wide, thick track so the fish and the zone read at a glance on a phone.
+local pullCoach: Frame? = nil
+local coachHidden = false -- Lewati pressed: no pull coachmark for the rest of the session
+
+-- The first fish of the save is still to come (the tutorial's mancing step). Client snapshot, read-only.
+local function fishPending(): boolean
+	local snap = State.current :: any
+	return snap == nil or snap.guide == nil or snap.guide.fishCaught ~= true
+end
+
 local function buildUi()
 	gui = Instance.new("ScreenGui")
 	gui.Name = "FishingUI"
@@ -109,6 +118,33 @@ local function buildUi()
 	reelFrame.Size = UDim2.fromOffset(330, 150)
 	reelFrame.Visible = false
 	reelFrame.Parent = gui
+
+	-- The pull coachmark (v6.2.3 playtest, T-45 rules). Shown only while the first fish is still pending (guide.fishCaught),
+	-- it follows the reel's visibility. Lewati hides it for this session; it changes no state (the step completes on the fish).
+	pullCoach = Instance.new("Frame")
+	pullCoach.Name = "PullCoach"
+	pullCoach.AnchorPoint = Vector2.new(0.5, 1)
+	pullCoach.Position = UDim2.new(0.5, 0, 1, -256)
+	pullCoach.Size = UDim2.fromOffset(360, 64)
+	pullCoach.BackgroundColor3 = UiKit.DARK
+	pullCoach.BackgroundTransparency = 0.1
+	pullCoach.Visible = false
+	pullCoach.Parent = gui
+	local coachText = label(pullCoach, Locale.t("tut.coach.tarik"), 16, UiKit.CREAM)
+	coachText.Size = UDim2.new(1, -124, 1, -8)
+	coachText.Position = UDim2.fromOffset(12, 4)
+	coachText.TextWrapped = true
+	local coachSkip = UiKit.button(pullCoach, "PullCoachSkip", Locale.t("tut.skip"), UiKit.BUTTON_MUTED)
+	coachSkip.AnchorPoint = Vector2.new(1, 0.5)
+	coachSkip.Position = UDim2.new(1, -8, 0.5, 0)
+	coachSkip.Size = UDim2.fromOffset(104, 52) -- 52 px: above the 48 dp minimum
+	coachSkip.Activated:Connect(function()
+		coachHidden = true
+		pullCoach.Visible = false
+	end)
+	reelFrame:GetPropertyChangedSignal("Visible"):Connect(function()
+		pullCoach.Visible = reelFrame.Visible and not coachHidden and fishPending()
+	end)
 	darkBox(reelFrame, 18)
 
 	local hint = label(reelFrame, Locale.t("fish.reel_hint"), 14)

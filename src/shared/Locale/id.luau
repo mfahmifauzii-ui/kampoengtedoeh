@@ -417,6 +417,7 @@ return {
 	["tut.t1b.kak_fajar"] = "Temui Kak Fajar di Toko Pancing",
 	["tut.t1b.mancing"] = "Mancing 1 ikan di dermaga",
 	["tut.coach.mancing"] = "Ketuk Mancing, lalu tarik saat ikan menggigit",
+	["tut.coach.tarik"] = "Tahan Tarik! Jaga ikan tetap di zona hijau",
 	["tut.t1b.bangun_kolam"] = "Gali kolam di lahanmu",
 	["tut.t1b.mancing_kolam"] = "Mancing 1x di kolammu",
 
