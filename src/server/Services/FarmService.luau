@@ -14,7 +14,9 @@ local Workspace = game:GetService("Workspace")
 
 local Crops = require(ReplicatedStorage.Shared.Config.Crops)
 local Farm = require(ReplicatedStorage.Shared.Config.Farm)
+local Mutasi = require(ReplicatedStorage.Shared.Config.Mutasi)
 local DecorGrid = require(ReplicatedStorage.Shared.Modules.DecorGrid)
+local Items = require(ReplicatedStorage.Shared.Modules.Items)
 local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Onboarding = require(ReplicatedStorage.Shared.Config.Onboarding)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
@@ -478,16 +480,30 @@ local function waterAllForRain()
 	end
 end
 
--- Super Panen (Bab 5.3): base 5%, +5% if the tile is Basah. The first harvest of a new save is always Super (FTUE 0:50,
--- Onboarding.FTUE_FIRST_SUPER), and only once: guide.done.ftue_super. Skipping T1 turns the guarantee off.
-local function rollSuper(data: Types.PlayerData, tile: Types.FarmTile): boolean
-	local guide = data.guide
-	if Onboarding.FTUE_FIRST_SUPER and guide.done.ftue_super ~= true and guide.done.t1_awal ~= true and guide.skipped.t1_awal ~= true then
-		guide.done.ftue_super = true
-		return true
+-- Harvest roll (Bab 5.3 Super, Bab 5.4 Mutasi). Server only.
+--   Super: base 5%, +5% if the tile is Basah. Fase 1 forces it for the FTUE first harvest (forceSuper).
+--   Mutasi: only the forced one for now (forcedMutation, Config/Mutasi). The random Mutasi roll is Fase 2.
+-- Returns (super, mutationId?). An unknown forcedMutation is a bug in the caller, so it asserts.
+local function rollHarvest(tile: Types.FarmTile, forceSuper: boolean, forcedMutation: string?): (boolean, string?)
+	if forcedMutation ~= nil then
+		assert(Mutasi.byId[forcedMutation], `unknown mutation {forcedMutation}`)
 	end
-	local chance = Farm.SUPER_CHANCE + (if tile.watered == true then Farm.SUPER_WET_BONUS else 0)
-	return random:NextNumber() < chance
+	local super = forceSuper
+	if not super then
+		local chance = Farm.SUPER_CHANCE + (if tile.watered == true then Farm.SUPER_WET_BONUS else 0)
+		super = random:NextNumber() < chance
+	end
+	return super, forcedMutation
+end
+
+-- The FTUE first harvest of a new save is Super + Embun (Bab 16.3 0:50, Onboarding.FTUE_FIRST_*). Once per save:
+-- guide.done.ftue_super, set after a successful Add. Skipping T1 turns the guarantee off.
+local function takeFirstHarvestGuarantee(data: Types.PlayerData): boolean
+	local guide = data.guide
+	if guide.done.ftue_super == true or guide.done.t1_awal == true or guide.skipped.t1_awal == true then
+		return false
+	end
+	return Onboarding.FTUE_FIRST_SUPER
 end
 
 local function onHarvest(player: Player, uid: any)
@@ -503,10 +519,14 @@ local function onHarvest(player: Player, uid: any)
 	if not crop then
 		return
 	end
-	local super = rollSuper(data, tile)
-	local itemId = if super then `super_{crop.id}` else crop.id
+	local guaranteed = takeFirstHarvestGuarantee(data)
+	local super, mutation = rollHarvest(tile, guaranteed, if guaranteed then Onboarding.FTUE_FIRST_MUTATION else nil)
+	local itemId = Items.cropItemId(crop.id, super, mutation)
 	if not InventoryService.Add(player, itemId, crop.yield) then
 		return
+	end
+	if guaranteed then
+		data.guide.done.ftue_super = true -- marked only after the item is in the bag (a full bag must not waste it)
 	end
 
 	local harvestsLeft = tile.harvestsLeft or 0
@@ -523,10 +543,13 @@ local function onHarvest(player: Player, uid: any)
 	if super then
 		Net.Fire("Notify", player, "farm.super")
 	end
+	if mutation then
+		Net.Fire("Notify", player, "farm.mutation", { mutation = `mutasi.{mutation}` })
+	end
 	local xp = math.floor(crop.xp * (if super then Farm.SUPER_XP_MULT else 1) + 0.5)
 	ProgressionService.AddXp(player, xp, `harvest:{crop.id}`)
 	AnalyticsHooks.Step(player, "first_harvest")
-	BookService.RecordCrop(player, crop.id)
+	BookService.RecordCrop(player, crop.id) -- Album: crop entry; mutation entries come in Fase 2
 	QuestService.Report(player, "harvest")
 end
 

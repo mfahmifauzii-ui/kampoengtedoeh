@@ -244,4 +244,6 @@ return {
 	GERIMIS_AFTER_STEP = 3, -- the rain starts when this many T1 steps are done (sapa, cangkul, tanam): the next step is Siram
 	-- FTUE Bab 16.3 (0:50): the first harvest of a new save is always Super (no chance roll). Once per save (guide.done.ftue_super).
 	FTUE_FIRST_SUPER = true,
+	FTUE_FIRST_MUTATION = "embun", -- the same first harvest is always this Mutasi (Config/Mutasi)
+	CUTSCENE_MAX_SECONDS = 6, -- Bab 16.2: every FTUE cutscene is at most 6 s (Cutscene logs it, no UI)
 }
