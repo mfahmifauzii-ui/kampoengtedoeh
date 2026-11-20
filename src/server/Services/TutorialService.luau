@@ -20,6 +20,7 @@ local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
 local InventoryService = require(script.Parent.InventoryService)
 local ProgressionService = require(script.Parent.ProgressionService)
+local WorldService = require(script.Parent.WorldService)
 
 local TutorialService = {}
 
@@ -125,6 +126,10 @@ local function onGuideEvent(player: Player, action: any, tutorialId: any, n: any
 			end
 		end
 		guide.step.n = n
+		if tutorialId == "t1_awal" and n == Onboarding.GERIMIS_AFTER_STEP and guide.done.gerimis_t1 ~= true then
+			guide.done.gerimis_t1 = true -- once per save: FTUE 0:30 Gerimis, waters the first crop so Siram is done by the rain
+			WorldService.TutorialRain(Onboarding.GERIMIS_SECONDS)
+		end
 		if n >= total then
 			guide.done[tutorialId] = true
 			guide.step = { id = "", n = 0 }

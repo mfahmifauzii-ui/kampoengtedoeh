@@ -572,7 +572,12 @@ function refreshHint()
 		hintLabel.Text = Locale.t("garap.hint_move")
 	elseif mode == "till" then
 		-- Once there is a bed, say what comes next (a new player used to be stuck here: the hint never changed).
-		hintLabel.Text = Locale.t(if #farmInfo() > 0 then "garap.hint_till_more" else "garap.hint_till")
+		-- T-04 TODO closed: the hint shows the price of the next bed (Bab 5.2: n x 150 after the first 6, Config/Farm).
+		local tiles = farmInfo()
+		local hint = Locale.t(if #tiles > 0 then "garap.hint_till_more" else "garap.hint_till")
+		local nextCost = Farm.tileCost(#tiles + 1)
+		local price = if nextCost <= 0 then Locale.t("garap.price_free") else Locale.t("garap.price", { n = Locale.formatNumber(nextCost) })
+		hintLabel.Text = `{hint} · {Locale.t("garap.next_price", { price = price })}`
 	else
 		hintLabel.Text = Locale.t("garap.hint_pond", { price = pondPriceText() })
 	end
