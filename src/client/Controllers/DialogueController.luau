@@ -230,7 +230,7 @@ end
 local function refresh(npcId: string)
 	local choices = {}
 	local giftMode = npcId == "kak_fajar" and not gotRodGift()
-		local locked = not giftMode and lockedFor(npcId)
+	local locked = not giftMode and lockedFor(npcId)
 	if giftMode then
 		-- GIFT MODE: the only choice is Terima Hadiah (no Sampai jumpa, no tap-outside close). The box is drawn again after the gift.
 		table.insert(choices, {
