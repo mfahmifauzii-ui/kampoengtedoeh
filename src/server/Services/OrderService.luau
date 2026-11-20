@@ -177,10 +177,7 @@ local function onDeliver(player: Player, uid: any)
 		take(player, request.item, request.count)
 	end
 	order.done = true
-	-- Roblox Premium: small Koin bonus on orders (never required for anything).
-	local koin = if MonetizationService.IsPremium(player)
-		then math.floor(order.koin * Monetization.PREMIUM_ORDER_KOIN_MULT + 0.5)
-		else order.koin
+	local koin = order.koin
 	ProgressionService.Grant(player, {
 		koin = koin,
 		bunga = order.bunga,

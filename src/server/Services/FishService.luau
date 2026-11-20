@@ -26,10 +26,8 @@ local InventoryService = require(script.Parent.InventoryService)
 local PlotService = require(script.Parent.PlotService)
 local ProgressionService = require(script.Parent.ProgressionService)
 local BookService = require(script.Parent.BookService)
-local MonetizationService = require(script.Parent.MonetizationService)
 local QuestService = require(script.Parent.QuestService)
 local AnalyticsHooks = require(script.Parent.AnalyticsHooks)
-local Monetization = require(ReplicatedStorage.Shared.Config.Monetization)
 local Progression = require(ReplicatedStorage.Shared.Config.Progression)
 local Types = require(ReplicatedStorage.Shared.Types)
 local Upgrades = require(ReplicatedStorage.Shared.Modules.Upgrades)
@@ -279,9 +277,8 @@ FishService.Cancel = onCancel -- used by SocialService when teleporting
 
 -- Pond (kolam) -------------------------------------------------------------------
 
-local function pondCap(player: Player, tier: number): number
-	local cap = Fishing.POND.CAPS[math.clamp(tier + 1, 1, #Fishing.POND.CAPS)]
-	return if MonetizationService.HasPass(player, "offline") then cap * Monetization.OFFLINE_POND_MULT else cap
+local function pondCap(tier: number): number
+	return Fishing.POND.CAPS[math.clamp(tier + 1, 1, #Fishing.POND.CAPS)]
 end
 
 -- Each pond part carries Attribute "PondUid" = its PondEntry.uid in data.pond.list.
@@ -300,7 +297,7 @@ local function syncPond(player: Player, pond: BasePart)
 	local entry = data and findEntry(data, pond)
 	if data and entry then
 		pond:SetAttribute("LastCollect", entry.lastCollect)
-		pond:SetAttribute("Cap", pondCap(player, Upgrades.tier(data, "pond")))
+		pond:SetAttribute("Cap", pondCap(Upgrades.tier(data, "pond")))
 	end
 end
 
@@ -319,7 +316,7 @@ local function collectPond(player: Player, pond: BasePart)
 	end
 
 	local now = os.time()
-	local cap = pondCap(player, Upgrades.tier(data, "pond"))
+	local cap = pondCap(Upgrades.tier(data, "pond"))
 	local ready = (now - entry.lastCollect) // Fishing.POND.INTERVAL
 	local count = math.min(ready, cap)
 	if count <= 0 then
@@ -461,11 +458,6 @@ function FishService.Init()
 		end
 	end
 
-	MonetizationService.PassChanged:Connect(function(player: Player, key: string)
-		if key == "offline" then
-			FishService.RefreshPond(player)
-		end
-	end)
 	PlotService.Released:Connect(function(player: Player)
 		sessions[player] = nil
 	end)

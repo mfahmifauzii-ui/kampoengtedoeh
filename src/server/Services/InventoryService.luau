@@ -11,7 +11,6 @@ local Monetization = require(ReplicatedStorage.Shared.Config.Monetization)
 local OrdersConfig = require(ReplicatedStorage.Shared.Config.Orders)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
 local Land = require(ReplicatedStorage.Shared.Modules.Land)
-local Plots = require(ReplicatedStorage.Shared.Config.Plots)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Types = require(ReplicatedStorage.Shared.Types)
 local Upgrades = require(ReplicatedStorage.Shared.Modules.Upgrades)
@@ -82,14 +81,14 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		farm = { tiles = farmTiles(data), cap = FarmConfig.MAX_TILES },
 		landChunks = table.clone(data.land.chunks),
 		landExtra = Land.extraCount(data.land.chunks),
-		landPrice = Land.chunkPrice(Land.extraCount(data.land.chunks), if passes.plots == true then Plots.CHUNK.PASS_DISCOUNT else 0),
+		landPrice = Land.chunkPrice(Land.extraCount(data.land.chunks)),
 		rod = data.fishing.rod,
 		ownedRods = table.clone(data.fishing.ownedRods),
 		tools = table.clone(data.tools),
 		decorStock = table.clone(data.decor.stock),
 		decorBlueprints = table.clone(data.decor.blueprints),
 		decorPlaced = #data.decor.placed,
-		decorMax = DecorConfig.MAX_PLACED + (if passes.decor then Monetization.DECOR_BONUS else 0),
+		decorMax = DecorConfig.MAX_PLACED,
 		passes = passes,
 		instantGrow = data.instantGrow,
 		premium = MonetizationService.IsPremium(player),

@@ -121,8 +121,8 @@ end
 -- Products / receipts ----------------------------------------------------------------------
 
 local function grantProduct(player: Player, product: Product)
-	if product.kind == "bunga" or product.kind == "koin" then
-		EconomyService.Add(player, product.kind, product.amount, `iap:{product.key}`)
+	if product.kind == "bunga" then
+		EconomyService.Add(player, "bunga", product.amount, `iap:{product.key}`)
 	elseif product.kind == "instant_grow" then
 		local data = DataService.Get(player) :: Types.PlayerData
 		data.instantGrow.tokens += product.amount

@@ -15,6 +15,12 @@ return {
 		{ likes = 200, reward = { bunga = 25, title = "kebun_favorit" } },
 	} :: { { likes: number, reward: Progression.Reward } },
 
-	-- Built-in Roblox emotes played through the default Animate script (no assets needed).
-	EMOTES = { "wave", "cheer", "point", "dance" },
+	-- The 4 gestures of Bab 12.5. anim = the Roblox Animate PlayEmote name; nil = icon only until a custom
+	-- animation exists (TODO T-23: Jempol). No dance, no point, no physical contact.
+	EMOTES = {
+		{ id = "lambai", anim = "wave" },
+		{ id = "jempol", anim = nil },
+		{ id = "tepuk", anim = "cheer" },
+		{ id = "ketawa", anim = "laugh" },
+	} :: { { id: string, anim: string? } },
 }

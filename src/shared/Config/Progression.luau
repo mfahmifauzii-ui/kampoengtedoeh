@@ -19,13 +19,7 @@ return {
 	xpToNext = function(level: number): number
 		return math.floor(20 * level ^ 1.5 + 10 * math.max(0, level - 8) ^ 2.1)
 	end,
-	LEVEL_UP_REWARD = { bunga = 2 } :: Reward,
-	-- Extra one-time rewards on levels with no content unlock (late game goals).
-	LEVEL_MILESTONES = {
-		[20] = { bunga = 10, title = "petani_rajin" },
-		[25] = { bunga = 15 },
-		[30] = { bunga = 25, title = "sesepuh_kampung" },
-	} :: { [number]: Reward },
+	-- No Bunga from level-up or level milestones (v6.2 Bab 4.1: Bunga comes only from the sources listed there).
 
 	FISH_XP = { C = 3, U = 6, R = 15, L = 40 } :: { [string]: number },
 
@@ -40,18 +34,15 @@ return {
 		{ bunga = 3 },
 	} :: { Reward },
 
-	-- Hadiah playtime (R3 17.4): six peti a day, free, opened in order. A tick counts only while the character moved
+	-- Hadiah playtime (R3 17.4): three peti a day, Koin only, opened in order (Bab 15.2 v6.2). Kayu/Cacing items wait for Fase 4/5 (TODO T-23). A tick counts only while the character moved
 	-- at least MOVE_STUDS in TICK seconds, so standing AFK earns nothing. Minutes and rewards are a first draft.
 	PLAYTIME = {
 		TICK = 10, -- seconds per server check
 		MOVE_STUDS = 1,
 		CHESTS = {
-			{ minutes = 5, reward = { koin = 50 } },
-			{ minutes = 10, reward = { koin = 75 } },
-			{ minutes = 20, reward = { items = { pelet = 5 } } },
-			{ minutes = 30, reward = { bunga = 1 } },
-			{ minutes = 45, reward = { koin = 150 } },
-			{ minutes = 60, reward = { bunga = 2 } },
+			{ minutes = 10, reward = { koin = 50 } },
+			{ minutes = 30, reward = { koin = 150 } },
+			{ minutes = 60, reward = { koin = 300 } },
 		} :: { { minutes: number, reward: Reward } },
 	},
 

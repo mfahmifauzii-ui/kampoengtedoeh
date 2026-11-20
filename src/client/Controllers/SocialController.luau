@@ -73,10 +73,12 @@ local function render()
 	layout.Padding = UDim.new(0, 6)
 	layout.Parent = emoteRow
 	for _, emote in Social.EMOTES do
-		local button = UiKit.button(emoteRow, emote, Locale.t(`emote.{emote}`), UiKit.ROW)
+		local button = UiKit.button(emoteRow, emote.id, Locale.t(`emote.{emote.id}`), UiKit.ROW)
 		button.Size = UDim2.new(1 / #Social.EMOTES, -6, 1, 0)
 		button.Activated:Connect(function()
-			playEmote(emote)
+			if emote.anim then
+				playEmote(emote.anim)
+			end
 		end)
 	end
 

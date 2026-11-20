@@ -105,12 +105,6 @@ function ProgressionService.AddXp(player: Player, amount: number, _reason: strin
 		data.xp -= Progression.xpToNext(data.level)
 		data.level += 1
 		syncAttributes(player, data)
-		ProgressionService.Grant(player, Progression.LEVEL_UP_REWARD, `levelup:{data.level}`)
-		local milestone = Progression.LEVEL_MILESTONES[data.level]
-		if milestone then
-			ProgressionService.Grant(player, milestone, `levelup:{data.level}`)
-			Net.Fire("Notify", player, "level.milestone", { level = data.level, n = milestone.bunga or 0 })
-		end
 		local unlocks = unlocksAt(data.level)
 		Net.Fire("Notify", player, if #unlocks > 0 then "level.up_unlocks" else "level.up", { level = data.level, unlocks = unlocks })
 		ProgressionService.LevelUp:Fire(player, data.level)
