@@ -17,7 +17,7 @@ local T1Dialog = {}
 export type Choice = { text: string, onChoose: () -> () }
 
 export type Options = {
-	name: string, -- "Mbok Minah"
+	name: string, -- "Mak Sari"
 	text: string,
 	avatar: Model?, -- the NPC to draw as the face (a copy is rendered; the model itself is never touched)
 	showNext: boolean, -- true: the Next button shows and onNext fires when pressed
@@ -458,7 +458,7 @@ player:GetAttributeChangedSignal("FishingActive"):Connect(function()
 	end
 end)
 
--- The dialog box of the NPC `id` ("mbok_minah", "pak_darmo", "mas_joko"): the model to draw as the face (the real NPC).
+-- The dialog box of the NPC `id` ("mak_sari", "pak_udin", "kak_fajar"): the model to draw as the face (the real NPC).
 function T1Dialog.NpcModel(id: string): Model?
 	local npcs = Workspace:FindFirstChild("Npcs")
 	local model = npcs and npcs:FindFirstChild(id)

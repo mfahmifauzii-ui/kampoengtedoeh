@@ -1,7 +1,8 @@
 --!strict
--- Levels, XP sources, daily visit rewards, time zone.
+-- Levels (cap 60, docs/Kampoeng_Tedoeh_Gameplay_Lengkap_v6.2.md Bab 4), Level Cabang, XP sources, playtime chests, time zone.
 -- Reward tables everywhere use the same shape:
 --   { koin = n?, bunga = n?, xp = n?, items = {[itemId] = n}?, decor = {[decorId] = n}?, title = id? }
+-- Bunga is only given by the sources in Bab 4.1 (never by level-up, likes or visits; v6.2 changelog 13-16 & 18).
 
 export type Reward = {
 	koin: number?,
@@ -13,47 +14,34 @@ export type Reward = {
 }
 
 return {
-	MAX_LEVEL = 30,
-	-- XP needed to go from `level` to `level + 1`. Phase 10 model (tools/balance_sim.py, 35 min/day):
-	-- Lv5 first session, Lv10 day 3, Lv18 (all content) ~day 9, Lv20 ~day 11, Lv30 ~day 31. Total ≈ 81k XP.
+	MAX_LEVEL = 60, -- Level Cap rilis (Bab 4.2). Naik +20 tiap Update Besar.
+	-- XP needed to go from `level` to `level + 1` (Bab 4.3): 200 + 30 x level. Lv 1->2 = 230, Lv 59->60 = 2.170.
 	xpToNext = function(level: number): number
-		return math.floor(20 * level ^ 1.5 + 10 * math.max(0, level - 8) ^ 2.1)
+		return 200 + 30 * level
 	end,
-	LEVEL_UP_REWARD = { bunga = 2 } :: Reward,
-	-- Extra one-time rewards on levels with no content unlock (late game goals).
-	LEVEL_MILESTONES = {
-		[20] = { bunga = 10, title = "petani_rajin" },
-		[25] = { bunga = 15 },
-		[30] = { bunga = 25, title = "sesepuh_kampung" },
-	} :: { [number]: Reward },
 
+	-- XP per fish caught, by rarity (Fish.luau rarity C/U/R/L). Used by FishService. Bab 6 owns the final numbers (Fase 3).
 	FISH_XP = { C = 3, U = 6, R = 15, L = 40 } :: { [string]: number },
 
-	-- Kunjungan Harian: cumulative (never resets). Step = ((count - 1) % 7) + 1.
-	VISIT_REWARDS = {
-		{ koin = 50 },
-		{ koin = 75 },
-		{ koin = 100 },
-		{ items = { pelet = 10 } },
-		{ koin = 150 },
-		{ koin = 200 },
-		{ bunga = 3 },
-	} :: { Reward },
+	UTC_OFFSET = 7 * 3600, -- WIB
+	RESET_HOUR = 5, -- daily and weekly resets at 05:00 WIB (Bab 3.2, 15.1): Agenda, Login, Bantu, Kerja Bakti, Playtime
 
-	-- Hadiah playtime (R3 17.4): six peti a day, free, opened in order. A tick counts only while the character moved
-	-- at least MOVE_STUDS in TICK seconds, so standing AFK earns nothing. Minutes and rewards are a first draft.
+	-- Level Cabang (Bab 4.2): Bertani, Mancing, Beternak, Tukang. Lv 0 -> 10. Each step is the XP for that level,
+	-- in order (Bab 4.3: 300, 600, 900, 1.200, then 1.500 x 6; total 12.000). Max Lv 10.
+	CABANG = {
+		MAX_LEVEL = 10,
+		XP = { 300, 600, 900, 1200, 1500, 1500, 1500, 1500, 1500, 1500 },
+	},
+
+	-- Hadiah Waktu Bermain (Bab 15.2): active minutes per WIB day, Koin only (Kayu & Cacing wait for T-23 items).
+	-- A tick counts only while the character moved MOVE_STUDS in TICK seconds, so standing AFK earns nothing.
 	PLAYTIME = {
 		TICK = 10, -- seconds per server check
 		MOVE_STUDS = 1,
 		CHESTS = {
-			{ minutes = 5, reward = { koin = 50 } },
-			{ minutes = 10, reward = { koin = 75 } },
-			{ minutes = 20, reward = { items = { pelet = 5 } } },
-			{ minutes = 30, reward = { bunga = 1 } },
-			{ minutes = 45, reward = { koin = 150 } },
-			{ minutes = 60, reward = { bunga = 2 } },
+			{ minutes = 10, reward = { koin = 50 } },
+			{ minutes = 30, reward = { koin = 150 } },
+			{ minutes = 60, reward = { koin = 300 } },
 		} :: { { minutes: number, reward: Reward } },
 	},
-
-	UTC_OFFSET = 7 * 3600, -- days reset at 00:00 WIB
 }

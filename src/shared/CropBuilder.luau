@@ -3,6 +3,8 @@
 -- tall; FarmController scales it per growth stage. Used when ReplicatedStorage > CropModels has no model for a crop.
 -- Ellipsoids are Parts with a Sphere SpecialMesh. Every part is recolourable here.
 
+local Crops = require(script.Parent.Config.Crops)
+
 local CropBuilder = {}
 
 local LEAF = Color3.fromRGB(96, 168, 70)
@@ -148,23 +150,42 @@ end
 
 local cache: { [string]: Model } = {}
 
--- Returns a template Model for a crop id (cached; clone it before use), or nil when no builder exists.
+-- Generic plant for a crop with no builder yet (Bayam, Sawi, Ubi Jalar until their own models exist): a visible stem and
+-- five leaves in the crop's own colour. Every part is visible (no hidden root), and the stem is the PrimaryPart so the
+-- pivot stays upright.
+local function genericBuilder(model: Model, color: Color3): Part
+	local stem = stick(model, "Stem", Vector3.new(0, 0, 0), Vector3.new(0, 1.6, 0), 0.18, STEM)
+	for i = 0, 4 do
+		local yaw = i * 72
+		local tilt = 30 + (i % 2) * 12
+		leaf(model, Vector3.new(0, 0.9, 0), yaw, tilt, 1.8 - (i % 2) * 0.3, 0.6, if i % 2 == 0 then color else LEAF_DARK)
+	end
+	return stem
+end
+
+-- Returns a template Model for a crop id (cached; clone it before use), or nil for an id that is not in Config/Crops.
+-- Crops without a builder get the generic plant, so a new crop never breaks the farm.
 function CropBuilder.template(cropId: string): Model?
 	if cache[cropId] then
 		return cache[cropId]
 	end
-	local builder = BUILDERS[cropId]
-	if not builder then
+	local crop = Crops.byId[cropId]
+	if not crop then
 		return nil
 	end
 	local model = Instance.new("Model")
 	model.Name = cropId
-	-- An upright, invisible root at the base is the PrimaryPart, so the model's pivot and bounding box stay level
-	-- (a tilted leaf as PrimaryPart tipped the whole plant over when FarmController placed it).
-	local root = part(model, "Root", Vector3.new(0.2, 0.2, 0.2), CFrame.new(0, 0.1, 0), Color3.new(0, 0, 0))
-	root.Transparency = 1
-	model.PrimaryPart = root
-	builder(model)
+	local builder = BUILDERS[cropId]
+	if builder then
+		-- An upright, invisible root at the base is the PrimaryPart, so the model's pivot and bounding box stay level
+		-- (a tilted leaf as PrimaryPart tipped the whole plant over when FarmController placed it).
+		local root = part(model, "Root", Vector3.new(0.2, 0.2, 0.2), CFrame.new(0, 0.1, 0), Color3.new(0, 0, 0))
+		root.Transparency = 1
+		model.PrimaryPart = root
+		builder(model)
+	else
+		model.PrimaryPart = genericBuilder(model, crop.color)
+	end
 	cache[cropId] = model
 	return model
 end

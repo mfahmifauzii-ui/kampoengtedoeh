@@ -11,7 +11,6 @@ local Monetization = require(ReplicatedStorage.Shared.Config.Monetization)
 local OrdersConfig = require(ReplicatedStorage.Shared.Config.Orders)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
 local Land = require(ReplicatedStorage.Shared.Modules.Land)
-local Plots = require(ReplicatedStorage.Shared.Config.Plots)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Types = require(ReplicatedStorage.Shared.Types)
 local Upgrades = require(ReplicatedStorage.Shared.Modules.Upgrades)
@@ -79,17 +78,17 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		pondTier = Upgrades.tier(data, "pond"),
 		ponds = pondCells(data),
 		quests = { active = table.clone(data.quests.active), done = table.clone(data.quests.done), daily = table.clone(data.quests.daily) },
-		farm = { tiles = farmTiles(data), cap = FarmConfig.MAX_TILES },
+		farm = { tiles = farmTiles(data), cap = FarmConfig.tileCap(data.level) },
 		landChunks = table.clone(data.land.chunks),
 		landExtra = Land.extraCount(data.land.chunks),
-		landPrice = Land.chunkPrice(Land.extraCount(data.land.chunks), if passes.plots == true then Plots.CHUNK.PASS_DISCOUNT else 0),
+		landPrice = Land.chunkPrice(Land.extraCount(data.land.chunks)),
 		rod = data.fishing.rod,
 		ownedRods = table.clone(data.fishing.ownedRods),
 		tools = table.clone(data.tools),
 		decorStock = table.clone(data.decor.stock),
 		decorBlueprints = table.clone(data.decor.blueprints),
 		decorPlaced = #data.decor.placed,
-		decorMax = DecorConfig.MAX_PLACED + (if passes.decor then Monetization.DECOR_BONUS else 0),
+		decorMax = DecorConfig.MAX_PLACED,
 		passes = passes,
 		instantGrow = data.instantGrow,
 		premium = MonetizationService.IsPremium(player),
@@ -97,29 +96,25 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 			daily = data.orders.daily,
 			weekly = data.orders.weekly,
 			rerollsUsed = data.orders.rerollsUsed,
-			freeRerolls = OrdersConfig.FREE_REROLLS
-				+ (if MonetizationService.IsPremium(player) then Monetization.PREMIUM_EXTRA_REROLLS else 0),
+			freeRerolls = OrdersConfig.FREE_REROLLS,
 		},
 		book = data.book,
-		visits = data.visits.count,
-		visitDay = data.visits.lastDay,
-		visitPending = data.visits.pending == true,
 		playtime = table.clone(data.playtime),
 		titles = data.titles,
-		sales = { day = data.sales.day, sold = table.clone(data.sales.sold) },
-		warungTier = Upgrades.tier(data, "warung"),
 		guideSells = data.guide.sells,
 		guide = {
 			step = { id = data.guide.step.id, n = data.guide.step.n },
 			done = table.clone(data.guide.done),
 			skipped = table.clone(data.guide.skipped),
 			fastLeft = data.guide.fastLeft,
-			rodGift = data.guide.rodGift, -- Mas Joko's Terima Hadiah was taken (the dialog shows it until then)
+			rodGift = data.guide.rodGift, -- Kak Fajar's Terima Hadiah was taken (the dialog shows it until then)
 			-- a save that has not started playing: the "newPlayer" tutorial trigger
 			fresh = #data.farm.tiles == 0 and data.onboarding.first_plant ~= true and data.guide.sells == 0,
 		},
 		social = data.social,
 		settings = data.settings,
+		-- one-time funnel flags (first_plant, first_harvest, ...). The tutorial reads first_harvest (A1: state-driven steps).
+		onboarding = table.clone(data.onboarding),
 	}
 end
 

@@ -14,11 +14,14 @@ local Workspace = game:GetService("Workspace")
 
 local Crops = require(ReplicatedStorage.Shared.Config.Crops)
 local Farm = require(ReplicatedStorage.Shared.Config.Farm)
+local Mutasi = require(ReplicatedStorage.Shared.Config.Mutasi)
 local DecorGrid = require(ReplicatedStorage.Shared.Modules.DecorGrid)
+local Items = require(ReplicatedStorage.Shared.Modules.Items)
 local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Onboarding = require(ReplicatedStorage.Shared.Config.Onboarding)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Types = require(ReplicatedStorage.Shared.Types)
+local EconomyService = require(script.Parent.EconomyService)
 local DataService = require(script.Parent.DataService)
 local InventoryService = require(script.Parent.InventoryService)
 local PlotService = require(script.Parent.PlotService)
@@ -36,6 +39,7 @@ local RATE_TILL = { rate = 10, burst = 20 }
 local MAX_CELL = 40 -- sanity bound for requested cells (the land is about ±36 cells wide)
 
 local FarmService = {}
+local random = Random.new()
 
 local soilState: { [BasePart]: string } = {} -- "dry" | "wet": what is painted in the terrain right now
 
@@ -192,9 +196,9 @@ local function buildTiles(player: Player, plot: Model)
 	end
 end
 
--- How many tiles this player may have tilled (only a safety valve: the land you own is the real limit).
-function FarmService.Cap(_player: Player, _data: Types.PlayerData): number
-	return Farm.MAX_TILES
+-- How many tiles this player may have tilled, by level (Bab 5.2).
+function FarmService.Cap(data: Types.PlayerData): number
+	return Farm.tileCap(data.level)
 end
 
 local function characterDistance(player: Player, position: Vector3): number?
@@ -234,8 +238,9 @@ local function onTill(player: Player, cx: any, cz: any)
 	if not data or not plot or not origin then
 		return
 	end
-	local cap = FarmService.Cap(player, data)
-	if #data.farm.tiles >= cap then
+	local cap = FarmService.Cap(data)
+	local n = #data.farm.tiles + 1
+	if n > cap then
 		Net.Fire("Notify", player, "farm.till_full", { max = cap })
 		return
 	end
@@ -246,6 +251,11 @@ local function onTill(player: Player, cx: any, cz: any)
 	end
 	if not Land.canTill(cx, cz, data.farm.tiles, decorRects(data), data.land.chunks) then
 		Net.Fire("Notify", player, "farm.till_invalid")
+		return
+	end
+	local cost = Farm.tileCost(n)
+	if cost > 0 and not EconomyService.TrySpend(player, "koin", cost, `till:{n}`) then
+		Net.Fire("Notify", player, "notify.not_enough", { currency = "currency.koin" })
 		return
 	end
 
@@ -470,9 +480,35 @@ local function waterAllForRain()
 	end
 end
 
+-- Harvest roll (Bab 5.3 Super, Bab 5.4 Mutasi). Server only.
+--   Super: base 5%, +5% if the tile is Basah. Fase 1 forces it for the FTUE first harvest (forceSuper).
+--   Mutasi: only the forced one for now (forcedMutation, Config/Mutasi). The random Mutasi roll is Fase 2.
+-- Returns (super, mutationId?). An unknown forcedMutation is a bug in the caller, so it asserts.
+local function rollHarvest(tile: Types.FarmTile, forceSuper: boolean, forcedMutation: string?): (boolean, string?)
+	if forcedMutation ~= nil then
+		assert(Mutasi.byId[forcedMutation], `unknown mutation {forcedMutation}`)
+	end
+	local super = forceSuper
+	if not super then
+		local chance = Farm.SUPER_CHANCE + (if tile.watered == true then Farm.SUPER_WET_BONUS else 0)
+		super = random:NextNumber() < chance
+	end
+	return super, forcedMutation
+end
+
+-- The FTUE first harvest of a new save is Super + Embun (Bab 16.3 0:50, Onboarding.FTUE_FIRST_*). Once per save:
+-- guide.done.ftue_super, set after a successful Add. Skipping T1 turns the guarantee off.
+local function takeFirstHarvestGuarantee(data: Types.PlayerData): boolean
+	local guide = data.guide
+	if guide.done.ftue_super == true or guide.done.t1_awal == true or guide.skipped.t1_awal == true then
+		return false
+	end
+	return Onboarding.FTUE_FIRST_SUPER
+end
+
 local function onHarvest(player: Player, uid: any)
-	local _, tile = getValidTile(player, uid)
-	if not tile or tile.crop == nil then
+	local data, tile = getValidTile(player, uid)
+	if not data or not tile or tile.crop == nil then
 		return
 	end
 	local now = os.time()
@@ -480,9 +516,19 @@ local function onHarvest(player: Player, uid: any)
 		return
 	end
 	local crop = Crops.byId[tile.crop :: string]
-	if not crop or not InventoryService.Add(player, crop.id, crop.yield) then
+	if not crop then
 		return
 	end
+	local guaranteed = takeFirstHarvestGuarantee(data)
+	local super, mutation = rollHarvest(tile, guaranteed, if guaranteed then Onboarding.FTUE_FIRST_MUTATION else nil)
+	local itemId = Items.cropItemId(crop.id, super, mutation)
+	if not InventoryService.Add(player, itemId, crop.yield) then
+		return
+	end
+	if guaranteed then
+		data.guide.done.ftue_super = true -- marked only after the item is in the bag (a full bag must not waste it)
+	end
+	data.onboarding.first_harvest = true -- A1: the tutorial treats a harvest as done for the planting and watering steps
 
 	local harvestsLeft = tile.harvestsLeft or 0
 	if harvestsLeft > 0 then
@@ -495,9 +541,16 @@ local function onHarvest(player: Player, uid: any)
 	end
 	sync(player, tile)
 	Net.Fire("Notify", player, "farm.harvested", { n = crop.yield, item = `crop.{crop.id}` })
-	ProgressionService.AddXp(player, crop.xp, `harvest:{crop.id}`)
+	if super then
+		Net.Fire("Notify", player, "farm.super")
+	end
+	if mutation then
+		Net.Fire("Notify", player, "farm.mutation", { mutation = `mutasi.{mutation}` })
+	end
+	local xp = math.floor(crop.xp * (if super then Farm.SUPER_XP_MULT else 1) + 0.5)
+	ProgressionService.AddXp(player, xp, `harvest:{crop.id}`)
 	AnalyticsHooks.Step(player, "first_harvest")
-	BookService.RecordCrop(player, crop.id)
+	BookService.RecordCrop(player, crop.id) -- Album: crop entry; mutation entries come in Fase 2
 	QuestService.Report(player, "harvest")
 end
 

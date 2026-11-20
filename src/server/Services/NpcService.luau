@@ -68,7 +68,7 @@ local function adopt(npc: Npcs.Npc): boolean
 	return true
 end
 
--- Where Bang Tarno of the n-th "Warung Mini" stands: in front of the stall (Npcs.MINI_SIDE_OFFSET / MINI_FRONT_OFFSET), on the
+-- Where Bang Jali of the n-th "Warung Mini" stands: in front of the stall (Npcs.MINI_SIDE_OFFSET / MINI_FRONT_OFFSET), on the
 -- ground, facing the stall (turned 180 degrees from the stall's local -Z, so he looks at the counter). Stalls are sorted by
 -- position so the numbering is stable.
 local function miniStand(index: number): CFrame?
@@ -162,7 +162,7 @@ local function build(npc: Npcs.Npc)
 	model.Parent = folder
 	if usedTemplate and npc.stand.y == nil then
 		-- Designed rigs differ in height: stand them on whatever floor is under them (stall floor, road, grass).
-		-- An explicit stand.y is a hand-placed spot (Pak Darmo behind the warung roof): the raycast would land on the roof beams.
+		-- An explicit stand.y is a hand-placed spot (Pak Udin behind the warung roof): the raycast would land on the roof beams.
 		local boxCFrame, boxSize = model:GetBoundingBox()
 		local bottom = boxCFrame.Position.Y - boxSize.Y / 2
 		local params = RaycastParams.new()
@@ -214,11 +214,74 @@ local function build(npc: Npcs.Npc)
 	end)
 end
 
+-- Bab 22.3 walk-up: an NPC walks to `target` at `speed` studs/s (Mak Sari: 50% of the player's speed, Npcs.WALK_SPEED).
+-- Visual only: the rig stays anchored and is moved by CFrame, so there is no pathing and no physics, and it stops at the
+-- target. A newer walk for the same NPC cancels the older one. Triggers come later: Mak Sari at MQ4/MQ7 (Fase 5), Pak Amran
+-- to the Kanal in the FTUE 2:40 (Fase 3). Nothing calls it yet.
+local walkToken: { [string]: number } = {}
+
+function NpcService.WalkTo(npcId: string, target: Vector3, speed: number?): boolean
+	local model = models[npcId]
+	local root = model and model:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") then
+		return false
+	end
+	local token = (walkToken[npcId] or 0) + 1
+	walkToken[npcId] = token
+	local pace = speed or Npcs.WALK_SPEED
+	task.spawn(function()
+		local last = os.clock()
+		while walkToken[npcId] == token and root.Parent do
+			local now = os.clock()
+			local dt = math.min(now - last, 0.1)
+			last = now
+			local pos = root.Position
+			local flat = Vector3.new(target.X - pos.X, 0, target.Z - pos.Z)
+			local dist = flat.Magnitude
+			if dist < 1 then
+				break
+			end
+			local dir = flat.Unit
+			local step = math.min(dist, pace * dt)
+			local nextPos = Vector3.new(pos.X + dir.X * step, pos.Y, pos.Z + dir.Z * step)
+			root.CFrame = CFrame.lookAt(nextPos, nextPos + dir)
+			task.wait()
+		end
+	end)
+	return true
+end
+
+-- D.1 (playtest): an NPC without its own rig gets the generic blocky R15 fallback. Say so once, with every id, so a
+-- missing model in ServerStorage.NpcModels (or a rename in Studio) shows up in the output. No aliases: the model name must
+-- match the NPC id (or Npcs.model). A hand-placed rig in Workspace.Npcs counts as present.
+local function warnMissingModels()
+	local templates = ServerStorage:FindFirstChild("NpcModels")
+	local missing: { string } = {}
+	for _, npc in Npcs.list do
+		if npc.hidden then
+			continue
+		end
+		local name = npc.model or npc.id
+		local template = templates and templates:FindFirstChild(name)
+		local placed = folder:FindFirstChild(npc.id)
+		if not (template and template:IsA("Model")) and not placed then
+			table.insert(missing, name)
+		end
+	end
+	if #missing > 0 then
+		warn(`[NpcService] {#missing} NPC tanpa model di ServerStorage.NpcModels (pakai rig generik): {table.concat(missing, ", ")}`)
+	end
+end
+
 function NpcService.Start()
 	folder = Workspace:FindFirstChild("Npcs") :: Folder? or Instance.new("Folder")
 	folder.Name = "Npcs"
 	folder.Parent = Workspace
+	warnMissingModels()
 	for _, npc in Npcs.list do
+		if npc.hidden then
+			continue
+		end
 		task.spawn(build, npc) -- creating a rig yields
 	end
 end

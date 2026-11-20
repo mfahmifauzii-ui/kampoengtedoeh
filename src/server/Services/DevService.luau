@@ -23,7 +23,7 @@ local WorldService = require(script.Parent.WorldService)
 local MonetizationService = require(script.Parent.MonetizationService)
 local EventService = require(script.Parent.EventService)
 
-local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !orders, !grow, !time malam, !rain, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 2: !level 2),!inv, !pass backpack, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !buff tani 60 (UI test only: no effect yet), !give kangkung 30, !sales, !quota reset, !tut [reset|fast],!blueprint all|taman|pondok_sawah"
+local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !orders, !grow, !time malam, !rain, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 2: !level 2),!inv, !pass backpack, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !buff tani 60 (UI test only: no effect yet), !give kangkung 30, !tut [reset|fast],!blueprint all|taman|pondok_sawah"
 
 local DevService = {}
 
@@ -144,19 +144,6 @@ local function onChatted(player: Player, message: string)
 					data.decor.blueprints[blueprint.id] = true
 				end
 			end
-			InventoryService.Sync(player)
-		end
-	elseif command == "sales" then
-		-- Prints save version, Pak Darmo's quota record and the leftovers of the old systems (should be nil).
-		local data = DataService.Get(player)
-		if data then
-			print(`[DevService] version={data.version} sales={HttpService:JSONEncode(data.sales)} npc={tostring((data :: any).npc)} skills={tostring((data :: any).skills)} koin={data.koin}`)
-		end
-	elseif command == "quota" and arg == "reset" then
-		-- Gives Pak Darmo's daily crop quota back (for testing the sell-to-Bang-Tarno fallback).
-		local data = DataService.Get(player)
-		if data then
-			data.sales.sold = {}
 			InventoryService.Sync(player)
 		end
 	elseif command == "tut" then

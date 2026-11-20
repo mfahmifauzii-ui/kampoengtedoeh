@@ -141,9 +141,9 @@ function Land.extraCount(chunks: Chunks?): number
 end
 
 -- Price of the next chunk when the player already owns `extraOwned` bought chunks. discount: 0..1 (game pass).
-function Land.chunkPrice(extraOwned: number, discount: number?): number
+function Land.chunkPrice(extraOwned: number): number
 	local price = Plots.CHUNK.PRICE_BASE * Plots.CHUNK.PRICE_GROWTH ^ extraOwned
-	price = math.floor(price * (1 - (discount or 0)) / 10 + 0.5) * 10
+	price = math.floor(price / 10 + 0.5) * 10
 	return math.max(10, price)
 end
 

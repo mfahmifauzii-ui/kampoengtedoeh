@@ -2,7 +2,7 @@
 -- New-player guide.
 --
 -- 1) OLD GUIDE (client/Controllers/GuideController, "legacy" part): on-screen hints for the first loop (cangkul -> tanam ->
---    siram -> panen -> jual) and an arrow to the buyer (Pak Darmo). It runs until the player has finished TRIES sale trips
+--    siram -> panen -> jual) and an arrow to the buyer (Pak Udin). It runs until the player has finished TRIES sale trips
 --    (data.guide.sells, counted by ShopService each time something is sold), then stops for good. It only shows while no
 --    tutorial below is running.
 --
@@ -15,6 +15,7 @@ export type Condition = {
 	n: number?, -- ">=" threshold (default 1)
 	id: string?, -- item prefix / npc id / panel name, per kind
 	dist: number?, -- studs, for "near" (default 25)
+	any: { Condition }?, -- kind "any": true when one of these holds (v6.2.3 A1)
 }
 
 export type Reward = {
@@ -73,6 +74,11 @@ export type Tutorial = {
 --   "ponds"                   n or more ponds of mine are built
 --   "fish"                    n or more fish in the bag (any item written <fish>@<size>)
 --   "quest"                   the quest named `id` is done (snapshot.quests.done)
+--   "harvested"               the player has harvested at least once (snapshot.onboarding.first_harvest)
+--   "any"                     one of `any` holds (v6.2.3 A1: a step is also done by the state a later step needs)
+-- SEQUENCE (v6.2.3 A1): the tutorial is state-driven. When a step's condition holds, the step completes; when a LATER
+-- step's condition holds, every step before it completes too (the server pays each one). "always" and "ack" never
+-- complete a step early.
 -- TRIGGER KINDS:
 --   "newPlayer"   a save with no beds and nothing planted yet (starts at once on join)
 --   "level"       level >= n
@@ -99,7 +105,7 @@ local TUTORIALS: { Tutorial } = {
 				id = "cangkul",
 				text = "tut.t1.s1",
 				coach = "tut.coach.garap",
-				done = { kind = "tiles", n = 1 },
+				done = { kind = "any", any = { { kind = "tiles", n = 1 }, { kind = "planted", n = 1 }, { kind = "harvested" } } },
 				highlight = "GarapButton",
 				reward = { xp = 1 },
 			},
@@ -108,15 +114,15 @@ local TUTORIALS: { Tutorial } = {
 				text = "tut.t1.s2",
 				coach = "tut.coach.tanam",
 				textStuck = "tut.t1.s2_stuck",
-				done = { kind = "planted", n = 1 },
+				done = { kind = "any", any = { { kind = "planted", n = 1 }, { kind = "harvested" } } },
 				highlight = "TanamButton",
 				reward = { xp = 1 },
 			},
 			{
 				id = "siram",
 				text = "tut.t1.s3",
-				coach = "tut.coach.siram",
-				done = { kind = "watered", n = 1 },
+				coach = "tut.coach.siram", -- optional (v6.2.3 A1): watering OR a harvest completes it; Gerimis waters too
+				done = { kind = "any", any = { { kind = "watered", n = 1 }, { kind = "harvested" } } },
 				highlight = "SiramButton",
 				reward = { xp = 1 },
 			},
@@ -124,19 +130,19 @@ local TUTORIALS: { Tutorial } = {
 				id = "panen_jual",
 				text = "tut.t1.s4",
 				coach = "tut.coach.panen",
-				block = false, -- after Panen the player must reach Pak Darmo (outside the hole): no overlay here
-				greet = "tut.t1.s4_greet", -- Pak Darmo's sapaan at the first sale (the cutscene, T1Ghost runWarung)
+				block = false, -- after Panen the player must reach Pak Udin (outside the hole): no overlay here
+				greet = "tut.t1.s4_greet", -- Pak Udin's sapaan at the first sale (the cutscene, T1Ghost runWarung)
 				done = { kind = "sells", n = 1 },
-				target = { npc = "pak_darmo" },
+				target = { npc = "pak_udin" },
 				highlight = "PanenButton",
 			},
 		},
 		reward = { koin = 30 },
 	},
 
-	-- T1b: right after the first sale to Pak Darmo (T1Ghost.client starts it): the warung, the pond tool, the first fish and
+	-- T1b: right after the first sale to Pak Udin (T1Ghost.client starts it): the warung, the pond tool, the first fish and
 	-- the first pond. Not auto-started (manual trigger), so a save that finished T1 long ago never gets it. Progress is saved
-	-- like any tutorial, so a rejoin resumes it. The dialogs are Mbok Minah's / Pak Darmo's / Mas Joko's (T1Dialog); the
+	-- like any tutorial, so a rejoin resumes it. The dialogs are Mak Sari's / Pak Udin's / Kak Fajar's (T1Dialog); the
 	-- coachmark only highlights. NO skip: the pond and the first fish are the point of this tutorial.
 	{
 		id = "t1b_kolam",
@@ -145,42 +151,45 @@ local TUTORIALS: { Tutorial } = {
 		auto = false,
 		steps = {
 			{
-				-- Pak Darmo, at the warung: seeds and upgrades are sold here. Next to continue (kind "ack").
-				-- Pays 20 XP once (Lv 2). Pak Darmo only sends the player to Mas Joko: no pond talk here (pond = Mbok Minah later).
+				-- Pak Udin, at the warung: seeds and upgrades are sold here. Next to continue (kind "ack").
+				-- Pays 20 XP once (Lv 2). Pak Udin only sends the player to Kak Fajar: no pond talk here (pond = Mak Sari later).
 				id = "warung",
 				text = "tut.t1b.warung",
 				done = { kind = "ack", id = "warung" },
 				reward = { xp = 20 },
 			},
 			{
-				-- The fishing shop: Mas Joko (Toko Pancing). Done only when Terima Hadiah was taken (rodGift), never by walking near.
-				id = "mas_joko",
-				text = "tut.t1b.mas_joko",
+				-- The fishing shop: Kak Fajar (Toko Pancing). Done only when Terima Hadiah was taken (rodGift), never by walking near.
+				id = "kak_fajar",
+				text = "tut.t1b.kak_fajar",
 				done = { kind = "rodgift" },
-				target = { npc = "mas_joko" },
+				target = { npc = "kak_fajar" },
 				arrive = 14,
 			},
 			{
 				-- One fish at the river dock (the gift gave the Joran Bambu, so the rod is owned).
 				id = "mancing",
 				text = "tut.t1b.mancing",
+				coach = "tut.coach.mancing", -- A3: the Mancing button (AksiButton) is ringed; cast, then pull, then the first fish
+				highlight = "AksiButton",
 				done = { kind = "fish" },
-				target = { spot = "sungai" },
+				target = { spot = "sungai" }, -- the arrow to the dock (nearest fishing spot of that Location)
 				arrive = 6,
+				reward = { xp = 20 }, -- the same 20 XP as the warung step (paid once on the first fish)
 			},
 			{
-				-- Mas Joko's dialog after the first fish: "Mengerti" finishes it. Opens the pond (kolamUnlocked, server).
+				-- Kak Fajar's dialog after the first fish: "Mengerti" finishes it. Opens the pond (kolamUnlocked, server).
 				id = "after_catch",
-				text = "npc.mas_joko.after_catch",
+				text = "npc.kak_fajar.after_catch",
 				done = { kind = "ack", id = "after_catch" },
 			},
 			{
-				-- Back on the land: Mbok Minah teaches the first pond (it is free).
+				-- Back on the land: Mak Sari teaches the first pond (it is free).
 				id = "bangun_kolam",
 				text = "tut.t1b.bangun_kolam",
 				done = { kind = "ponds" },
 				highlight = "KolamButton",
-				-- Walk back to the land: the trail leads there (route, stops at the land). Mbok Minah talks only once the player is in the land zone.
+				-- Walk back to the land: the trail leads there (route, stops at the land). Mak Sari talks only once the player is in the land zone.
 				target = { land = true },
 				arrive = 60,
 			},
@@ -220,8 +229,8 @@ local TEST_TUTORIAL: Tutorial = {
 		{
 			id = "npc",
 			text = "tut.dev_test.s3",
-			done = { kind = "near", id = "pak_darmo", dist = 25 },
-			target = { npc = "pak_darmo" },
+			done = { kind = "near", id = "pak_udin", dist = 25 },
+			target = { npc = "pak_udin" },
 		},
 	},
 	reward = { koin = 5 },
@@ -229,7 +238,7 @@ local TEST_TUTORIAL: Tutorial = {
 
 return {
 	TRIES = 1, -- the old sale-trip guide stops after the first sale, the same sale that finishes T1 (sells n = 1)
-	BUYER_NPC = "pak_darmo", -- the arrow points here once there is a crop to sell
+	BUYER_NPC = "pak_udin", -- the arrow points here once there is a crop to sell
 	TUTORIALS = TUTORIALS,
 	TEST_TUTORIAL = TEST_TUTORIAL,
 	GAP_SECONDS = 120, -- pause between two auto-started tutorials
@@ -237,5 +246,13 @@ return {
 	STUCK_TEXT = 90, -- s without progress: the more explicit text
 	REPLAY_MIN_SECONDS = 4, -- replay: each step stays at least this long
 	FAST_PLANTINGS = 6, -- first plantings of a new save on the fast timer
-	FAST_GROW_SECONDS = 20, -- (water -> -20 % = 16 s, like every crop)
+	FAST_GROW_SECONDS = 20, -- (water -> -15 % of the rest; the first crop is 20 s on the fast timer)
+	-- FTUE Bab 16.3 (0:30): the tutorial's Gerimis. It starts once the first planting is done (step 3 ended) and lasts this long.
+	-- Once per save (guide.done.gerimis_t1). It waters every growing crop of the server (rain rule), so Siram is done by it.
+	GERIMIS_SECONDS = 20,
+	GERIMIS_AFTER_STEP = 3, -- the rain starts when this many T1 steps are done (sapa, cangkul, tanam): the next step is Siram
+	-- FTUE Bab 16.3 (0:50): the first harvest of a new save is always Super (no chance roll). Once per save (guide.done.ftue_super).
+	FTUE_FIRST_SUPER = true,
+	FTUE_FIRST_MUTATION = "embun", -- the same first harvest is always this Mutasi (Config/Mutasi)
+	CUTSCENE_MAX_SECONDS = 6, -- Bab 16.2: every FTUE cutscene is at most 6 s (Cutscene logs it, no UI)
 }

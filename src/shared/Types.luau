@@ -53,13 +53,16 @@ export type PlayerData = {
 	bunga: number,
 	xp: number,
 	level: number,
+	sp: number,
+	cabang: { [string]: { lv: number, xp: number } },
+	skill: { [string]: number },
 	stats: {
 		firstJoin: number,
 		lastLogin: number,
 		sessions: number,
 	},
 	inventory: { [string]: number },
-	upgrades: { [string]: number }, -- tier per permanent upgrade: backpack, pond, warung (Modules/Upgrades)
+	upgrades: { [string]: number }, -- tier per permanent upgrade: backpack, pond (Modules/Upgrades)
 	farm: {
 		tiles: { FarmTile },
 		nextUid: number,
@@ -90,7 +93,6 @@ export type PlayerData = {
 		weekly: OrderEntry | {},
 		nextUid: number,
 	},
-	visits: { count: number, lastDay: string },
 	playtime: { day: string, seconds: number, claimed: number },
 	book: {
 		crops: { [string]: boolean },
@@ -103,10 +105,6 @@ export type PlayerData = {
 		chunks: { [string]: boolean }, -- bought 32 x 32 blocks ("chunks" in the code) of the plot, "ix,iz" keys (Modules/Land)
 	},
 	plotSlot: number, -- the plot number this player had last time (0 = none): tried first when they join
-	sales: {
-		day: string, -- WIB day key that `sold` belongs to
-		sold: { [string]: number }, -- [cropId] = how many Pak Darmo bought today (daily quota)
-	},
 	social: {
 		likes: number,
 		milestones: { [string]: boolean },
@@ -124,10 +122,10 @@ export type PlayerData = {
 		skipped: { [string]: boolean },
 		fastLeft: number, -- plantings left on the 20 s tutorial timer (-1 = not decided yet)
 		hasMet: { [string]: boolean }, -- [npcId] = true after the first talk with that NPC (Fase 2 sapaan)
-		rodGift: boolean, -- Terima Hadiah from Mas Joko was taken (idempotent: the rod and bait are given once)
+		rodGift: boolean, -- Terima Hadiah from Kak Fajar was taken (idempotent: the rod and bait are given once)
 		fishingUnlocked: boolean, -- set with rodGift: the fishing tutorial is open
 		fishCaught: boolean, -- the first fish of any kind was caught (the t1b "after_catch" step needs it)
-		kolamUnlocked: boolean, -- the t1b "after_catch" step is done: pond building opens (Mbok Minah teaches it)
+		kolamUnlocked: boolean, -- the t1b "after_catch" step is done: pond building opens (Mak Sari teaches it)
 		decorUnlocked: boolean, -- the t1b tutorial is finished: decorating (hias) opens
 		saleCutscene: boolean, -- the first-sale cutscene was played for this tutorial run (it is played once per run)
 	},

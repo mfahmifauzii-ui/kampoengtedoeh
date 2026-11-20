@@ -1,11 +1,11 @@
 --!strict
--- Permanent upgrades bought from Pak Darmo (Config/Shop UPGRADES). One tier number per upgrade in data.upgrades:
---   backpack = Tas (inventory slots), pond = Kolam (pond capacity), warung = Kapasitas Warung (daily crop quota).
+-- Permanent upgrades bought from Pak Udin (Config/Shop UPGRADES). One tier number per upgrade in data.upgrades:
+--   backpack = Tas (inventory slots), pond = Kolam (pond capacity).
 -- Pure helpers, so the server services and the client can read a tier without requiring each other.
 
 local Upgrades = {}
 
-Upgrades.IDS = { "backpack", "pond", "warung" }
+Upgrades.IDS = { "backpack", "pond" }
 
 -- Current tier of one upgrade (0 = not bought yet).
 function Upgrades.tier(data: { upgrades: { [string]: number } }, id: string): number

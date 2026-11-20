@@ -1,8 +1,7 @@
 --!strict
--- XP + levels, generic reward granting, and Kunjungan Harian (daily visit reward).
+-- XP + levels and generic reward granting. (Kunjungan Harian was removed in v6.2 T-28: Login Mingguan Bab 15.1 is the only login reward.)
 -- Player attributes for the HUD: "Level", "XP" (progress inside the level), "XPNext".
 
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Blueprints = require(ReplicatedStorage.Shared.Config.Blueprints)
@@ -13,7 +12,6 @@ local Progression = require(ReplicatedStorage.Shared.Config.Progression)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Signal = require(ReplicatedStorage.Shared.Modules.Signal)
-local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
@@ -27,6 +25,7 @@ ProgressionService.LevelUp = Signal.new() -- (player, newLevel)
 local function syncAttributes(player: Player, data: Types.PlayerData)
 	player:SetAttribute("Level", data.level)
 	player:SetAttribute("XP", data.xp)
+	player:SetAttribute("SP", data.sp)
 	player:SetAttribute("XPNext", if data.level >= Progression.MAX_LEVEL then 0 else Progression.xpToNext(data.level))
 end
 
@@ -94,6 +93,23 @@ function ProgressionService.Grant(player: Player, reward: Reward, reason: string
 	InventoryService.Sync(player)
 end
 
+-- Level Cabang XP (Bab 4.2): the same amount as the action's Player XP. branch = bertani | mancing | beternak | tukang.
+function ProgressionService.AddCabangXp(player: Player, branch: string, amount: number)
+	local data = DataService.Get(player)
+	local cabang = data and data.cabang[branch]
+	if not cabang or typeof(amount) ~= "number" or amount <= 0 or cabang.lv >= Progression.CABANG.MAX_LEVEL then
+		return
+	end
+	cabang.xp += math.floor(amount)
+	while cabang.lv < Progression.CABANG.MAX_LEVEL and cabang.xp >= Progression.CABANG.XP[cabang.lv + 1] do
+		cabang.xp -= Progression.CABANG.XP[cabang.lv + 1]
+		cabang.lv += 1
+	end
+	if cabang.lv >= Progression.CABANG.MAX_LEVEL then
+		cabang.xp = 0
+	end
+end
+
 function ProgressionService.AddXp(player: Player, amount: number, _reason: string)
 	local data = DataService.Get(player)
 	if not data or typeof(amount) ~= "number" or amount <= 0 or data.level >= Progression.MAX_LEVEL then
@@ -104,13 +120,8 @@ function ProgressionService.AddXp(player: Player, amount: number, _reason: strin
 	while data.level < Progression.MAX_LEVEL and data.xp >= Progression.xpToNext(data.level) do
 		data.xp -= Progression.xpToNext(data.level)
 		data.level += 1
+		data.sp += 1 -- Skill Point: 1 per Level Player (Bab 4.2)
 		syncAttributes(player, data)
-		ProgressionService.Grant(player, Progression.LEVEL_UP_REWARD, `levelup:{data.level}`)
-		local milestone = Progression.LEVEL_MILESTONES[data.level]
-		if milestone then
-			ProgressionService.Grant(player, milestone, `levelup:{data.level}`)
-			Net.Fire("Notify", player, "level.milestone", { level = data.level, n = milestone.bunga or 0 })
-		end
 		local unlocks = unlocksAt(data.level)
 		Net.Fire("Notify", player, if #unlocks > 0 then "level.up_unlocks" else "level.up", { level = data.level, unlocks = unlocks })
 		ProgressionService.LevelUp:Fire(player, data.level)
@@ -134,56 +145,9 @@ function ProgressionService.DevSetLevel(player: Player, level: number)
 end
 
 -- Kunjungan Harian: first time we see the player on a new WIB day.
--- Stage fix (user, 16 Nov): the daily bonus is NOT given before the first tutorial (T1) is over. It waits, and is
--- claimed right after T1 (TutorialService calls CheckDailyVisit). Skipping T1 also unlocks it.
-local function checkDailyVisit(player: Player)
-	local data = DataService.Get(player)
-	local today = TimeKeys.day()
-	if not data or data.visits.lastDay == today then
-		return
-	end
-	if data.guide.done.t1_awal ~= true and data.guide.skipped.t1_awal ~= true then
-		return
-	end
-	-- Not paid automatically any more: it becomes CLAIMABLE (visits.pending) and the player taps "Ambil hadiah" in Panduan.
-	data.visits.lastDay = today
-	data.visits.pending = true
-	InventoryService.Sync(player)
-end
-
--- The claim (Net VisitClaim): pays today's Kunjungan Harian once.
-local function onVisitClaim(player: Player)
-	local data = DataService.Get(player)
-	if not data or data.visits.pending ~= true then
-		return
-	end
-	data.visits.pending = false
-	data.visits.count += 1
-	local step = (data.visits.count - 1) % #Progression.VISIT_REWARDS + 1
-	ProgressionService.Grant(player, Progression.VISIT_REWARDS[step], `visit:{data.visits.count}`)
-	Net.Fire("Notify", player, "visit.reward", { day = data.visits.count, step = step })
-	InventoryService.Sync(player)
-end
-
-ProgressionService.CheckDailyVisit = checkDailyVisit
-
 function ProgressionService.Init()
-	Net.On("VisitClaim", onVisitClaim, { rate = 3, burst = 6 })
 	DataService.Loaded:Connect(function(player: Player, data: Types.PlayerData)
 		syncAttributes(player, data)
-		task.delay(3, checkDailyVisit, player) -- after the HUD is up
-	end)
-end
-
-function ProgressionService.Start()
-	-- Players online across midnight WIB still get the next day's visit.
-	task.spawn(function()
-		while true do
-			task.wait(60)
-			for _, player in Players:GetPlayers() do
-				checkDailyVisit(player)
-			end
-		end
 	end)
 end
 

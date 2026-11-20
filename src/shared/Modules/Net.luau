@@ -22,6 +22,7 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	FishState = "Event", -- S->C ("waiting", spot: BasePart) | ("bite") | ("idle")
 	FishReel = "Event", -- C->S (score: number 0..1)
 	FishCancel = "Event", -- C->S ()
+	FishCast = "Event", -- C->S () cast at the nearest fishing spot in reach (the server picks it; v6.2.3 Mancing button)
 
 	StateSync = "Event", -- S->C (snapshot: items, slots, tiers, rods) — see InventoryService
 	StateRequest = "Event", -- C->S () ask for a fresh snapshot
@@ -55,12 +56,11 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	SocialLike = "Event", -- C->S (ownerUserId: number) like the plot you're standing on
 
 	PlaytimeClaim = "Event", -- C->S (index: number) open playtime peti number index (in order, Config/Progression PLAYTIME)
-	VisitClaim = "Event", -- C->S () claim today's Kunjungan Harian bonus (only after T1, Stage fix 16 Nov)
 	BookClaim = "Event", -- C->S (key: string) claim a Book reward: "cat:<category>" or a milestone id (Config/Book)
 
 	GuideEvent = "Event", -- C->S (action: "start"|"step"|"skip"|"replay", tutorialId: string, n: number?) tutorial engine, see TutorialService
 	HasMet = "Function", -- C->S (npcId: string) -> alreadyMet: boolean. Records the first talk with that NPC (TutorialService)
-	MeetJoko = "Function", -- C->S () -> { ok, gave }. Mas Joko's Terima Hadiah: the rod and bait once (TutorialService)
+	MeetFajar = "Function", -- C->S () -> { ok, gave }. Kak Fajar's Terima Hadiah: the rod and bait once (TutorialService)
 	OnFirstSellSuccess = "Event", -- S->C (npcId: string) the player's first sale went through (TutorialService, Fase 2 cutscene)
 }
 

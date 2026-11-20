@@ -1,8 +1,7 @@
 --!strict
 -- "Hadiah" panel (HUD "RewardButton"): two parts, both read from the server snapshot.
---   * Kalender Harian (R3 17.3): the 7 daily cards of Kunjungan Harian. The reward itself is automatic (granted on the
---     first join of each WIB day, ProgressionService); this only shows where you are in the cycle.
---   * Peti Main (R3 17.4): six peti a day, opened in order by hand (PlaytimeClaim) once you have played long enough.
+--   * Peti Main (Bab 15.2): three peti a day, opened in order by hand (PlaytimeClaim) once you have played long enough.
+--     Kalender Harian was removed in v6.2 (T-28); Login Mingguan (Bab 15.1) will be the only login reward (Fase 6).
 -- The red dot on the button means a peti is ready to open.
 
 local Players = game:GetService("Players")
@@ -47,74 +46,6 @@ local function rewardText(reward: Progression.Reward): string
 	return table.concat(parts, ", ")
 end
 
--- Calendar: seven cards, the first `last` ones done, `last` = today, `last + 1` = tomorrow.
-local function renderCalendar(order: number, visitCount: number)
-	local strip = Instance.new("Frame")
-	strip.Name = "Calendar"
-	strip.LayoutOrder = order
-	strip.BackgroundTransparency = 1
-	strip.Size = UDim2.new(1, 0, 0, 132)
-	strip.Parent = panel.list
-
-	local layout = Instance.new("UIListLayout")
-	layout.FillDirection = Enum.FillDirection.Horizontal
-	layout.SortOrder = Enum.SortOrder.LayoutOrder
-	layout.Padding = UDim.new(0, 4)
-	layout.Parent = strip
-
-	local last = if visitCount > 0 then (visitCount - 1) % #Progression.VISIT_REWARDS + 1 else 0
-	local days = #Progression.VISIT_REWARDS
-	for step, reward in Progression.VISIT_REWARDS do
-		local today = step == last
-		local tomorrow = step == (last % days) + 1
-		local card = Instance.new("Frame")
-		card.Name = `Day{step}`
-		card.LayoutOrder = step
-		card.Size = UDim2.new(1 / days, -4, 1, 0)
-		card.BackgroundColor3 = if today then UiKit.BUTTON else UiKit.ROW
-		card.Parent = strip
-		local corner = Instance.new("UICorner")
-		corner.CornerRadius = UDim.new(0, 12)
-		corner.Parent = card
-		local border = Instance.new("UIStroke")
-		border.Color = if today then UiKit.HEADER_DARK else Color3.fromRGB(228, 208, 164)
-		border.Thickness = 2
-		border.Parent = card
-
-		local day = Instance.new("TextLabel")
-		day.BackgroundTransparency = 1
-		day.Position = UDim2.fromOffset(2, 6)
-		day.Size = UDim2.new(1, -4, 0, 20)
-		day.Font = UiKit.FONT
-		day.TextSize = 14
-		day.TextColor3 = if today then UiKit.CREAM else UiKit.TEXT
-		day.TextTruncate = Enum.TextTruncate.AtEnd
-		day.Text = Locale.t("rewards.day", { n = step })
-		day.Parent = card
-
-		local body = Instance.new("TextLabel")
-		body.BackgroundTransparency = 1
-		body.Position = UDim2.fromOffset(4, 30)
-		body.Size = UDim2.new(1, -8, 0, 50)
-		body.Font = UiKit.FONT
-		body.TextSize = 13
-		body.TextWrapped = true
-		body.TextColor3 = if today then UiKit.CREAM else UiKit.TEXT
-		body.Text = rewardText(reward)
-		body.Parent = card
-
-		local status = Instance.new("TextLabel")
-		status.BackgroundTransparency = 1
-		status.Position = UDim2.new(0, 2, 1, -24)
-		status.Size = UDim2.new(1, -4, 0, 20)
-		status.Font = UiKit.FONT_BODY
-		status.TextSize = 12
-		status.TextColor3 = if today then UiKit.CREAM elseif step < last then UiKit.HEADER else Color3.fromRGB(128, 100, 66)
-		status.Text = if today then Locale.t("rewards.today") elseif tomorrow then Locale.t("rewards.next") elseif step < last then Locale.t("rewards.got") else ""
-		status.Parent = card
-	end
-end
-
 -- One peti row. Only the next peti in order can be opened, and only once its minutes are played today.
 local function renderChest(order: number, index: number, claimed: number, played: number)
 	local chest = Progression.PLAYTIME.CHESTS[index]
@@ -148,29 +79,6 @@ local function render()
 		order += 1
 		return order
 	end
-
-	UiKit.header(panel.list, Locale.t("rewards.calendar"), nextOrder())
-	renderCalendar(nextOrder(), snapshot.visits or 0)
-	if snapshot.visitPending == true then
-		-- Stage fix (user, 16 Nov): today's bonus waits for a tap here (only after T1).
-		local claim = UiKit.button(panel.list, "VisitClaim", Locale.t("rewards.visit_claim"), UiKit.BUTTON)
-		claim.LayoutOrder = nextOrder()
-		claim.Size = UDim2.new(1, 0, 0, UiKit.TOUCH)
-		claim.Activated:Connect(function()
-			Net.Send("VisitClaim")
-		end)
-	end
-	local note = Instance.new("TextLabel")
-	note.Name = "Hint"
-	note.BackgroundTransparency = 1
-	note.LayoutOrder = nextOrder()
-	note.Size = UDim2.new(1, 0, 0, 22)
-	note.Font = UiKit.FONT_BODY
-	note.TextSize = 13
-	note.TextColor3 = Color3.fromRGB(128, 100, 66)
-	note.TextWrapped = true
-	note.Text = Locale.t("rewards.calendar_hint")
-	note.Parent = panel.list
 
 	local playtime = snapshot.playtime or { seconds = 0, claimed = 0 }
 	local played = seconds()

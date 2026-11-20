@@ -71,8 +71,7 @@ return {
 	-- touch land the player already owns. Price of the n-th extra block (n = 0 for the first): PRICE_BASE * PRICE_GROWTH ^ n,
 	-- rounded to 10: #1 1.500, #5 3.110, #10 7.740, #15 19.260, #20 47.920. The 14 buyable blocks (n = 0..13) cost about
 	-- 89.000 Koin in total; all 20 outside blocks would cost about 280.000 (assumption, see tools/balance_sim.py).
-	-- The game pass "plots" gives PASS_DISCOUNT off every block.
-	CHUNK = { SIZE = 32, PRICE_BASE = 1500, PRICE_GROWTH = 1.2, PASS_DISCOUNT = 0.2 },
+	CHUNK = { SIZE = 32, PRICE_BASE = 1500, PRICE_GROWTH = 1.2 },
 
 	SPAWN_OFFSET = Vector3.new(0, 4, 70), -- relative to Origin; inside the start land, in front of the house
 	-- New player's first spawn (T1 not done or skipped, no sale yet): 4 studs outside the gate, facing it.

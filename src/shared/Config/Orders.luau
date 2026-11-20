@@ -3,7 +3,7 @@
 -- fish with time/weather conditions are never required (no waiting on the clock).
 
 return {
-	NPCS = { "pak_rt", "bu_sari", "mbah_karto", "mas_yudi", "dik_rara" },
+	NPCS = { "pak_udin", "mak_sari", "kak_fajar", "pak_amran", "nek_ani" },
 
 	DAILY_COUNT = 3,
 	FREE_REROLLS = 1, -- per day
@@ -23,6 +23,5 @@ return {
 	WEEKLY_COUNT_MULT = 3,
 	WEEKLY_REWARD_MULT = 3,
 	WEEKLY_XP_MULT = 0.5, -- weekly XP = Koin × XP_PER_KOIN × this (avoids multi-level jumps early)
-	WEEKLY_BUNGA = 5,
 	WEEKLY_DECOR_POOL = { "pohon_pisang", "rumpun_bambu", "bangku_kayu", "bunga_kertas" },
 }

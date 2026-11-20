@@ -1,18 +1,26 @@
 --!strict
--- Default save for a NEW player. ProfileStore:Reconcile() adds missing keys to old saves,
--- so new fields can simply be added here. Renames/restructures need a migration
--- (ServerScriptService.Server.Data.Migrations) + bump `version`.
+-- Default save for a NEW player (version 62, docs/Kampoeng_Tedoeh_Gameplay_Lengkap_v6.2.md Bab 28). ProfileStore:Reconcile()
+-- adds missing keys. No migration code: the game is unreleased, a changed shape means a new DATA_STAGE in DataService.
 
 local Economy = require(script.Parent.Economy)
 local Types = require(script.Parent.Parent.Types)
 
 local template: Types.PlayerData = {
-	version = 13,
+	version = 62,
 
 	koin = Economy.START_KOIN,
 	bunga = Economy.START_BUNGA,
 	xp = 0,
 	level = 1,
+	sp = 0, -- Skill Point: 1 per Level Player (Bab 4.2), spent on Skill Cabang (Bab 4.5)
+	-- Level Cabang (Bab 4.2): Bertani, Mancing, Beternak, Tukang. Max Lv 10. XP is the same amount as the player's XP per action.
+	cabang = {
+		bertani = { lv = 0, xp = 0 },
+		mancing = { lv = 0, xp = 0 },
+		beternak = { lv = 0, xp = 0 },
+		tukang = { lv = 0, xp = 0 },
+	},
+	skill = {}, -- [skillId] = level 0..5 (Bab 4.5)
 
 	stats = {
 		firstJoin = 0,
@@ -20,8 +28,8 @@ local template: Types.PlayerData = {
 		sessions = 0,
 	},
 
-	inventory = { seed_kangkung = 6 }, -- [itemId] = count. A new player starts with a few seeds (Pak Darmo sells more)
-	upgrades = { backpack = 0, pond = 0, warung = 0 }, -- tier per upgrade (Config/Shop UPGRADES, Modules/Upgrades)
+	inventory = { seed_kangkung = 6 }, -- [itemId] = count. A new player starts with a few seeds (Pak Udin sells more)
+	upgrades = { backpack = 0, pond = 0 }, -- tier per upgrade (Config/Shop UPGRADES, Modules/Upgrades)
 
 	farm = {
 		tiles = {}, -- tilled soil tiles { uid, cx, cz, crop?... }; a new player tills their own (Garap)
@@ -29,7 +37,7 @@ local template: Types.PlayerData = {
 	},
 
 	fishing = {
-		-- New accounts start WITHOUT a rod (Plan v3.1 3A, Opsi B): Mas Joko gives the Joran Bambu (Terima Hadiah).
+		-- New accounts start WITHOUT a rod (Plan v3.1 3A, Opsi B): Kak Fajar gives the Joran Bambu (Terima Hadiah).
 		-- Old accounts keep the rod they already have: this default only fills keys that are missing.
 		rod = "", -- equipped rod id ("" = none)
 		ownedRods = {},
@@ -46,7 +54,7 @@ local template: Types.PlayerData = {
 		placed = {}, -- { {uid, id, x, z, r} } grid cells on the owner's plot
 		stock = {}, -- [itemId] = count owned but not placed
 		nextUid = 1,
-		blueprints = {}, -- [blueprintId] = true (bought from Mbak Arsi, Config/Blueprints)
+		blueprints = {}, -- [blueprintId] = true (bought from Pak Amran, Config/Blueprints)
 	},
 
 	orders = {
@@ -64,7 +72,6 @@ local template: Types.PlayerData = {
 		daily = { day = "", kind = "", progress = 0, claimed = false }, -- Stage 7: Daily Quest (Config/Quests DAILY), reset 05:00 WIB
 	},
 
-	visits = { count = 0, lastDay = "", pending = false }, -- Kunjungan Harian (cumulative). pending = today's bonus can be claimed (after T1, user 16 Nov)
 	playtime = { day = "", seconds = 0, claimed = 0 }, -- Hadiah playtime: active seconds today, chests opened today (Config/Progression PLAYTIME)
 
 	book = {
@@ -76,9 +83,10 @@ local template: Types.PlayerData = {
 
 	titles = {}, -- [titleId] = true
 
-	land = { chunks = {} }, -- bought 32 x 32 blocks of the plot, "ix,iz" keys (Modules/Land); the start land is always owned
+	land = {
+		chunks = {}, -- bought 32 x 32 blocks of the plot, "ix,iz" keys (Modules/Land); the start land is always owned
+	},
 	plotSlot = 0, -- last plot number (PlotService tries to give it back)
-	sales = { day = "", sold = {} }, -- Pak Darmo's daily crop quota (Config/Npcs QUOTA); Kapasitas Warung tier is in upgrades.warung
 
 	social = {
 		likes = 0, -- likes received on your plot (all time)

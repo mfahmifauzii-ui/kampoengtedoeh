@@ -15,18 +15,21 @@ return {
 	-- Coachmark hole corner (assets/gui/coach_corner.png, 256 x 256: a black corner with a quarter-circle cut-out). Empty = the
 	-- hole stays square, as before.
 	-- 2D head-and-shoulders portrait per NPC (assets/portraits/<npc>.png, circle with transparent corners), drawn like the
-	-- player's own photo. Keyed by the NPC model name. Bang Tarno is one portrait for every Bang Tarno on the map.
+	-- player's own photo. Keyed by the NPC model name. Bang Jali is one portrait for every Bang Jali on the map.
 	-- Image = the Texture id of each uploaded Decal (the Decal id itself does not render as an Image).
 	PORTRAIT_IMAGES = {
-		mbok_minah = "rbxassetid://96449478759279",
-		pak_darmo = "rbxassetid://127316328668016",
-		mas_joko = "rbxassetid://94820077841893",
-		bu_wati = "rbxassetid://107418142230003",
-		mbak_arsi = "rbxassetid://101959981771860",
-		bang_tarno_1 = "rbxassetid://130689703059417",
-		bang_tarno_2 = "rbxassetid://130689703059417",
-		bang_tarno_3 = "rbxassetid://130689703059417",
-		bang_tarno_4 = "rbxassetid://130689703059417",
+		mak_sari = "rbxassetid://96449478759279",
+		pak_udin = "rbxassetid://127316328668016",
+		kak_fajar = "rbxassetid://94820077841893",
+		pak_amran = "rbxassetid://101959981771860",
+		bang_jali_1 = "rbxassetid://130689703059417",
+		bang_jali_2 = "rbxassetid://130689703059417",
+		bang_jali_3 = "rbxassetid://130689703059417",
+		bang_jali_4 = "rbxassetid://130689703059417",
+		bang_jali_5 = "rbxassetid://130689703059417",
+		bang_jali_6 = "rbxassetid://130689703059417",
+		bang_jali_7 = "rbxassetid://130689703059417",
+		bang_jali_8 = "rbxassetid://130689703059417",
 	} :: { [string]: string },
 	COACH_CORNER = { image = "rbxassetid://127913048754516" },-- Image (Texture) of Decal 94914653634111; the Decal id itself does not render as an Image
 

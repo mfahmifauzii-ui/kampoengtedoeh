@@ -3,7 +3,7 @@
 -- buys and sells comes from its config, prices from Modules/Trade. The client only sends requests.
 --   Sell(npcId, itemId | "all", amount?)                NPC buys items from the player (amount: whole number 1-99, one item only)
 --   ShopBuy(npcId, kind, id, amount?)                   kind: rod | bait | upgrade | seed | seedx | fish | blueprint | tool
--- Pak Darmo (npc.quota) buys each crop only up to a daily quota; the rest stays in the bag for Bang Tarno at a Warung Mini (0.9x, no limit).
+-- Bang Jali (Warung Mini, 0.9x) buys everything at 90% of the price. Every other NPC buys only what its config says.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -16,7 +16,6 @@ local Npcs = require(ReplicatedStorage.Shared.Config.Npcs)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
-local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local Trade = require(ReplicatedStorage.Shared.Modules.Trade)
 local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
@@ -27,7 +26,6 @@ local InventoryService = require(script.Parent.InventoryService)
 local NpcService = require(script.Parent.NpcService)
 local TutorialService = require(script.Parent.TutorialService)
 local UpgradeService = require(script.Parent.UpgradeService)
-local Upgrades = require(ReplicatedStorage.Shared.Modules.Upgrades)
 
 local RATE = { rate = 4, burst = 8 }
 
@@ -67,15 +65,6 @@ end
 
 -- Selling --------------------------------------------------------------------------
 
--- Starts a new WIB day of quota counting when the day key changed.
-local function rollSalesDay(data: Types.PlayerData)
-	local today = TimeKeys.day()
-	if data.sales.day ~= today then
-		data.sales.day = today
-		data.sales.sold = {}
-	end
-end
-
 local function onSell(player: Player, npcId: any, target: any, amount: any)
 	if typeof(target) ~= "string" then
 		return
@@ -93,7 +82,6 @@ local function onSell(player: Player, npcId: any, target: any, amount: any)
 	if not npc or not data or next(npc.buys) == nil then
 		return
 	end
-	rollSalesDay(data)
 
 	-- Unit price this NPC pays for an item, nil if it doesn't buy it.
 	local function unitPrice(itemId: string): number?
@@ -113,25 +101,14 @@ local function onSell(player: Player, npcId: any, target: any, amount: any)
 	end
 
 	local total = 0
-	local limited = false -- some crops were held back by the daily quota
 	for _, itemId in toSell do
 		local price = unitPrice(itemId) :: number
 		local count = data.inventory[itemId]
 		if wanted and target ~= "all" then
 			count = math.min(count, wanted)
 		end
-		if npc.quota and Crops.byId[itemId] then
-			local left = Trade.quotaLeft(data.sales, Upgrades.tier(data, "warung"), itemId, data.sales.day)
-			if count > left then
-				limited = true
-				count = left
-			end
-		end
 		if count and count > 0 and InventoryService.Remove(player, itemId, count) then
 			total += price * count
-			if npc.quota and Crops.byId[itemId] then
-				data.sales.sold[itemId] = (data.sales.sold[itemId] or 0) + count
-			end
 		end
 	end
 
@@ -147,10 +124,7 @@ local function onSell(player: Player, npcId: any, target: any, amount: any)
 			TutorialService.OnFirstSellSuccess(player, npc.id)
 		end
 	end
-	if limited then
-		Net.Fire("Notify", player, "sell.quota_full")
-		InventoryService.Sync(player)
-	elseif total == 0 then
+	if total == 0 then
 		Net.Fire("Notify", player, "sell.nothing")
 	end
 end
@@ -219,7 +193,7 @@ local function buyUpgrade(player: Player, data: Types.PlayerData, upgradeId: str
 	return UpgradeService.Buy(player, data, upgradeId)
 end
 
--- Mbak Arsi's blueprints: one purchase unlocks buying every decor item of that set (Config/Blueprints).
+-- Pak Amran's blueprints: one purchase unlocks buying every decor item of that set (Config/Blueprints).
 local function buyBlueprint(player: Player, data: Types.PlayerData, blueprintId: string): boolean
 	local blueprint = Blueprints.byId[blueprintId]
 	if not blueprint or data.decor.blueprints[blueprintId] == true then
@@ -239,7 +213,7 @@ local function buyBlueprint(player: Player, data: Types.PlayerData, blueprintId:
 	return true
 end
 
--- Seeds go into the bag; planting uses them (FarmService). unggul = Bu Wati's faster, pricier kind.
+-- Seeds go into the bag; planting uses them (FarmService). unggul = Pak Udin's faster, pricier kind.
 local function buySeed(player: Player, data: Types.PlayerData, cropId: string, amount: any, unggul: boolean): boolean
 	local crop = Crops.byId[cropId]
 	if not crop or not validPack(amount) then
@@ -264,7 +238,7 @@ local function buySeed(player: Player, data: Types.PlayerData, cropId: string, a
 	return true
 end
 
--- Mbok Minah sells common/uncommon fish (size Kecil) so orders and the Book don't depend on luck.
+-- Kak Fajar sells common/uncommon fish (size Kecil) so orders and the Book don't depend on luck.
 local function buyFish(player: Player, fishId: string, amount: any): boolean
 	local fish = FishConfig.byId[fishId]
 	if not fish or not Npcs.FISH_FOR_SALE[fish.rarity] or not validPack(amount) then

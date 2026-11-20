@@ -6,9 +6,7 @@
 -- icon until the model's image exists, see UiAssets.THUMBS), a number picker, the total and one button. A total the player
 -- cannot pay turns red and the button stays grey. Beli always asks first (UiKit.confirm, Batal left / Setuju right);
 -- so does Jual Semua. Jual of one item is a deliberate pick (item + number) and goes straight through.
--- Pak Darmo buys each crop at full price only up to a daily quota; the row shows what is left. Past the quota, Bang Tarno
--- buys the rest at 0.9x with no limit.
--- Buttons only send requests; prices, levels, quotas and stock are re-checked on the server.
+-- Buttons only send requests; prices, levels and stock are re-checked on the server.
 --
 -- UI CONTRACT: ScreenGui "ShopPanel" (UiKit.panel). The title is the NPC's name.
 
@@ -25,7 +23,6 @@ local InventoryConfig = require(ReplicatedStorage.Shared.Config.Inventory)
 local Npcs = require(ReplicatedStorage.Shared.Config.Npcs)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
-local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local Trade = require(ReplicatedStorage.Shared.Modules.Trade)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
@@ -72,13 +69,10 @@ local function upgradeInfo(upgradeId: string, snapshot: any): (number, string)
 		local tier = snapshot.pondTier
 		local nextCap = Fishing.POND.CAPS[tier + 2]
 		return tier, Locale.t("upgrade.pond.detail", { from = Fishing.POND.CAPS[tier + 1], to = nextCap or "-" })
-	else
-		local tier = snapshot.warungTier or 0
-		return tier, Locale.t("upgrade.warung.detail", { from = Trade.quota(tier), to = Trade.quota(tier + 1) })
 	end
 end
 
-local UPGRADE_ICON = { backpack = "tas", pond = "kolam", warung = "toko" }
+local UPGRADE_ICON = { backpack = "tas", pond = "kolam" }
 
 -- Asks "buy this?" with the total; Setuju sends the purchase. `amount` nil = a one-off purchase (rod, upgrade, blueprint).
 local function confirmBuy(npcId: string, kind: string, id: string, itemName: string, unitPrice: number, amount: number?)
@@ -145,7 +139,7 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 	local list = panel.list
 	local anything = false
 
-	-- Seeds (Pak Darmo) and faster seeds (Bu Wati)
+	-- Seeds and faster seeds (Pak Udin)
 	local function seedSection(headerKey: string, itemPrefix: string, kind: string, unggul: boolean)
 		UiKit.header(list, Locale.t(headerKey), nextOrder())
 		for _, crop in Crops.list do
@@ -184,7 +178,7 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 		seedSection("shop.section.seedsx", "seedx_", "seedx", true)
 	end
 
-	-- Fish (Mbok Minah)
+	-- Fish (Kak Fajar)
 	if sells.fish then
 		UiKit.header(list, Locale.t("shop.section.fish"), nextOrder())
 		for _, fish in FishConfig.list do
@@ -244,7 +238,7 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 		end
 	end
 
-	-- Rods and bait (Mas Joko)
+	-- Rods and bait (Kak Fajar)
 	if sells.rods then
 		UiKit.header(list, Locale.t("shop.section.rods"), nextOrder())
 		for _, rod in Fishing.rodList do
@@ -311,7 +305,7 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 		})
 	end
 
-	-- Upgrades (Pak Darmo)
+	-- Upgrades (Pak Udin)
 	if sells.upgrades then
 		UiKit.header(list, Locale.t("shop.section.upgrades"), nextOrder())
 		-- R3 17.7: one card per upgrade, its tiers as progress dots, and a buy button with the next tier's price.
@@ -347,7 +341,7 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 		end
 	end
 
-	-- Decor blueprints (Mbak Arsi): each unlocks buying a whole set of decor.
+	-- Decor blueprints (Pak Amran): each unlocks buying a whole set of decor.
 	if sells.blueprints then
 		UiKit.header(list, Locale.t("shop.section.blueprints"), nextOrder())
 		local owned = snapshot.decorBlueprints or {}
@@ -404,13 +398,11 @@ end
 local function renderSell(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 	local npcId = npc.id
 	local list = panel.list
-	if npc.quota then
-		UiKit.header(list, Locale.t("sell.quota_info", { n = Trade.quota(snapshot.warungTier or 0) }), nextOrder())
-	elseif npc.buys.crop then
-		UiKit.header(list, Locale.t("sell.overflow_info"), nextOrder())
+	if npc.buys.crop then
+		-- The percentage comes from the NPC's own config (Pak Udin 100%, Bang Jali 90%), never a fixed text.
+		local pct = math.floor(npc.buys.crop * 100 + 0.5)
+		UiKit.header(list, Locale.t("sell.overflow_info", { pct = pct }), nextOrder())
 	end
-	local sales = snapshot.sales or { day = "", sold = {} }
-	local today = TimeKeys.day()
 	local ids = sellableIds(npc, snapshot)
 	for _, itemId in ids do
 		local info = Items.info(itemId) :: Items.ItemInfo
@@ -420,15 +412,6 @@ local function renderSell(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 		local maxQty = count
 		local sub = `{Locale.t("shop.unit_price", { price = koin(unit) })}  ·  {Locale.t("ui.owned", { n = count })}`
 		local disabledText: string? = nil
-		if npc.quota and Crops.byId[itemId] then
-			-- Pak Darmo takes only what is left of today's quota for this crop.
-			local left = Trade.quotaLeft(sales, snapshot.warungTier or 0, itemId, today)
-			maxQty = math.min(count, left)
-			sub ..= `\n{Locale.t("shop.quota_row", { left = left, max = Trade.quota(snapshot.warungTier or 0) })}`
-			if left <= 0 then
-				disabledText = Locale.t("sell.quota_out")
-			end
-		end
 		maxQty = math.min(maxQty, Shop.MAX_AMOUNT)
 		UiKit.tradeRow(list, nextOrder(), {
 			name = name,
@@ -509,17 +492,11 @@ local function onSellAll()
 	if #ids == 0 then
 		return
 	end
-	-- What would actually be paid (Pak Darmo only takes what is left of each crop's quota).
-	local sales = snapshot.sales or { day = "", sold = {} }
-	local today = TimeKeys.day()
 	local total, kinds = 0, 0
 	for _, itemId in ids do
 		local info = Items.info(itemId) :: Items.ItemInfo
 		local unit = Trade.buyPrice(npc, info) :: number
 		local count = snapshot.items[itemId]
-		if npc.quota and Crops.byId[itemId] then
-			count = math.min(count, Trade.quotaLeft(sales, snapshot.warungTier or 0, itemId, today))
-		end
 		if count > 0 then
 			total += unit * count
 			kinds += 1

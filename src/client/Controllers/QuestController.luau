@@ -113,7 +113,7 @@ local function addRow(order: number, questId: string, progress: { step: number, 
 end
 
 -- The kolam quest card (kolam_pertama) is part of the t1b land step: it shows only once the player stands on his land
--- (bangun_kolam, 60 studs from the plot centre), together with Mbok Minah's line. Before that there is no card at all.
+-- (bangun_kolam, 60 studs from the plot centre), together with Mak Sari's line. Before that there is no card at all.
 local KOLAM_QUEST = "kolam_pertama"
 local function inOwnLand(): boolean
 	local character = Players.LocalPlayer.Character
@@ -136,7 +136,7 @@ local function kolamCardWanted(snapshot: any): boolean
 		return true
 	end
 	if (step.n or 0) < 4 then
-		return false -- before bangun_kolam (warung, Mas Joko, mancing, after_catch)
+		return false -- before bangun_kolam (warung, Kak Fajar, mancing, after_catch)
 	end
 	if (step.n or 0) == 4 then
 		return inOwnLand() -- bangun_kolam is the current step: only on the land

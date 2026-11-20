@@ -38,13 +38,11 @@ local STAGE_SCALE = { 0.4, 0.7, 1 }
 local DEFAULT_CROP_HEIGHT = 3
 local CROP_HEIGHT: { [string]: number } = { -- ripe height in studs (a bed is 7 studs wide: a crop should fill it, not sit in a corner)
 	kangkung = 4,
-	cabai = 4.6,
+	bayam = 4.4,
 	tomat = 5.2,
-	terong = 5.2,
+	sawi = 4.6,
 	jagung = 8,
-	singkong = 6.5,
-	padi = 5.6,
-	pisang = 9,
+	ubi_jalar = 4.8,
 }
 local READY_STAGE = 3
 
@@ -55,6 +53,7 @@ type TileView = {
 	part: BasePart,
 	isMine: boolean,
 	stage: number,
+	overdue: boolean?, -- telat panen (Farm.OVERDUE_*): the ripe crop is drawn OVERDUE_SCALE bigger
 	cropId: string?,
 	cropPart: Instance?, -- the ball placeholder (Part) or a cloned crop Model
 	label: TextLabel?,
@@ -112,12 +111,22 @@ local function makeTappable(view: TileView, visual: Instance)
 	end)
 end
 
+-- Telat panen (Bab 5.1): ripe and still standing OVERDUE_AFTER_SECONDS after it was ready. Visual only: nothing is lost.
+local function isOverdue(part: BasePart): boolean
+	if getStage(part) ~= READY_STAGE then
+		return false
+	end
+	local readyAt = part:GetAttribute("ReadyAt") :: number
+	return Workspace:GetServerTimeNow() - readyAt >= Farm.OVERDUE_AFTER_SECONDS
+end
+
 local function render(view: TileView)
 	local part = view.part
 	-- (The soil is terrain painted by the server; the tile part itself is invisible.)
 
 	local cropId = part:GetAttribute("Crop") :: string?
 	local stage = getStage(part)
+	local overdue = isOverdue(part)
 
 	-- Ripe crops of your own sparkle softly, so you can see from afar what is ready to harvest.
 	local wantsGlow = view.isMine and stage == READY_STAGE
@@ -140,11 +149,12 @@ local function render(view: TileView)
 		end
 	end
 
-	if stage == view.stage and cropId == view.cropId then
+	if stage == view.stage and cropId == view.cropId and overdue == (view.overdue == true) then
 		return
 	end
 	view.stage = stage
 	view.cropId = cropId
+	view.overdue = overdue
 
 	local crop = cropId and Crops.byId[cropId]
 	if view.cropPart then
@@ -170,7 +180,7 @@ local function render(view: TileView)
 			end
 		end
 		-- Scale so the model is this tall (one model serves all three growth stages), then stand it on the soil.
-		local height = (CROP_HEIGHT[crop.id] or DEFAULT_CROP_HEIGHT) * STAGE_SCALE[stage]
+		local height = (CROP_HEIGHT[crop.id] or DEFAULT_CROP_HEIGHT) * STAGE_SCALE[stage] * (if overdue then Farm.OVERDUE_SCALE else 1)
 		local _, size = model:GetBoundingBox()
 		model:ScaleTo(model:GetScale() * height / math.max(size.Y, 0.01))
 		local boxCFrame, boxSize = model:GetBoundingBox()
@@ -368,7 +378,7 @@ local function refreshPickerCards()
 	for _, crop in Crops.list do
 		local card = cards[crop.id]
 		local unlocked = playerLevel >= crop.unlockLevel
-		-- Planting uses bibit from the bag (bought from Pak Darmo / Bu Wati).
+		-- Planting uses bibit from the bag (bought from Pak Udin / Pak Udin).
 		local have = (items[`seed_{crop.id}`] or 0) + (items[`seedx_{crop.id}`] or 0)
 		local usable = unlocked and have > 0
 		card.button.Visible = unlocked or crop.unlockLevel <= playerLevel + 5 -- show only the next few locked crops

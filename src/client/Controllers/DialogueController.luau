@@ -209,16 +209,28 @@ local function close(instantCamera: boolean?)
 end
 
 -- The dialogue box: the NPC's face, name and greeting, and the numbered choices as a row of buttons inside it:
--- 1. Jual / Beli opens the NPC's shop (Mas Joko, until his gift is taken: Terima Hadiah), 2. Sampai jumpa closes.
+-- 1. Jual / Beli opens the NPC's shop (Kak Fajar, until his gift is taken: Terima Hadiah), 2. Sampai jumpa closes.
 -- (Redrawn whenever the state syncs, so the choices are passed each time.)
 local function gotRodGift(): boolean
 	local snap = State.current
 	return snap ~= nil and snap.guide ~= nil and snap.guide.rodGift == true
 end
 
+-- A shop stays closed below the NPC's unlockLevel (Mak Sari: the Dapur opens at Lv 6). Its dialogue shows npc.<id>.locked.
+local function lockedFor(npcId: string): boolean
+	local npc = Npcs.byId[npcId]
+	local level = player:GetAttribute("Level")
+	return npc ~= nil and npc.unlockLevel ~= nil and (typeof(level) ~= "number" or level < npc.unlockLevel)
+end
+
+local function greetSuffix(npcId: string): string
+	return if lockedFor(npcId) then "locked" else "greet"
+end
+
 local function refresh(npcId: string)
 	local choices = {}
-	local giftMode = npcId == "mas_joko" and not gotRodGift()
+	local giftMode = npcId == "kak_fajar" and not gotRodGift()
+	local locked = not giftMode and lockedFor(npcId)
 	if giftMode then
 		-- GIFT MODE: the only choice is Terima Hadiah (no Sampai jumpa, no tap-outside close). The box is drawn again after the gift.
 		table.insert(choices, {
@@ -226,14 +238,14 @@ local function refresh(npcId: string)
 			onChoose = function()
 				-- Terima Hadiah: the server gives the Joran Bambu and the pelet once (TutorialService).
 				task.spawn(function()
-					pcall(Net.Invoke, "MeetJoko")
+					pcall(Net.Invoke, "MeetFajar")
 					if currentNpc == npcId then
 						refresh(npcId)
 					end
 				end)
 			end,
 		})
-	else
+	elseif not locked then
 		table.insert(choices, {
 			text = Locale.t("dialog.trade"),
 			onChoose = function()
@@ -257,7 +269,7 @@ local function refresh(npcId: string)
 	end
 	T1Dialog.Show({
 		name = Locale.t(`npc.{npcId}`),
-		text = Locale.t(`npc.{npcId}.greet`),
+		text = Locale.t(`npc.{npcId}.{greetSuffix(npcId)}`),
 		avatar = npcModel(npcId),
 		showNext = false,
 		bottom = 16,

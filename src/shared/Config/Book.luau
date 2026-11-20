@@ -40,7 +40,7 @@ return {
 	-- One category fully completed.
 	CATEGORY_REWARDS = {
 		crops = { koin = 300 },
-		fish = { bunga = 5 },
+		fish = { koin = 300 }, -- T-27 family: Bunga (5) removed, Koin 300 like crops; Bab 15.3 Album Bunga comes via Pencapaian (Fase 6)
 		decor = { title = "juragan_pondok", decor = { rumpun_bambu = 1 } },
 	} :: { [string]: Reward },
 }

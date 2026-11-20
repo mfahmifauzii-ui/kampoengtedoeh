@@ -16,9 +16,7 @@ local QuestService = require(script.Parent.QuestService)
 local InventoryService = require(script.Parent.InventoryService)
 local PlotService = require(script.Parent.PlotService)
 local BookService = require(script.Parent.BookService)
-local MonetizationService = require(script.Parent.MonetizationService)
 local EventService = require(script.Parent.EventService)
-local Monetization = require(ReplicatedStorage.Shared.Config.Monetization)
 
 local RATE = { rate = 6, burst = 10 }
 
@@ -28,8 +26,8 @@ local function isInt(value: any, min: number, max: number): boolean
 	return typeof(value) == "number" and value % 1 == 0 and value >= min and value <= max
 end
 
-function DecorService.MaxPlaced(player: Player): number
-	return Decor.MAX_PLACED + (if MonetizationService.HasPass(player, "decor") then Monetization.DECOR_BONUS else 0)
+function DecorService.MaxPlaced(): number
+	return Decor.MAX_PLACED
 end
 
 local function getFolder(plot: Model): Folder
@@ -124,8 +122,8 @@ local function onPlace(player: Player, itemId: any, x: any, z: any, r: any)
 	if not isInt(x, DecorGrid.X_MIN, DecorGrid.X_MAX) or not isInt(z, DecorGrid.Z_MIN, DecorGrid.Z_MAX) or not isInt(r, 0, 3) then
 		return
 	end
-	if #data.decor.placed >= DecorService.MaxPlaced(player) then
-		Net.Fire("Notify", player, "decor.limit", { max = DecorService.MaxPlaced(player) })
+	if #data.decor.placed >= DecorService.MaxPlaced() then
+		Net.Fire("Notify", player, "decor.limit", { max = DecorService.MaxPlaced() })
 		return
 	end
 	if not DecorGrid.isValid(item, x, z, r, DecorGrid.occupancy(data.decor.placed, data.farm.tiles, Land.pondRects(data.pond.list)), nil, data.land.chunks) then

@@ -19,11 +19,9 @@ local StoreController = {}
 
 local TABS = {
 	{ id = "passes", text = "store.tab.passes" },
-	{ id = "koin", text = "store.tab.koin" },
 	{ id = "bunga", text = "store.tab.bunga" },
 	{ id = "hias", text = "store.tab.hias" },
 }
-local PASS_TABS: { [string]: string } = { backpack = "passes", offline = "passes", plots = "passes", decor = "hias" }
 local SIDE_WIDTH = 116
 
 local panel: UiKit.Panel
@@ -112,7 +110,7 @@ local function render()
 	end
 
 	for _, pass in Monetization.PASSES do
-		if (PASS_TABS[pass.key] or "passes") == selected then
+		if selected == "passes" then
 			local owned = passes[pass.key] == true
 			local def = pass
 			UiKit.productCard(panel.list, nextOrder(), {
@@ -130,7 +128,6 @@ local function render()
 
 	for _, product in Monetization.PRODUCTS do
 		local inTab = if product.kind == "bunga" then selected == "bunga"
-			elseif product.kind == "koin" then selected == "koin"
 			else selected == "hias"
 		if inTab then
 			local sub: string? = nil
@@ -155,7 +152,7 @@ local function render()
 		end
 	end
 
-	panel.footerLabel.Text = if snapshot and snapshot.premium then Locale.t("store.premium") else ""
+	panel.footerLabel.Text = "" -- Premium gives no Koin boost (Bab 19, T-32): no footer line
 	fitHeight()
 end
 

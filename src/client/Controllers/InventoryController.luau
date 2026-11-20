@@ -91,17 +91,34 @@ local function render()
 		local info = Items.info(itemId)
 		local count = snapshot.items[itemId]
 		if info then
+			-- Icon by category, never a specific icon for another category. A harvest (Super, Mutasi) uses its crop's model
+			-- and the harvest icon; bait and anything without its own icon uses the generic bag icon (Tas).
 			local isCrop = info.kind == "crop"
 			local isFish = info.kind == "fish"
+			local isSeed = info.kind == "seed"
+			local variant = if isCrop then Items.cropVariant(itemId) else nil
+			local cropId: string? = if isCrop then (if variant then variant.crop.id else itemId) elseif isSeed then itemId:gsub("^seedx?_", "") else nil
+			local icon = if isFish then "ikan" elseif isSeed then "bibit" elseif isCrop then "panen" else "tas"
 			UiKit.cell(grid, order, {
 				name = Items.displayName(info),
 				badge = `×{count}`,
-				accent = if isFish then UiKit.CAT.fish elseif isCrop or itemId:match("^seedx?_") then UiKit.CAT.crop else UiKit.CAT.tool,
-				cropId = if isCrop then itemId elseif itemId:match("^seedx?_") then itemId:gsub("^seedx?_", "") else nil,
-				icon = if isFish then "ikan" elseif itemId:match("^seedx?_") then "bibit" else "pancing",
+				accent = if isFish then UiKit.CAT.fish elseif isCrop or isSeed then UiKit.CAT.crop else UiKit.CAT.tool,
+				cropId = cropId,
+				icon = icon,
 				price = if info.sellPrice then Locale.formatNumber(info.sellPrice * count) else nil,
 			})
 		end
+	end
+	-- A3 (v6.2.3): the equipped rod is shown too. Rods are ownership flags (data.fishing), not bag items, so without this
+	-- the Joran Bambu from Kak Fajar never appeared in the Tas.
+	local snapshot2 = State.current :: any
+	if snapshot2 and typeof(snapshot2.rod) == "string" and snapshot2.rod ~= "" then
+		UiKit.cell(grid, #ids + 1, {
+			name = Locale.t(`rod.{snapshot2.rod}`),
+			badge = "×1",
+			accent = UiKit.CAT.tool,
+			icon = "pancing",
+		})
 	end
 end
 

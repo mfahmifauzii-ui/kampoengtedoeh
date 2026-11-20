@@ -1,13 +1,12 @@
 --!strict
 -- Buying land (R2b). A plot's reserved square is 192 x 192 studs; the player owns the 128 x 128 start land plus the
 -- 32 x 32 blocks ("chunks" in the code) they bought (data.land.chunks, Modules/Land). Every request is checked on the server: the chunk must
--- be inside the square, not owned, and touch owned land; the price comes from Land.chunkPrice (game pass discount).
+-- be inside the square, not owned, and touch owned land; the price comes from Land.chunkPrice.
 -- Buying paints the chunk bright grass, hides the forest on it and moves the fence out (MapService).
 --   LandBuy(ix, iz)    chunk indices in plot-local blocks (x = ix * 32, z = iz * 32)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Monetization = require(ReplicatedStorage.Shared.Config.Monetization)
 local Plots = require(ReplicatedStorage.Shared.Config.Plots)
 local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
@@ -15,17 +14,15 @@ local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
 local InventoryService = require(script.Parent.InventoryService)
 local MapService = require(script.Parent.MapService)
-local MonetizationService = require(script.Parent.MonetizationService)
 local PlotService = require(script.Parent.PlotService)
 
 local RATE = { rate = 4, burst = 8 }
 
 local LandService = {}
 
--- Price of the next chunk for this player (the "plots" pass takes Plots.CHUNK.PASS_DISCOUNT off).
-function LandService.NextPrice(player: Player, extraOwned: number): number
-	local discount = if MonetizationService.HasPass(player, "plots") then Plots.CHUNK.PASS_DISCOUNT else 0
-	return Land.chunkPrice(extraOwned, discount)
+-- Price of the next chunk.
+function LandService.NextPrice(extraOwned: number): number
+	return Land.chunkPrice(extraOwned)
 end
 
 -- Paints and clears every extra chunk of a plot to match `chunks`. Does nothing for a chunk that is already right.
@@ -60,7 +57,7 @@ local function onBuy(player: Player, ix: any, iz: any)
 		return
 	end
 	local owned = Land.extraCount(chunks)
-	if not EconomyService.TrySpend(player, "koin", LandService.NextPrice(player, owned), `land:{owned + 1}`) then
+	if not EconomyService.TrySpend(player, "koin", LandService.NextPrice(owned), `land:{owned + 1}`) then
 		Net.Fire("Notify", player, "notify.not_enough", { currency = "currency.koin" })
 		return
 	end

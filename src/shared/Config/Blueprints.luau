@@ -1,5 +1,5 @@
 --!strict
--- Blueprints (Mbak Arsi, the tukang, sells them). A blueprint unlocks buying every decor item that names it in its
+-- Blueprints (Pak Amran, the tukang, sells them). A blueprint unlocks buying every decor item that names it in its
 -- `blueprint` field (Config/Decor). Decor without a blueprint (the free "dasar" set, Bunga items, event items) is
 -- always available. Blueprints replace the old per-item level requirement. Owned blueprints: data.decor.blueprints.
 -- Items you already own (stock, placed, order rewards) never need the blueprint; it only gates BUYING.

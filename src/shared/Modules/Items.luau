@@ -1,8 +1,10 @@
 --!strict
 -- Resolves any inventory item id to its display key + sell price.
--- Item ids: crops = "<cropId>", fish = "<fishId>@<size>" (e.g. "nila@M"), bait = "pelet".
+-- Item ids: crops = "<cropId>", Mutasi = "<mutation>_<cropId>", Super = "super_<cropId>" or "super_<mutation>_<cropId>", fish = "<fishId>@<size>" (e.g. "nila@M"), bait = "pelet".
 
 local Crops = require(script.Parent.Parent.Config.Crops)
+local Farm = require(script.Parent.Parent.Config.Farm)
+local Mutasi = require(script.Parent.Parent.Config.Mutasi)
 local FishConfig = require(script.Parent.Parent.Config.Fish)
 local Fishing = require(script.Parent.Parent.Config.Fishing)
 local Locale = require(script.Parent.Parent.Locale)
@@ -28,7 +30,34 @@ function Items.info(itemId: string): ItemInfo?
 		return { id = itemId, kind = "crop", nameKey = `crop.{crop.id}`, sellPrice = crop.sellPrice }
 	end
 
-	-- Seeds: "seed_<crop>" (normal, Pak Darmo) and "seedx_<crop>" (unggul, Bu Wati).
+	-- Harvest produce (Bab 5.4 Mutasi, Bab 5.3 Super): [super_][<mutation>_]<crop>.
+	local variant = Items.cropVariant(itemId)
+	if variant then
+		local price = variant.crop.sellPrice
+		if variant.super then
+			price *= Farm.SUPER_KOIN_MULT
+		end
+		local vars: { [string]: string } = { crop = `crop.{variant.crop.id}` }
+		local nameKey = "item.crop_mutation"
+		if variant.mutation then
+			price *= variant.mutation.mult
+			vars.mutation = variant.mutation.nameKey
+		else
+			nameKey = "item.super_crop" -- Super only: "{crop} Super"
+		end
+		if variant.super and variant.mutation then
+			nameKey = "item.super_mutation"
+		end
+		return {
+			id = itemId,
+			kind = "crop",
+			nameKey = nameKey,
+			nameVars = vars,
+			sellPrice = math.floor(price + 0.5),
+		}
+	end
+
+	-- Seeds: "seed_<crop>" (normal, Pak Udin) and "seedx_<crop>" (unggul, Pak Udin).
 	local seedCrop = itemId:match("^seed_(.+)$")
 	if seedCrop and Crops.byId[seedCrop] then
 		return { id = itemId, kind = "seed", nameKey = "item.seed", nameVars = { crop = `crop.{seedCrop}` } }
@@ -58,6 +87,43 @@ function Items.info(itemId: string): ItemInfo?
 		return { id = itemId, kind = "bait", nameKey = `item.{itemId}` }
 	end
 	return nil
+end
+
+-- Parses a harvest item id into its crop, Super flag and Mutasi (nil when it is not a harvest item).
+-- Only ids built by Items.cropItemId() parse, so "super_" and "embun_" are never read off a crop name by accident.
+function Items.cropVariant(itemId: string): { crop: Crops.Crop, super: boolean, mutation: Mutasi.Mutation? }?
+	local rest = itemId
+	local super = false
+	if rest:sub(1, 6) == "super_" then
+		super = true
+		rest = rest:sub(7)
+	end
+	local mutation: Mutasi.Mutation? = nil
+	for _, entry in Mutasi.list do
+		local prefix = entry.id .. "_"
+		if rest:sub(1, #prefix) == prefix then
+			mutation = entry
+			rest = rest:sub(#prefix + 1)
+			break
+		end
+	end
+	local crop = Crops.byId[rest]
+	if not crop or (not super and mutation == nil) then
+		return nil -- a plain crop id is handled by Items.info before this
+	end
+	return { crop = crop, super = super, mutation = mutation }
+end
+
+-- The inventory id of a harvest: the inverse of cropVariant.
+function Items.cropItemId(cropId: string, super: boolean, mutationId: string?): string
+	local id = cropId
+	if mutationId then
+		id = `{mutationId}_{id}`
+	end
+	if super then
+		id = `super_{id}`
+	end
+	return id
 end
 
 -- "Bibit Kangkung", "Nila (Sedang)", ...

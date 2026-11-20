@@ -26,10 +26,8 @@ local InventoryService = require(script.Parent.InventoryService)
 local PlotService = require(script.Parent.PlotService)
 local ProgressionService = require(script.Parent.ProgressionService)
 local BookService = require(script.Parent.BookService)
-local MonetizationService = require(script.Parent.MonetizationService)
 local QuestService = require(script.Parent.QuestService)
 local AnalyticsHooks = require(script.Parent.AnalyticsHooks)
-local Monetization = require(ReplicatedStorage.Shared.Config.Monetization)
 local Progression = require(ReplicatedStorage.Shared.Config.Progression)
 local Types = require(ReplicatedStorage.Shared.Types)
 local Upgrades = require(ReplicatedStorage.Shared.Modules.Upgrades)
@@ -190,7 +188,7 @@ local function startCast(player: Player, spot: BasePart)
 	if location == "kolam" and spot:GetAttribute("Owner") ~= player.UserId then
 		return
 	end
-	-- Tutorial gate (not a level): the dock and the pond open at Lv 1, but only after Mas Joko's gift (fishingUnlocked).
+	-- Tutorial gate (not a level): the dock and the pond open at Lv 1, but only after Kak Fajar's gift (fishingUnlocked).
 	if data.guide.fishingUnlocked ~= true then
 		Net.Fire("Notify", player, "fish.tut_locked")
 		return
@@ -199,7 +197,7 @@ local function startCast(player: Player, spot: BasePart)
 		Net.Fire("Notify", player, "fish.locked", { level = locationConfig.unlockLevel })
 		return
 	end
-	-- No rod without Mas Joko's gift (Opsi B): the server checks ownership itself, the client never decides this.
+	-- No rod without Kak Fajar's gift (Opsi B): the server checks ownership itself, the client never decides this.
 	if data.fishing.rod == "" or data.fishing.ownedRods[data.fishing.rod] ~= true or Fishing.rods[data.fishing.rod] == nil then
 		Net.Fire("Notify", player, "fish.need_rod")
 		return
@@ -279,9 +277,8 @@ FishService.Cancel = onCancel -- used by SocialService when teleporting
 
 -- Pond (kolam) -------------------------------------------------------------------
 
-local function pondCap(player: Player, tier: number): number
-	local cap = Fishing.POND.CAPS[math.clamp(tier + 1, 1, #Fishing.POND.CAPS)]
-	return if MonetizationService.HasPass(player, "offline") then cap * Monetization.OFFLINE_POND_MULT else cap
+local function pondCap(tier: number): number
+	return Fishing.POND.CAPS[math.clamp(tier + 1, 1, #Fishing.POND.CAPS)]
 end
 
 -- Each pond part carries Attribute "PondUid" = its PondEntry.uid in data.pond.list.
@@ -300,7 +297,7 @@ local function syncPond(player: Player, pond: BasePart)
 	local entry = data and findEntry(data, pond)
 	if data and entry then
 		pond:SetAttribute("LastCollect", entry.lastCollect)
-		pond:SetAttribute("Cap", pondCap(player, Upgrades.tier(data, "pond")))
+		pond:SetAttribute("Cap", pondCap(Upgrades.tier(data, "pond")))
 	end
 end
 
@@ -319,7 +316,7 @@ local function collectPond(player: Player, pond: BasePart)
 	end
 
 	local now = os.time()
-	local cap = pondCap(player, Upgrades.tier(data, "pond"))
+	local cap = pondCap(Upgrades.tier(data, "pond"))
 	local ready = (now - entry.lastCollect) // Fishing.POND.INTERVAL
 	local count = math.min(ready, cap)
 	if count <= 0 then
@@ -453,19 +450,55 @@ end
 
 -- Lifecycle ---------------------------------------------------------------------
 
+-- The Mancing button (v6.2.3 A3): cast at the nearest fishing spot within CAST_DISTANCE. The server picks the spot;
+-- startCast checks everything else (gift, level, rod, distance).
+local function onCastNearest(player: Player)
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") then
+		return
+	end
+	local best: BasePart? = nil
+	local bestDistance = Fishing.CAST_DISTANCE
+	for _, spot in CollectionService:GetTagged(SPOT_TAG) do
+		if spot:IsA("BasePart") then
+			local distance = (spot.Position - root.Position).Magnitude
+			if distance <= bestDistance then
+				best, bestDistance = spot, distance
+			end
+		end
+	end
+	if best then
+		startCast(player, best)
+	end
+end
+
 function FishService.Init()
-	local folder = Workspace:FindFirstChild("Fishing") or buildPlaceholderWater()
-	for _, child in folder:GetDescendants() do
-		if child:IsA("BasePart") and typeof(child:GetAttribute("Location")) == "string" then
-			setupSpot(child)
+	-- A3 (v6.2.3): the spots are found in ANY workspace "Fishing" folder, not just the first one. The Studio map had an empty
+	-- "Fishing" folder first (and two folders of river sound emitters), so no spot ever got its Location, its FishingSpot tag,
+	-- its prompt, or the tutorial's arrow. With no spot anywhere, the placeholder water and spots are built.
+	local spots = 0
+	for _, folder in Workspace:GetChildren() do
+		if folder.Name == "Fishing" then
+			for _, child in folder:GetDescendants() do
+				if child:IsA("BasePart") and typeof(child:GetAttribute("Location")) == "string" then
+					setupSpot(child)
+					spots += 1
+				end
+			end
+		end
+	end
+	if spots == 0 then
+		warn("[FishService] no fishing spot in workspace.Fishing: building the placeholder dock")
+		local folder = buildPlaceholderWater()
+		folder.Parent = Workspace
+		for _, child in folder:GetDescendants() do
+			if child:IsA("BasePart") and typeof(child:GetAttribute("Location")) == "string" then
+				setupSpot(child)
+			end
 		end
 	end
 
-	MonetizationService.PassChanged:Connect(function(player: Player, key: string)
-		if key == "offline" then
-			FishService.RefreshPond(player)
-		end
-	end)
 	PlotService.Released:Connect(function(player: Player)
 		sessions[player] = nil
 	end)
@@ -474,6 +507,7 @@ end
 function FishService.Start()
 	Net.On("FishReel", onReel, { rate = 2, burst = 3 })
 	Net.On("FishCancel", onCancel, { rate = 2, burst = 3 })
+	Net.On("FishCast", onCastNearest, { rate = 2, burst = 3 })
 	Players.PlayerRemoving:Connect(function(player)
 		sessions[player] = nil
 	end)

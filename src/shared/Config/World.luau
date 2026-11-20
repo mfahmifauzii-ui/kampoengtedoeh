@@ -14,12 +14,12 @@ export type LightingPreset = {
 	haze: number,
 }
 
--- 24 real minutes. clockFrom/clockTo = Lighting.ClockTime across the phase (wraps past 24).
+-- 30 real minutes (Bab 3.2: pagi 3, siang 15, sore 3, malam 9). clockFrom/clockTo = Lighting.ClockTime across the phase (wraps past 24).
 local CYCLE = {
-	{ phase = "pagi", minutes = 5, clockFrom = 5.5, clockTo = 9 },
-	{ phase = "siang", minutes = 8, clockFrom = 9, clockTo = 15.5 },
-	{ phase = "sore", minutes = 4, clockFrom = 15.5, clockTo = 18.6 },
-	{ phase = "malam", minutes = 7, clockFrom = 18.6, clockTo = 29.5 },
+	{ phase = "pagi", minutes = 3, clockFrom = 5.5, clockTo = 9 },
+	{ phase = "siang", minutes = 15, clockFrom = 9, clockTo = 15.5 },
+	{ phase = "sore", minutes = 3, clockFrom = 15.5, clockTo = 18.6 },
+	{ phase = "malam", minutes = 9, clockFrom = 18.6, clockTo = 29.5 },
 }
 
 local total = 0

@@ -14,7 +14,7 @@
 --     and blocked, so the land stays clear and the player can pick a grid square. No ring here: the Garap ghost and its
 --     green arrow (GarapController) are the target.
 --   * "npc": no overlay. A small arrow floats slowly above an NPC's head ("walk there"), different from the Garap arrow,
---     which bobs DOWN above a ghost ("tap here"). Used for Panen / Jual (Pak Darmo is outside any hole).
+--     which bobs DOWN above a ghost ("tap here"). Used for Panen / Jual (Pak Udin is outside any hole).
 --
 -- Camera (T1 spawn only): on a new player's spawn (server sets the GateSpawn attribute) the camera is placed behind the
 -- character, looking at the gate, once. Then the normal camera comes back at once; nothing is locked during T1.
