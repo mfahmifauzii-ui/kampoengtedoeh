@@ -1,6 +1,6 @@
 --!strict
--- Day cycle + rain + lighting presets. All visuals are applied client-side; the server
--- only publishes CycleStart / DayPhase / Raining as Workspace attributes.
+-- Day cycle + lighting presets (rain visuals use RAIN_LIGHTING here; the weather cycle itself is Config/Weather).
+-- All visuals are applied client-side; the server only publishes CycleStart / DayPhase / Raining / Weather.
 
 export type LightingPreset = {
 	brightness: number,
@@ -34,12 +34,7 @@ return {
 	-- Clock hour a new server starts at (each play session begins here, then runs on in real time).
 	START_CLOCK = 10,
 
-	RAIN = {
-		CHECK_INTERVAL = 1200, -- roll every 20 min
-		CHANCE = 0.25,
-		MIN_SECONDS = 240,
-		MAX_SECONDS = 360,
-	},
+	-- Rain and weather types moved to Config/Weather (Bab 3.3, Fase 2). This file keeps the day cycle and the visuals.
 
 	TRANSITION_SECONDS = 8, -- lighting tween between phases / rain
 

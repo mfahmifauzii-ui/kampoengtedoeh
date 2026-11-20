@@ -23,7 +23,7 @@ local WorldService = require(script.Parent.WorldService)
 local MonetizationService = require(script.Parent.MonetizationService)
 local EventService = require(script.Parent.EventService)
 
-local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !orders, !grow, !time malam, !rain, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 2: !level 2),!inv, !pass backpack, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !buff tani 60 (UI test only: no effect yet), !give kangkung 30, !tut [reset|fast],!blueprint all|taman|pondok_sawah"
+local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !orders, !grow, !time malam, !rain, !cuaca terik|gerimis|deres|petir|pelangi, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 2: !level 2),!inv, !pass backpack, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !buff tani 60 (UI test only: no effect yet), !give kangkung 30, !tut [reset|fast],!blueprint all|taman|pondok_sawah"
 
 local DevService = {}
 
@@ -121,6 +121,9 @@ local function onChatted(player: Player, message: string)
 	elseif command == "rain" then
 		WorldService.DevToggleRain()
 		print(`[DevService] Raining = {Workspace:GetAttribute("Raining")}`)
+	elseif command == "cuaca" then
+		local ok = WorldService.DevSetWeather(arg)
+		print(`[DevService] Weather = {WorldService.CurrentWeather()} (ok={ok})`)
 	elseif command == "rod" and Fishing.rods[arg] then
 		local data = DataService.Get(player)
 		if data then
