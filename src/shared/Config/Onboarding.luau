@@ -237,5 +237,11 @@ return {
 	STUCK_TEXT = 90, -- s without progress: the more explicit text
 	REPLAY_MIN_SECONDS = 4, -- replay: each step stays at least this long
 	FAST_PLANTINGS = 6, -- first plantings of a new save on the fast timer
-	FAST_GROW_SECONDS = 20, -- (water -> -20 % = 16 s, like every crop)
+	FAST_GROW_SECONDS = 20, -- (water -> -15 % of the rest; the first crop is 20 s on the fast timer)
+	-- FTUE Bab 16.3 (0:30): the tutorial's Gerimis. It starts once the first planting is done (step 3 ended) and lasts this long.
+	-- Once per save (guide.done.gerimis_t1). It waters every growing crop of the server (rain rule), so Siram is done by it.
+	GERIMIS_SECONDS = 20,
+	GERIMIS_AFTER_STEP = 3, -- the rain starts when this many T1 steps are done (sapa, cangkul, tanam): the next step is Siram
+	-- FTUE Bab 16.3 (0:50): the first harvest of a new save is always Super (no chance roll). Once per save (guide.done.ftue_super).
+	FTUE_FIRST_SUPER = true,
 }

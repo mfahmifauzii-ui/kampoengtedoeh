@@ -18,6 +18,9 @@ return {
 
 	-- Crops
 	["crop.kangkung"] = "Kangkung",
+	["crop.bayam"] = "Bayam",
+	["crop.sawi"] = "Sawi",
+	["crop.ubi_jalar"] = "Ubi Jalar",
 	["crop.cabai"] = "Cabai",
 	["crop.tomat"] = "Tomat",
 	["crop.terong"] = "Terong",
@@ -72,6 +75,7 @@ return {
 	["garap.pond_remove_yes"] = "Hapus",
 	["garap.price_free"] = "Gratis",
 	["garap.price"] = "{n} koin",
+	["garap.next_price"] = "Petak berikutnya: {price}",
 	["quest.new"] = "Misi baru: {title}",
 	["quest.step"] = "Misi maju: {title}",
 	["quest.done"] = "Misi selesai: {title}!",
@@ -281,6 +285,8 @@ return {
 	["shop.sell_empty"] = "Belum ada yang bisa dijual ke sini",
 	["item.seed"] = "Bibit {crop}",
 	["item.seedx"] = "Bibit Unggul {crop}",
+	["item.super_crop"] = "{crop} Super",
+	["farm.super"] = "Super Panen! Dapat 2x Koin dan XP lebih banyak",
 	["shop.bought_seed"] = "+{n} bibit {crop}",
 	["shop.bought_seedx"] = "+{n} bibit unggul {crop}",
 	["shop.bought_fish"] = "+{n} {fish}",

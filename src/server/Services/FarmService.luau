@@ -37,6 +37,7 @@ local RATE_TILL = { rate = 10, burst = 20 }
 local MAX_CELL = 40 -- sanity bound for requested cells (the land is about ±36 cells wide)
 
 local FarmService = {}
+local random = Random.new()
 
 local soilState: { [BasePart]: string } = {} -- "dry" | "wet": what is painted in the terrain right now
 
@@ -477,9 +478,21 @@ local function waterAllForRain()
 	end
 end
 
+-- Super Panen (Bab 5.3): base 5%, +5% if the tile is Basah. The first harvest of a new save is always Super (FTUE 0:50,
+-- Onboarding.FTUE_FIRST_SUPER), and only once: guide.done.ftue_super. Skipping T1 turns the guarantee off.
+local function rollSuper(data: Types.PlayerData, tile: Types.FarmTile): boolean
+	local guide = data.guide
+	if Onboarding.FTUE_FIRST_SUPER and guide.done.ftue_super ~= true and guide.done.t1_awal ~= true and guide.skipped.t1_awal ~= true then
+		guide.done.ftue_super = true
+		return true
+	end
+	local chance = Farm.SUPER_CHANCE + (if tile.watered == true then Farm.SUPER_WET_BONUS else 0)
+	return random:NextNumber() < chance
+end
+
 local function onHarvest(player: Player, uid: any)
-	local _, tile = getValidTile(player, uid)
-	if not tile or tile.crop == nil then
+	local data, tile = getValidTile(player, uid)
+	if not data or not tile or tile.crop == nil then
 		return
 	end
 	local now = os.time()
@@ -487,7 +500,12 @@ local function onHarvest(player: Player, uid: any)
 		return
 	end
 	local crop = Crops.byId[tile.crop :: string]
-	if not crop or not InventoryService.Add(player, crop.id, crop.yield) then
+	if not crop then
+		return
+	end
+	local super = rollSuper(data, tile)
+	local itemId = if super then `super_{crop.id}` else crop.id
+	if not InventoryService.Add(player, itemId, crop.yield) then
 		return
 	end
 
@@ -502,7 +520,11 @@ local function onHarvest(player: Player, uid: any)
 	end
 	sync(player, tile)
 	Net.Fire("Notify", player, "farm.harvested", { n = crop.yield, item = `crop.{crop.id}` })
-	ProgressionService.AddXp(player, crop.xp, `harvest:{crop.id}`)
+	if super then
+		Net.Fire("Notify", player, "farm.super")
+	end
+	local xp = math.floor(crop.xp * (if super then Farm.SUPER_XP_MULT else 1) + 0.5)
+	ProgressionService.AddXp(player, xp, `harvest:{crop.id}`)
 	AnalyticsHooks.Step(player, "first_harvest")
 	BookService.RecordCrop(player, crop.id)
 	QuestService.Report(player, "harvest")

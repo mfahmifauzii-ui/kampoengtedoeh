@@ -1,8 +1,9 @@
 --!strict
 -- Resolves any inventory item id to its display key + sell price.
--- Item ids: crops = "<cropId>", fish = "<fishId>@<size>" (e.g. "nila@M"), bait = "pelet".
+-- Item ids: crops = "<cropId>", super crops = "super_<cropId>", fish = "<fishId>@<size>" (e.g. "nila@M"), bait = "pelet".
 
 local Crops = require(script.Parent.Parent.Config.Crops)
+local Farm = require(script.Parent.Parent.Config.Farm)
 local FishConfig = require(script.Parent.Parent.Config.Fish)
 local Fishing = require(script.Parent.Parent.Config.Fishing)
 local Locale = require(script.Parent.Parent.Locale)
@@ -26,6 +27,19 @@ function Items.info(itemId: string): ItemInfo?
 	local crop = Crops.byId[itemId]
 	if crop then
 		return { id = itemId, kind = "crop", nameKey = `crop.{crop.id}`, sellPrice = crop.sellPrice }
+	end
+
+	-- Super Panen (Bab 5.3): "super_<crop>" sells for SUPER_KOIN_MULT x the crop price.
+	local superCrop = itemId:match("^super_(.+)$")
+	local super = superCrop and Crops.byId[superCrop]
+	if super then
+		return {
+			id = itemId,
+			kind = "crop",
+			nameKey = "item.super_crop",
+			nameVars = { crop = `crop.{super.id}` },
+			sellPrice = super.sellPrice * Farm.SUPER_KOIN_MULT,
+		}
 	end
 
 	-- Seeds: "seed_<crop>" (normal, Pak Udin) and "seedx_<crop>" (unggul, Pak Udin).

@@ -50,7 +50,12 @@ return {
 	GROUND_OCCUPANCY = 0.5, -- plain grass
 	BED_COLOR_DRY = Color3.fromRGB(150, 102, 62), -- slab color (Sand material, no override)
 	BED_COLOR_WET = Color3.fromRGB(94, 64, 40), -- after watering
-	WATER_REDUCTION = 0.2, -- watering cuts remaining grow time by 20%
+	WATER_REDUCTION = 0.15, -- Siram: cuts remaining grow time by 15%, once per growth (Bab 5.1 v6.2)
+	-- Super Panen (Bab 5.3): base chance, +bonus if the tile is Basah at harvest. Super = 2x Koin + 50% XP.
+	SUPER_CHANCE = 0.05,
+	SUPER_WET_BONUS = 0.05,
+	SUPER_KOIN_MULT = 2,
+	SUPER_XP_MULT = 1.5,
 	SEED_UNGGUL_GROW_MULT = 0.9, -- "bibit unggul" (Pak Udin) grows 10% faster
 	INTERACT_DISTANCE = 40, -- studs, server-checked (plant / water / harvest)
 	TILL_DISTANCE = 60, -- studs from the player to the cell they till or level
