@@ -15,6 +15,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
+local Onboarding = require(game:GetService("ReplicatedStorage").Shared.Config.Onboarding)
 local FadeManager = require(script.Parent.FadeManager)
 local NpcCamera = require(script.Parent.NpcCamera)
 local PlayerLock = require(script.Parent.PlayerLock)
@@ -26,6 +27,7 @@ local held = false -- true from Begin until End: the player stays held still
 local camConn: RBXScriptConnection? = nil
 local cameraTaken = false
 local savedFov = 70
+local beatStartedAt: number? = nil -- os.clock() at Begin: the Bab 16.2 length check (<= Onboarding.CUTSCENE_MAX_SECONDS)
 
 -- Keeps the player held (used after a fade, which releases it). Does nothing outside a beat.
 function Cutscene.Relock()
@@ -39,6 +41,7 @@ function Cutscene.Begin(npc: Model, head: BasePart): () -> ()
 	local camera = Workspace.CurrentCamera :: Camera
 	local character = player.Character
 	held = true
+	beatStartedAt = os.clock()
 	PlayerLock.Set(true)
 
 	local cf, focusDistance = NpcCamera.Shot(head.Position, character, { npc })
@@ -58,6 +61,16 @@ function Cutscene.Begin(npc: Model, head: BasePart): () -> ()
 end
 
 function Cutscene.End()
+	if beatStartedAt then
+		-- Bab 16.2: a cutscene is at most 6 s. Log only (no UI): a beat that runs long shows up in the output.
+		local took = os.clock() - beatStartedAt
+		beatStartedAt = nil
+		if took > Onboarding.CUTSCENE_MAX_SECONDS then
+			warn(`[Cutscene] {math.floor(took * 10) / 10} s, lebih dari {Onboarding.CUTSCENE_MAX_SECONDS} s (Bab 16.2)`)
+		else
+			print(`[Cutscene] {math.floor(took * 10) / 10} s (batas {Onboarding.CUTSCENE_MAX_SECONDS} s)`)
+		end
+	end
 	if camConn then
 		camConn:Disconnect()
 		camConn = nil

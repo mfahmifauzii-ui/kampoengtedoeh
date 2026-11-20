@@ -37,6 +37,9 @@ export type Npc = {
 
 local Map = require(script.Parent.Map)
 
+-- Bab 22.3: an NPC walking to the player moves at this speed (studs/s). 8 = 50% of the default player speed (16).
+local WALK_SPEED = 8
+
 -- Where the shopkeeper of shop slot `slot` stands (Map.SHOPS: 8 shophouses on a circle around the banyan tree).
 -- Slots: 1 Toko Bibit (no NPC), 2 Pasar Ikan (no NPC), 3 Pos Ronda (Nek Ani), 4 Toko Tukang (Pak Amran),
 -- 5 Toko Pancing (Kak Fajar), 6 Toko Roti (no NPC), 7 Warung Mak Sari (Mak Sari), 8 Toko Kelontong (no NPC).
@@ -144,6 +147,7 @@ return {
 	MINI_SIDE_OFFSET = 0, -- studs along the stall's local X: 0 = centred in front of the stall
 	MINI_FRONT_OFFSET = -12, -- studs along the stall's local Z (negative = in front, where the counter faces). The stall's front edge is at Z -8.8, so this leaves about 3 studs of room
 
+	WALK_SPEED = WALK_SPEED, -- Bab 22.3: NPC walk-up speed (studs/s), see NpcService.WalkTo
 	TALK_DISTANCE = 16, -- studs: how close the "Ngobrol" prompt appears
 	LEAVE_DISTANCE = 30, -- the client closes the dialogue / shop when you walk this far away
 

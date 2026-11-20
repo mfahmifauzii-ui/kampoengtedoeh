@@ -214,6 +214,43 @@ local function build(npc: Npcs.Npc)
 	end)
 end
 
+-- Bab 22.3 walk-up: an NPC walks to `target` at `speed` studs/s (Mak Sari: 50% of the player's speed, Npcs.WALK_SPEED).
+-- Visual only: the rig stays anchored and is moved by CFrame, so there is no pathing and no physics, and it stops at the
+-- target. A newer walk for the same NPC cancels the older one. Triggers come later: Mak Sari at MQ4/MQ7 (Fase 5), Pak Amran
+-- to the Kanal in the FTUE 2:40 (Fase 3). Nothing calls it yet.
+local walkToken: { [string]: number } = {}
+
+function NpcService.WalkTo(npcId: string, target: Vector3, speed: number?): boolean
+	local model = models[npcId]
+	local root = model and model:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") then
+		return false
+	end
+	local token = (walkToken[npcId] or 0) + 1
+	walkToken[npcId] = token
+	local pace = speed or Npcs.WALK_SPEED
+	task.spawn(function()
+		local last = os.clock()
+		while walkToken[npcId] == token and root.Parent do
+			local now = os.clock()
+			local dt = math.min(now - last, 0.1)
+			last = now
+			local pos = root.Position
+			local flat = Vector3.new(target.X - pos.X, 0, target.Z - pos.Z)
+			local dist = flat.Magnitude
+			if dist < 1 then
+				break
+			end
+			local dir = flat.Unit
+			local step = math.min(dist, pace * dt)
+			local nextPos = Vector3.new(pos.X + dir.X * step, pos.Y, pos.Z + dir.Z * step)
+			root.CFrame = CFrame.lookAt(nextPos, nextPos + dir)
+			task.wait()
+		end
+	end)
+	return true
+end
+
 function NpcService.Start()
 	folder = Workspace:FindFirstChild("Npcs") :: Folder? or Instance.new("Folder")
 	folder.Name = "Npcs"
