@@ -91,8 +91,8 @@ local function setWeather(kind: string, seconds: number)
 	if previous ~= kind then
 		WorldService.WeatherChanged:Fire(kind, previous)
 	end
-	if wasRain and not isRain then
-		WorldService.RainEnded:Fire(previous)
+	if wasRain and previous ~= kind then
+		WorldService.RainEnded:Fire(previous) -- also when Deres goes straight to Petir (Studio "!cuaca" only)
 	end
 end
 
