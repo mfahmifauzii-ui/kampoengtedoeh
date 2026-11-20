@@ -105,6 +105,7 @@ export type PlayerData = {
 	land: {
 		chunks: { [string]: boolean }, -- bought 32 x 32 blocks ("chunks" in the code) of the plot, "ix,iz" keys (Modules/Land)
 		lahanAwal: { lo: number, hi: number }, -- Bab 3.4 bitmask: 1 bit per starting object still present
+		chunkLahan: { [string]: number }, -- Bab 3.4 bits of objects on a bought chunk, by "ix,iz"
 	},
 	plotSlot: number, -- the plot number this player had last time (0 = none): tried first when they join
 	social: {

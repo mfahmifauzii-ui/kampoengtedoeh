@@ -88,6 +88,7 @@ local template: Types.PlayerData = {
 		chunks = {}, -- bought 32 x 32 blocks of the plot, "ix,iz" keys (Modules/Land); the start land is always owned
 		-- Bab 3.4 LahanAwal: 1 bit per clearable starting object (64 = ilalang 40, semak 12, batu 8, tunggul 4). Bit 1 = still there.
 		lahanAwal = { lo = 4294967295, hi = 4294967295 }, -- two 32-bit halves (objects 1-32, 33-64); all 64 present at the start
+		chunkLahan = {}, -- ["ix,iz"] = bits of the starting-style objects on a bought chunk (Config/LahanAwal CHUNK_FULL_BITS when absent)
 	},
 	plotSlot = 0, -- last plot number (PlotService tries to give it back)
 
