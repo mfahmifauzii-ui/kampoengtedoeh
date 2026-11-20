@@ -1,13 +1,13 @@
 # TODO (diperbarui setelah Fase 0 dan keputusan owner 20 Nov, lihat Changelog v6.2.1)
 
-> Status per 20 Nov 2026. Keputusan owner (T-01 sampai T-08) sudah masuk ke docs/Kampoeng_Tedoeh_Gameplay_Lengkap_v6.2.md. Keputusan T-09, T-24, T-25, T-27 sampai T-29, T-31, T-32, T-35 masuk ke v6.2.1 (Changelog 0.3.3).
+> Status per 20 Nov 2026. Keputusan owner (T-01 sampai T-08) sudah masuk ke docs/Kampoeng_Tedoeh_Gameplay_Lengkap_v6.2.md. Keputusan T-09, T-24, T-25, T-27 sampai T-29, T-31, T-32, T-35 masuk ke v6.2.1 (Changelog 0.3.3). Waktu Early dan telat panen masuk v6.2.2 (Changelog 0.3.4).
 
 | # | Pertanyaan / Item | Detail | Fase | Status |
 |---|---|---|---|---|
 | T-01 | Jumlah lahan 8 dan server max 8 player (Bab 3.1) | Diputuskan owner. Max player di Studio (Game Settings) masih harus diisi 8 secara manual. | Fase 0 | Diputuskan: 8 lahan, 8 player. TODO: set Max Players = 8 di Studio. |
 | T-02 | Lahan awal 128x128, beli chunk 32x32 (Bab 3.1, 17.4) | Diputuskan owner. Sink ekspansi 88.790; total 623.000; konten rilis ~71%. | Fase 0 | Diputuskan. Kode: Config/Plots (tidak diubah). |
 | T-03 | Grid: tanam 8 stud, Hias struktur 2 stud, furniture/dekor 1 stud | Diputuskan owner. Cek DecorGrid: BELUM sesuai. Decor.CELL = 2 untuk semua item (furniture ikut 2 stud). | Fase 4 | TERBUKA: ubah format posisi dekor agar furniture/dekor snap 1 stud (perlu migrasi data dekor, Fase 4). |
-| T-04 | Bajak petak: batas per level dan biaya n x 150 | Diputuskan owner. Sudah dibuat (Config/Farm, FarmService). | Fase 1 | Selesai (commit 341784a). TODO kecil: harga petak berikutnya belum ditampilkan di UI Garap. |
+| T-04 | Bajak petak: batas per level dan biaya n x 150 | Diputuskan owner. Sudah dibuat (Config/Farm, FarmService). | Fase 1 | Selesai. Harga petak berikutnya sudah tampil di hint Garap (Fase 1). |
 | T-05 | Ganti nama NPC | Diputuskan owner. Sudah dibuat. Narator tutorial (Mbok Minah) menjadi Mak Sari (lihat T-29). | Fase 1 | Selesai (commit ff4555e). Lihat T-30 untuk aset model Studio. |
 | T-06 | Bang Tarno x8 -> Bang Jali x8 | Diputuskan owner. Sudah dibuat. Lapak Tarno diganti sign Pos Ronda. | Fase 1 | Selesai (commit ff4555e). |
 | T-07 | Hapus pass decor dan plots | Diputuskan owner. Sudah dihapus (commit 11e5938). | Fase 9 | Selesai. |
@@ -40,3 +40,12 @@
 | T-34 | HUD Bab 23.2 belum dicek | Layout HUD sekarang belum dicek di Studio (tidak ada file .rbxl di repo). | Fase 0 | Terbuka: cek di Studio. |
 | T-35 | Sign toko kosong: Toko Bibit, Pasar Ikan, Toko Roti, Toko Kelontong | Tidak ada NPC di sana setelah rename. Masih berupa dekor. | Fase 3-7 | Diputuskan (20 Nov): dibiarkan sebagai dekor dulu. |
 | T-36 | Tiga NPC v6.2 yang belum ada tempatnya: Pedagang Tamu dan Tamu Event | Dikonfigurasi dengan hidden = true. Tidak tampil sampai Fase 7. | Fase 7 | Terbuka. |
+
+| T-37 | Album: kartu `ALBUM +1: Kangkung Embun` di FTUE 1:10 | Album sudah ada, tapi hanya entri crop (BookService.RecordCrop). Entri Mutasi (Ladang 120 entri, Bab 11) belum ada. Kartu tidak dibuat supaya tidak palsu. | Fase 2 | Terbuka: tambah entri Mutasi di Config/Book lalu kartu bisa dipanggil. |
+| T-38 | NPC walk-up (Bab 22.3): pemicu | Helper `NpcService.WalkTo` sudah ada (50% kecepatan player, Config/Npcs WALK_SPEED). Pemicu di doc: Mak Sari MQ4/MQ7 (Lv 3/6) dan Pak Amran ke Kanal di FTUE 2:40. Belum ada yang memanggil. | Fase 3 dan 5 | Terbuka: panggil dari quest dan FTUE nanti. |
+| T-39 | Telat panen: ambang 10 menit | Bab 5.1 tidak menyebut ambang. `Config/Farm` OVERDUE_AFTER_SECONDS = 600 adalah angka tim. | Fase 1 | Perlu konfirmasi owner. |
+| T-40 | Cek cutscene <= 6 dtk (Bab 16.2) | `Cutscene` mencatat lama beat (log saja). Hitungannya dari Begin sampai End, jadi termasuk waktu dialog (tap Lanjut). Akibatnya bisa ada peringatan palsu di beat bicara. | Fase 1 | Terbuka: ukur hanya bagian kamera kalau mau akurat. |
+| T-41 | Ubi Jalar 7 menit = batas, bukan di bawah | Owner minta Early tetap di bawah 7 menit, tapi Ubi Jalar sekarang 420 dtk = tepat 7 menit. Angka dari owner dipakai, changelog v6.2.2 tertulis maksimal 7 menit. | Fase 1 | Perlu konfirmasi owner. |
+| T-42 | Koin/jam Early (Nanem) jauh di atas Bab 17.2 | 6 petak Early dengan Siram dan panen ulang tepat waktu: sekitar 1.970 Koin bersih/jam. Bab 17.2 Lv 1-20 Nanem: 700/jam. Estimasi ini ideal (tanpa jeda, tanpa jalan). | Fase 10 | Terbuka: cek saat playtest (Bab 17.8). |
+| T-43 | Model tanaman Bayam, Sawi, Ubi Jalar | Pakai fallback generik (batang + 5 daun, warna crop, semua part terlihat). Belum ada model asli (Bab 21/22 aset). | Fase 8 | Terbuka: model asli nanti. |
+| T-44 | Embun random dan Mutasi lain | Config/Mutasi hanya Embun (x1,5), untuk panen pertama FTUE. Roll acak (Embun 20%, Petir 10%, Emas 1%, Pelangi 3%) belum ada. | Fase 2 | Terbuka. |
