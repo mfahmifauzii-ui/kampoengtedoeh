@@ -20,6 +20,7 @@ local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
@@ -523,11 +524,28 @@ local function snapCell(plot: Model, cx: number, cz: number, point: Vector3): (n
 	return bestX, bestZ
 end
 
+-- T-48 (playtest): immediate press feedback. The ghost square pops to 90 % and eases back in 0.14 s, so the tap is seen at
+-- once even before the server answers. One tween, no particles: cheap on 4 GB phones.
+local function pressFeedback()
+	local square = ghost
+	if not square or square.Transparency >= 1 then
+		return
+	end
+	local base = square:GetAttribute("BaseSize")
+	if typeof(base) ~= "Vector3" then
+		base = square.Size
+		square:SetAttribute("BaseSize", base)
+	end
+	square.Size = base * 0.9
+	TweenService:Create(square, TweenInfo.new(0.14, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = base }):Play()
+end
+
 local function act(ray: Ray)
 	local plot, cx, cz, point = pointerCell(ray)
 	if not plot or not cx or not cz or not point then
 		return
 	end
+	pressFeedback()
 	showGhost(plot, cx, cz, point)
 	if GarapController.MenuOpen then
 		return -- the Pindah / Hapus menu is open: Garap waits, the ghost is hidden
