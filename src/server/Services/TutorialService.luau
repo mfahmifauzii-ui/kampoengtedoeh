@@ -102,6 +102,11 @@ local function onGuideEvent(player: Player, action: any, tutorialId: any, n: any
 	if typeof(action) ~= "string" or typeof(tutorialId) ~= "string" then
 		return
 	end
+	if action == "beatskip" then
+		-- T-45: Lewati on a scripted beat. Analytics only: the step's own condition still decides progress.
+		logEvent(player, "beat_skip", tutorialId)
+		return
+	end
 	local tutorial = byId[tutorialId]
 	local data = DataService.Get(player)
 	if not tutorial or not data then

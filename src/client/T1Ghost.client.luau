@@ -36,6 +36,7 @@ local State = require(script.Parent:WaitForChild("State"))
 local NpcCamera = require(script.Parent:WaitForChild("NpcCamera"))
 local NpcPose = require(script.Parent:WaitForChild("NpcPose"))
 local T1Dialog = require(script.Parent:WaitForChild("T1Dialog"))
+local BeatSkip = require(script.Parent.BeatSkip) -- T-45: Lewati for the beats (intro, warung)
 local Locale = require(RS.Shared.Locale)
 local Onboarding = require(RS.Shared.Config.Onboarding)
 local Cutscene = require(script.Parent:WaitForChild("Cutscene"))
@@ -462,6 +463,13 @@ end
 -- Dialog ----------------------------------------------------------------------------------------------------------
 
 local function showLine(who: string, text: string, showNext: boolean, bottom: number, onNext: (() -> ())?)
+	if BeatSkip.Requested then
+		-- T-45: Lewati was pressed: the rest of the beat's speech is not shown (its effects still run).
+		if onNext then
+			onNext()
+		end
+		return
+	end
 	local speaker = SPEAKERS[who] or SPEAKERS.mak_sari
 	T1Dialog.Show({
 		name = speaker.name,
@@ -475,11 +483,18 @@ end
 
 -- Shows one line and waits for the player to press Next (nothing advances by itself). False if alive() said stop.
 local function waitNext(who: string, text: string, bottom: number, alive: () -> boolean): boolean
+	if BeatSkip.Requested then
+		return true -- T-45: skipped, nothing to wait for
+	end
 	local pressed = false
 	showLine(who, text, true, bottom, function()
 		pressed = true
 	end)
 	while not pressed do
+		if BeatSkip.Requested then
+			T1Dialog.Hide()
+			return true
+		end
 		if not alive() then
 			return false
 		end
@@ -1136,7 +1151,9 @@ task.spawn(function()
 					introState = "running"
 					holdWelcomeModal(HOLD_SECONDS) -- before GuideController can open the welcome modal
 					task.spawn(function()
+						BeatSkip.Begin("t1_awal")
 						local ok, err = pcall(runIntro)
+						BeatSkip.End()
 						if not ok then
 							warn(`[T1Ghost] intro failed: {err}`)
 							if introFinish then
@@ -1204,7 +1221,9 @@ task.spawn(function()
 					if firstSaleNpc == "pak_udin" or (id == TUTORIAL_B_ID and n == 0) then
 						warungStarted = true
 						task.spawn(function()
+							BeatSkip.Begin("t1b_kolam")
 							local ok, err = pcall(runWarung, guideModule)
+							BeatSkip.End()
 							if not ok then
 								warn(`[T1Ghost] warung dialog failed: {err}`)
 								-- A failed beat must not leave the camera on the NPC or the controls off.

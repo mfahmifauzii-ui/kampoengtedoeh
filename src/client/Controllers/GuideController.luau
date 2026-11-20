@@ -1106,7 +1106,7 @@ local function buildSkip()
 
 	local stepButton = UiKit.button(skipGui, "SkipStepButton", Locale.t("tut.skip_step"), UiKit.BUTTON_MUTED)
 	stepButton.AnchorPoint = Vector2.new(1, 0)
-	stepButton.Position = UDim2.new(1, -16, 0, 84)
+	stepButton.Position = UDim2.new(1, -16, 0, 144) -- row 2: row 1 (y 84) is the beat Lewati (BeatSkip)
 	stepButton.Size = UDim2.fromOffset(150, 52)
 	stepButton.Activated:Connect(function()
 		skipStepNow()
@@ -1115,7 +1115,7 @@ local function buildSkip()
 
 	local allButton = UiKit.button(skipGui, "SkipAllButton", Locale.t("tut.skip_all"), UiKit.BUTTON_MUTED)
 	allButton.AnchorPoint = Vector2.new(1, 0)
-	allButton.Position = UDim2.new(1, -16, 0, 144)
+	allButton.Position = UDim2.new(1, -16, 0, 204)
 	allButton.Size = UDim2.fromOffset(150, 52)
 	allButton.Activated:Connect(function()
 		UiKit.confirm({
