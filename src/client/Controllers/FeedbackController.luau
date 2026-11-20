@@ -13,10 +13,13 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Locale = require(ReplicatedStorage.Shared.Locale)
+local Net = require(ReplicatedStorage.Shared.Modules.Net)
+local WeatherConfig = require(ReplicatedStorage.Shared.Config.Weather)
 local UiKit = require(script.Parent.Parent.UiKit)
 
 local player = Players.LocalPlayer
@@ -26,9 +29,13 @@ local FeedbackController = {}
 local FLY_SECONDS = 0.6
 local PULSE_SECONDS = 0.2
 local COIN_COUNT_SECONDS = 0.8
+local BANNER_SECONDS = 3 -- server banner for rare Mutasi (Bab 5.4): slides in from the top, stays 3 s, does not block
+local BANNER_SLIDE_SECONDS = 0.3
 
 local fxGui: ScreenGui
 local plusTag: TextLabel
+local bannerLabel: TextLabel
+local bannerToken = 0 -- a newer banner cancels the hide of the older one
 local queue: { { amount: number, from: Vector2, start: number } } = {}
 local busy = false
 local lastKoin: number? = nil
@@ -231,6 +238,47 @@ function FeedbackController.Init()
 	plusTag.TextXAlignment = Enum.TextXAlignment.Left
 	plusTag.Visible = false
 	plusTag.Parent = fxGui
+
+	bannerLabel = Instance.new("TextLabel")
+	bannerLabel.Name = "MutasiBanner"
+	bannerLabel.AnchorPoint = Vector2.new(0.5, 0)
+	bannerLabel.Position = UDim2.new(0.5, 0, 0, -40)
+	bannerLabel.Size = UDim2.new(0.8, 0, 0, 36)
+	bannerLabel.BackgroundColor3 = Color3.fromRGB(40, 32, 24)
+	bannerLabel.BackgroundTransparency = 0.25
+	bannerLabel.TextColor3 = Color3.fromRGB(255, 226, 120)
+	bannerLabel.Font = UiKit.FONT
+	bannerLabel.TextSize = 20
+	bannerLabel.TextScaled = false
+	bannerLabel.Visible = false
+	bannerLabel.Parent = fxGui
+	Net.Listen("MutasiBanner", FeedbackController.ShowMutasiBanner)
+end
+
+-- Rare Mutasi from the server (FarmService): a line at the top of every player's screen for BANNER_SECONDS.
+-- Phones get half-length animations (Bab 21 limits).
+function FeedbackController.ShowMutasiBanner(playerName: string, cropId: string, mutationId: string)
+	bannerToken += 1
+	local myToken = bannerToken
+	local scale = if UserInputService.TouchEnabled then WeatherConfig.UI_ANIMATION_SCALE else 1
+	bannerLabel.Text = Locale.t("banner.mutasi", {
+		player = playerName,
+		crop = Locale.t(`crop.{cropId}`),
+		mutation = Locale.t(`mutasi.{mutationId}`),
+	})
+	bannerLabel.Position = UDim2.new(0.5, 0, 0, -40)
+	bannerLabel.TextTransparency = 0
+	bannerLabel.BackgroundTransparency = 0.25
+	bannerLabel.Visible = true
+	TweenService:Create(bannerLabel, TweenInfo.new(BANNER_SLIDE_SECONDS * scale, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		Position = UDim2.new(0.5, 0, 0, 70),
+	}):Play()
+	task.delay(BANNER_SECONDS, function()
+		if myToken ~= bannerToken then
+			return
+		end
+		TweenService:Create(bannerLabel, TweenInfo.new(BANNER_SLIDE_SECONDS * scale), { TextTransparency = 1, BackgroundTransparency = 1 }):Play()
+	end)
 end
 
 function FeedbackController.Start()

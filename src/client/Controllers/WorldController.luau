@@ -8,10 +8,10 @@ local Lighting = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local World = require(ReplicatedStorage.Shared.Config.World)
+local WeatherConfig = require(ReplicatedStorage.Shared.Config.Weather)
 local WorldClock = require(ReplicatedStorage.Shared.Modules.WorldClock)
 
 local LIGHT_TAG = "DecorLight"
@@ -95,8 +95,8 @@ local function setupRain()
 
 	rainEmitter = Instance.new("ParticleEmitter")
 	rainEmitter.Enabled = false
-	-- Mobile gets fewer particles.
-	rainEmitter.Rate = if UserInputService.TouchEnabled then 140 else 300
+	-- Rate is set per weather kind in applyRainRate (Config/Weather PARTICLES, low counts for phones).
+	rainEmitter.Rate = WeatherConfig.PARTICLES.gerimis
 	rainEmitter.Lifetime = NumberRange.new(0.9, 1.1)
 	rainEmitter.Speed = NumberRange.new(55, 65)
 	rainEmitter.EmissionDirection = Enum.NormalId.Bottom
@@ -110,11 +110,25 @@ local function setupRain()
 	rainEmitter.Parent = rainPart
 end
 
+local function applyRainRate()
+	local kind = Workspace:GetAttribute("Weather")
+	rainEmitter.Rate = (typeof(kind) == "string" and WeatherConfig.PARTICLES[kind]) or WeatherConfig.PARTICLES.gerimis
+end
+
+-- Petir: one flash every LIGHTNING_INTERVAL seconds, at most LIGHTNING_FLASH_SECONDS long (Bab 21.3).
+local function lightningFlash()
+	local base = Lighting.Brightness
+	Lighting.Brightness = base + 2
+	TweenService:Create(Lighting, TweenInfo.new(WeatherConfig.LIGHTNING_FLASH_SECONDS, Enum.EasingStyle.Linear), { Brightness = base }):Play()
+end
+
 local function applyLighting(instant: boolean)
 	local phase = Workspace:GetAttribute("DayPhase")
 	local preset = World.PRESETS[if typeof(phase) == "string" then phase else "siang"] or World.PRESETS.siang
 	local raining = Workspace:GetAttribute("Raining") == true
 	local rain = World.RAIN_LIGHTING
+	-- Pelangi: a brief clear, warm sky (the rainbow itself is an asset still to come).
+	local pelangi = Workspace:GetAttribute("Weather") == "pelangi"
 
 	local info = TweenInfo.new(if instant then 0 else World.TRANSITION_SECONDS, Enum.EasingStyle.Sine)
 	TweenService:Create(Lighting, info, {
@@ -124,7 +138,7 @@ local function applyLighting(instant: boolean)
 	}):Play()
 	TweenService:Create(colorCorrection, info, {
 		TintColor = if raining then preset.tint:Lerp(rain.tint, 0.6) else preset.tint,
-		Saturation = preset.saturation + (if raining then rain.saturationAdd else 0),
+		Saturation = preset.saturation + (if raining then rain.saturationAdd elseif pelangi then 0.1 else 0),
 	}):Play()
 	TweenService:Create(atmosphere, info, {
 		Density = preset.atmosphereDensity + (if raining then rain.densityAdd else 0),
@@ -137,6 +151,7 @@ local function applyLighting(instant: boolean)
 	end
 
 	rainEmitter.Enabled = raining
+	applyRainRate()
 end
 
 local function setLamp(part: Instance, on: boolean)
@@ -175,6 +190,17 @@ function WorldController.Start()
 	end)
 	Workspace:GetAttributeChangedSignal("Raining"):Connect(function()
 		applyLighting(false)
+	end)
+	Workspace:GetAttributeChangedSignal("Weather"):Connect(function()
+		applyLighting(false)
+	end)
+	task.spawn(function()
+		while true do
+			task.wait(WeatherConfig.LIGHTNING_INTERVAL)
+			if Workspace:GetAttribute("Weather") == "petir" then
+				lightningFlash()
+			end
+		end
 	end)
 	CollectionService:GetInstanceAddedSignal(LIGHT_TAG):Connect(function(part)
 		setLamp(part, lampsOn)
