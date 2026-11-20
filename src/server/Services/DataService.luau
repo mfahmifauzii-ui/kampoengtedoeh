@@ -8,7 +8,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local ProfileStore = require(script.Parent.Parent.Packages.ProfileStore)
-local Migrations = require(script.Parent.Parent.Data.Migrations)
 local DataTemplate = require(ReplicatedStorage.Shared.Config.DataTemplate)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Signal = require(ReplicatedStorage.Shared.Modules.Signal)
@@ -18,7 +17,7 @@ local Types = require(ReplicatedStorage.Shared.Types)
 -- Studio always uses its own store, so testing never touches real player saves.
 -- DATA_STAGE: "playtest" during closed playtests → set to "live" ONCE, right before public
 -- launch (fresh saves for everyone), then never touch it again. See docs/Launch_Checklist.md.
-local DATA_STAGE = "playtest"
+local DATA_STAGE = "v62" -- bumped for v6.2 (T-08): no real players yet, so old saves are simply not loaded; no migration code
 local STORE_NAME = if RunService:IsStudio() then "KampungTeduh_Studio" else `KampungTeduh_Player_{DATA_STAGE}`
 
 local PlayerStore = ProfileStore.New(STORE_NAME, DataTemplate)
@@ -51,11 +50,6 @@ local function onPlayerAdded(player: Player)
 
 	profile:AddUserId(player.UserId) -- GDPR / right-to-erasure support
 
-	if Migrations.Run(profile.Data) == "newer" then
-		profile:EndSession()
-		player:Kick(Locale.t("data.server_outdated"))
-		return
-	end
 	profile:Reconcile()
 
 	profile.OnSessionEnd:Connect(function()

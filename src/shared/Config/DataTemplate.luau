@@ -1,18 +1,26 @@
 --!strict
--- Default save for a NEW player. ProfileStore:Reconcile() adds missing keys to old saves,
--- so new fields can simply be added here. Renames/restructures need a migration
--- (ServerScriptService.Server.Data.Migrations) + bump `version`.
+-- Default save for a NEW player (version 62, docs/Kampoeng_Tedoeh_Gameplay_Lengkap_v6.2.md Bab 28). ProfileStore:Reconcile()
+-- adds missing keys. No migration code: the game is unreleased, a changed shape means a new DATA_STAGE in DataService.
 
 local Economy = require(script.Parent.Economy)
 local Types = require(script.Parent.Parent.Types)
 
 local template: Types.PlayerData = {
-	version = 13,
+	version = 62,
 
 	koin = Economy.START_KOIN,
 	bunga = Economy.START_BUNGA,
 	xp = 0,
 	level = 1,
+	sp = 0, -- Skill Point: 1 per Level Player (Bab 4.2), spent on Skill Cabang (Bab 4.5)
+	-- Level Cabang (Bab 4.2): Bertani, Mancing, Beternak, Tukang. Max Lv 10. XP is the same amount as the player's XP per action.
+	cabang = {
+		bertani = { lv = 1, xp = 0 },
+		mancing = { lv = 1, xp = 0 },
+		beternak = { lv = 1, xp = 0 },
+		tukang = { lv = 1, xp = 0 },
+	},
+	skill = {}, -- [skillId] = level 0..5 (Bab 4.5)
 
 	stats = {
 		firstJoin = 0,
@@ -76,7 +84,11 @@ local template: Types.PlayerData = {
 
 	titles = {}, -- [titleId] = true
 
-	land = { chunks = {} }, -- bought 32 x 32 blocks of the plot, "ix,iz" keys (Modules/Land); the start land is always owned
+	land = {
+		chunks = {}, -- bought 32 x 32 blocks of the plot, "ix,iz" keys (Modules/Land); the start land is always owned
+		-- Bab 3.4 LahanAwal: 1 bit per clearable starting object (64 = ilalang 40, semak 12, batu 8, tunggul 4). Bit 1 = still there.
+		lahanAwal = { lo = 4294967295, hi = 4294967295 }, -- two 32-bit halves (objects 1-32, 33-64); all 64 present at the start
+	},
 	plotSlot = 0, -- last plot number (PlotService tries to give it back)
 
 	social = {
