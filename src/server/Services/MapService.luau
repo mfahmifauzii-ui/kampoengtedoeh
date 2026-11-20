@@ -805,11 +805,12 @@ local function buildPlotFence(plotIndex: number, chunks: Land.Chunks?)
 			local along = (i + 0.5) * pitch
 			local lx = ax + (bx - ax) * along / len -- plot-local x of this segment's centre
 			local centre = from + dir * along
-			-- Corner doubling (v2): at a corner two perpendicular runs both end on the corner post and their end segments
-			-- overlap (about 2.6 studs). The first run to place a segment there keeps it; the other one skips it.
+			-- Corner (v3): two perpendicular runs meet at the corner post, and BOTH keep their end segment, so the corner
+			-- has no gap (a skipped end segment left a 3.5-stud opening at every corner). Only a segment that lies on top
+			-- of an already placed parallel segment is skipped (same line, same spot = real double).
 			local doubled = false
 			for _, s in placedSegments do
-				if math.abs(s.dir:Dot(dir)) < 0.3 and (s.centre - centre).Magnitude < 3.2 then
+				if math.abs(s.dir:Dot(dir)) > 0.9 and (s.centre - centre).Magnitude < 1 then
 					doubled = true
 					break
 				end

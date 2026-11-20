@@ -80,3 +80,24 @@ Cek visual: dari atas, sungai dari kanal sampai tepi peta dan jembatan di ring r
 - Jarak pagar dari tepi lahan yang sudah dimiliki: **4,45 → 2 stud** (`FENCE_OUT`).
 - Di tepi kotak cadangan (batas maksimal lahan), pagar tetap di garis tepi (0 stud), supaya pagar tetangga tidak bersilangan.
 - Belum diterapkan ke Studio. Pagar di place masih versi lama sampai dibangun ulang.
+
+## Revisi pagar v3: sudut harus tertutup (18 Nov)
+
+**Aturan dari Anda:** yang boleh terbuka hanya **gerbang**. Di setiap sudut lahan, pagar harus bertemu pagar (tidak ada celah).
+
+**Penyebab celah (ditemukan di Studio):** di tiap sudut dua sisi pagar tegak lurus bertemu di satu titik. Kode lama membuang segmen ujung sisi kedua karena dianggap dobel (`placedSegments`, jarak < 3,2 stud). Akibatnya ada celah **3,5 stud** di setiap sudut (8 lahan x 4 sudut).
+
+**Perbaikan (`buildPlotFence`):**
+- Segmen di sudut tidak lagi dibuang karena tegak lurus. Dua sisi tegak lurus sama-sama memakai segmen ujungnya dan bertemu di tiang sudut.
+- Yang dibuang hanya segmen yang sejajar dan menumpuk di tempat yang sama (dobel sungguhan, jarak < 1 stud).
+- Gerbang tetap dibuka di tengah sisi depan (`GATE_HALF` 16,65).
+
+**Hasil cek di Studio (titik ujung segmen, dibandingkan tiap lahan):**
+- Sebelum: 10 ujung terbuka per lahan (8 di sudut, 2 di tepi gerbang).
+- Sesudah: 2 ujung terbuka per lahan, keduanya tepi gerbang. Total 1056 segmen (8 x 132).
+
+**Catatan terbuka (belum selesai):**
+- Di sisi lahan yang menghadap jalan sumbu (x ±12 dari sumbu), ada celah 36 stud di tengah lahan. Celah ini juga terjadi di kode lama dan belum saya pastikan penyebabnya. Belum dipastikan apakah sisi itu memang harus dipagar; perlu dicek dulu.
+- Tes beli lahan di Play dan screenshot belum dilakukan. Screen capture di Studio timeout beberapa kali.
+
+**Catatan proses:** setiap `RebuildFence` memanggil `buildLandFences` yang membuat folder `LandFences` baru. Saat tes, ini membuat tiga folder duplikat di `Workspace.Map`. Sudah dibersihkan jadi satu folder. Export sementara `RebuildFencesTmp` sudah dihapus lagi dari kode.
