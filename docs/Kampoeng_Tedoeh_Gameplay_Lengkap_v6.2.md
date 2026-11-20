@@ -1,5 +1,5 @@
 # KAMPOENG TEDOEH — Dokumen Gameplay Lengkap
-## v6.2 — Single Source of Truth untuk Claude Code
+## v6.2.1 — Single Source of Truth untuk Claude Code
 
 > Dokumen ini menggantikan SEMUA versi sebelumnya (v1.0 sampai v6.1). Kalau ada konflik dengan dokumen lain, dokumen ini yang menang.
 > Aturan revisi: setiap aturan hanya ditulis di SATU bab. Bab lain cukup merujuk (`lihat Bab X`). Tidak ada lagi aturan yang ditulis ulang di 3 tempat dengan angka beda.
@@ -90,6 +90,22 @@ Tagline tim: `Kampung lo, rumah lo, panen lo — tiap hujan petir bisa jadi pane
 | 23 | Bab 4.2 & 4.3: Level Cabang **dimulai dari Lv 0** (10 langkah XP, total 12.000 untuk Lv 10). | Supaya tabel 10 angka cocok dengan total 12.000. |
 | 24 | Bab 3.2 & 15.1: reset harian **dan mingguan 05:00 WIB** (sebelumnya 00:00 WIB di kode). | T-11. |
 | 25 | Bab 3.2 & 3.3: hari game 30 menit tetap; jam fase di kode disesuaikan ke 3/15/3/9 menit. | T-10. |
+
+### 0.3.3 Changelog v6.2 → v6.2.1 (Keputusan Owner, 20 Nov, setelah Fase 0)
+
+| # | Perubahan | Alasan |
+|---|-----------|--------|
+| 1 | **Hadiah Like (Bab 8.7) milestone pemilik lahan: Bunga → Koin.** 10 like = 300 Koin, 50 like = 1.000 Koin, 200 like = 2.500 Koin + title `Kebun Favorit`. Tiga ambang tetap. Bunga tidak lagi dari Like. | T-27. Konversi 100 Koin per Bunga lama (3/10/25). Setara sekitar 1 tugas Agenda (150-400 Koin). |
+| 2 | **Kunjungan Harian (`VISIT_REWARDS`) dihapus seluruhnya.** Login Mingguan (Bab 15.1) adalah satu-satunya hadiah login (dibangun Fase 6). | T-28. Kalender 7 hari lama dihapus dari panel Hadiah; Peti Waktu Bermain (Bab 15.2) tetap. |
+| 3 | **Bunga dari Pesanan Mingguan (5 Bunga) dihapus.** Sumber Bunga tidak ada di Bab 4.1. Ganti Bunga tetap sink (Bab 4.1). | T-28 (sisa Bunga di luar Bab 4.1). Pesanan diganti Agenda di Fase 6 (T-21). |
+| 4 | **Album: kategori Ikan lengkap 5 Bunga → 300 Koin** (sama dengan kategori Tanaman). Milestone Album 50% (10 Bunga) tetap, dan Bab 15.3 tetap jadi acuan Pencapaian (Fase 6). | T-28 sisa. Angka 300 Koin adalah pilihan tim, bukan dari Bab 15.3. |
+| 5 | **Warung Mak Sari (Shop 7)** tetap terbuka sejak awal, tapi sebelum Dapur Tier 1 (Lv 6) hanya menampilkan baris `Nanti kalau udah bisa masak, jual ke Mak ya.` (Bab 10.1). | T-31. Sudah sesuai di kode. |
+| 6 | **Mak Sari = narator tutorial.** | T-29. Sudah dikonfirmasi owner. |
+| 7 | **Premium Roblox: `PREMIUM_EXTRA_REROLLS` dihapus** dan label Premium `+10% Koin pesanan` dihapus dari Toko. Premium hanya flag. | T-32. Bab 19 melarang boost Premium. |
+| 8 | **Objek chunk (Bab 3.4): 3 ilalang + 1 semak per chunk.** | T-25. |
+| 9 | Sign toko kosong (Toko Bibit, Pasar Ikan, Toko Roti, Toko Kelontong) dibiarkan sebagai dekor. | T-35. |
+| 10 | Nama file Config tetap pakai nama Inggris yang sudah ada (`Crops`, `Fish`, `Decor`, `Quests`, `Events`). | T-09. |
+| 11 | Field Bab 28 diganti per service saat service itu disentuh, tidak ada rename global. | T-24. |
 
 ### 0.4 Self-Score v6.0 (Di Atas Kertas)
 
@@ -231,7 +247,7 @@ Lahan baru sengaja kelihatan terbengkalai. Itu cerita pulang kampung, dan before
 
 - **Tidak mengunci lahan (Prinsip #8):** menaruh petak / piece Hias / kandang di atas ilalang, semak, batu kecil, atau tunggul = objek itu otomatis dibersihkan dan bahannya masuk tas. Ghost tetap hijau.
 - Posisi objek awal di-generate dari 1 template tetap (sama untuk semua player), disimpan sebagai bitmask `LahanAwal` (1 bit per objek, 64 objek = 8 byte).
-- Chunk yang dibeli (Bab 3.1) juga berisi ilalang & semak (template per chunk, kepadatan sama dengan lahan awal) — tanpa bangunan rusak.
+- Chunk yang dibeli (Bab 3.1) juga berisi ilalang & semak (template per chunk, kepadatan sama dengan lahan awal) — tanpa bangunan rusak. **Isi per chunk (v6.2.1, T-25): 3 ilalang + 1 semak.** Tidak ada batu atau tunggul di chunk.
 - Posisi objek dibuat untuk lahan awal 128×128. Bitmask hanya untuk 64 objek bersihkan (ilalang 40 + semak 12 + batu 8 + tunggul 4). 5 bangunan Kakek dicatat di Bundel (Bab 14.5), bukan di bitmask.
 - Pencapaian kecil: bersihkan semua objek awal → `Lahan Kakek Bersih` + 200 Koin + dekor Papan Nama Lahan.
 
@@ -1755,4 +1771,4 @@ Kerjakan sesuai Bab 27, urut dari Fase 0. Semua angka ambil dari Bab yang ditunj
 
 Game ini harus terasa cozy setiap hari, dan sesekali bikin satu server teriak "WOOO" bareng.
 
-Dokumen ini v6.2. Revisi berikutnya v6.3 + isi Changelog Bab 0.3.
+Dokumen ini v6.2.1. Revisi berikutnya v6.3 + isi Changelog Bab 0.3.
