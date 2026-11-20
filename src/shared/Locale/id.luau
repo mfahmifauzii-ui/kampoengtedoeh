@@ -105,7 +105,6 @@ return {
 	["seed_picker.close"] = "Tutup",
 	["seed_picker.title"] = "Pilih Bibit",
 	["seed_picker.hint"] = "Beli bibit di Pak Udin",
-	["seed_picker.have"] = "Punya {n}",
 	["float.empty"] = "Kosong",
 	["float.empty_sub"] = "Dekati, lalu tap bibit",
 	["seed.tip_locked"] = "Buka di Lv {level}",
@@ -374,9 +373,9 @@ return {
 	["tut.dev_test.s3"] = "Ikuti panah ke Pak Udin",
 	-- T1 (Config/Onboarding): step text max 45 characters
 	["tut.t1.title"] = "Panduan Dasar",
-	["tut.t1.intro"] = "Mak Sari: Selamat datang! Yuk, coba berkebun dulu.",
+	["tut.t1.intro"] = "Mak Sari: Lhooo... Gede banget sekarang kamu! Lahan Kakek nunggu kamu.", -- Bab 16.3 0:10
 	["tut.t1.sapa_title"] = "Mak Sari",
-	["tut.t1.sapa_body"] = "Selamat datang! Yuk, coba berkebun dulu.",
+	["tut.t1.sapa_body"] = "Lhooo... Gede banget sekarang kamu! Lahan Kakek nunggu kamu.",
 	["tut.t1.s2_stuck"] = "Bibit awal tumbuh cepat, ditunggu ya",
 	-- Coachmark bubbles (CoachmarkController)
 	["tut.coach.garap"] = "Tap Garap dulu",
