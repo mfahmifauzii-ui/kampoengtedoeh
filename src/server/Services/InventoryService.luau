@@ -105,15 +105,13 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		visitPending = data.visits.pending == true,
 		playtime = table.clone(data.playtime),
 		titles = data.titles,
-		sales = { day = data.sales.day, sold = table.clone(data.sales.sold) },
-		warungTier = Upgrades.tier(data, "warung"),
 		guideSells = data.guide.sells,
 		guide = {
 			step = { id = data.guide.step.id, n = data.guide.step.n },
 			done = table.clone(data.guide.done),
 			skipped = table.clone(data.guide.skipped),
 			fastLeft = data.guide.fastLeft,
-			rodGift = data.guide.rodGift, -- Mas Joko's Terima Hadiah was taken (the dialog shows it until then)
+			rodGift = data.guide.rodGift, -- Kak Fajar's Terima Hadiah was taken (the dialog shows it until then)
 			-- a save that has not started playing: the "newPlayer" tutorial trigger
 			fresh = #data.farm.tiles == 0 and data.onboarding.first_plant ~= true and data.guide.sells == 0,
 		},

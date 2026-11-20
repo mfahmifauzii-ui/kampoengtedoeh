@@ -2,7 +2,7 @@
 -- New-player guide.
 --
 -- 1) OLD GUIDE (client/Controllers/GuideController, "legacy" part): on-screen hints for the first loop (cangkul -> tanam ->
---    siram -> panen -> jual) and an arrow to the buyer (Pak Darmo). It runs until the player has finished TRIES sale trips
+--    siram -> panen -> jual) and an arrow to the buyer (Pak Udin). It runs until the player has finished TRIES sale trips
 --    (data.guide.sells, counted by ShopService each time something is sold), then stops for good. It only shows while no
 --    tutorial below is running.
 --
@@ -124,19 +124,19 @@ local TUTORIALS: { Tutorial } = {
 				id = "panen_jual",
 				text = "tut.t1.s4",
 				coach = "tut.coach.panen",
-				block = false, -- after Panen the player must reach Pak Darmo (outside the hole): no overlay here
-				greet = "tut.t1.s4_greet", -- Pak Darmo's sapaan at the first sale (the cutscene, T1Ghost runWarung)
+				block = false, -- after Panen the player must reach Pak Udin (outside the hole): no overlay here
+				greet = "tut.t1.s4_greet", -- Pak Udin's sapaan at the first sale (the cutscene, T1Ghost runWarung)
 				done = { kind = "sells", n = 1 },
-				target = { npc = "pak_darmo" },
+				target = { npc = "pak_udin" },
 				highlight = "PanenButton",
 			},
 		},
 		reward = { koin = 30 },
 	},
 
-	-- T1b: right after the first sale to Pak Darmo (T1Ghost.client starts it): the warung, the pond tool, the first fish and
+	-- T1b: right after the first sale to Pak Udin (T1Ghost.client starts it): the warung, the pond tool, the first fish and
 	-- the first pond. Not auto-started (manual trigger), so a save that finished T1 long ago never gets it. Progress is saved
-	-- like any tutorial, so a rejoin resumes it. The dialogs are Mbok Minah's / Pak Darmo's / Mas Joko's (T1Dialog); the
+	-- like any tutorial, so a rejoin resumes it. The dialogs are Mak Sari's / Pak Udin's / Kak Fajar's (T1Dialog); the
 	-- coachmark only highlights. NO skip: the pond and the first fish are the point of this tutorial.
 	{
 		id = "t1b_kolam",
@@ -145,19 +145,19 @@ local TUTORIALS: { Tutorial } = {
 		auto = false,
 		steps = {
 			{
-				-- Pak Darmo, at the warung: seeds and upgrades are sold here. Next to continue (kind "ack").
-				-- Pays 20 XP once (Lv 2). Pak Darmo only sends the player to Mas Joko: no pond talk here (pond = Mbok Minah later).
+				-- Pak Udin, at the warung: seeds and upgrades are sold here. Next to continue (kind "ack").
+				-- Pays 20 XP once (Lv 2). Pak Udin only sends the player to Kak Fajar: no pond talk here (pond = Mak Sari later).
 				id = "warung",
 				text = "tut.t1b.warung",
 				done = { kind = "ack", id = "warung" },
 				reward = { xp = 20 },
 			},
 			{
-				-- The fishing shop: Mas Joko (Toko Pancing). Done only when Terima Hadiah was taken (rodGift), never by walking near.
-				id = "mas_joko",
-				text = "tut.t1b.mas_joko",
+				-- The fishing shop: Kak Fajar (Toko Pancing). Done only when Terima Hadiah was taken (rodGift), never by walking near.
+				id = "kak_fajar",
+				text = "tut.t1b.kak_fajar",
 				done = { kind = "rodgift" },
-				target = { npc = "mas_joko" },
+				target = { npc = "kak_fajar" },
 				arrive = 14,
 			},
 			{
@@ -169,18 +169,18 @@ local TUTORIALS: { Tutorial } = {
 				arrive = 6,
 			},
 			{
-				-- Mas Joko's dialog after the first fish: "Mengerti" finishes it. Opens the pond (kolamUnlocked, server).
+				-- Kak Fajar's dialog after the first fish: "Mengerti" finishes it. Opens the pond (kolamUnlocked, server).
 				id = "after_catch",
-				text = "npc.mas_joko.after_catch",
+				text = "npc.kak_fajar.after_catch",
 				done = { kind = "ack", id = "after_catch" },
 			},
 			{
-				-- Back on the land: Mbok Minah teaches the first pond (it is free).
+				-- Back on the land: Mak Sari teaches the first pond (it is free).
 				id = "bangun_kolam",
 				text = "tut.t1b.bangun_kolam",
 				done = { kind = "ponds" },
 				highlight = "KolamButton",
-				-- Walk back to the land: the trail leads there (route, stops at the land). Mbok Minah talks only once the player is in the land zone.
+				-- Walk back to the land: the trail leads there (route, stops at the land). Mak Sari talks only once the player is in the land zone.
 				target = { land = true },
 				arrive = 60,
 			},
@@ -220,8 +220,8 @@ local TEST_TUTORIAL: Tutorial = {
 		{
 			id = "npc",
 			text = "tut.dev_test.s3",
-			done = { kind = "near", id = "pak_darmo", dist = 25 },
-			target = { npc = "pak_darmo" },
+			done = { kind = "near", id = "pak_udin", dist = 25 },
+			target = { npc = "pak_udin" },
 		},
 	},
 	reward = { koin = 5 },
@@ -229,7 +229,7 @@ local TEST_TUTORIAL: Tutorial = {
 
 return {
 	TRIES = 1, -- the old sale-trip guide stops after the first sale, the same sale that finishes T1 (sells n = 1)
-	BUYER_NPC = "pak_darmo", -- the arrow points here once there is a crop to sell
+	BUYER_NPC = "pak_udin", -- the arrow points here once there is a crop to sell
 	TUTORIALS = TUTORIALS,
 	TEST_TUTORIAL = TEST_TUTORIAL,
 	GAP_SECONDS = 120, -- pause between two auto-started tutorials

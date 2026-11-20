@@ -368,7 +368,7 @@ local function refreshPickerCards()
 	for _, crop in Crops.list do
 		local card = cards[crop.id]
 		local unlocked = playerLevel >= crop.unlockLevel
-		-- Planting uses bibit from the bag (bought from Pak Darmo / Bu Wati).
+		-- Planting uses bibit from the bag (bought from Pak Udin / Pak Udin).
 		local have = (items[`seed_{crop.id}`] or 0) + (items[`seedx_{crop.id}`] or 0)
 		local usable = unlocked and have > 0
 		card.button.Visible = unlocked or crop.unlockLevel <= playerLevel + 5 -- show only the next few locked crops

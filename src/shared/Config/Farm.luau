@@ -9,7 +9,7 @@ local MAX_TILES = 100
 return {
 	MAX_TILES = MAX_TILES,
 
-	-- STAGE 2: alat siram. Bought with Koin from Pak Darmo (Alat section). Gembor waters a 3x3 block of beds in one tap.
+	-- STAGE 2: alat siram. Bought with Koin from Pak Udin (Alat section). Gembor waters a 3x3 block of beds in one tap.
 	-- Sprinkler (Lv 7, Koin 800) is NOT built yet (see docs/OVERNIGHT_LOG.md).
 	TOOLS = {
 		gembor = { price = 300, unlockLevel = 4, radius = 1 }, -- radius 1 = 3x3 beds around the tapped one
@@ -26,7 +26,7 @@ return {
 	BED_COLOR_DRY = Color3.fromRGB(150, 102, 62), -- slab color (Sand material, no override)
 	BED_COLOR_WET = Color3.fromRGB(94, 64, 40), -- after watering
 	WATER_REDUCTION = 0.2, -- watering cuts remaining grow time by 20%
-	SEED_UNGGUL_GROW_MULT = 0.9, -- "bibit unggul" (Bu Wati) grows 10% faster
+	SEED_UNGGUL_GROW_MULT = 0.9, -- "bibit unggul" (Pak Udin) grows 10% faster
 	INTERACT_DISTANCE = 40, -- studs, server-checked (plant / water / harvest)
 	TILL_DISTANCE = 60, -- studs from the player to the cell they till or level
 

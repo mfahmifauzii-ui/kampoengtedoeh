@@ -1,5 +1,5 @@
 --!strict
--- Gives every town NPC (Workspace.Npcs.<id>) the relaxed idle of NpcPose, on this client only. Mbok Minah's local copy for the
+-- Gives every town NPC (Workspace.Npcs.<id>) the relaxed idle of NpcPose, on this client only. Mak Sari's local copy for the
 -- tutorial (T1Ghost) is not in that folder and poses herself.
 
 local Workspace = game:GetService("Workspace")

@@ -188,7 +188,7 @@ local function startCast(player: Player, spot: BasePart)
 	if location == "kolam" and spot:GetAttribute("Owner") ~= player.UserId then
 		return
 	end
-	-- Tutorial gate (not a level): the dock and the pond open at Lv 1, but only after Mas Joko's gift (fishingUnlocked).
+	-- Tutorial gate (not a level): the dock and the pond open at Lv 1, but only after Kak Fajar's gift (fishingUnlocked).
 	if data.guide.fishingUnlocked ~= true then
 		Net.Fire("Notify", player, "fish.tut_locked")
 		return
@@ -197,7 +197,7 @@ local function startCast(player: Player, spot: BasePart)
 		Net.Fire("Notify", player, "fish.locked", { level = locationConfig.unlockLevel })
 		return
 	end
-	-- No rod without Mas Joko's gift (Opsi B): the server checks ownership itself, the client never decides this.
+	-- No rod without Kak Fajar's gift (Opsi B): the server checks ownership itself, the client never decides this.
 	if data.fishing.rod == "" or data.fishing.ownedRods[data.fishing.rod] ~= true or Fishing.rods[data.fishing.rod] == nil then
 		Net.Fire("Notify", player, "fish.need_rod")
 		return

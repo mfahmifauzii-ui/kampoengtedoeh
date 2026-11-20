@@ -68,7 +68,7 @@ local function adopt(npc: Npcs.Npc): boolean
 	return true
 end
 
--- Where Bang Tarno of the n-th "Warung Mini" stands: in front of the stall (Npcs.MINI_SIDE_OFFSET / MINI_FRONT_OFFSET), on the
+-- Where Bang Jali of the n-th "Warung Mini" stands: in front of the stall (Npcs.MINI_SIDE_OFFSET / MINI_FRONT_OFFSET), on the
 -- ground, facing the stall (turned 180 degrees from the stall's local -Z, so he looks at the counter). Stalls are sorted by
 -- position so the numbering is stable.
 local function miniStand(index: number): CFrame?
@@ -162,7 +162,7 @@ local function build(npc: Npcs.Npc)
 	model.Parent = folder
 	if usedTemplate and npc.stand.y == nil then
 		-- Designed rigs differ in height: stand them on whatever floor is under them (stall floor, road, grass).
-		-- An explicit stand.y is a hand-placed spot (Pak Darmo behind the warung roof): the raycast would land on the roof beams.
+		-- An explicit stand.y is a hand-placed spot (Pak Udin behind the warung roof): the raycast would land on the roof beams.
 		local boxCFrame, boxSize = model:GetBoundingBox()
 		local bottom = boxCFrame.Position.Y - boxSize.Y / 2
 		local params = RaycastParams.new()
@@ -219,6 +219,9 @@ function NpcService.Start()
 	folder.Name = "Npcs"
 	folder.Parent = Workspace
 	for _, npc in Npcs.list do
+		if npc.hidden then
+			continue
+		end
 		task.spawn(build, npc) -- creating a rig yields
 	end
 end

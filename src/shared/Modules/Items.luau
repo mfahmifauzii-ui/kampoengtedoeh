@@ -28,7 +28,7 @@ function Items.info(itemId: string): ItemInfo?
 		return { id = itemId, kind = "crop", nameKey = `crop.{crop.id}`, sellPrice = crop.sellPrice }
 	end
 
-	-- Seeds: "seed_<crop>" (normal, Pak Darmo) and "seedx_<crop>" (unggul, Bu Wati).
+	-- Seeds: "seed_<crop>" (normal, Pak Udin) and "seedx_<crop>" (unggul, Pak Udin).
 	local seedCrop = itemId:match("^seed_(.+)$")
 	if seedCrop and Crops.byId[seedCrop] then
 		return { id = itemId, kind = "seed", nameKey = "item.seed", nameVars = { crop = `crop.{seedCrop}` } }

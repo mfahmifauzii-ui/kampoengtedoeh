@@ -571,14 +571,14 @@ local function buildBanyan(parent: Instance)
 end
 
 local SHOP_DEFS = {
-	-- slot -> sign + colors. Slots 1-5 belong to NPCs (Config/Npcs), 6-8 are scenery.
+	-- slot -> sign + colors. Slots 3, 4, 5, 7 have NPCs (Config/Npcs); the rest are scenery.
 	{ text = "town.sign.bibit", wall = Color3.fromRGB(208, 190, 156), awning = C.DUSTY_BLUE, roof = C.TERRACOTTA },
 	{ text = "town.sign.ikan", wall = C.CREAM, awning = C.SAGE, roof = C.DARKWOOD },
-	{ text = "town.sign.tengkulak", wall = C.CREAM, awning = C.SAGE, roof = C.TERRACOTTA },
+	{ text = "town.sign.pos_ronda", wall = C.CREAM, awning = C.SAGE, roof = C.TERRACOTTA },
 	{ text = "town.sign.tukang", wall = C.SAGE, awning = C.MUSTARD, roof = C.DARKWOOD },
 	{ text = "town.sign.pancing", wall = Color3.fromRGB(208, 190, 156), awning = C.TERRACOTTA, roof = C.DARKWOOD },
 	{ text = "town.sign.roti", wall = C.CREAM, awning = C.TERRACOTTA, roof = C.TERRACOTTA },
-	{ text = "town.sign.jamu", wall = C.SAGE, awning = C.DUSTY_BLUE, roof = C.DARKWOOD },
+	{ text = "town.sign.mak_sari", wall = C.SAGE, awning = C.DUSTY_BLUE, roof = C.DARKWOOD },
 	{ text = "town.sign.kelontong", wall = Color3.fromRGB(208, 190, 156), awning = C.MUSTARD, roof = C.TERRACOTTA },
 }
 
@@ -619,7 +619,7 @@ local function buildTown(map: Folder)
 	townSpawn.Parent = town
 end
 
--- Warung stall (Pak Darmo stands behind it, see NpcService) -----------------------------------
+-- Warung stall (Pak Udin stands behind it, see NpcService) -----------------------------------
 
 local function buildWarung()
 	local model = Instance.new("Model")

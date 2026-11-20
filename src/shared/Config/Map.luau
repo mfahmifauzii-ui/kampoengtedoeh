@@ -33,7 +33,7 @@ local TOWN = {
 }
 
 -- The warung stall on the ring, on the south side of the tree (the side the bridge customers come from).
--- Its counter faces the tree (yaw pi: local +Z points north, toward the tree); Pak Darmo stands behind it, on the
+-- Its counter faces the tree (yaw pi: local +Z points north, toward the tree); Pak Udin stands behind it, on the
 -- south side (see Config/Npcs).
 local WARUNG = { x = TOWN.RING_X, z = TOWN.RING_Z + TOWN.SHOP_R, FLOOR_Y = 7.05, yaw = math.pi } -- FLOOR_Y: top of the warung's wooden floor (the seller stands on it)
 

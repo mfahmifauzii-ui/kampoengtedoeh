@@ -60,7 +60,7 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 
 	GuideEvent = "Event", -- C->S (action: "start"|"step"|"skip"|"replay", tutorialId: string, n: number?) tutorial engine, see TutorialService
 	HasMet = "Function", -- C->S (npcId: string) -> alreadyMet: boolean. Records the first talk with that NPC (TutorialService)
-	MeetJoko = "Function", -- C->S () -> { ok, gave }. Mas Joko's Terima Hadiah: the rod and bait once (TutorialService)
+	MeetFajar = "Function", -- C->S () -> { ok, gave }. Kak Fajar's Terima Hadiah: the rod and bait once (TutorialService)
 	OnFirstSellSuccess = "Event", -- S->C (npcId: string) the player's first sale went through (TutorialService, Fase 2 cutscene)
 }
 

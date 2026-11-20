@@ -121,7 +121,7 @@ local function onGuideEvent(player: Player, action: any, tutorialId: any, n: any
 			pay(player, step.reward, tutorialId)
 			logEvent(player, `tut_{tutorialId}_{step.id}`, tutorialId)
 			if step.id == "after_catch" then
-				guide.kolamUnlocked = true -- the pond opens once the first fish was explained (Mbok Minah teaches it)
+				guide.kolamUnlocked = true -- the pond opens once the first fish was explained (Mak Sari teaches it)
 			end
 		end
 		guide.step.n = n
@@ -173,10 +173,10 @@ function TutorialService.OnFirstSellSuccess(player: Player, npcId: string)
 	Net.Fire("OnFirstSellSuccess", player, npcId)
 end
 
--- Mas Joko's Terima Hadiah (Plan v3.1 3A, Opsi B): the Joran Bambu and some pelet, given ONCE and only on the server.
+-- Kak Fajar's Terima Hadiah (Plan v3.1 3A, Opsi B): the Joran Bambu and some pelet, given ONCE and only on the server.
 -- A second press (or an old save that already has the rod) gives nothing more; the client just shows the feedback.
-local JOKO_BAIT = { id = "pelet", amount = 5 }
-local function onMeetJoko(player: Player): any
+local FAJAR_BAIT = { id = "pelet", amount = 5 }
+local function onMeetFajar(player: Player): any
 	local data = DataService.Get(player)
 	if not data then
 		return { ok = false }
@@ -194,9 +194,9 @@ local function onMeetJoko(player: Player): any
 	if data.fishing.rod == "" then
 		data.fishing.rod = "bambu"
 	end
-	InventoryService.Add(player, JOKO_BAIT.id, JOKO_BAIT.amount)
+	InventoryService.Add(player, FAJAR_BAIT.id, FAJAR_BAIT.amount)
 	InventoryService.Sync(player)
-	logEvent(player, "tut_joko_gift", "mas_joko")
+	logEvent(player, "tut_fajar_gift", "kak_fajar")
 	Net.Fire("Notify", player, "rod.gift")
 	return { ok = true, gave = true }
 end
@@ -209,7 +209,7 @@ function TutorialService.Init()
 
 	DataService.Loaded:Connect(function(player: Player, data)
 		local guide = data.guide
-		-- Old saves (before the Mas Joko gift and the pond/decor gates): keep what they already have, never take it away.
+		-- Old saves (before the Kak Fajar gift and the pond/decor gates): keep what they already have, never take it away.
 		-- Owners of a rod, a pond, or a finished second tutorial keep fishing, the pond and decorating.
 		if data.fishing.ownedRods.bambu == true or #data.pond.list > 0 or guide.done.t1b_kolam == true or guide.skipped.t1b_kolam == true then
 			guide.fishingUnlocked = true
@@ -238,7 +238,7 @@ end
 function TutorialService.Start()
 	Net.On("GuideEvent", onGuideEvent, { rate = 4, burst = 8 })
 	Net.On("HasMet", onHasMet, { rate = 4, burst = 8 })
-	Net.On("MeetJoko", onMeetJoko, { rate = 2, burst = 4 })
+	Net.On("MeetFajar", onMeetFajar, { rate = 2, burst = 4 })
 end
 
 return TutorialService

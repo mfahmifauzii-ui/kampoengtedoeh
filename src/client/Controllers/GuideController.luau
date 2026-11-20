@@ -1,7 +1,7 @@
 --!strict
 -- New-player guide: a one-line hint at the top of the screen for whatever comes next in the first loop
 -- (cangkul -> tanam -> siram -> panen -> jual -> beli bibit), plus a TRAIL of flowing chevrons on the ground from the player
--- to the buyer (Pak Darmo) whenever the next step is "go to him". The trail follows a real walking route (PathfindingService,
+-- to the buyer (Pak Udin) whenever the next step is "go to him". The trail follows a real walking route (PathfindingService,
 -- so it crosses the bridges, not the canal) and is drawn in the game's bamboo gold with a dark brown outline. It runs until the player has finished Onboarding.TRIES sale trips (the server counts them in
 -- data.guide.sells and sends it as snapshot.guideSells), then it never shows again.
 --
@@ -185,7 +185,7 @@ local function myRoot(): BasePart?
 	return if root and root:IsA("BasePart") then root else nil
 end
 
--- Instruction sink (set by T1Ghost.client): while Mbok Minah's local copy stands at the gate, a T1 step's instruction is
+-- Instruction sink (set by T1Ghost.client): while Mak Sari's local copy stands at the gate, a T1 step's instruction is
 -- SPOKEN in her bubble. The sink gets a step key ("cangkul", "cangkul_ground", "tanam", "siram", "panen_wait", "panen_harvest",
 -- "panen_sell") and whether the player has been stuck for a while; it returns true when it spoke. Then no instruction text
 -- shows in the hint bar or the coachmark bubble: the coachmark keeps only its glow / ring / arrows. No sink (or false) =
@@ -289,9 +289,9 @@ type Goal = { key: string, target: Vector3, point: Vector3, radius: number, part
 local routeKey = ""
 
 -- T1 panen step (user, 16 Nov): what the player must do NOW.
---   "wait"    a planted bed is still growing: text "Tunggu matang", arrow to that bed (never to Pak Darmo)
+--   "wait"    a planted bed is still growing: text "Tunggu matang", arrow to that bed (never to Pak Udin)
 --   "harvest" a bed is ripe: text "Tap Panen", arrow to the ripe bed
---   "sell"    the harvest is in the Tas: text "Jual ke Pak Darmo", arrow to Pak Darmo (only now)
+--   "sell"    the harvest is in the Tas: text "Jual ke Pak Udin", arrow to Pak Udin (only now)
 local function t1Phase(): string
 	local snap = snapshot()
 	local kangkung = if snap and snap.items then snap.items.kangkung else nil
@@ -354,7 +354,7 @@ end
 local function currentGoal(): Goal?
 	if running then
 		local current = running.def.steps[running.n + 1]
-		-- T1 bed steps: the arrow is ONLY on the bed the step needs (never to Pak Darmo before the harvest is in the Tas).
+		-- T1 bed steps: the arrow is ONLY on the bed the step needs (never to Pak Udin before the harvest is in the Tas).
 		if current and current.id == "tanam" then
 			return t1BedGoal("empty")
 		elseif current and current.id == "siram" then
@@ -442,7 +442,7 @@ end
 -- The arrow is a screen label placed over the bed (WorldArrow), 9 studs up so it clears the bed's own pill (FarmFloat).
 local bedArrow: any = nil
 local function updateTutorialBedArrow()
-	-- Removed (user, 16 Nov): "arrow coklat" over the T1 beds and Pak Darmo is not needed, the hint text is clear enough.
+	-- Removed (user, 16 Nov): "arrow coklat" over the T1 beds and Pak Udin is not needed, the hint text is clear enough.
 	-- The hint bar and the ground trail stay. Quest (Misi) arrows are separate (QuestController).
 	if bedArrow then
 		bedArrow.hide()
@@ -459,8 +459,8 @@ local function updateTutorialBedArrow()
 			elseif string.find(goal.key, ":dry") then Locale.t("tut.arrow.siram")
 			else Locale.t("tut.arrow.tanam")
 	elseif running and running.def.steps[running.n + 1] and running.def.steps[running.n + 1].id == "panen_jual" and t1Phase() == "sell" then
-		-- the harvest is in the Tas: the arrow moves to Pak Darmo (never before)
-		part = npcRootOf("pak_darmo")
+		-- the harvest is in the Tas: the arrow moves to Pak Udin (never before)
+		part = npcRootOf("pak_udin")
 		text = Locale.t("tut.arrow.jual")
 	end
 	if not part or not text then
@@ -644,7 +644,7 @@ local function evalCondition(condition: Onboarding.Condition): boolean
 		local snap = snapshot()
 		return snap ~= nil and typeof(snap.guideSells) == "number" and snap.guideSells >= need
 	elseif kind == "rodgift" then
-		-- Mas Joko's Terima Hadiah was taken (the server gives the rod and the bait once)
+		-- Kak Fajar's Terima Hadiah was taken (the server gives the rod and the bait once)
 		local snap = snapshot()
 		return snap ~= nil and snap.guide ~= nil and snap.guide.rodGift == true
 	elseif kind == "ack" then
@@ -811,7 +811,7 @@ function refreshTutorial()
 		text = Locale.t(stepDef.text)
 	end
 	-- T1 panen step: the wording and the target follow the phase (wait / harvest / sell), so "Tap Panen" never shows
-	-- before the crop is ripe, and Pak Darmo is named only after the harvest is in the Tas (user, 16 Nov).
+	-- before the crop is ripe, and Pak Udin is named only after the harvest is in the Tas (user, 16 Nov).
 	local phase = if stepDef.id == "panen_jual" then t1Phase() else nil
 	if phase == "wait" then
 		text = Locale.t("tut.t1.s4_wait")
@@ -820,15 +820,15 @@ function refreshTutorial()
 	elseif phase == "sell" then
 		text = Locale.t("tut.t1.s4_sell")
 	end
-	-- Waiting for a crop or walking to Pak Darmo: no coachmark (its dark overlay hides the bed and the arrow). The hint bar
+	-- Waiting for a crop or walking to Pak Udin: no coachmark (its dark overlay hides the bed and the arrow). The hint bar
 	-- carries the text and the ground trail / bed arrow point the way (user, 16 Nov).
 	if phase ~= nil then -- wait / harvest / sell (the T1 panen step)
 		CoachmarkController.Hide()
 		clearRing()
 		GarapController.SetHintHidden(true)
-		local spoken = say(`panen_{phase}`, stuckFor >= Onboarding.STUCK_TEXT) -- Mbok Minah says it: no text in the hint bar
+		local spoken = say(`panen_{phase}`, stuckFor >= Onboarding.STUCK_TEXT) -- Mak Sari says it: no text in the hint bar
 		if spoken then
-			-- No text anywhere, but still something to look at: glow on Panen when ripe, an arrow over Pak Darmo to sell.
+			-- No text anywhere, but still something to look at: glow on Panen when ripe, an arrow over Pak Udin to sell.
 			-- (block = false: no dark overlay, the bed and the way stay clear.)
 			CoachmarkController.SetPaused(uiBusy())
 			if phase == "harvest" then
@@ -846,7 +846,7 @@ function refreshTutorial()
 					text = nil,
 					block = false,
 					npcPoint = function(): Vector3?
-						local npc = npcRootOf("pak_darmo")
+						local npc = npcRootOf("pak_udin")
 						return if npc then npc.Position + Vector3.new(0, 5, 0) else nil
 					end,
 				})
@@ -883,9 +883,9 @@ function refreshTutorial()
 		GarapController.SetHintHidden(true)
 		-- A panel or modal is open (seed picker, Atur, a confirm): the coachmark steps aside until it closes.
 		CoachmarkController.SetPaused(uiBusy())
-		-- Pak Darmo is pointed at ONLY in the sell phase (the crop is in the Tas), never while the crop is still growing.
+		-- Pak Udin is pointed at ONLY in the sell phase (the crop is in the Tas), never while the crop is still growing.
 	local npcId = if stepDef.target and (phase == nil or phase == "sell") then stepDef.target.npc else nil
-		-- Mbok Minah says the instruction; the coachmark then shows no text at all (glow, ring and arrows only).
+		-- Mak Sari says the instruction; the coachmark then shows no text at all (glow, ring and arrows only).
 		local spoken = say(if onGround then `{stepDef.id}_ground` else stepDef.id, stuckFor >= Onboarding.STUCK_TEXT)
 		CoachmarkController.Show({
 			mode = if onGround then "ground" else "button",

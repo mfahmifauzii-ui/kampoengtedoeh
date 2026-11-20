@@ -3,7 +3,7 @@
 -- fish with time/weather conditions are never required (no waiting on the clock).
 
 return {
-	NPCS = { "pak_rt", "bu_sari", "mbah_karto", "mas_yudi", "dik_rara" },
+	NPCS = { "pak_udin", "mak_sari", "kak_fajar", "pak_amran", "nek_ani" },
 
 	DAILY_COUNT = 3,
 	FREE_REROLLS = 1, -- per day

@@ -111,7 +111,7 @@ local STEPS: { [number]: (data: any) -> () } = {
 		respaceTiles(data, 16, 8)
 	end,
 
-	-- v7 -> v8: haggling, NPC kedekatan and skills are gone (Pak Darmo now has a daily crop quota instead).
+	-- v7 -> v8: haggling, NPC kedekatan and skills are gone (Pak Udin now has a daily crop quota instead).
 	-- Nothing the player owns changes; only the old bookkeeping is dropped and `sales` starts empty.
 	[7] = function(data)
 		data.npc = nil

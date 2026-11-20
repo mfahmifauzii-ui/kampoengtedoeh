@@ -7,7 +7,7 @@
 export type Crop = {
 	id: string,
 	unlockLevel: number,
-	seedPrice: number, -- Koin, the price of one bibit at Pak Darmo
+	seedPrice: number, -- Koin, the price of one bibit at Pak Udin
 	growSeconds: number,
 	sellPrice: number,
 	xp: number,

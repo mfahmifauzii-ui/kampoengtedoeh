@@ -20,8 +20,8 @@ local template: Types.PlayerData = {
 		sessions = 0,
 	},
 
-	inventory = { seed_kangkung = 6 }, -- [itemId] = count. A new player starts with a few seeds (Pak Darmo sells more)
-	upgrades = { backpack = 0, pond = 0, warung = 0 }, -- tier per upgrade (Config/Shop UPGRADES, Modules/Upgrades)
+	inventory = { seed_kangkung = 6 }, -- [itemId] = count. A new player starts with a few seeds (Pak Udin sells more)
+	upgrades = { backpack = 0, pond = 0 }, -- tier per upgrade (Config/Shop UPGRADES, Modules/Upgrades)
 
 	farm = {
 		tiles = {}, -- tilled soil tiles { uid, cx, cz, crop?... }; a new player tills their own (Garap)
@@ -29,7 +29,7 @@ local template: Types.PlayerData = {
 	},
 
 	fishing = {
-		-- New accounts start WITHOUT a rod (Plan v3.1 3A, Opsi B): Mas Joko gives the Joran Bambu (Terima Hadiah).
+		-- New accounts start WITHOUT a rod (Plan v3.1 3A, Opsi B): Kak Fajar gives the Joran Bambu (Terima Hadiah).
 		-- Old accounts keep the rod they already have: this default only fills keys that are missing.
 		rod = "", -- equipped rod id ("" = none)
 		ownedRods = {},
@@ -46,7 +46,7 @@ local template: Types.PlayerData = {
 		placed = {}, -- { {uid, id, x, z, r} } grid cells on the owner's plot
 		stock = {}, -- [itemId] = count owned but not placed
 		nextUid = 1,
-		blueprints = {}, -- [blueprintId] = true (bought from Mbak Arsi, Config/Blueprints)
+		blueprints = {}, -- [blueprintId] = true (bought from Pak Amran, Config/Blueprints)
 	},
 
 	orders = {
@@ -78,7 +78,6 @@ local template: Types.PlayerData = {
 
 	land = { chunks = {} }, -- bought 32 x 32 blocks of the plot, "ix,iz" keys (Modules/Land); the start land is always owned
 	plotSlot = 0, -- last plot number (PlotService tries to give it back)
-	sales = { day = "", sold = {} }, -- Pak Darmo's daily crop quota (Config/Npcs QUOTA); Kapasitas Warung tier is in upgrades.warung
 
 	social = {
 		likes = 0, -- likes received on your plot (all time)

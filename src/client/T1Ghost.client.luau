@@ -1,14 +1,14 @@
 --!strict
 -- T1 / T1b presenter (CLIENT ONLY, visual only; nothing here touches the server except the tutorial engine's own events).
 --
--- MBOK MINAH: "MbokMinah_T1_Local" is a local copy of the real NPC (Workspace.Npcs.mbok_minah, which stays ONE NPC in the
+-- MAK SARI: "MakSari_T1_Local" is a local copy of the real NPC (Workspace.Npcs.mak_sari, which stays ONE NPC in the
 -- market). It exists from the intro until the end of T1b, then it is destroyed. It stands on the real ground (raycast, never a
 -- fixed Y), has no collision, and is posed by code: the stock R15 idle / walk animations do not fit this rig (they crouch it and
 -- open its arms), so it stands in its rest pose and walks with a gait of joint angles. The Humanoid is dropped because it forces
 -- CanCollide back on.
 --
 -- THE INTRO (a fresh T1 only, once per session): the loading screen is up as soon as this script runs; nothing plays until
--- "Klik untuk Mulai" -> black 0.5 s -> slow fade in with cinematic bars -> Mbok Minah appears 20 studs to the player's RIGHT and
+-- "Klik untuk Mulai" -> black 0.5 s -> slow fade in with cinematic bars -> Mak Sari appears 20 studs to the player's RIGHT and
 -- WALKS in, stopping 4.5 studs in front-and-beside the player -> the player turns to her -> the camera stands still at a 3/4 side
 -- view (both faces + the gate) -> 4 lines in the dialog box, each needs Next -> she walks aside of the gate and stays. There is no
 -- Lewati: this tutorial is not skippable.
@@ -16,7 +16,7 @@
 -- THE DIALOG: every word of the intro and of the tutorial is the dialog box (T1Dialog: bamboo, the speaker's face, the name,
 -- Next). Nothing draws a bubble in the world and no GUI draws tutorial text: the coachmark only glows / points.
 --
--- THE TUTORIAL: T1 (garap, tanam, siram, panen, jual) and T1b (warung, pond tool, Mas Joko, first fish, first pond, fish in the
+-- THE TUTORIAL: T1 (garap, tanam, siram, panen, jual) and T1b (warung, pond tool, Kak Fajar, first fish, first pond, fish in the
 -- pond) are the tutorial engine's tutorials; GuideController gives each step to the instruction sink below, which shows the line
 -- in the dialog box. The chat is closed from the loading screen to the end of T1b.
 --
@@ -41,8 +41,8 @@ local Onboarding = require(RS.Shared.Config.Onboarding)
 local Cutscene = require(script.Parent:WaitForChild("Cutscene"))
 local FadeManager = require(script.Parent:WaitForChild("FadeManager"))
 
-local GHOST_NAME = "MbokMinah_T1_Local"
-local SOURCE_NPC = "mbok_minah"
+local GHOST_NAME = "MakSari_T1_Local"
+local SOURCE_NPC = "mak_sari"
 local TUTORIAL_ID = "t1_awal"
 local TUTORIAL_B_ID = "t1b_kolam"
 local POLL_SECONDS = 0.25
@@ -65,7 +65,7 @@ local FADE_IN_SECONDS = 2.5
 local BAR_HEIGHT = 0.06 -- of the screen height, top and bottom
 local CAMERA_AFTER_CHARACTER = 2.4 -- CoachmarkController.gateCamera owns the camera until ~2.1 s after a spawn
 -- Conversation shot: low and far enough that both of them stand fully ABOVE the dialog box (which fills the bottom third), and
--- leaning a little toward Mbok Minah's side so the player's face turns toward the camera too.
+-- leaning a little toward Mak Sari's side so the player's face turns toward the camera too.
 local CAMERA_DISTANCE, CAMERA_HEIGHT, CAMERA_LEAN, CAMERA_FOV = 13, 3.4, -8, 50
 local CAMERA_FOCUS_DROP = 0.6 -- the camera looks this far below the pair: they sit high in the frame
 local HOLD_SECONDS = 10 -- the welcome-modal hold is refreshed to this far ahead
@@ -78,56 +78,56 @@ local HIDE_DURING_INTRO = { "HUD", "QuestUI", "LikeUI", "FarmFloat", "LandMarks"
 
 type Speaker = { name: string, npc: string }
 local SPEAKERS: { [string]: Speaker } = {
-	mbok_minah = { name = "Mbok Minah", npc = "mbok_minah" },
-	pak_darmo = { name = "Pak Darmo", npc = "pak_darmo" },
-	mas_joko = { name = "Mas Joko", npc = "mas_joko" },
+	mak_sari = { name = "Mak Sari", npc = "mak_sari" },
+	pak_udin = { name = "Pak Udin", npc = "pak_udin" },
+	kak_fajar = { name = "Kak Fajar", npc = "kak_fajar" },
 }
 
 local INTRO = {
-	"Nak... akhirnya kamu pulang juga. Mbok kangen!",
+	"Nak... akhirnya kamu pulang juga. Mak kangen!",
 	"Ini lahan peninggalan kakekmu. Sudah lama nggak ada yang merawat.",
 	"Kakekmu dulu rajin sekali di sini. Sekarang giliranmu yang merawatnya, ya?",
-	"Tenang, Mbok temenin. Kita mulai pelan-pelan aja.",
+	"Tenang, Mak temenin. Kita mulai pelan-pelan aja.",
 }
 
--- T1b, the first beat (Pak Darmo, at the warung, right after the sale): Next after every line.
+-- T1b, the first beat (Pak Udin, at the warung, right after the sale): Next after every line.
 local WARUNG = {
 	"Nah, hasil panenmu sudah laku. Selamat, kamu naik ke Lv 2!",
-	"Sekarang temui Mas Joko di Toko Pancing. Dia punya joran dan umpan buat kamu. Ikuti panah di tanah ya.",
+	"Sekarang temui Kak Fajar di Toko Pancing. Dia punya joran dan umpan buat kamu. Ikuti panah di tanah ya.",
 }
 
 -- What is said for each tutorial step (key = GuideController's step key; "<key>_ground" while Garap mode is open, "<key>_stuck"
 -- after a long wait). No line for a key = the old text GUI teaches that step.
 type Line = { who: string, text: string }
 local STEP_LINES: { [string]: Line } = {
-	-- T1 (Mbok Minah, at the gate)
-	cangkul = { who = "mbok_minah", text = "Coba garap tanah ini dulu, Nak. Ketuk tombol Cangkul yang menyala." },
-	cangkul_ground = { who = "mbok_minah", text = "Nah, ketuk rumput yang menyala itu buat bikin petak tanah." },
+	-- T1 (Mak Sari, at the gate)
+	cangkul = { who = "mak_sari", text = "Coba garap tanah ini dulu, Nak. Ketuk tombol Cangkul yang menyala." },
+	cangkul_ground = { who = "mak_sari", text = "Nah, ketuk rumput yang menyala itu buat bikin petak tanah." },
 	tanam = {
-		who = "mbok_minah",
+		who = "mak_sari",
 		text = "Sekarang tanam Kangkungnya. Dekati petak kosong, lalu ketuk tombol Tanam yang menyala.",
 	},
-	tanam_stuck = { who = "mbok_minah", text = "Bibit awal ini cepat tumbuhnya, Nak. Ditunggu sebentar ya." },
-	siram = { who = "mbok_minah", text = "Tanamannya haus, Nak. Ketuk petaknya, lalu ketuk Siram yang menyala." },
-	panen_wait = { who = "mbok_minah", text = "Sabar ya, Nak. Tunggu Kangkungnya matang dulu." },
-	panen_harvest = { who = "mbok_minah", text = "Nah, sudah matang! Ketuk tombol Panen yang menyala." },
-	panen_sell = { who = "mbok_minah", text = "Hasil panennya jual ke Pak Darmo di warung. Ikuti panah di tanah ya." },
+	tanam_stuck = { who = "mak_sari", text = "Bibit awal ini cepat tumbuhnya, Nak. Ditunggu sebentar ya." },
+	siram = { who = "mak_sari", text = "Tanamannya haus, Nak. Ketuk petaknya, lalu ketuk Siram yang menyala." },
+	panen_wait = { who = "mak_sari", text = "Sabar ya, Nak. Tunggu Kangkungnya matang dulu." },
+	panen_harvest = { who = "mak_sari", text = "Nah, sudah matang! Ketuk tombol Panen yang menyala." },
+	panen_sell = { who = "mak_sari", text = "Hasil panennya jual ke Pak Udin di warung. Ikuti panah di tanah ya." },
 	-- T1b
-	mas_joko = {
-		who = "pak_darmo",
-		text = "Ikuti panah ke Toko Pancing. Mas Joko punya joran dan umpan buat kamu.",
+	kak_fajar = {
+		who = "pak_udin",
+		text = "Ikuti panah ke Toko Pancing. Kak Fajar punya joran dan umpan buat kamu.",
 	},
 	mancing = {
-		who = "mas_joko",
+		who = "kak_fajar",
 		text = "Joran bambumu sudah siap, gratis. Ke dermaga di sungai, ketuk Mancing, dan dapatkan 1 ikan.",
 	},
 	bangun_kolam = {
-		who = "mbok_minah",
+		who = "mak_sari",
 		text = "Sekarang balik ke lahan, Nak. Ketuk tombol Kolam yang menyala, lalu gali kolam pertamamu.",
 	},
-	bangun_kolam_ground = { who = "mbok_minah", text = "Ketuk tanah hijau yang menyala itu. Kolam pertama gratis!" },
+	bangun_kolam_ground = { who = "mak_sari", text = "Ketuk tanah hijau yang menyala itu. Kolam pertama gratis!" },
 	mancing_kolam = {
-		who = "mbok_minah",
+		who = "mak_sari",
 		text = "Kolammu sudah jadi! Ikan di kolam berkembang biak sendiri. Coba mancing 1x di tepi kolam.",
 	},
 }
@@ -462,7 +462,7 @@ end
 -- Dialog ----------------------------------------------------------------------------------------------------------
 
 local function showLine(who: string, text: string, showNext: boolean, bottom: number, onNext: (() -> ())?)
-	local speaker = SPEAKERS[who] or SPEAKERS.mbok_minah
+	local speaker = SPEAKERS[who] or SPEAKERS.mak_sari
 	T1Dialog.Show({
 		name = speaker.name,
 		text = text,
@@ -495,7 +495,7 @@ local function menuDone(): boolean
 end
 
 -- Tutorial speech: GuideController hands each step to this sink; the line goes in the dialog box and the GUI shows no text.
--- Mbok Minah's "balik ke lahan" line waits until the player is in the land zone (not when the fishing ends).
+-- Mak Sari's "balik ke lahan" line waits until the player is in the land zone (not when the fishing ends).
 local LAND_RADIUS = 60 -- studs from the plot centre: the same radius as the trail's arrival (Onboarding arrive)
 local landLinePending = false
 local function landDistance(): number?
@@ -533,14 +533,14 @@ task.spawn(function()
 	end
 end)
 
--- After the first fish: Mas Joko explains the pond. One button, "Mengerti": the step is acked and the server opens the pond.
+-- After the first fish: Kak Fajar explains the pond. One button, "Mengerti": the step is acked and the server opens the pond.
 local function showAfterCatch()
 	if guideModule == nil then
 		return
 	end
 	T1Dialog.Show({
-		name = Locale.t("npc.mas_joko"),
-		text = Locale.t("npc.mas_joko.after_catch"),
+		name = Locale.t("npc.kak_fajar"),
+		text = Locale.t("npc.kak_fajar.after_catch"),
 		showNext = false,
 		bottom = TUTORIAL_BOTTOM,
 		choices = {
@@ -783,7 +783,7 @@ local function runIntro()
 		player:SetAttribute("KTIntroRunning", nil)
 		ui.gui:Destroy()
 		releaseWelcomeModal()
-		-- The fade already ran right after Mbok Minah's last line (see runIntro); the coachmark can show now.
+		-- The fade already ran right after Mak Sari's last line (see runIntro); the coachmark can show now.
 		introState = "done"
 	end
 	introFinish = finish
@@ -826,7 +826,7 @@ local function runIntro()
 		camera.FieldOfView += (shotFov - camera.FieldOfView) * alpha
 	end)
 
-	-- Mbok Minah is made NOW, behind the loading screen (it covers the whole screen), so that her pose is calibrated by the time
+	-- Mak Sari is made NOW, behind the loading screen (it covers the whole screen), so that her pose is calibrated by the time
 	-- the player clicks and the black screen after the click stays short.
 	do
 		local p0 = rootPart.Position
@@ -954,7 +954,7 @@ local function runIntro()
 	end
 	local intro = math.floor(camera.ViewportSize.Y * BAR_HEIGHT) + INTRO_BOTTOM
 	for _, line in INTRO do
-		if not waitNext("mbok_minah", line, intro, alive) then
+		if not waitNext("mak_sari", line, intro, alive) then
 			return
 		end
 	end
@@ -1000,16 +1000,16 @@ local function saleGreeting(): string?
 	return nil
 end
 
--- Pak Darmo's three lines (Next after each) once the shop panel is closed after the sale, then the step is acknowledged.
+-- Pak Udin's three lines (Next after each) once the shop panel is closed after the sale, then the step is acknowledged.
 -- If the player is at the warung (near him), the camera goes over their shoulder onto his face with the blur, like any talk.
 local function runWarung(guide: any)
 	dialogBusy = true
 	local endCutscene: (() -> ())? = nil -- Cutscene.Begin's End: camera and controls back (Cutscene.luau)
 
 	-- Fase 2 (Plan v3 3.5): the first sale ever (OnFirstSellSuccess) plays this beat RIGHT AWAY: the shop closes, the camera
-	-- goes to Pak Darmo, and the screen fades to black and back (FadeManager) with the controls off. It does not wait for the
+	-- goes to Pak Udin, and the screen fades to black and back (FadeManager) with the controls off. It does not wait for the
 	-- shop to be closed by the player, and it does not need the T1b step. Any other visit keeps the plain beat.
-	local firstSale = firstSaleNpc == "pak_darmo"
+	local firstSale = firstSaleNpc == "pak_udin"
 	firstSaleNpc = nil
 
 	local function leave()
@@ -1046,7 +1046,7 @@ local function runWarung(guide: any)
 		end
 	end
 
-	local npc = T1Dialog.NpcModel("pak_darmo")
+	local npc = T1Dialog.NpcModel("pak_udin")
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	local head = npc and npc:FindFirstChild("Head")
@@ -1077,7 +1077,7 @@ local function runWarung(guide: any)
 		end
 	end
 	for _, line in lines do
-		if not waitNext("pak_darmo", line, TUTORIAL_BOTTOM, alive) then
+		if not waitNext("pak_udin", line, TUTORIAL_BOTTOM, alive) then
 			leave()
 			return
 		end
@@ -1198,10 +1198,10 @@ task.spawn(function()
 					t1bStartSent = true
 					Net.Send("GuideEvent", "start", TUTORIAL_B_ID)
 				end
-				-- T1b's first beat: Pak Darmo at the warung.
+				-- T1b's first beat: Pak Udin at the warung.
 				if guideModule and not warungStarted then
 					local id, n = guideModule.Current()
-					if firstSaleNpc == "pak_darmo" or (id == TUTORIAL_B_ID and n == 0) then
+					if firstSaleNpc == "pak_udin" or (id == TUTORIAL_B_ID and n == 0) then
 						warungStarted = true
 						task.spawn(function()
 							local ok, err = pcall(runWarung, guideModule)
