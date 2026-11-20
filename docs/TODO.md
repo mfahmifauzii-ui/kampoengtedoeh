@@ -1,28 +1,42 @@
-# TODO — Hal yang Belum Jelas di Gameplay v6.1
+# TODO (diperbarui setelah Fase 0)
 
-> Dibuat saat audit (20 Nov 2026). Sesuai aturan v6.1: kalau tidak jelas, tulis di sini dan jangan menebak. Keputusan dari Anda dibutuhkan sebelum fase terkait dimulai. Yang "Blokir" berarti fase tersebut tidak bisa mulai sebelum dijawab.
+> Status per 20 Nov 2026. Keputusan owner (T-01 sampai T-08) sudah masuk ke docs/Kampoeng_Tedoeh_Gameplay_Lengkap_v6.2.md.
 
-| # | Pertanyaan | Kenapa Tidak Jelas | Blokir Fase | Status |
-|---|-----------|--------------------|-------------|--------|
-| T-01 | Jumlah lahan: 10 (v6.1 Bab 3.1 & Max 10 player) atau 8 (peta sekarang)? | v6.1 bilang "10 lahan melingkar". Peta sekarang (`Config/Plots`, `Map`) punya 8 lahan & 8 shophouse. Anda minta peta tetap. | Fase 0 | Terbuka |
-| T-02 | Lahan awal 96×96 (v6.1) atau 128×128 (sekarang)? | v6.1 Bab 3.1 & Bab 3.4 bilang 96. Sekarang `START = 128`, `REGION = 192`. | Fase 0 | Terbuka |
-| T-03 | Grid: 1 sel = 2×2 stud (v6.1 Bab 3.1) atau 8 stud (sekarang `Land.TILE`)? | Bab 3.1 & Bab 8.3 pakai 2×2. Kode pakai 8 untuk petak tanam. Bisa jadi 2×2 hanya untuk Hias. | Fase 4 | Terbuka |
-| T-04 | Sistem tanam: petak tetap (v6.1 Bab 5.2: 6 awal, buka `n×150`, max 36) atau lahan bebas (`Garap`, sekarang)? | Dua model bertentangan. Prinsip #8 (lahan 100% bebas) bisa dipenuhi keduanya. | Fase 1 | Terbuka |
-| T-05 | Nama pengganti NPC lama: Pak Darmo, Mbok Minah, Mas Joko, Bu Wati, Mbak Arsi, Bang Tarno. Apakah peran & posisinya dipetakan langsung seperti di bawah? | v6.1 Bab 10.1 melarang nama lama dan punya daftar NPC baru. Usulan pemetaan: Pak Darmo→Pak Udin (toko bibit), Mas Joko→Kak Fajar (pancing; tapi Kak Fajar di pinggir Kanal), Mbok Minah→Pak Udin atau Bang Jali (ikan), Mbak Arsi→Pak Amran (tukang), Bu Wati→Pak Udin (bibit unggul, bisa digabung), Bang Tarno→Bang Jali. Konfirmasi. | Fase 1 | Terbuka |
-| T-06 | Warung Mini ×8 (Bang Tarno) apakah dihapus semua? | v6.1 tidak punya Warung Mini. Ada 8 `Warung Mini` hand-placed di Workspace. | Fase 1 | Terbuka |
-| T-07 | Game Pass "decor" (+100 limit) & "plots" (diskon 20% lahan) dihapus? | Tidak ada di v6.1 Bab 18.4. Diskon lahan berisiko P2W ringan. Usulan: hapus keduanya. | Fase 9 | Terbuka |
-| T-08 | Save lama pemain: apakah harus dimigrasi ke struktur Bab 28, atau game belum rilis dan boleh reset? | `DataTemplate.version = 13` dan ProfileStore sudah jalan. Kalau sudah ada player nyata, migrasi wajib. | Fase 0 | Terbuka |
-| T-09 | Nama file Config: ikuti Bab 28 (`Tanaman`, `Ikan`, `Hias`, `Quest`, `Event`) atau pakai nama sekarang (`Crops`, `Fish`, `Decor`, `Quests`, `Events`)? | Bab 28 pakai nama Indonesia. Kode pakai Inggris. Usulan: pakai nama sekarang, sebutkan di Bab 28 sebagai alias. | Fase 0 | Terbuka |
-| T-10 | Hari game: 30 menit (3/15/3/9, v6.1) atau 24 menit (sekarang)? | v6.1 Bab 3.2 & 0.2 jelas 30 menit. Hanya perlu konfirmasi bahwa sekarang boleh diubah. | Fase 0 | Usulan: ikut v6.1 |
-| T-11 | Reset harian: 05:00 WIB (v6.1) atau 00:00 WIB (sekarang)? | v6.1 Bab 3.2 jelas 05:00. Usulan: ikut v6.1. | Fase 6 | Usulan: ikut v6.1 |
-| T-12 | Gestur: 4 dari v6.1 (Lambai, Jempol, Tepuk, Ketawa). Apakah emote Roblox bawaan untuk `wave`, `cheer` tetap? | Kode pakai emote built-in Roblox. `dance` dan `point` dilarang/tidak ada di v6.1. | Fase 7 | Usulan: pakai 4 gestur custom |
-| T-13 | Map: apakah Pos Ronda, Gerobak, Papan Agenda/Galeri/Lapak, pelataran event, dan 80 titik spawn kotoran akan dibuat di `MapService` (procedural) atau manual di Studio (`Workspace.Map`)? | `MapService` bisa membangun peta jika `Workspace.Map` belum ada. Peta yang dibangun manual di Studio tidak ada di repo. | Fase 7 | Terbuka |
-| T-14 | Apakah Expansion lahan (v6.1: 120/140/160 pada Lv 12/30/50) menggantikan sistem chunk 32 stud? | `Plots.CHUNK` beda model. Perlu keputusan kalau mau tetap pakai chunk. | Fase 4 | Terbuka |
-| T-15 | Apakah aturan "Lapak tidak boleh duplikasi item" dan "Lapak harga 80–130%" perlu DataStore global `Lapak_<UserId>` atau cukup Global DataStore yang sudah ada? | Bab 28 minta Global DataStore. Belum ada DataStore global. | Fase 7 | Terbuka |
-| T-16 | Bahan mentah (7) dan olahan (7): apakah item sudah ada di `Modules/Items`? | Kata "Bambu" ada di 19 file, tapi Ijuk, Tanah Liat, Pasir, Jerami belum dicek. | Fase 4 | Perlu cek |
-| T-17 | Kak Fajar di Kanal: apakah posisi Kanal dan Danau sudah ada di peta sekarang atau perlu dibuat? | Spot air di kode: `sungai`, `empang`, `kolam`. v6.1: Kanal, Danau, Sungai, Spot 4. | Fase 3 | Perlu cek di Studio |
-| T-18 | Kolam sekarang (`PondService`) dipertahankan atau diganti dengan Kolam Bab 7.2 (Tanah/Semen/Keramik, breeding)? | Sistem sekarang beda total. | Fase 5 | Terbuka |
-| T-19 | Haptic: apakah ada API di Roblox untuk Android (`HapticService`) yang bisa dipakai di 4GB? | Tidak ada haptic di kode. v6.1 minta 5 momen. | Fase 10 | Perlu riset |
-| T-20 | Target 10 player di HP 4GB: apakah tes ini sudah dijadwalkan? | Bab 30 minta tes nyata. | Fase 10 | Terbuka |
-| T-21 | Apakah "Pesanan Harian" (Orders, 5 warga) dihapus, atau dipakai sebagai Agenda Harian? | Mirip tapi beda aturan. | Fase 6 | Usulan: ganti ke Agenda |
-| T-22 | Perlu Update 1 & 2 (Bab 26) dikerjakan sekarang atau nanti? | v6.1 Bab 26 menulis konten Update 1–2. Scope rilis hanya sampai Fase 10. | — | Usulan: nanti |
+| # | Pertanyaan / Item | Detail | Fase | Status |
+|---|---|---|---|---|
+| T-01 | Jumlah lahan 8 dan server max 8 player (Bab 3.1) | Diputuskan owner. Max player di Studio (Game Settings) masih harus diisi 8 secara manual. | Fase 0 | Diputuskan: 8 lahan, 8 player. TODO: set Max Players = 8 di Studio. |
+| T-02 | Lahan awal 128x128, beli chunk 32x32 (Bab 3.1, 17.4) | Diputuskan owner. Sink ekspansi 88.790; total 623.000; konten rilis ~71%. | Fase 0 | Diputuskan. Kode: Config/Plots (tidak diubah). |
+| T-03 | Grid: tanam 8 stud, Hias struktur 2 stud, furniture/dekor 1 stud | Diputuskan owner. Cek DecorGrid: BELUM sesuai. Decor.CELL = 2 untuk semua item (furniture ikut 2 stud). | Fase 4 | TERBUKA: ubah format posisi dekor agar furniture/dekor snap 1 stud (perlu migrasi data dekor, Fase 4). |
+| T-04 | Bajak petak: batas per level dan biaya n x 150 | Diputuskan owner. Sudah dibuat (Config/Farm, FarmService). | Fase 1 | Selesai (commit 341784a). TODO kecil: harga petak berikutnya belum ditampilkan di UI Garap. |
+| T-05 | Ganti nama NPC | Diputuskan owner. Sudah dibuat. Narator tutorial (Mbok Minah) menjadi Mak Sari (lihat T-29). | Fase 1 | Selesai (commit ff4555e). Lihat T-30 untuk aset model Studio. |
+| T-06 | Bang Tarno x8 -> Bang Jali x8 | Diputuskan owner. Sudah dibuat. Lapak Tarno diganti sign Pos Ronda. | Fase 1 | Selesai (commit ff4555e). |
+| T-07 | Hapus pass decor dan plots | Diputuskan owner. Sudah dihapus (commit 11e5938). | Fase 9 | Selesai. |
+| T-08 | Reset save, DataTemplate v62 tanpa migrasi | Diputuskan owner. Sudah dibuat (DATA_STAGE v62, Migrations.luau dihapus). | Fase 0 | Selesai (commit cba3137). Tapi field lama (koin, bunga, xp, farm, dll.) belum dipindah ke nama Bab 28, lihat T-24. |
+| T-09 | Nama file Config: Inggris atau Indonesia | Belum diputuskan. Sementara pakai nama yang sudah ada (Crops, Fish, Decor, Quests, Events). | Fase 0 | Terbuka. |
+| T-10 | Hari game 30 menit | Sudah dibuat (Config/World: 3/15/3/9). | Fase 0 | Selesai (commit 8f61da5). |
+| T-11 | Reset harian 05:00 WIB | Sudah dibuat (Progression.RESET_HOUR, TimeKeys day dan week). | Fase 6 | Selesai untuk kunci waktu. Sistem reset per fitur belum ada. |
+| T-12 | Gestur: 4 dari v6.2 | Sudah dibuat (Config/Social). Lambai, Tepuk, Ketawa memakai animasi bawaan. Jempol belum punya animasi. | Fase 7 | Terbuka untuk Jempol, lihat T-23. |
+| T-13 | Peta: Pos Ronda, Gerobak, papan, pelataran event, 80 titik spawn | Belum dibuat. Pos Ronda sementara = sign Shop 3 dan Nek Ani di sana. | Fase 7 | Terbuka. |
+| T-14 | Chunk dan sistem ekspansi | Diputuskan: pakai sistem chunk yang sudah ada. | Fase 4 | Selesai (keputusan). |
+| T-15 | DataStore global Lapak | Belum dibuat. | Fase 7 | Terbuka. |
+| T-16 | Bahan mentah (Kayu, Bambu, Batu, Tanah Liat, Pasir, Jerami, Ijuk) | Belum ada sebagai item. Hanya pelet dan tanaman/ikan. | Fase 4 | Terbuka (dibutuhkan juga oleh T-26). |
+| T-17 | Kak Fajar di tepi Kanal | Kak Fajar masih di Toko Pancing (Shop 5). Tepi Kanal belum dibuat. | Fase 3 | Terbuka. |
+| T-18 | Kolam: pakai PondService atau sistem Bab 7.2 | Belum diputuskan. | Fase 5 | Terbuka. |
+| T-19 | Haptic Android | Belum riset. | Fase 10 | Terbuka. |
+| T-20 | Tes 8 player di HP 4GB | Belum dijadwalkan. | Fase 10 | Terbuka. |
+| T-21 | Pesanan Harian (Orders) diganti Agenda Harian | Orders sekarang memakai NPC v6.2 sebagai pemberi pesanan. Diganti Agenda di Fase 6. | Fase 6 | Terbuka. |
+| T-22 | Update 1 dan 2 (Bab 26) | Di luar scope rilis. | - | Nanti. |
+| T-23 | Animasi Jempol; Kayu dan Cacing sebagai item Playtime | Jempol belum punya animasi (gestur hanya ikon). Hadiah Playtime 30 dan 60 menit belum berisi Kayu dan Cacing karena item itu belum ada. | Fase 4-7 | Terbuka. |
+| T-24 | Bab 28: nama field belum sesuai (koin, bunga, xp, level, farm, fishing, pond, decor, orders, quests, visits, playtime, book, titles, land, social, instantGrow, guide, purchaseIdCache) | Template v62 sudah punya sp, cabang, skill, land.lahanAwal, land.chunkLahan. Field lama belum diganti nama: butuh perubahan di hampir semua service. | Tiap fase | Terbuka. Dikerjakan per fase saat service-nya disentuh. |
+| T-25 | Objek chunk: 3 ilalang + 1 semak per chunk | Asumsi dari kepadatan lahan awal. Bab 3.4 tidak menyebut jumlahnya. | Fase 0 | Perlu konfirmasi owner. |
+| T-26 | Hadiah bersihkan lahan: Jerami, Kayu, Bambu, Batu | Belum ada item bahan, jadi bersihkan belum memberi hadiah. Koin 200 saat lahan awal bersih sudah jalan. | Fase 4 | Terbuka (tergantung T-16). |
+| T-27 | Bab 4.1 vs kode: Bunga dari hadiah Like (3, 10, 25) dan milestone title kebun_favorit | Config/Social LIKE_MILESTONES memberi Bunga dan title. Bab 4.1 tidak menyebut Like sebagai sumber Bunga. | Fase 4 | Perlu keputusan owner: hapus, atau ubah jadi Koin. |
+| T-28 | Bab 11/15 vs kode: Hadiah kunjungan (VISIT_REWARDS) hari ke-7 memberi 3 Bunga | Login Mingguan v6.2 memberi 10 Bunga di hari 7 (Bab 15.1). Visit reward masih ada. | Fase 6 | Perlu keputusan owner: hapus visit reward atau ganti dengan Login Mingguan. |
+| T-29 | Narator tutorial: Mbok Minah menjadi Mak Sari | Keputusan saya: narator FTUE = Mak Sari (mentor awal, Bab 10.1). Owner minta Mbok Minah dilebur ke Kak Fajar untuk toko ikan, jadi peran narator perlu dikonfirmasi. | Fase 1 | Perlu konfirmasi owner. |
+| T-30 | Model Studio dan peta belum diganti | Di Studio: ServerStorage.NpcModels bang_tarno -> bang_jali, mbok_minah -> mak_sari, mas_joko -> kak_fajar, mbak_arsi -> pak_amran, pak_darmo -> pak_udin. Papan 'Lapak Tarno' di peta: ganti teks ke Pos Ronda. Set Max Players = 8. | Fase 0 | Terbuka: dikerjakan di Studio oleh owner. |
+| T-31 | Warung Mak Sari: kandidat Shop 7 (sebelumnya Warung Jamu) | Shop 7 satu-satunya warung selain warung utama. Owner minta tanya jika tidak yakin. | Fase 1 | Perlu konfirmasi owner. |
+| T-32 | Premium: PREMIUM_EXTRA_REROLLS = 1 masih ada | Bukan pengali Koin, jadi tidak dihapus di commit 1. Bab 19 melarang 'boost' Premium lainnya. | Fase 9 | Perlu keputusan owner. |
+| T-33 | Objek awal lahan: HUD dan posisi rumah | Area bersih 24x24 dan jalan ke gerbang ditentukan dari angka, bukan dari posisi rumah yang sebenarnya. | Fase 0 | Perlu cek di Studio. |
+| T-34 | HUD Bab 23.2 belum dicek | Layout HUD sekarang belum dicek di Studio (tidak ada file .rbxl di repo). | Fase 0 | Terbuka: cek di Studio. |
+| T-35 | Sign toko kosong: Toko Bibit, Pasar Ikan, Toko Roti, Toko Kelontong | Tidak ada NPC di sana setelah rename. Masih berupa dekor. | Fase 3-7 | Keputusan owner: dibiarkan, atau diisi NPC lain. |
+| T-36 | Tiga NPC v6.2 yang belum ada tempatnya: Pedagang Tamu dan Tamu Event | Dikonfigurasi dengan hidden = true. Tidak tampil sampai Fase 7. | Fase 7 | Terbuka. |
