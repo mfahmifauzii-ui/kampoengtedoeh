@@ -1,13 +1,38 @@
 --!strict
 -- Farm rules. Farming is free-form: the player tills (garap) grass cells of their land into soil tiles
 -- (Modules/Land.TILE studs each), anywhere on their land. The soil is TERRAIN, not parts.
+--
+-- Tile limit (docs/Kampoeng_Tedoeh_Gameplay_Lengkap_v6.2.md Bab 5.2, T-04): the first TILE_FREE tiles are free. Tile n
+-- above that costs n x TILE_COST Koin. Tiles 7-12 need no level, 13-24 need Lv 10, 25-36 need Lv 25.
 
--- R2b: no tile cap from upgrades any more: the land you own is the limit. MAX_TILES is only a safety valve (data size
--- and server work), well above what 192 x 192 studs (minus house, ponds, decor) can hold in practice.
-local MAX_TILES = 100
+local TILE_FREE = 6
+local TILE_COST = 150
+-- { upTo = highest tile number, level = level needed to plow tiles up to it }
+local TILE_STEPS = {
+	{ upTo = 12, level = 1 },
+	{ upTo = 24, level = 10 },
+	{ upTo = 36, level = 25 },
+}
 
 return {
-	MAX_TILES = MAX_TILES,
+	TILE_FREE = TILE_FREE,
+	TILE_COST = TILE_COST,
+
+	-- Highest tile number this level may plow (the farm snapshot sends it as `cap`).
+	tileCap = function(level: number): number
+		local cap = 0
+		for _, step in TILE_STEPS do
+			if level >= step.level then
+				cap = step.upTo
+			end
+		end
+		return cap
+	end,
+
+	-- Koin for plowing tile number n (n = count + 1): free for the first TILE_FREE tiles.
+	tileCost = function(n: number): number
+		return if n <= TILE_FREE then 0 else n * TILE_COST
+	end,
 
 	-- STAGE 2: alat siram. Bought with Koin from Pak Udin (Alat section). Gembor waters a 3x3 block of beds in one tap.
 	-- Sprinkler (Lv 7, Koin 800) is NOT built yet (see docs/OVERNIGHT_LOG.md).

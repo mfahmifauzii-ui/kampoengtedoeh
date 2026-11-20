@@ -19,6 +19,7 @@ local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Onboarding = require(ReplicatedStorage.Shared.Config.Onboarding)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Types = require(ReplicatedStorage.Shared.Types)
+local EconomyService = require(script.Parent.EconomyService)
 local DataService = require(script.Parent.DataService)
 local InventoryService = require(script.Parent.InventoryService)
 local PlotService = require(script.Parent.PlotService)
@@ -192,9 +193,9 @@ local function buildTiles(player: Player, plot: Model)
 	end
 end
 
--- How many tiles this player may have tilled (only a safety valve: the land you own is the real limit).
-function FarmService.Cap(_player: Player, _data: Types.PlayerData): number
-	return Farm.MAX_TILES
+-- How many tiles this player may have tilled, by level (Bab 5.2).
+function FarmService.Cap(data: Types.PlayerData): number
+	return Farm.tileCap(data.level)
 end
 
 local function characterDistance(player: Player, position: Vector3): number?
@@ -234,8 +235,9 @@ local function onTill(player: Player, cx: any, cz: any)
 	if not data or not plot or not origin then
 		return
 	end
-	local cap = FarmService.Cap(player, data)
-	if #data.farm.tiles >= cap then
+	local cap = FarmService.Cap(data)
+	local n = #data.farm.tiles + 1
+	if n > cap then
 		Net.Fire("Notify", player, "farm.till_full", { max = cap })
 		return
 	end
@@ -246,6 +248,11 @@ local function onTill(player: Player, cx: any, cz: any)
 	end
 	if not Land.canTill(cx, cz, data.farm.tiles, decorRects(data), data.land.chunks) then
 		Net.Fire("Notify", player, "farm.till_invalid")
+		return
+	end
+	local cost = Farm.tileCost(n)
+	if cost > 0 and not EconomyService.TrySpend(player, "koin", cost, `till:{n}`) then
+		Net.Fire("Notify", player, "notify.not_enough", { currency = "currency.koin" })
 		return
 	end
 

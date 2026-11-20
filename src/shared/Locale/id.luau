@@ -32,7 +32,7 @@ return {
 	["farm.locked"] = "Terbuka di Level {level}",
 	["farm.tilled"] = "Tanah dicangkul",
 	["farm.leveled"] = "Petak dihapus, jadi rumput lagi",
-	["farm.till_full"] = "Petak penuh ({max}). Hapus petak yang tak terpakai",
+	["farm.till_full"] = "Petak tanam sudah {max} untuk levelmu. Naik level untuk membuka petak lagi",
 	["farm.till_far"] = "Terlalu jauh, dekati dulu",
 	["farm.till_invalid"] = "Tidak bisa digarap di situ",
 	["farm.level_busy"] = "Panen dulu tanamannya",

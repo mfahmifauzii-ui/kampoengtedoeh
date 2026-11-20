@@ -78,7 +78,7 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		pondTier = Upgrades.tier(data, "pond"),
 		ponds = pondCells(data),
 		quests = { active = table.clone(data.quests.active), done = table.clone(data.quests.done), daily = table.clone(data.quests.daily) },
-		farm = { tiles = farmTiles(data), cap = FarmConfig.MAX_TILES },
+		farm = { tiles = farmTiles(data), cap = FarmConfig.tileCap(data.level) },
 		landChunks = table.clone(data.land.chunks),
 		landExtra = Land.extraCount(data.land.chunks),
 		landPrice = Land.chunkPrice(Land.extraCount(data.land.chunks)),
