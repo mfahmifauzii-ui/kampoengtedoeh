@@ -1,8 +1,7 @@
 --!strict
--- XP + levels, generic reward granting, and Kunjungan Harian (daily visit reward).
+-- XP + levels and generic reward granting. (Kunjungan Harian was removed in v6.2 T-28: Login Mingguan Bab 15.1 is the only login reward.)
 -- Player attributes for the HUD: "Level", "XP" (progress inside the level), "XPNext".
 
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Blueprints = require(ReplicatedStorage.Shared.Config.Blueprints)
@@ -13,7 +12,6 @@ local Progression = require(ReplicatedStorage.Shared.Config.Progression)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Signal = require(ReplicatedStorage.Shared.Modules.Signal)
-local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
@@ -147,56 +145,9 @@ function ProgressionService.DevSetLevel(player: Player, level: number)
 end
 
 -- Kunjungan Harian: first time we see the player on a new WIB day.
--- Stage fix (user, 16 Nov): the daily bonus is NOT given before the first tutorial (T1) is over. It waits, and is
--- claimed right after T1 (TutorialService calls CheckDailyVisit). Skipping T1 also unlocks it.
-local function checkDailyVisit(player: Player)
-	local data = DataService.Get(player)
-	local today = TimeKeys.day()
-	if not data or data.visits.lastDay == today then
-		return
-	end
-	if data.guide.done.t1_awal ~= true and data.guide.skipped.t1_awal ~= true then
-		return
-	end
-	-- Not paid automatically any more: it becomes CLAIMABLE (visits.pending) and the player taps "Ambil hadiah" in Panduan.
-	data.visits.lastDay = today
-	data.visits.pending = true
-	InventoryService.Sync(player)
-end
-
--- The claim (Net VisitClaim): pays today's Kunjungan Harian once.
-local function onVisitClaim(player: Player)
-	local data = DataService.Get(player)
-	if not data or data.visits.pending ~= true then
-		return
-	end
-	data.visits.pending = false
-	data.visits.count += 1
-	local step = (data.visits.count - 1) % #Progression.VISIT_REWARDS + 1
-	ProgressionService.Grant(player, Progression.VISIT_REWARDS[step], `visit:{data.visits.count}`)
-	Net.Fire("Notify", player, "visit.reward", { day = data.visits.count, step = step })
-	InventoryService.Sync(player)
-end
-
-ProgressionService.CheckDailyVisit = checkDailyVisit
-
 function ProgressionService.Init()
-	Net.On("VisitClaim", onVisitClaim, { rate = 3, burst = 6 })
 	DataService.Loaded:Connect(function(player: Player, data: Types.PlayerData)
 		syncAttributes(player, data)
-		task.delay(3, checkDailyVisit, player) -- after the HUD is up
-	end)
-end
-
-function ProgressionService.Start()
-	-- Players online across midnight WIB still get the next day's visit.
-	task.spawn(function()
-		while true do
-			task.wait(60)
-			for _, player in Players:GetPlayers() do
-				checkDailyVisit(player)
-			end
-		end
 	end)
 end
 

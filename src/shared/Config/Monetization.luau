@@ -29,8 +29,7 @@ return {
 	-- and you can't buy more than you could use today.
 	INSTANT_GROW_DAILY_LIMIT = 3,
 
-	-- Roblox Premium perks (small, never required). Premium never multiplies Koin (Bab 19).
-	PREMIUM_EXTRA_REROLLS = 1,
+	-- Roblox Premium gives no Koin multiplier and no other boost (Bab 19, T-32). Premium stays a flag only.
 
 	PURCHASE_ID_CACHE_SIZE = 100,
 }

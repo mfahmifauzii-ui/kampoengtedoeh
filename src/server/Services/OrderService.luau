@@ -1,6 +1,6 @@
 --!strict
 -- Villager orders: 3 daily + 1 weekly, generated from the player's unlocked content.
--- Deliver from anywhere (cozy, no walking chores). Rerolls: free ones, then Bunga.
+-- Deliver from anywhere (cozy, no walking chores). Rerolls: free ones, then Bunga (a Bunga sink, not a source).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -16,9 +16,7 @@ local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
 local InventoryService = require(script.Parent.InventoryService)
 local ProgressionService = require(script.Parent.ProgressionService)
-local MonetizationService = require(script.Parent.MonetizationService)
 local AnalyticsHooks = require(script.Parent.AnalyticsHooks)
-local Monetization = require(ReplicatedStorage.Shared.Config.Monetization)
 
 type OrderEntry = Types.OrderEntry
 type Candidate = { id: string, price: number, maxCount: number }
@@ -84,7 +82,6 @@ local function newOrder(data: Types.PlayerData, weekly: boolean): OrderEntry
 		items = items,
 		koin = koin,
 		xp = math.max(5, math.floor(koin * Orders.XP_PER_KOIN * (if weekly then Orders.WEEKLY_XP_MULT else 1) + 0.5)),
-		bunga = if weekly then Orders.WEEKLY_BUNGA else nil,
 		decor = if weekly then Orders.WEEKLY_DECOR_POOL[random:NextInteger(1, #Orders.WEEKLY_DECOR_POOL)] else nil,
 		done = false,
 	}
@@ -180,7 +177,6 @@ local function onDeliver(player: Player, uid: any)
 	local koin = order.koin
 	ProgressionService.Grant(player, {
 		koin = koin,
-		bunga = order.bunga,
 		xp = order.xp,
 		decor = if order.decor then { [order.decor] = 1 } else nil,
 	}, `order:{order.npc}`)
@@ -189,8 +185,8 @@ local function onDeliver(player: Player, uid: any)
 	InventoryService.Sync(player)
 end
 
-function OrderService.FreeRerolls(player: Player): number
-	return Orders.FREE_REROLLS + (if MonetizationService.IsPremium(player) then Monetization.PREMIUM_EXTRA_REROLLS else 0)
+function OrderService.FreeRerolls(_player: Player): number
+	return Orders.FREE_REROLLS -- T-32: Premium gives no extra reroll (Bab 19)
 end
 
 local function onReroll(player: Player, uid: any)

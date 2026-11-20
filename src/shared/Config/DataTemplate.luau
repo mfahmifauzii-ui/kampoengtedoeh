@@ -72,7 +72,6 @@ local template: Types.PlayerData = {
 		daily = { day = "", kind = "", progress = 0, claimed = false }, -- Stage 7: Daily Quest (Config/Quests DAILY), reset 05:00 WIB
 	},
 
-	visits = { count = 0, lastDay = "", pending = false }, -- Kunjungan Harian (cumulative). pending = today's bonus can be claimed (after T1, user 16 Nov)
 	playtime = { day = "", seconds = 0, claimed = 0 }, -- Hadiah playtime: active seconds today, chests opened today (Config/Progression PLAYTIME)
 
 	book = {

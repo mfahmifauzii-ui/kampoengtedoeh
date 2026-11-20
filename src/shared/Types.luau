@@ -93,7 +93,6 @@ export type PlayerData = {
 		weekly: OrderEntry | {},
 		nextUid: number,
 	},
-	visits: { count: number, lastDay: string },
 	playtime: { day: string, seconds: number, claimed: number },
 	book: {
 		crops: { [string]: boolean },

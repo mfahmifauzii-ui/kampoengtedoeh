@@ -55,7 +55,6 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	SocialLike = "Event", -- C->S (ownerUserId: number) like the plot you're standing on
 
 	PlaytimeClaim = "Event", -- C->S (index: number) open playtime peti number index (in order, Config/Progression PLAYTIME)
-	VisitClaim = "Event", -- C->S () claim today's Kunjungan Harian bonus (only after T1, Stage fix 16 Nov)
 	BookClaim = "Event", -- C->S (key: string) claim a Book reward: "cat:<category>" or a milestone id (Config/Book)
 
 	GuideEvent = "Event", -- C->S (action: "start"|"step"|"skip"|"replay", tutorialId: string, n: number?) tutorial engine, see TutorialService

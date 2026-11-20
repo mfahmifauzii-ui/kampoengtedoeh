@@ -25,7 +25,6 @@ local NOTIFY_ROLE: { [string]: string } = {
 	["order.done"] = "order_done",
 	["quest.done"] = "order_done",
 	["chest.opened"] = "order_done",
-	["visit.reward"] = "order_done",
 	["land.bought"] = "order_done",
 	["level.up"] = "level_up",
 	["level.up_unlocks"] = "level_up",

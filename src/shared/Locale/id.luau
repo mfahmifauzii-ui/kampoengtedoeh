@@ -444,7 +444,6 @@ return {
 	["spot.empang"] = "Pro Mancing",
 	["spot.open"] = "Terbuka",
 	["spot.need"] = "Butuh Lv {level}",
-	["visit.reward"] = "Kunjungan ke-{day}! Hadiah hari ini sudah masuk",
 
 	-- Orders
 	["ui.orders"] = "Pesanan",
@@ -454,7 +453,7 @@ return {
 	["order.daily"] = "Pesanan Hari Ini",
 	["order.weekly"] = "Pesanan Mingguan",
 	["order.reward"] = "+{koin} Koin · +{xp} XP",
-	["order.reward_weekly"] = "+{koin} Koin · +{xp} XP · +{bunga} Bunga · {decor}",
+	["order.reward_weekly"] = "+{koin} Koin · +{xp} XP · {decor}",
 	["order.rerolls_free"] = "Ganti gratis: {n}",
 	["order.rerolls_paid"] = "Ganti: {n} Bunga",
 	["order.missing"] = "Barangnya belum cukup",
@@ -521,7 +520,6 @@ return {
 	["store.thanks"] = "Terima kasih! Pembelian sudah masuk",
 	["store.instant_limit"] = "Batas Langsung Panen hari ini: {n}",
 	["store.instant_none"] = "Token habis atau batas harian tercapai",
-	["store.premium"] = "Premium: +10% Koin pesanan · +1 ganti gratis",
 	["tile.title"] = "Petak",
 	["tile.instant"] = "Langsung panen",
 	["tile.instant_sub"] = "Pakai 1 token (punya {n})",
@@ -579,13 +577,6 @@ return {
 
 	-- Hadiah (R3 17.3 kalender harian, 17.4 peti playtime)
 	["ui.rewards"] = "Hadiah",
-	["rewards.calendar"] = "Kalender Harian",
-	["rewards.visit_claim"] = "Ambil hadiah harian",
-	["rewards.calendar_hint"] = "Masuk tiap hari untuk hadiah. Libur tidak mengurangi.",
-	["rewards.day"] = "Hari {n}",
-	["rewards.today"] = "Hari ini",
-	["rewards.next"] = "Besok",
-	["rewards.got"] = "Diterima",
 	["rewards.chests"] = "Peti Main",
 	["rewards.chests_hint"] = "Peti terbuka saat kamu aktif bergerak.",
 	["rewards.chest"] = "Peti {n}",

@@ -132,9 +132,6 @@ local function onGuideEvent(player: Player, action: any, tutorialId: any, n: any
 			if tutorialId == "t1b_kolam" then
 				guide.decorUnlocked = true -- decorating opens when the whole second tutorial is finished
 			end
-			if tutorialId == "t1_awal" then
-				ProgressionService.CheckDailyVisit(player) -- Kunjungan Harian hari 1 waits for T1 (user, 16 Nov)
-			end
 			logEvent(player, `tut_{tutorialId}_done`, tutorialId)
 		end
 	elseif action == "replay" then

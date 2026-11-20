@@ -152,7 +152,7 @@ local function render()
 		end
 	end
 
-	panel.footerLabel.Text = if snapshot and snapshot.premium then Locale.t("store.premium") else ""
+	panel.footerLabel.Text = "" -- Premium gives no Koin boost (Bab 19, T-32): no footer line
 	fitHeight()
 end
 

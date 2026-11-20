@@ -27,7 +27,7 @@ local START_KINDS = {
 }
 
 -- Chunk yang dibeli (Bab 3.1) juga dapat ilalang & semak. Jumlahnya dari kepadatan lahan awal (64 objek di ~14.800 stud²,
--- satu chunk 32 x 32 = 1.024 stud²) dibulatkan: 4 objek. Angka ini asumsi, lihat docs/TODO.md T-25.
+-- satu chunk 32 x 32 = 1.024 stud²) dibulatkan: 4 objek. Dikonfirmasi owner (T-25, Bab 3.4 v6.2.1).
 local CHUNK_KINDS = {
 	{ id = "ilalang", count = 3, taps = 1 },
 	{ id = "semak", count = 1, taps = 2 },

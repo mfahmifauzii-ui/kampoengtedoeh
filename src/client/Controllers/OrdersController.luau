@@ -54,7 +54,7 @@ end
 local function addOrderRow(order: any, items: { [string]: number }, order_: number, weekly: boolean, rerollText: string?)
 	local name = Locale.t(`npc.{order.npc}`)
 	local reward = if weekly
-		then Locale.t("order.reward_weekly", { koin = Locale.formatNumber(order.koin), xp = order.xp, bunga = order.bunga or 0, decor = Locale.t(`decor.{order.decor}`) })
+		then Locale.t("order.reward_weekly", { koin = Locale.formatNumber(order.koin), xp = order.xp, decor = Locale.t(`decor.{order.decor}`) })
 		else Locale.t("order.reward", { koin = Locale.formatNumber(order.koin), xp = order.xp })
 
 	if order.done then
