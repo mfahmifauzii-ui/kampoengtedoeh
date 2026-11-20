@@ -1,5 +1,5 @@
 # KAMPOENG TEDOEH — Dokumen Gameplay Lengkap
-## v6.2.2 — Single Source of Truth untuk Claude Code
+## v6.2.3 — Single Source of Truth untuk Claude Code
 
 > Dokumen ini menggantikan SEMUA versi sebelumnya (v1.0 sampai v6.1). Kalau ada konflik dengan dokumen lain, dokumen ini yang menang.
 > Aturan revisi: setiap aturan hanya ditulis di SATU bab. Bab lain cukup merujuk (`lihat Bab X`). Tidak ada lagi aturan yang ditulis ulang di 3 tempat dengan angka beda.
@@ -115,6 +115,20 @@ Tagline tim: `Kampung lo, rumah lo, panen lo — tiap hujan petir bisa jadi pane
 | 2 | Bab 5.1: telat panen punya ambang 10 menit setelah matang (angka tim, Config). | Bab 5.1 tidak menyebut ambang. Tanpa ambang, scale 1,1 tidak punya titik mulai. |
 | 3 | Bab 17.2 tidak menyebut waktu tanam, jadi angka faucet tidak berubah. Estimasi Koin per jam Early ada di catatan playtest (Fase 1 DoD). | Cek sanity. |
 | 4 | Mutasi: Embun (x1,5, Bab 5.4) dipasang sebagai plumbing Config/Mutasi. Panen pertama FTUE selalu Super + Embun (Bab 16.3 0:50). Roll Mutasi acak masih Fase 2. | Supaya Fase 2 menambah entri, tidak mengganti sistem. |
+
+### 0.3.5 Changelog v6.2.2 → v6.2.3 (Feedback playtest owner, Fase 1)
+
+| # | Perubahan | Alasan |
+|---|-----------|--------|
+| 1 | **FTUE jadi state machine berbasis kondisi game (Bab 16.3).** Langkah selesai saat kondisinya terpenuhi, atau saat kondisi langkah SESUDAHNYA terpenuhi (panen menyelesaikan Siram). Siram opsional: menyiram ATAU panen. Gerimis tetap menyiram. | Playtest: tutorial bisa macet kalau langkah tidak dikerjakan berurutan. |
+| 2 | **Tombol Lewati:** `Lewati langkah` (tanpa konfirmasi) dan `Lewati panduan` (sekali konfirmasi). Keduanya divalidasi server, hadiah langkah dan hadiah Kakek Fajar tetap diberikan. Lewati dialog dan cutscene belum ada (TODO T-45). | Playtest: tidak ada jalan keluar saat tutorial macet. |
+| 3 | **Memancing (Bab 23.2 AKSI):** tombol Mancing muncul saat dekat dermaga atau kolam setelah Joran Bambu diberikan, dan langkah Mancing disorot ke tombol itu. Joran Bambu ikut tampil di Tas. Hadiah langkah Mancing: 20 XP (sama dengan langkah warung). Dermaga dibangun ulang kalau tidak ada titik mancing di peta (bug: folder Fishing kosong di Studio). | Playtest: tombol Mancing tidak ada, penanda dermaga tidak muncul, joran tidak terlihat. |
+| 4 | **Ikon Tas per kategori.** Pelet dan panen Super/Mutasi tidak lagi memakai ikon joran. Pakai ikon kategori, atau ikon tas umum. | Playtest: salah ikon. |
+| 5 | **Label harga Pak Udin** diambil dari config (100%), bukan teks tetap 90%. | Playtest: label salah. |
+| 6 | **Garap:** kotak yang dicek hanya terrain (benda kecil tidak lagi membuatnya tidak valid). Tap ke kotak tidak valid pindah ke kotak valid terdekat. Tap disederhanakan. | Playtest: tap Garap perlu beberapa kali. |
+| 7 | **Lahan awal bersih:** ilalang, semak, batu, tunggul, bitmask, hadiah Koin 200 dan hadiah bahan (T-26) dihapus. Chunk yang dibeli juga bersih. | Playtest: owner memutuskan lahan bersih. |
+| 8 | **Bundel Kakek = proyek Blueprint** (bukan reruntuhan). Kerangka kosong muncul di level bukanya. Biaya, setoran, dan hadiah sama. Kerja Bakti Kilat jadi satu-satunya kegiatan bersih-bersih. | Keputusan owner. Implementasi proyek Blueprint ikut Fase 5 (BundelService). |
+| 9 | **NPC:** model yang tidak ada dicatat sekali saat start (daftar id). Nek Ani tetap Nek Ani. | Playtest: NPC generik muncul diam-diam. |
 
 ### 0.4 Self-Score v6.0 (Di Atas Kertas)
 
@@ -241,24 +255,13 @@ Tagline tim: `Kampung lo, rumah lo, panen lo — tiap hujan petir bisa jadi pane
 - HUD: ikon cuaca + timer kecil (`Hujan 07:32` / `Hujan: 02:15`).
 - Info pertama kali tiap jenis cuaca: toast 1x per akun (bukan per sesi), lalu tidak muncul lagi.
 
-### 3.4 Kondisi Awal Lahan — "Lahan Kakek yang Gak Keurus" (v6.1, LOCKED)
+### 3.4 Kondisi Awal Lahan — "Lahan Kakek yang Gak Keurus" (v6.2.3, LOCKED)
 
-Lahan baru sengaja kelihatan terbengkalai. Itu cerita pulang kampung, dan before/after-nya jadi kebanggaan player.
+**Lahan awal BERSIH sepenuhnya.** Tidak ada ilalang, semak, batu kecil, tunggul, atau bangunan rusak di lahan pemain baru. Chunk yang dibeli juga bersih. Tidak ada bitmask objek awal, dan tidak ada hadiah "bersihkan lahan" (Koin 200 dan bahan Jerami/Kayu/Bambu/Batu dihapus, T-26 ditutup).
 
-| Objek Awal | Jumlah | Aturan | Hasil Dibersihkan |
-|------------|--------|--------|-------------------|
-| Area bersih awal | 1 area 24x24 | Sudah bersih: 6 petak + rangka rumah + jalan setapak ke gerbang | - |
-| Ilalang | 40 rumpun | 1 tap (alat apa saja / tangan). Tidak tumbuh lagi. | 1 Jerami |
-| Semak | 12 | 2 tap | 1 Kayu + 10% 1 Bambu |
-| Batu Kecil | 8 | 2 tap | 2 Batu |
-| Tunggul Pohon | 4 | 3 tap | 3 Kayu |
-| Bangunan Kakek Rusak | 5 | Lihat Bundel Kakek (Bab 14.5) | Dipulihkan, bukan dibersihkan |
-
-- **Tidak mengunci lahan (Prinsip #8):** menaruh petak / piece Hias / kandang di atas ilalang, semak, batu kecil, atau tunggul = objek itu otomatis dibersihkan dan bahannya masuk tas. Ghost tetap hijau.
-- Posisi objek awal di-generate dari 1 template tetap (sama untuk semua player), disimpan sebagai bitmask `LahanAwal` (1 bit per objek, 64 objek = 8 byte).
-- Chunk yang dibeli (Bab 3.1) juga berisi ilalang & semak (template per chunk, kepadatan sama dengan lahan awal) — tanpa bangunan rusak. **Isi per chunk (v6.2.1, T-25): 3 ilalang + 1 semak.** Tidak ada batu atau tunggul di chunk.
-- Posisi objek dibuat untuk lahan awal 128×128. Bitmask hanya untuk 64 objek bersihkan (ilalang 40 + semak 12 + batu 8 + tunggul 4). 5 bangunan Kakek dicatat di Bundel (Bab 14.5), bukan di bitmask.
-- Pencapaian kecil: bersihkan semua objek awal → `Lahan Kakek Bersih` + 200 Koin + dekor Papan Nama Lahan.
+- Yang tetap "berantakan" dengan cerita: **5 bangunan peninggalan Kakek Daeng** (Bab 14.5). Di lahan muncul **kerangka kosong** (outline pondasi) sesuai level bukanya. Itu proyek Blueprint biasa: biaya, setoran, dan hadiah sama dengan Bab 14.5, dan boleh dicicil.
+- Kebersihan lahan adalah hasil awal, bukan tugas. Satu-satunya kegiatan bersih-bersih adalah **Kerja Bakti Kilat** (Bab 13.4) setelah badai.
+- Chunk yang dibeli (Bab 3.1) bersih dan tidak punya objek awal (T-25 tidak lagi berlaku).
 
 ---
 
@@ -897,15 +900,15 @@ Contoh Surat #1: `Cucuku, kalau kamu baca ini, berarti kamu sudah pulang. Lahan 
 
 ### 14.5 Bundel Kakek — Memulihkan Peninggalan Kakek (v6.1, LOCKED)
 
-**Konsep:** di lahan awal ada 5 bangunan peninggalan Kakek Daeng yang rusak (Bab 3.4). Tiap bangunan punya daftar setoran (bundel). Setoran lengkap → bangunan pulih + fitur permanen + Surat Kakek spesial. 100% pribadi, tidak tergantung player lain.
+**Konsep (v6.2.3):** 5 bangunan peninggalan Kakek Daeng (Bab 3.4) adalah **proyek Blueprint biasa**, bukan reruntuhan. Saat level bukanya tercapai, kerangka kosong (outline pondasi) muncul di lahan. Tiap proyek punya daftar setoran (bundel), dan boleh dicicil lintas sesi. Setoran lengkap → bangunan jadi + fitur permanen + Surat Kakek spesial. 100% pribadi, tidak tergantung player lain. Biaya dan hadiah sama seperti sebelum v6.2.3.
 
-| Bangunan | Buka | Ukuran | Kondisi Rusak (Visual) | Setoran | Setelah Pulih |
+| Bangunan | Buka | Ukuran | Kerangka di Lahan (Visual) | Setoran | Setelah Pulih |
 |----------|------|--------|------------------------|---------|---------------|
-| **Kolam Kakek** | Lv 3 (MQ4) | 8x8 | Kolam kering, retak, penuh batu runtuhan | Tahap 1: bersihkan reruntuhan (5 tap → dapat 10 Batu). Tahap 2: 3 ikan apa saja + 10 Batu | Kolam tier Tanah gratis, breeding 10% lebih cepat dari kolam biasa |
-| **Sumur Tua** | Lv 6 | 4x4 | Bibir sumur ambruk, katrol patah | 15 Batu + 5 Bata + 10 Kangkung + 5 Tomat | Tiap Pagi game, semua petak dalam radius 3 petak dari sumur otomatis tersiram (Basah) |
-| **Lumbung Kakek** | Lv 12 | 8x8 | Atap bolong, pintu copot, tiang miring | 30 Papan + 20 Padi + 10 Jagung + 1 hasil Mutasi apa saja | Tas +20 slot (permanen, menumpuk dengan Game Pass Tas Besar) |
-| **Saung Kakek** | Lv 20 | 6x6 | Atap ijuk rontok, lantai bambu bolong | 15 Anyaman + 10 Atap Ijuk + 3 olahan berbeda | Duduk di Saung 5 detik → buff `Istirahat Sejenak`: +5% XP semua selama 10 menit (sekali per hari game) |
-| **Empang & Dermaga Kakek** | Lv 30 | 10x10 | Empang dangkal penuh lumpur, dermaga papan patah | 30 Papan + 10 Semen + 10 ikan tier Mid + 1 ikan Jumbo apa saja | Spot mancing pribadi di lahan: ikan Kanal + Danau yang sudah terbuka (bukan Legenda, bukan ikan Malam/Pagi khusus). Kak Fajar mampir sesekali duduk di dermaga |
+| **Kolam Kakek** | Lv 3 (MQ4) | 8x8 | Outline kolam kosong | Tahap 1: 10 Batu (Batu jadi bahan, Bab 8.2). Tahap 2: 3 ikan apa saja + 10 Batu | Kolam tier Tanah gratis, breeding 10% lebih cepat dari kolam biasa |
+| **Sumur Tua** | Lv 6 | 4x4 | Outline sumur kosong | 15 Batu + 5 Bata + 10 Kangkung + 5 Tomat | Tiap Pagi game, semua petak dalam radius 3 petak dari sumur otomatis tersiram (Basah) |
+| **Lumbung Kakek** | Lv 12 | 8x8 | Outline lumbung kosong | 30 Papan + 20 Padi + 10 Jagung + 1 hasil Mutasi apa saja | Tas +20 slot (permanen, menumpuk dengan Game Pass Tas Besar) |
+| **Saung Kakek** | Lv 20 | 6x6 | Outline saung kosong | 15 Anyaman + 10 Atap Ijuk + 3 olahan berbeda | Duduk di Saung 5 detik → buff `Istirahat Sejenak`: +5% XP semua selama 10 menit (sekali per hari game) |
+| **Empang & Dermaga Kakek** | Lv 30 | 10x10 | Outline empang dan dermaga kosong | 30 Papan + 10 Semen + 10 ikan tier Mid + 1 ikan Jumbo apa saja | Spot mancing pribadi di lahan: ikan Kanal + Danau yang sudah terbuka (bukan Legenda, bukan ikan Malam/Pagi khusus). Kak Fajar mampir sesekali duduk di dermaga |
 
 **Aturan (LOCKED):**
 
@@ -1021,14 +1024,15 @@ Total pencapaian rilis ≈ 1.390 Bunga (terbagi berbulan-bulan, paling banyak di
 | Elemen | Aturan |
 |--------|--------|
 | Cutscene | Hanya 3: Pulang Kampung, Hadiah Pak Amran, Rumah Pertama Jadi. Tiap cutscene ≤ 6 detik total. Tombol `Lewati >` di kanan atas (di bawah tombol Settings, jarak 16px) sejak detik pertama, semua akun. Hadiah tetap diberikan. |
-| Bubble NPC | `Lanjut >` mempercepat. Player tetap bisa jalan. |
-| Coachmark | Panah + teks kecil, hilang saat target yang benar dipencet. Jalan menjauh tidak menghilangkannya. Tombol lain tetap bisa dipencet. Jika 20 detik tidak dipencet, muncul `Lewati >` kecil (anti soft-lock); step dianggap selesai, hadiah tetap. Coachmark hanya muncul pertama kali sistem dikenalkan. |
+| Bubble NPC | `Lanjut >` mempercepat. Player tetap bisa jalan. **v6.2.3:** tombol `Lewati` untuk dialog dan cutscene belum dibangun (TODO T-45). |
+| Panduan (seluruh tutorial) | **v6.2.3:** `Lewati panduan` (52 px, kanan atas) menanyakan sekali, lalu sisa langkah dianggap selesai dan hadiahnya tetap diberikan. Hadiah Kakek Fajar (Joran Bambu, pelet) ikut diberikan kalau langkah Kakek Fajar terlewati. |
+| Coachmark | Panah + teks kecil, hilang saat target yang benar dipencet. Jalan menjauh tidak menghilangkannya. Tombol lain tetap bisa dipencet. **v6.2.3:** `Lewati langkah` (52 px, kanan atas, di bawah Settings) selalu terlihat selama tutorial berjalan, tanpa menunggu 20 detik, tanpa konfirmasi. Hadiah langkah tetap diberikan. Coachmark hanya muncul pertama kali sistem dikenalkan. |
 
 ### 16.3 FTUE Menit per Menit
 
 | Waktu | Beat | Detail |
 |-------|------|--------|
-| 0:00 | Cutscene Pulang Kampung | Player turun dari angkot di gapura kampung, kamera menyapu lahan Kakek yang penuh ilalang + bangunan rusak, Mak Sari melambai (≤6 detik) |
+| 0:00 | Cutscene Pulang Kampung | Player turun dari angkot di gapura kampung, kamera menyapu lahan Kakek yang bersih dan kosong, menunggu dibangun (Bab 3.4 v6.2.3), Mak Sari melambai (≤6 detik) |
 | 0:10 | Mak Sari | `Lhooo... [Nama]! Gede banget sekarang kamu!` / `Lahan Kakek nunggu kamu.` |
 | 0:20 | Tanam | Coachmark petak → Tanam Kangkung (petak sudah siap, tidak perlu cangkul) |
 | 0:30 | Siram | Coachmark gembor → Siram. Gerimis tutorial turun 20 detik (pakai sistem cuaca, override sekali) |
@@ -1050,7 +1054,7 @@ Target: 90% player baru menyelesaikan FTUE. Total klik inti ≈ 25.
 
 | MQ | Pemicu | NPC | Durasi | Inti |
 |----|--------|-----|--------|------|
-| MQ4 Kolam Kakek | Lv 3 | Mak Sari datang ke lahan | 1,5 mnt | Mak Sari: `Dulu Kakekmu suka mancing terus taruh ikannya di sini.` Coachmark bersihkan reruntuhan (5 tap) → setor 3 ikan + 10 Batu → cutscene pulih → taruh 2 ikan sejenis + pakan → percepat 10 detik sekali, dijelaskan `biasanya 6 jam`. Mak Sari: `Bangunan Kakek yang lain juga bisa kamu benerin pelan-pelan.` |
+| MQ4 Kolam Kakek | Lv 3 | Mak Sari datang ke lahan | 1,5 mnt | Mak Sari: `Dulu Kakekmu suka mancing terus taruh ikannya di sini.` Coachmark Kolam Kakek (Blueprint, Bab 14.5) → setor 3 ikan + 10 Batu → cutscene pulih → taruh 2 ikan sejenis + pakan → percepat 10 detik sekali, dijelaskan `biasanya 6 jam`. Mak Sari: `Bangunan Kakek yang lain juga bisa kamu benerin pelan-pelan.` |
 | MQ5 Hutan di Barat | Lv 4 | Pak Amran | 1,5 mnt | Pukul 1 pohon dengan ritme → craft Papan → pasang Papan |
 | MQ6 Kokok Pertama | Lv 5 | Pak Udin | 1 mnt | Ayam gratis → isi pakan → ambil telur (dipercepat sekali) |
 | MQ7 Tungku Mak Sari | Lv 6 | Mak Sari | 1,5 mnt | Craft Inti Dapur (bahan diberi jika kurang) → Tumis Kangkung → jual di Warung |
@@ -1098,6 +1102,8 @@ Target porsi Koin player inti: Nanem 30% | Mancing 25% | Ternak+Kolam+Bubu 15% |
 | Bubu (3 sampai Besi) | 17.700 | Bab 6.6 |
 | Skill (16 × 15.000) | 240.000 | Bab 4.5 |
 | **Total** | **~623.000** | |
+
+**Catatan v6.2.3:** Bundel Kakek tidak mengubah total sink (biaya sama). Hadiah lahan bersih 200 Koin dihapus, jadi faucet awal turun 200 Koin sekali.
 
 **442.000 / 623.000 ≈ 71%.** Sink kecil berulang (pajak Lapak 5%, Gerobak Kaget, Garam, pakan ekstra) tidak dihitung, berfungsi sebagai rem inflasi.
 
@@ -1780,4 +1786,4 @@ Kerjakan sesuai Bab 27, urut dari Fase 0. Semua angka ambil dari Bab yang ditunj
 
 Game ini harus terasa cozy setiap hari, dan sesekali bikin satu server teriak "WOOO" bareng.
 
-Dokumen ini v6.2.2. Revisi berikutnya v6.3 + isi Changelog Bab 0.3.
+Dokumen ini v6.2.3. Revisi berikutnya v6.3 + isi Changelog Bab 0.3.

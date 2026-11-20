@@ -528,6 +528,7 @@ local function onHarvest(player: Player, uid: any)
 	if guaranteed then
 		data.guide.done.ftue_super = true -- marked only after the item is in the bag (a full bag must not waste it)
 	end
+	data.onboarding.first_harvest = true -- A1: the tutorial treats a harvest as done for the planting and watering steps
 
 	local harvestsLeft = tile.harvestsLeft or 0
 	if harvestsLeft > 0 then

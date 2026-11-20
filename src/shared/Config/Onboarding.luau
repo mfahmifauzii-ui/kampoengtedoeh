@@ -15,6 +15,7 @@ export type Condition = {
 	n: number?, -- ">=" threshold (default 1)
 	id: string?, -- item prefix / npc id / panel name, per kind
 	dist: number?, -- studs, for "near" (default 25)
+	any: { Condition }?, -- kind "any": true when one of these holds (v6.2.3 A1)
 }
 
 export type Reward = {
@@ -73,6 +74,11 @@ export type Tutorial = {
 --   "ponds"                   n or more ponds of mine are built
 --   "fish"                    n or more fish in the bag (any item written <fish>@<size>)
 --   "quest"                   the quest named `id` is done (snapshot.quests.done)
+--   "harvested"               the player has harvested at least once (snapshot.onboarding.first_harvest)
+--   "any"                     one of `any` holds (v6.2.3 A1: a step is also done by the state a later step needs)
+-- SEQUENCE (v6.2.3 A1): the tutorial is state-driven. When a step's condition holds, the step completes; when a LATER
+-- step's condition holds, every step before it completes too (the server pays each one). "always" and "ack" never
+-- complete a step early.
 -- TRIGGER KINDS:
 --   "newPlayer"   a save with no beds and nothing planted yet (starts at once on join)
 --   "level"       level >= n
@@ -99,7 +105,7 @@ local TUTORIALS: { Tutorial } = {
 				id = "cangkul",
 				text = "tut.t1.s1",
 				coach = "tut.coach.garap",
-				done = { kind = "tiles", n = 1 },
+				done = { kind = "any", any = { { kind = "tiles", n = 1 }, { kind = "planted", n = 1 }, { kind = "harvested" } } },
 				highlight = "GarapButton",
 				reward = { xp = 1 },
 			},
@@ -108,15 +114,15 @@ local TUTORIALS: { Tutorial } = {
 				text = "tut.t1.s2",
 				coach = "tut.coach.tanam",
 				textStuck = "tut.t1.s2_stuck",
-				done = { kind = "planted", n = 1 },
+				done = { kind = "any", any = { { kind = "planted", n = 1 }, { kind = "harvested" } } },
 				highlight = "TanamButton",
 				reward = { xp = 1 },
 			},
 			{
 				id = "siram",
 				text = "tut.t1.s3",
-				coach = "tut.coach.siram",
-				done = { kind = "watered", n = 1 },
+				coach = "tut.coach.siram", -- optional (v6.2.3 A1): watering OR a harvest completes it; Gerimis waters too
+				done = { kind = "any", any = { { kind = "watered", n = 1 }, { kind = "harvested" } } },
 				highlight = "SiramButton",
 				reward = { xp = 1 },
 			},
@@ -164,9 +170,12 @@ local TUTORIALS: { Tutorial } = {
 				-- One fish at the river dock (the gift gave the Joran Bambu, so the rod is owned).
 				id = "mancing",
 				text = "tut.t1b.mancing",
+				coach = "tut.coach.mancing", -- A3: the Mancing button (AksiButton) is ringed; cast, then pull, then the first fish
+				highlight = "AksiButton",
 				done = { kind = "fish" },
-				target = { spot = "sungai" },
+				target = { spot = "sungai" }, -- the arrow to the dock (nearest fishing spot of that Location)
 				arrive = 6,
+				reward = { xp = 20 }, -- the same 20 XP as the warung step (paid once on the first fish)
 			},
 			{
 				-- Kak Fajar's dialog after the first fish: "Mengerti" finishes it. Opens the pond (kolamUnlocked, server).

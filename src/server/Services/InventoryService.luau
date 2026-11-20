@@ -113,6 +113,8 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		},
 		social = data.social,
 		settings = data.settings,
+		-- one-time funnel flags (first_plant, first_harvest, ...). The tutorial reads first_harvest (A1: state-driven steps).
+		onboarding = table.clone(data.onboarding),
 	}
 end
 

@@ -77,6 +77,27 @@ end
 
 -- Client requests ---------------------------------------------------------------------------------
 
+-- Kak Fajar's gift (Terima Hadiah, or a skipped rodgift step): the Joran Bambu and the pelet, given ONCE. Returns false when
+-- the save already has it. Owned by the server only.
+local FAJAR_BAIT = { id = "pelet", amount = 5 }
+local function giveRodGift(player: Player, data: any): boolean
+	local guide = data.guide
+	if guide.rodGift then
+		return false
+	end
+	guide.rodGift = true
+	guide.fishingUnlocked = true
+	if data.fishing.ownedRods.bambu ~= true then
+		data.fishing.ownedRods.bambu = true
+	end
+	if data.fishing.rod == "" then
+		data.fishing.rod = "bambu"
+	end
+	InventoryService.Add(player, FAJAR_BAIT.id, FAJAR_BAIT.amount)
+	logEvent(player, "tut_fajar_gift", "kak_fajar")
+	return true
+end
+
 local function onGuideEvent(player: Player, action: any, tutorialId: any, n: any)
 	if typeof(action) ~= "string" or typeof(tutorialId) ~= "string" then
 		return
@@ -139,6 +160,27 @@ local function onGuideEvent(player: Player, action: any, tutorialId: any, n: any
 			end
 			logEvent(player, `tut_{tutorialId}_done`, tutorialId)
 		end
+	elseif action == "skipstep" or action == "skipall" then
+		-- A2 (v6.2.3): skip never blocks. The step's own prerequisites are granted first (the rod for the gift step, the fish
+		-- flag for the fishing steps), then the step is recorded through the normal "step" path, so its reward is paid the same
+		-- way. "skipall" does that for every remaining step (the tutorial's reward too, at the last one).
+		if guide.step.id ~= tutorialId then
+			return
+		end
+		local count = #tutorial.steps
+		local last = if action == "skipall" then count else guide.step.n + 1
+		for index = guide.step.n + 1, math.min(last, count) do
+			local step = tutorial.steps[index]
+			if step.done.kind == "rodgift" then
+				giveRodGift(player, data)
+			end
+			if step.done.kind == "fish" or step.id == "after_catch" then
+				guide.fishCaught = true
+			end
+			onGuideEvent(player, "step", tutorialId, index)
+		end
+		logEvent(player, `tut_{tutorialId}_{action}`, tutorialId)
+		return
 	elseif action == "replay" then
 		-- No state change and no reward: only the analytics event.
 		logEvent(player, "tut_replay", tutorialId)
@@ -175,30 +217,17 @@ function TutorialService.OnFirstSellSuccess(player: Player, npcId: string)
 	Net.Fire("OnFirstSellSuccess", player, npcId)
 end
 
--- Kak Fajar's Terima Hadiah (Plan v3.1 3A, Opsi B): the Joran Bambu and some pelet, given ONCE and only on the server.
--- A second press (or an old save that already has the rod) gives nothing more; the client just shows the feedback.
-local FAJAR_BAIT = { id = "pelet", amount = 5 }
+-- Kak Fajar's Terima Hadiah (Plan v3.1 3A, Opsi B). A second press (or an old save that already has the rod) gives nothing.
 local function onMeetFajar(player: Player): any
 	local data = DataService.Get(player)
 	if not data then
 		return { ok = false }
 	end
-	local guide = data.guide
-	if guide.rodGift then
+	if not giveRodGift(player, data) then
 		Net.Fire("Notify", player, "rod.gift_again")
 		return { ok = true, gave = false }
 	end
-	guide.rodGift = true
-	guide.fishingUnlocked = true
-	if data.fishing.ownedRods.bambu ~= true then
-		data.fishing.ownedRods.bambu = true
-	end
-	if data.fishing.rod == "" then
-		data.fishing.rod = "bambu"
-	end
-	InventoryService.Add(player, FAJAR_BAIT.id, FAJAR_BAIT.amount)
 	InventoryService.Sync(player)
-	logEvent(player, "tut_fajar_gift", "kak_fajar")
 	Net.Fire("Notify", player, "rod.gift")
 	return { ok = true, gave = true }
 end

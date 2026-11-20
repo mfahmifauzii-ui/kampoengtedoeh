@@ -146,29 +146,18 @@ local GRASS_OFFSETS = { 0, 2, 4, 6, 7.9 }
 local grassCache: { [string]: { ok: boolean, at: number } } = {}
 local grassParams: RaycastParams? = nil
 
+-- B (playtest): the grass check asks ONLY the terrain. It used to exclude a few known parts, so any other part above the
+-- ground (a weed, bush, rock, stump, fence, decor) hit first, the material was not LeafyGrass, and the square was invalid.
+-- Include-filter on Workspace.Terrain makes the ray ignore every part, decor and clutter included.
 local function grassRayParams(): RaycastParams
 	if not grassParams then
 		local params = RaycastParams.new()
-		params.FilterType = Enum.RaycastFilterType.Exclude
+		params.FilterType = Enum.RaycastFilterType.Include
 		params.IgnoreWater = false
+		params.FilterDescendantsInstances = { Workspace.Terrain }
 		grassParams = params
 	end
-	local params = grassParams :: RaycastParams
-	local ignore: { Instance } = {}
-	if player.Character then
-		table.insert(ignore, player.Character)
-	end
-	if gridFolder then
-		table.insert(ignore, gridFolder)
-	end
-	if ghost then
-		table.insert(ignore, ghost)
-	end
-	for _, tile in CollectionService:GetTagged("FarmTile") do
-		table.insert(ignore, tile)
-	end
-	params.FilterDescendantsInstances = ignore
-	return params
+	return grassParams :: RaycastParams
 end
 
 local function squareIsGrass(plot: Model, cx: number, cz: number): boolean
@@ -514,6 +503,26 @@ end
 
 -- Actions ------------------------------------------------------------------------------------
 
+-- The nearest valid till square among the 8 neighbours of (cx, cz), by distance to the tap point. nil when none is valid.
+local function snapCell(plot: Model, cx: number, cz: number, point: Vector3): (number?, number?)
+	local bestX, bestZ, bestDistance = nil, nil, math.huge
+	for dx = -1, 1 do
+		for dz = -1, 1 do
+			if dx ~= 0 or dz ~= 0 then
+				local nx, nz = cx + dx, cz + dz
+				if cellState(plot, nx, nz) == "valid" then
+					local centerX, centerZ = Land.tileCenter(nx, nz)
+					local distance = (Vector2.new(centerX, centerZ) - Vector2.new(point.X, point.Z)).Magnitude
+					if distance < bestDistance then
+						bestX, bestZ, bestDistance = nx, nz, distance
+					end
+				end
+			end
+		end
+	end
+	return bestX, bestZ
+end
+
 local function act(ray: Ray)
 	local plot, cx, cz, point = pointerCell(ray)
 	if not plot or not cx or not cz or not point then
@@ -539,6 +548,15 @@ local function act(ray: Ray)
 			GarapController.CancelMove() -- defined below (a table field, so it exists at call time)
 		end
 		return
+	end
+	-- B (playtest): snap. A tap on a square that is not valid (the edge of a grass patch, a fence, a square next to a bed)
+	-- uses the nearest VALID square among the 8 around it, so the highlighted square is what you get.
+	if mode == "till" and cellState(plot, cx, cz) ~= "valid" then
+		local sx, sz = snapCell(plot, cx, cz, point)
+		if sx and sz then
+			cx, cz = sx, sz
+			showGhost(plot, cx, cz, point)
+		end
 	end
 	local action = actionAt(plot, cx, cz, point)
 	if action == "pond" then
@@ -857,10 +875,25 @@ function GarapController.Start()
 		local camera = Workspace.CurrentCamera
 		act(camera:ScreenPointToRay(input.Position.X, input.Position.Y))
 	end)
-	UserInputService.TouchTapInWorld:Connect(function(position, processedByUi)
-		if GarapController.Active and not processedByUi then
+	-- B (playtest): a tap is a touch that starts and ends close together (within TAP_SLOP px, under TAP_MAX_SECONDS), and that
+	-- did not start on a UI button. TouchTapInWorld was dropped for slightly moving or slower taps, the cause of several tries.
+	local TAP_SLOP, TAP_MAX_SECONDS = 18, 0.45
+	local touchStart: { pos: Vector2, at: number }? = nil
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if input.UserInputType == Enum.UserInputType.Touch and not processed then
+			touchStart = { pos = Vector2.new(input.Position.X, input.Position.Y), at = os.clock() }
+		end
+	end)
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType ~= Enum.UserInputType.Touch or not touchStart then
+			return
+		end
+		local start = touchStart
+		touchStart = nil
+		local here = Vector2.new(input.Position.X, input.Position.Y)
+		if GarapController.Active and (here - start.pos).Magnitude <= TAP_SLOP and os.clock() - start.at <= TAP_MAX_SECONDS then
 			local camera = Workspace.CurrentCamera
-			act(camera:ViewportPointToRay(position.X, position.Y))
+			act(camera:ViewportPointToRay(here.X, here.Y))
 		end
 	end)
 

@@ -35,7 +35,6 @@ return {
 	["farm.locked"] = "Terbuka di Level {level}",
 	["farm.tilled"] = "Tanah dicangkul",
 	["farm.leveled"] = "Petak dihapus, jadi rumput lagi",
-	["lahan.bersih"] = "Lahan Kakek sudah bersih! +{n} Koin",
 	["farm.till_full"] = "Petak tanam sudah {max} untuk levelmu. Naik level untuk membuka petak lagi",
 	["farm.till_far"] = "Terlalu jauh, dekati dulu",
 	["farm.till_invalid"] = "Tidak bisa digarap di situ",
@@ -276,7 +275,7 @@ return {
 	["blueprint.items"] = "Membuka hiasan: {items}",
 	["shop.section.blueprints"] = "Blueprint",
 	["ui.back"] = "Kembali",
-	["sell.overflow_info"] = "Harga 90%, tanpa batas jumlah.",
+	["sell.overflow_info"] = "Harga {pct}%, tanpa batas jumlah.",
 	["shop.section.seeds"] = "Bibit",
 	["shop.section.seedsx"] = "Bibit unggul (tumbuh 10% lebih cepat)",
 	["shop.section.fish"] = "Ikan segar",
@@ -355,6 +354,12 @@ return {
 
 	-- Tutorial engine (GuideController / SettingsController Panduan list)
 	["tut.skip"] = "Lewati",
+	["tut.skip_step"] = "Lewati langkah",
+	["tut.skip_all"] = "Lewati panduan",
+	["tut.skip_all_title"] = "Lewati panduan?",
+	["tut.skip_all_body"] = "Langkah sisa panduan dianggap selesai. Hadiahnya tetap kamu dapat.",
+	["tut.skip_all_yes"] = "Lewati",
+	["tut.skip_all_no"] = "Batal",
 	["tut.start"] = "Mulai",
 	["tut.stuck_suffix"] = " Ikuti cincin dan panah.",
 	["settings.guide"] = "Panduan",
@@ -411,6 +416,7 @@ return {
 	["tut.t1b.kolam_demo"] = "Buka Kolam di dock",
 	["tut.t1b.kak_fajar"] = "Temui Kak Fajar di Toko Pancing",
 	["tut.t1b.mancing"] = "Mancing 1 ikan di dermaga",
+	["tut.coach.mancing"] = "Ketuk Mancing, lalu tarik saat ikan menggigit",
 	["tut.t1b.bangun_kolam"] = "Gali kolam di lahanmu",
 	["tut.t1b.mancing_kolam"] = "Mancing 1x di kolammu",
 

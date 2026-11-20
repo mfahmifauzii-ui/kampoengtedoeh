@@ -18,7 +18,6 @@ local ORDER = {
 	"BookService",
 	"QuestService", -- before the services that report to it (Fish, Pond)
 	"PlotService",
-	"LahanAwalService", -- objek awal lahan: after PlotService (Assigned), before LandService (bought chunks)
 	"LandService", -- before FarmService: owned chunks are painted before the soil is rebuilt on top of them
 	"TutorialService", -- before FarmService: it asks TutorialService.ConsumeFast on every planting
 	"FarmService",

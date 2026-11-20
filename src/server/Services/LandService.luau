@@ -15,7 +15,6 @@ local EconomyService = require(script.Parent.EconomyService)
 local InventoryService = require(script.Parent.InventoryService)
 local MapService = require(script.Parent.MapService)
 local PlotService = require(script.Parent.PlotService)
-local LahanAwalService = require(script.Parent.LahanAwalService)
 
 local RATE = { rate = 4, burst = 8 }
 
@@ -66,10 +65,6 @@ local function onBuy(player: Player, ix: any, iz: any)
 	chunks[Land.chunkKey(ix, iz)] = true
 	MapService.SetChunkOwned(plotIndex, ix, iz, true)
 	MapService.RebuildFence(plotIndex, chunks)
-	local yard = PlotService.GetPlot(player)
-	if yard then
-		LahanAwalService.Rebuild(player, yard)
-	end
 	InventoryService.Sync(player)
 	Net.Fire("Notify", player, "land.bought", { n = owned + 1, max = Land.EXTRA_CHUNKS })
 end

@@ -22,6 +22,7 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	FishState = "Event", -- S->C ("waiting", spot: BasePart) | ("bite") | ("idle")
 	FishReel = "Event", -- C->S (score: number 0..1)
 	FishCancel = "Event", -- C->S ()
+	FishCast = "Event", -- C->S () cast at the nearest fishing spot in reach (the server picks it; v6.2.3 Mancing button)
 
 	StateSync = "Event", -- S->C (snapshot: items, slots, tiers, rods) — see InventoryService
 	StateRequest = "Event", -- C->S () ask for a fresh snapshot

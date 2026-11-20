@@ -399,7 +399,9 @@ local function renderSell(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 	local npcId = npc.id
 	local list = panel.list
 	if npc.buys.crop then
-		UiKit.header(list, Locale.t("sell.overflow_info"), nextOrder())
+		-- The percentage comes from the NPC's own config (Pak Udin 100%, Bang Jali 90%), never a fixed text.
+		local pct = math.floor(npc.buys.crop * 100 + 0.5)
+		UiKit.header(list, Locale.t("sell.overflow_info", { pct = pct }), nextOrder())
 	end
 	local ids = sellableIds(npc, snapshot)
 	for _, itemId in ids do

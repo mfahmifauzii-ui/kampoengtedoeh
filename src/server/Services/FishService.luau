@@ -450,11 +450,52 @@ end
 
 -- Lifecycle ---------------------------------------------------------------------
 
+-- The Mancing button (v6.2.3 A3): cast at the nearest fishing spot within CAST_DISTANCE. The server picks the spot;
+-- startCast checks everything else (gift, level, rod, distance).
+local function onCastNearest(player: Player)
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") then
+		return
+	end
+	local best: BasePart? = nil
+	local bestDistance = Fishing.CAST_DISTANCE
+	for _, spot in CollectionService:GetTagged(SPOT_TAG) do
+		if spot:IsA("BasePart") then
+			local distance = (spot.Position - root.Position).Magnitude
+			if distance <= bestDistance then
+				best, bestDistance = spot, distance
+			end
+		end
+	end
+	if best then
+		startCast(player, best)
+	end
+end
+
 function FishService.Init()
-	local folder = Workspace:FindFirstChild("Fishing") or buildPlaceholderWater()
-	for _, child in folder:GetDescendants() do
-		if child:IsA("BasePart") and typeof(child:GetAttribute("Location")) == "string" then
-			setupSpot(child)
+	-- A3 (v6.2.3): the spots are found in ANY workspace "Fishing" folder, not just the first one. The Studio map had an empty
+	-- "Fishing" folder first (and two folders of river sound emitters), so no spot ever got its Location, its FishingSpot tag,
+	-- its prompt, or the tutorial's arrow. With no spot anywhere, the placeholder water and spots are built.
+	local spots = 0
+	for _, folder in Workspace:GetChildren() do
+		if folder.Name == "Fishing" then
+			for _, child in folder:GetDescendants() do
+				if child:IsA("BasePart") and typeof(child:GetAttribute("Location")) == "string" then
+					setupSpot(child)
+					spots += 1
+				end
+			end
+		end
+	end
+	if spots == 0 then
+		warn("[FishService] no fishing spot in workspace.Fishing: building the placeholder dock")
+		local folder = buildPlaceholderWater()
+		folder.Parent = Workspace
+		for _, child in folder:GetDescendants() do
+			if child:IsA("BasePart") and typeof(child:GetAttribute("Location")) == "string" then
+				setupSpot(child)
+			end
 		end
 	end
 
@@ -466,6 +507,7 @@ end
 function FishService.Start()
 	Net.On("FishReel", onReel, { rate = 2, burst = 3 })
 	Net.On("FishCancel", onCancel, { rate = 2, burst = 3 })
+	Net.On("FishCast", onCastNearest, { rate = 2, burst = 3 })
 	Players.PlayerRemoving:Connect(function(player)
 		sessions[player] = nil
 	end)

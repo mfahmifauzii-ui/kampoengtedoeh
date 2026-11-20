@@ -5,7 +5,7 @@
 -- Levels 61-100 are filled by Update 1 and 2 (Bab 26) and are not listed.
 
 return {
-	[1] = { "Nanem (Kangkung, Bayam)", "Mancing Kanal", "Rumah Pertama", "Bersihkan lahan awal (Bab 3.4)" },
+	[1] = { "Nanem (Kangkung, Bayam)", "Mancing Kanal", "Rumah Pertama" },
 	[2] = { "Tomat", "Sawi", "Bang Jali" },
 	[3] = { "Jagung", "Ubi Jalar", "Bundel: Kolam Kakek", "Kolam Tanah tambahan" },
 	[4] = { "Hutan Nambang", "Meja Crafting" },

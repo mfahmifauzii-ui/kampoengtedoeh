@@ -251,10 +251,33 @@ function NpcService.WalkTo(npcId: string, target: Vector3, speed: number?): bool
 	return true
 end
 
+-- D.1 (playtest): an NPC without its own rig gets the generic blocky R15 fallback. Say so once, with every id, so a
+-- missing model in ServerStorage.NpcModels (or a rename in Studio) shows up in the output. No aliases: the model name must
+-- match the NPC id (or Npcs.model). A hand-placed rig in Workspace.Npcs counts as present.
+local function warnMissingModels()
+	local templates = ServerStorage:FindFirstChild("NpcModels")
+	local missing: { string } = {}
+	for _, npc in Npcs.list do
+		if npc.hidden then
+			continue
+		end
+		local name = npc.model or npc.id
+		local template = templates and templates:FindFirstChild(name)
+		local placed = folder:FindFirstChild(npc.id)
+		if not (template and template:IsA("Model")) and not placed then
+			table.insert(missing, name)
+		end
+	end
+	if #missing > 0 then
+		warn(`[NpcService] {#missing} NPC tanpa model di ServerStorage.NpcModels (pakai rig generik): {table.concat(missing, ", ")}`)
+	end
+end
+
 function NpcService.Start()
 	folder = Workspace:FindFirstChild("Npcs") :: Folder? or Instance.new("Folder")
 	folder.Name = "Npcs"
 	folder.Parent = Workspace
+	warnMissingModels()
 	for _, npc in Npcs.list do
 		if npc.hidden then
 			continue

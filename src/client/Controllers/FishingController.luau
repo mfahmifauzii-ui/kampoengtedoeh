@@ -20,6 +20,7 @@ local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local UiKit = require(script.Parent.Parent.UiKit)
+local State = require(script.Parent.Parent.State)
 
 local REEL_ACTION = "FishingReel"
 local ZONE_WIDTH = 0.3
@@ -302,8 +303,58 @@ local function onPondAdded(instance: Instance)
 	end
 end
 
+-- Mancing button (v6.2.3 A3, Bab 23.2 AKSI): a big button at the right edge while you stand within reach of a dock or a
+-- pond of yours, once the fishing gift is taken. Before this, the only cast was a ProximityPrompt (4 studs): no button at all.
+-- Named "AksiButton" so the tutorial can ring it (GuideController findHighlight). The server does the cast (FishCast).
+local REACH = 10 -- studs from the player to a spot for the button to show (client hint only; the server checks CAST_DISTANCE)
+local aksiGui: ScreenGui? = nil
+local aksiButton: TextButton? = nil
+
+local function buildAksi()
+	aksiGui = Instance.new("ScreenGui")
+	aksiGui.Name = "FishAksi"
+	aksiGui.ResetOnSpawn = false
+	aksiGui.DisplayOrder = 6
+	aksiGui.Parent = player:WaitForChild("PlayerGui")
+
+	local button = UiKit.button(aksiGui, "AksiButton", Locale.t("prompt.fish"), UiKit.BUTTON)
+	button.AnchorPoint = Vector2.new(1, 1)
+	button.Position = UDim2.new(1, -24, 1, -200)
+	button.Size = UDim2.fromOffset(104, 104) -- 104 px: well above the 48 dp minimum
+	button.Visible = false
+	button.Activated:Connect(function()
+		Net.Send("FishCast")
+	end)
+	aksiButton = button
+end
+
+local function nearSpot(): boolean
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") then
+		return false
+	end
+	for _, spot in CollectionService:GetTagged("FishingSpot") do
+		if spot:IsA("BasePart") and (spot.Position - root.Position).Magnitude <= REACH then
+			return true
+		end
+	end
+	return false
+end
+
+local function refreshAksi()
+	if not aksiButton then
+		return
+	end
+	local snap = State.current :: any
+	local gifted = snap ~= nil and snap.guide ~= nil and snap.guide.rodGift == true
+	local fishing = player:GetAttribute("FishingActive") == true
+	aksiButton.Visible = gifted and not fishing and nearSpot()
+end
+
 function FishingController.Init()
 	buildUi()
+	buildAksi()
 end
 
 function FishingController.Start()
@@ -331,6 +382,13 @@ function FishingController.Start()
 	UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
 			holding = false
+		end
+	end)
+
+	task.spawn(function()
+		while true do
+			refreshAksi()
+			task.wait(0.25)
 		end
 	end)
 
