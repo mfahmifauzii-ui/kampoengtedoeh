@@ -27,6 +27,7 @@ ProgressionService.LevelUp = Signal.new() -- (player, newLevel)
 local function syncAttributes(player: Player, data: Types.PlayerData)
 	player:SetAttribute("Level", data.level)
 	player:SetAttribute("XP", data.xp)
+	player:SetAttribute("SP", data.sp)
 	player:SetAttribute("XPNext", if data.level >= Progression.MAX_LEVEL then 0 else Progression.xpToNext(data.level))
 end
 
@@ -94,6 +95,23 @@ function ProgressionService.Grant(player: Player, reward: Reward, reason: string
 	InventoryService.Sync(player)
 end
 
+-- Level Cabang XP (Bab 4.2): the same amount as the action's Player XP. branch = bertani | mancing | beternak | tukang.
+function ProgressionService.AddCabangXp(player: Player, branch: string, amount: number)
+	local data = DataService.Get(player)
+	local cabang = data and data.cabang[branch]
+	if not cabang or typeof(amount) ~= "number" or amount <= 0 or cabang.lv >= Progression.CABANG.MAX_LEVEL then
+		return
+	end
+	cabang.xp += math.floor(amount)
+	while cabang.lv < Progression.CABANG.MAX_LEVEL and cabang.xp >= Progression.CABANG.XP[cabang.lv + 1] do
+		cabang.xp -= Progression.CABANG.XP[cabang.lv + 1]
+		cabang.lv += 1
+	end
+	if cabang.lv >= Progression.CABANG.MAX_LEVEL then
+		cabang.xp = 0
+	end
+end
+
 function ProgressionService.AddXp(player: Player, amount: number, _reason: string)
 	local data = DataService.Get(player)
 	if not data or typeof(amount) ~= "number" or amount <= 0 or data.level >= Progression.MAX_LEVEL then
@@ -104,6 +122,7 @@ function ProgressionService.AddXp(player: Player, amount: number, _reason: strin
 	while data.level < Progression.MAX_LEVEL and data.xp >= Progression.xpToNext(data.level) do
 		data.xp -= Progression.xpToNext(data.level)
 		data.level += 1
+		data.sp += 1 -- Skill Point: 1 per Level Player (Bab 4.2)
 		syncAttributes(player, data)
 		local unlocks = unlocksAt(data.level)
 		Net.Fire("Notify", player, if #unlocks > 0 then "level.up_unlocks" else "level.up", { level = data.level, unlocks = unlocks })

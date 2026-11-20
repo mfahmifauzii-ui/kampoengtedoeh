@@ -86,6 +86,10 @@ Tagline tim: `Kampung lo, rumah lo, panen lo — tiap hujan petir bisa jadi pane
 | 19 | Bab 28: `PlayerData.version` **61 → 62**. `Lahan.Ukuran` **96 → 128**. Ditambah `Lahan.Chunk` (bitmask per chunk yang dibeli). **Tanpa kode migrasi**: save lama direset (game belum rilis). | T-08. |
 | 20 | Bab 27 Fase 0: lahan **96×96 → 128×128** (kotak 192×192, chunk 32×32). | T-02. |
 | 21 | Penutup: versi dokumen **v6.2**, revisi berikutnya v6.3. | Aturan revisi. |
+| 22 | Bab 4.3: XP Lv 59→60 **1.970 → 2.170** (rumus `200 + 30 × n` menghasilkan 2.170; total 64.900 sudah benar). | Koreksi angka contoh di v6.1. |
+| 23 | Bab 4.2 & 4.3: Level Cabang **dimulai dari Lv 0** (10 langkah XP, total 12.000 untuk Lv 10). | Supaya tabel 10 angka cocok dengan total 12.000. |
+| 24 | Bab 3.2 & 15.1: reset harian **dan mingguan 05:00 WIB** (sebelumnya 00:00 WIB di kode). | T-11. |
+| 25 | Bab 3.2 & 3.3: hari game 30 menit tetap; jam fase di kode disesuaikan ke 3/15/3/9 menit. | T-10. |
 
 ### 0.4 Self-Score v6.0 (Di Atas Kertas)
 
@@ -256,7 +260,7 @@ Aturan untuk anak 9 tahun: **"Konten baru = Level Player. Alat baru = Level Caba
 ### 4.3 Rumus XP (LOCKED)
 
 - XP naik dari Lv `n` ke `n+1` = `200 + 30 × n`
-- Lv 1→2: 230 XP. Lv 20→21: 800 XP. Lv 59→60: 1.970 XP. Lv 99→100: 3.170 XP.
+- Lv 1→2: 230 XP. Lv 20→21: 800 XP. Lv 59→60: 2.170 XP. Lv 99→100: 3.170 XP.
 - Total Lv 1→60: ~64.900 XP. Total Lv 1→100: ~168.300 XP.
 
 | Fase | Level | XP / Jam (Rata-rata) | Koin / Jam (Rata-rata) | Jam ke Fase Ini Selesai |

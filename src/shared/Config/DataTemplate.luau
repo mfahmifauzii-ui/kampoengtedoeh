@@ -15,10 +15,10 @@ local template: Types.PlayerData = {
 	sp = 0, -- Skill Point: 1 per Level Player (Bab 4.2), spent on Skill Cabang (Bab 4.5)
 	-- Level Cabang (Bab 4.2): Bertani, Mancing, Beternak, Tukang. Max Lv 10. XP is the same amount as the player's XP per action.
 	cabang = {
-		bertani = { lv = 1, xp = 0 },
-		mancing = { lv = 1, xp = 0 },
-		beternak = { lv = 1, xp = 0 },
-		tukang = { lv = 1, xp = 0 },
+		bertani = { lv = 0, xp = 0 },
+		mancing = { lv = 0, xp = 0 },
+		beternak = { lv = 0, xp = 0 },
+		tukang = { lv = 0, xp = 0 },
 	},
 	skill = {}, -- [skillId] = level 0..5 (Bab 4.5)
 
