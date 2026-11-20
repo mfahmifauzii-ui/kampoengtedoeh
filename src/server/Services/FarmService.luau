@@ -480,11 +480,31 @@ local function waterAllForRain()
 	end
 end
 
+-- Mutasi roll (Bab 5.4, Config/Mutasi). Server only. Each Mutasi whose condition holds gets its own chance roll; the
+-- highest mult that passed wins, so a harvest carries at most one Mutasi.
+--   grown_rain / grown_petir: the crop's readyAt (when it finished growing) fell in that weather (WorldService.WeatherAt).
+--   wet: the tile is Basah at harvest. pelangi: the harvest happens during Pelangi.
+local function rollMutation(tile: Types.FarmTile, now: number): string?
+	local grownWeather = if tile.readyAt then WorldService.WeatherAt(tile.readyAt :: number) else nil
+	local harvestWeather = WorldService.WeatherAt(now)
+	local best: Mutasi.Mutation? = nil
+	for _, mutation in Mutasi.list do
+		local eligible = if mutation.when == "grown_rain" then grownWeather == "gerimis" or grownWeather == "deres"
+			elseif mutation.when == "grown_petir" then grownWeather == "petir"
+			elseif mutation.when == "wet" then tile.watered == true
+			else harvestWeather == "pelangi"
+		if eligible and random:NextNumber() < mutation.chance and (best == nil or mutation.mult > best.mult) then
+			best = mutation
+		end
+	end
+	return if best then best.id else nil
+end
+
 -- Harvest roll (Bab 5.3 Super, Bab 5.4 Mutasi). Server only.
 --   Super: base 5%, +5% if the tile is Basah. Fase 1 forces it for the FTUE first harvest (forceSuper).
---   Mutasi: only the forced one for now (forcedMutation, Config/Mutasi). The random Mutasi roll is Fase 2.
+--   Mutasi: forcedMutation (FTUE first harvest) or the weather/Basah roll (rollMutation).
 -- Returns (super, mutationId?). An unknown forcedMutation is a bug in the caller, so it asserts.
-local function rollHarvest(tile: Types.FarmTile, forceSuper: boolean, forcedMutation: string?): (boolean, string?)
+local function rollHarvest(tile: Types.FarmTile, now: number, forceSuper: boolean, forcedMutation: string?): (boolean, string?)
 	if forcedMutation ~= nil then
 		assert(Mutasi.byId[forcedMutation], `unknown mutation {forcedMutation}`)
 	end
@@ -493,7 +513,7 @@ local function rollHarvest(tile: Types.FarmTile, forceSuper: boolean, forcedMuta
 		local chance = Farm.SUPER_CHANCE + (if tile.watered == true then Farm.SUPER_WET_BONUS else 0)
 		super = random:NextNumber() < chance
 	end
-	return super, forcedMutation
+	return super, forcedMutation or rollMutation(tile, now)
 end
 
 -- The FTUE first harvest of a new save is Super + Embun (Bab 16.3 0:50, Onboarding.FTUE_FIRST_*). Once per save:
@@ -520,7 +540,7 @@ local function onHarvest(player: Player, uid: any)
 		return
 	end
 	local guaranteed = takeFirstHarvestGuarantee(data)
-	local super, mutation = rollHarvest(tile, guaranteed, if guaranteed then Onboarding.FTUE_FIRST_MUTATION else nil)
+	local super, mutation = rollHarvest(tile, now, guaranteed, if guaranteed then Onboarding.FTUE_FIRST_MUTATION else nil)
 	local itemId = Items.cropItemId(crop.id, super, mutation)
 	if not InventoryService.Add(player, itemId, crop.yield) then
 		return
@@ -546,6 +566,10 @@ local function onHarvest(player: Player, uid: any)
 	end
 	if mutation then
 		Net.Fire("Notify", player, "farm.mutation", { mutation = `mutasi.{mutation}` })
+		-- Rare Mutasi (Emas, Pelangi) are announced to every player on this server (Bab 5.4, Bab 21.4 banner).
+		if Mutasi.byId[mutation].announce and crop.growSeconds >= Mutasi.ANNOUNCE_MIN_GROW_SECONDS then
+			Net.FireAll("MutasiBanner", player.Name, crop.id, mutation)
+		end
 	end
 	local xp = math.floor(crop.xp * (if super then Farm.SUPER_XP_MULT else 1) + 0.5)
 	ProgressionService.AddXp(player, xp, `harvest:{crop.id}`)

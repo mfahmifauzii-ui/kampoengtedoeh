@@ -13,6 +13,7 @@ type RemoteKind = "Event" | "Function"
 
 local DEFINITIONS: { [string]: RemoteKind } = {
 	Notify = "Event", -- S->C (localeKey: string, vars: {[string]: any}?)
+	MutasiBanner = "Event", -- S->C (playerName: string, cropId: string, mutationId: string) rare Mutasi, sent to every player (FarmService)
 
 	FarmPlant = "Event", -- C->S (tileIndex: number, cropId: string)
 	FarmWater = "Event", -- C->S (tileIndex: number)
