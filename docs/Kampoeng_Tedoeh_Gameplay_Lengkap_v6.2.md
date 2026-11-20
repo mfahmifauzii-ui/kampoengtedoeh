@@ -1,5 +1,5 @@
 # KAMPOENG TEDOEH — Dokumen Gameplay Lengkap
-## v6.2.1 — Single Source of Truth untuk Claude Code
+## v6.2.2 — Single Source of Truth untuk Claude Code
 
 > Dokumen ini menggantikan SEMUA versi sebelumnya (v1.0 sampai v6.1). Kalau ada konflik dengan dokumen lain, dokumen ini yang menang.
 > Aturan revisi: setiap aturan hanya ditulis di SATU bab. Bab lain cukup merujuk (`lihat Bab X`). Tidak ada lagi aturan yang ditulis ulang di 3 tempat dengan angka beda.
@@ -106,6 +106,15 @@ Tagline tim: `Kampung lo, rumah lo, panen lo — tiap hujan petir bisa jadi pane
 | 9 | Sign toko kosong (Toko Bibit, Pasar Ikan, Toko Roti, Toko Kelontong) dibiarkan sebagai dekor. | T-35. |
 | 10 | Nama file Config tetap pakai nama Inggris yang sudah ada (`Crops`, `Fish`, `Decor`, `Quests`, `Events`). | T-09. |
 | 11 | Field Bab 28 diganti per service saat service itu disentuh, tidak ada rename global. | T-24. |
+
+### 0.3.4 Changelog v6.2.1 → v6.2.2 (Keputusan Owner, 20 Nov, Fase 1)
+
+| # | Perubahan | Alasan |
+|---|-----------|--------|
+| 1 | **Waktu tumbuh Early dipangkas (Bab 5.3):** Kangkung 4 → **3 menit** (180 dtk), Bayam 6 → **5 menit** (300 dtk), Tomat 7 → **6 menit** (360 dtk), Ubi Jalar 8 → **7 menit** (420 dtk). Bibit, Jual, XP, Mid dan Late tidak berubah. | Menunggu terasa terlalu lama di menit-menit pertama. Early tetap maksimal 7 menit. |
+| 2 | Bab 5.1: telat panen punya ambang 10 menit setelah matang (angka tim, Config). | Bab 5.1 tidak menyebut ambang. Tanpa ambang, scale 1,1 tidak punya titik mulai. |
+| 3 | Bab 17.2 tidak menyebut waktu tanam, jadi angka faucet tidak berubah. Estimasi Koin per jam Early ada di catatan playtest (Fase 1 DoD). | Cek sanity. |
+| 4 | Mutasi: Embun (x1,5, Bab 5.4) dipasang sebagai plumbing Config/Mutasi. Panen pertama FTUE selalu Super + Embun (Bab 16.3 0:50). Roll Mutasi acak masih Fase 2. | Supaya Fase 2 menambah entri, tidak mengganti sistem. |
 
 ### 0.4 Self-Score v6.0 (Di Atas Kertas)
 
@@ -340,7 +349,7 @@ Pilih petak kosong → Tanam bibit (bayar bibit) → Tumbuh (jalan walau offline
 
 - Satu aksi tanam / panen ≈ 1 detik aktif per petak. 12 petak ≈ 30 detik.
 - **Siram:** mengurangi sisa waktu tumbuh 15% (sekali per fase tumbuh, max 1x per tanaman per siklus) + menandai tanaman `Basah` (dibutuhkan Mutasi Emas, Bab 5.4). Hujan otomatis menyiram semua tanaman luar 1x.
-- **Telat panen:** tanaman jadi sedikit lebih besar (scale 1,1), tidak layu, tidak hilang.
+- **Telat panen:** tanaman jadi sedikit lebih besar (scale 1,1), tidak layu, tidak hilang. Ambang 10 menit setelah matang (v6.2.2, angka tim di `Config/Farm` OVERDUE_AFTER_SECONDS, bukan dari Bab ini).
 
 ### 5.2 Petak
 
@@ -354,16 +363,16 @@ Pilih petak kosong → Tanam bibit (bayar bibit) → Tumbuh (jalan walau offline
 
 ### 5.3 Tanaman Rilis (18) — LOCKED
 
-Aturan harga: Bibit ≈ 30% harga jual. Late harus 30-50x Early karena waktu tunggunya 60-120x dan cocok untuk offline.
+Aturan harga: Bibit ≈ 30% harga jual. Late harus 30-50x Early karena waktu tunggunya 60-120x dan cocok untuk offline. **Waktu Early sudah diubah di v6.2.2 (lihat Changelog 0.3.4).**
 
 | # | Tanaman | Tier | Waktu | Bibit | Jual | XP | Buka Lv |
 |---|---------|------|-------|-------|------|----|---------|
-| 1 | Kangkung | Early | 4 mnt | 8 | 25 | 12 | 1 |
-| 2 | Bayam | Early | 6 mnt | 10 | 32 | 15 | 1 |
-| 3 | Tomat | Early | 7 mnt | 12 | 36 | 16 | 2 |
+| 1 | Kangkung | Early | 3 mnt | 8 | 25 | 12 | 1 |
+| 2 | Bayam | Early | 5 mnt | 10 | 32 | 15 | 1 |
+| 3 | Tomat | Early | 6 mnt | 12 | 36 | 16 | 2 |
 | 4 | Sawi | Mid | 20 mnt | 25 | 80 | 35 | 2 |
 | 5 | Jagung | Mid | 30 mnt | 35 | 110 | 45 | 3 |
-| 6 | Ubi Jalar | Early | 8 mnt | 12 | 38 | 18 | 3 |
+| 6 | Ubi Jalar | Early | 7 mnt | 12 | 38 | 18 | 3 |
 | 7 | Singkong | Mid | 25 mnt | 30 | 95 | 40 | 6 |
 | 8 | Cabai | Mid | 30 mnt | 40 | 125 | 50 | 8 |
 | 9 | Padi | Late | 2 jam | 120 | 400 | 140 | 8 |
@@ -1771,4 +1780,4 @@ Kerjakan sesuai Bab 27, urut dari Fase 0. Semua angka ambil dari Bab yang ditunj
 
 Game ini harus terasa cozy setiap hari, dan sesekali bikin satu server teriak "WOOO" bareng.
 
-Dokumen ini v6.2.1. Revisi berikutnya v6.3 + isi Changelog Bab 0.3.
+Dokumen ini v6.2.2. Revisi berikutnya v6.3 + isi Changelog Bab 0.3.

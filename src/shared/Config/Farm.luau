@@ -56,6 +56,10 @@ return {
 	SUPER_WET_BONUS = 0.05,
 	SUPER_KOIN_MULT = 2,
 	SUPER_XP_MULT = 1.5,
+	-- Telat panen (Bab 5.1): a ripe crop left unharvested for OVERDUE_AFTER_SECONDS grows to OVERDUE_SCALE. It never wilts or
+	-- disappears. OVERDUE_AFTER_SECONDS = 600 is a TEAM NUMBER (the doc gives no threshold): change it in Config only.
+	OVERDUE_AFTER_SECONDS = 600,
+	OVERDUE_SCALE = 1.1,
 	SEED_UNGGUL_GROW_MULT = 0.9, -- "bibit unggul" (Pak Udin) grows 10% faster
 	INTERACT_DISTANCE = 40, -- studs, server-checked (plant / water / harvest)
 	TILL_DISTANCE = 60, -- studs from the player to the cell they till or level
