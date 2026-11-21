@@ -61,6 +61,6 @@ return {
 		{ id = "S", minScore = 0, valueMult = 0.8 },
 		{ id = "M", minScore = 0.5, valueMult = 1.0 },
 		{ id = "L", minScore = 0.8, valueMult = 1.2 },
-		{ id = "XL", minScore = 0.95, valueMult = 1.5 },
+		{ id = "Jumbo", minScore = 0.95, valueMult = 1.5 },
 	},
 }

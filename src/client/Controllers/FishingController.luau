@@ -4,7 +4,7 @@
 --
 -- REEL MINI-GAME (calm, can't fail): a fish marker drifts along a bar. Hold "Tarik!"
 -- (or Space / click-hold) to slide the catch zone right; release to let it drift left.
--- Score = share of time the fish was inside the zone -> size S / M / L.
+-- Score = share of time the fish was inside the zone -> size S / M / L / Jumbo.
 --
 -- UI: ScreenGui "FishingUI" > Frame "Status" (waiting, Batal) and Frame "Reel" (track, zone, fish, progress, "Pull") in the bamboo style.
 

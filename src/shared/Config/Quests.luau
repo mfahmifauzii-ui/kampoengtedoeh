@@ -49,15 +49,16 @@ local list: { Quest } = {
 }
 
 -- Agenda Harian (Kampoeng_Tedoeh_v7.3 Bab 14.5, LOCKED): 5 tugas per hari, reset 05:00 WIB. Contoh: Panen 5 tanaman,
--- Mancing 3 ikan, Masak 1 olahan, Bantu 1 lahan, Nambang 10 bahan. Hadiah 150-400 Koin per tugas, tanpa Bunga.
+-- Mancing 3 ikan, Masak 1 olahan, Bantu 1 lahan, Nambang 10 bahan. Hadiah 150-400 Koin per tugas, tanpa Bunga, tanpa XP.
+-- Split per tugas di bawah ini USULAN interim (v7.3 cuma mengunci rentang 150-400); kunci final ikut playtest Bab 17.8.
 -- Masak/Bantu/Nambang belum ada pencatatnya (Dapur P2-3, Sosial P2-5, Nambang P2-1): tugasnya belum bisa selesai sampai P2.
 export type Daily = { id: string, event: string, count: number, reward: Progression.Reward }
 local DAILY: { Daily } = {
-	{ id = "panen", event = "harvest", count = 5, reward = { koin = 200, xp = 10 } },
-	{ id = "pancing", event = "catch", count = 3, reward = { koin = 250, xp = 10 } },
-	{ id = "masak", event = "cook", count = 1, reward = { koin = 300, xp = 10 } },
-	{ id = "bantu", event = "bantu", count = 1, reward = { koin = 150, xp = 10 } },
-	{ id = "nambang", event = "mine", count = 10, reward = { koin = 400, xp = 10 } },
+	{ id = "panen", event = "harvest", count = 5, reward = { koin = 200 } },
+	{ id = "pancing", event = "catch", count = 3, reward = { koin = 250 } },
+	{ id = "masak", event = "cook", count = 1, reward = { koin = 300 } },
+	{ id = "bantu", event = "bantu", count = 1, reward = { koin = 150 } },
+	{ id = "nambang", event = "mine", count = 10, reward = { koin = 400 } },
 }
 local DAILY_RESET_HOUR = 5 -- WIB
 
