@@ -215,6 +215,24 @@ local function buyBait(player: Player, data: Types.PlayerData, baitId: string, a
 	return true
 end
 
+-- Bahan masak (Garam, Config/Shop SUPPLIES): pola buyBait, tanpa level gate (v7.3 tak memberi gate).
+local function buySupply(player: Player, supplyId: string, amount: any): boolean
+	local supply = Shop.SUPPLIES[supplyId]
+	if not supply or not validPack(amount) then
+		return false
+	end
+	if not InventoryService.CanAdd(player, supplyId, amount) then
+		return false
+	end
+	if not EconomyService.TrySpend(player, "koin", supply.price * amount, `supply:{supplyId}`) then
+		notEnough(player)
+		return false
+	end
+	InventoryService.Add(player, supplyId, amount)
+	Net.Fire("Notify", player, "shop.bought", { item = `item.{supplyId}` })
+	return true
+end
+
 local function buyUpgrade(player: Player, data: Types.PlayerData, upgradeId: string): boolean
 	return UpgradeService.Buy(player, data, upgradeId)
 end
@@ -279,6 +297,8 @@ local function onBuy(player: Player, npcId: any, kind: any, id: any, amount: any
 		buyRod(player, data, id)
 	elseif kind == "bait" and npc.sells.bait then
 		buyBait(player, data, id, amount)
+	elseif kind == "supply" and npc.sells.supplies then
+		buySupply(player, id, amount)
 	elseif kind == "upgrade" and npc.sells.upgrades then
 		buyUpgrade(player, data, id)
 	elseif kind == "seed" and npc.sells.seeds then

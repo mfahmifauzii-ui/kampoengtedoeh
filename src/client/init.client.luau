@@ -19,6 +19,7 @@ local ORDER = {
 	"MiningController", -- after FishingController: tombol Pukul + ritme + panel craft
 	"RanchController", -- Ternak: tombol Kelola + panel kandang (Bab 7.1)
 	"PondController", -- Kolam: tombol Breeding + panel tier/breed/instant (Bab 7.2)
+	"DapurController", -- Dapur + Warung + Makan: panel resep/slot/warung/buff (Bab 9)
 	"InventoryController",
 	"ShopController",
 	"DialogueController",

@@ -6,7 +6,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Decor = require(ReplicatedStorage.Shared.Config.Decor)
-local Ranch = require(ReplicatedStorage.Shared.Config.Ranch)
+local Dapur = require(ReplicatedStorage.Shared.Config.Dapur)
 local DecorGrid = require(ReplicatedStorage.Shared.Modules.DecorGrid)
 local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
@@ -94,7 +94,7 @@ local function rebuild(player: Player, plot: Model)
 	local valid: { Types.DecorEntry } = {}
 	for _, entry in data.decor.placed do
 		local item = Decor.byId[entry.id]
-		if item and DecorGrid.isValid(item, entry.x, entry.z, entry.r, DecorGrid.occupancy(valid, data.farm.tiles, Land.takenRects(data.pond.list, data.ranch.kandang, Ranch.KANDANG_SIZES)), nil, data.land.chunks) then
+		if item and DecorGrid.isValid(item, entry.x, entry.z, entry.r, DecorGrid.occupancy(valid, data.farm.tiles, Land.takenRects(data.pond.list, Dapur.buildings(data.ranch.kandang, data.dapur.spot, data.warung.spot), Dapur.BUILDING_SIZES)), nil, data.land.chunks) then
 			table.insert(valid, entry)
 		elseif item then
 			data.decor.stock[entry.id] = (data.decor.stock[entry.id] or 0) + 1
@@ -127,7 +127,7 @@ local function onPlace(player: Player, itemId: any, x: any, z: any, r: any)
 		Net.Fire("Notify", player, "decor.limit", { max = DecorService.MaxPlaced() })
 		return
 	end
-	if not DecorGrid.isValid(item, x, z, r, DecorGrid.occupancy(data.decor.placed, data.farm.tiles, Land.takenRects(data.pond.list, data.ranch.kandang, Ranch.KANDANG_SIZES)), nil, data.land.chunks) then
+	if not DecorGrid.isValid(item, x, z, r, DecorGrid.occupancy(data.decor.placed, data.farm.tiles, Land.takenRects(data.pond.list, Dapur.buildings(data.ranch.kandang, data.dapur.spot, data.warung.spot), Dapur.BUILDING_SIZES)), nil, data.land.chunks) then
 		Net.Fire("Notify", player, "decor.invalid")
 		return
 	end
@@ -170,7 +170,7 @@ local function onMove(player: Player, uid: any, x: any, z: any, r: any)
 	if not isInt(x, DecorGrid.X_MIN, DecorGrid.X_MAX) or not isInt(z, DecorGrid.Z_MIN, DecorGrid.Z_MAX) or not isInt(r, 0, 3) then
 		return
 	end
-	if not DecorGrid.isValid(item, x, z, r, DecorGrid.occupancy(data.decor.placed, data.farm.tiles, Land.takenRects(data.pond.list, data.ranch.kandang, Ranch.KANDANG_SIZES)), entry.uid, data.land.chunks) then
+	if not DecorGrid.isValid(item, x, z, r, DecorGrid.occupancy(data.decor.placed, data.farm.tiles, Land.takenRects(data.pond.list, Dapur.buildings(data.ranch.kandang, data.dapur.spot, data.warung.spot), Dapur.BUILDING_SIZES)), entry.uid, data.land.chunks) then
 		Net.Fire("Notify", player, "decor.invalid")
 		return
 	end

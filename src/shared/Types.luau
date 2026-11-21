@@ -67,6 +67,28 @@ export type PondBreed = {
 	endsAt: number, -- os.time siap diambil (instant Bunga memajukan ke now)
 }
 
+-- Satu slot Dapur: resep + kapan mulai/selesai + kualitas hasil (dihitung saat mulai masak).
+-- base = harga base resep 1.6x (round10(1.6 x nilai bahan)); 0 untuk resep fixed & Pakan Jagung.
+export type DapurSlot = {
+	recipe: string,
+	startedAt: number,
+	endsAt: number,
+	quality: string, -- "biasa" | "bagus" | "prima"
+	base: number,
+}
+
+-- Pajang Warung: 1 jenis olahan + jumlahnya.
+export type WarungItem = {
+	id: string, -- "{kualitas}_{resep}" (atau "{kualitas}_{resep}_{base}" utk 1.6x)
+	count: number,
+}
+
+-- Buff aktif: 1 buff (makan olahan baru = ganti). Timer real-time.
+export type ActiveBuff = {
+	id: string?, -- "tani" | "pancing" | "tukang" | "tebang"
+	endsAt: number,
+}
+
 -- items[i].item is a crop id or a fish id (any size counts for fish).
 export type OrderEntry = {
 	uid: number,
@@ -116,6 +138,18 @@ export type PlayerData = {
 		kandang: { [string]: RanchKandang }, -- [hewanId], satu kandang per jenis
 		moodUntil: number, -- os.time akhir Mood Hujan (0 = tidak aktif)
 	},
+	dapur: {
+		tier: number, -- 0 = belum bangun, 1/2/3
+		slots: { [number]: DapurSlot | false }, -- array 1..3, false = kosong
+		spot: { cx: number, cz: number }?, -- sel bangunan (auto-place)
+	},
+	warung: {
+		item: WarungItem?, -- pajangan (1 jenis olahan + jumlah)
+		spot: { cx: number, cz: number }?, -- sel bangunan (auto-place)
+		nextVisit: number, -- os.time kunjungan NPC berikutnya
+		soldLogin: number, -- penjualan offline login ini (max 5)
+	},
+	buff: ActiveBuff,
 	mining: {
 		nodes: { [string]: MiningNodeState },
 	},
@@ -128,6 +162,7 @@ export type PlayerData = {
 		day: string,
 		daily: { OrderEntry },
 		rerollsUsed: number,
+		rerolled: { [number]: boolean }, -- order harian yang sudah di-reroll hari ini
 		week: string,
 		weekly: OrderEntry | {},
 		nextUid: number,

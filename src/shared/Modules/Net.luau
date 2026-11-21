@@ -70,6 +70,15 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	BreedInstant = "Event", -- C->S (pondUid: number) instant breeding pakai Bunga (Bab 18.5)
 	PondTier = "Event", -- C->S (pondUid: number, tier: string) upgrade tier kolam (semen/keramik)
 
+	DapurBuild = "Event", -- C->S () bangun Inti Tier 1
+	DapurUpgrade = "Event", -- C->S () upgrade ke tier berikut (refund 100% Inti lama)
+	DapurCook = "Event", -- C->S (slot: number, recipeId: string) mulai masak (slot 0 = otomatis)
+	DapurCollect = "Event", -- C->S (slot: number) ambil olahan jadi
+	DapurEat = "Event", -- C->S (itemId: string) makan 1 Olahan = 1 buff aktif
+	WarungBuild = "Event", -- C->S () bangun Warung (Lv 6, gratis)
+	WarungDisplay = "Event", -- C->S (itemId: string) pajang semua unit 1 jenis olahan
+	WarungTake = "Event", -- C->S () ambil kembali pajangan ke tas
+
 	PlaytimeClaim = "Event", -- C->S (index: number) open playtime peti number index (in order, Config/Progression PLAYTIME)
 	BookClaim = "Event", -- C->S (key: string) claim a Book reward: "cat:<category>" or a milestone id (Config/Book)
 

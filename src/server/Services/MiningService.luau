@@ -14,6 +14,7 @@ local Workspace = game:GetService("Workspace")
 
 local CollectionService = game:GetService("CollectionService")
 
+local Buffs = require(ReplicatedStorage.Shared.Config.Buffs)
 local Farm = require(ReplicatedStorage.Shared.Config.Farm)
 local Mining = require(ReplicatedStorage.Shared.Config.Mining)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
@@ -130,6 +131,15 @@ local function onHit(player: Player, nodeId: any, crit: any)
 
 	local isCrit = crit == true
 	local gained = if isCrit then Mining.CRIT_YIELD else Mining.NORMAL_YIELD
+	-- Buff Tebang/Tukang (Bab 9.4): +1 bahan saat Critical. Tebang hanya Kayu, Tukang non-Kayu.
+	if isCrit then
+		local nowBuff = os.time()
+		local buffed = (node.itemId == "kayu" and Buffs.active(data.buff, "tebang", nowBuff))
+			or (node.itemId ~= "kayu" and Buffs.active(data.buff, "tukang", nowBuff))
+		if buffed then
+			gained += 1
+		end
+	end
 	if not InventoryService.Add(player, node.itemId, gained) then
 		return -- item tak dikenal: pukulan tidak dihitung (server tetap sumber kebenaran)
 	end

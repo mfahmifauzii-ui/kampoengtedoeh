@@ -95,6 +95,7 @@ local function refresh(data: Types.PlayerData): boolean
 	if data.orders.day ~= today then
 		data.orders.day = today
 		data.orders.rerollsUsed = 0
+		data.orders.rerolled = {}
 		data.orders.daily = {}
 		for _ = 1, Orders.DAILY_COUNT do
 			table.insert(data.orders.daily, newOrder(data, false))
@@ -188,6 +189,8 @@ function OrderService.FreeRerolls(_player: Player): number
 	return Orders.FREE_REROLLS -- T-32: Premium gives no extra reroll (Bab 19)
 end
 
+-- Reroll (Bab 14.7): 2 Bunga per Order, max 1x per Order per hari. Order baru = Daily baru
+-- (tier sama). Order yang hilang saat reset tidak ada hukuman (refresh ganti semua).
 local function onReroll(player: Player, uid: any)
 	local data = DataService.Get(player)
 	if not data then
@@ -196,11 +199,15 @@ local function onReroll(player: Player, uid: any)
 	refresh(data)
 	for index, order in data.orders.daily do
 		if order.uid == uid and not order.done then
-			if data.orders.rerollsUsed >= OrderService.FreeRerolls(player)
-				and not EconomyService.TrySpend(player, "bunga", Orders.REROLL_BUNGA, "order:reroll") then
+			if data.orders.rerolled[uid] == true then
+				Net.Fire("Notify", player, "order.reroll_max")
+				return
+			end
+			if not EconomyService.TrySpend(player, "bunga", Orders.REROLL_BUNGA, "order:reroll") then
 				Net.Fire("Notify", player, "notify.not_enough", { currency = "currency.bunga" })
 				return
 			end
+			data.orders.rerolled[uid] = true
 			data.orders.rerollsUsed += 1
 			data.orders.daily[index] = newOrder(data, false)
 			InventoryService.Sync(player)

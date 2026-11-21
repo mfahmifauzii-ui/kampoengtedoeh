@@ -56,6 +56,21 @@ local template: Types.PlayerData = {
 		moodUntil = 0, -- os.time akhir Mood Hujan, 0 = tidak aktif
 	},
 
+	dapur = {
+		tier = 0, -- 0 = belum bangun, 1/2/3 (Config/Dapur TIERS)
+		slots = {}, -- array 1..3 (false = kosong): DataStore aman tanpa hole
+		spot = nil, -- sel bangunan (auto-place saat bangun)
+	},
+
+	warung = {
+		item = nil, -- { id, count } pajangan (1 jenis olahan + jumlah)
+		spot = nil, -- sel bangunan (auto-place saat bangun)
+		nextVisit = 0,
+		soldLogin = 0, -- penjualan offline login ini (max 5)
+	},
+
+	buff = { id = nil, endsAt = 0 }, -- 1 buff aktif (makan olahan; timer real-time)
+
 	mining = {
 		nodes = {}, -- [nodeId] = { hits, readyAt }: sisa pukulan + waktu respawn per-player (Config/Mining)
 	},
@@ -70,6 +85,7 @@ local template: Types.PlayerData = {
 		day = "", -- WIB day key of the current daily set
 		daily = {}, -- { OrderEntry }
 		rerollsUsed = 0,
+		rerolled = {}, -- [orderUid] = true: order harian yang sudah di-reroll hari ini (max 1x)
 		week = "",
 		weekly = {}, -- OrderEntry, or {} when none yet
 		nextUid = 1,

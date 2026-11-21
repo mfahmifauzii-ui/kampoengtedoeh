@@ -24,7 +24,7 @@ local panel: UiKit.Panel
 
 local function haveCount(items: { [string]: number }, itemId: string): number
 	if FishConfig.byId[itemId] then
-		return (items[`{itemId}@S`] or 0) + (items[`{itemId}@M`] or 0) + (items[`{itemId}@L`] or 0)
+		return (items[`{itemId}@S`] or 0) + (items[`{itemId}@M`] or 0) + (items[`{itemId}@L`] or 0) + (items[`{itemId}@Jumbo`] or 0)
 	end
 	return items[itemId] or 0
 end
@@ -50,11 +50,10 @@ local function requestText(order: any, items: { [string]: number }): string
 	return table.concat(parts, ", ")
 end
 
-local function addOrderRow(order: any, items: { [string]: number }, order_: number, weekly: boolean, rerollText: string?)
+local function addOrderRow(order: any, items: { [string]: number }, order_: number, _weekly: boolean, showReroll: boolean)
 	local name = Locale.t(`npc.{order.npc}`)
-	local reward = if weekly
-		then Locale.t("order.reward_weekly", { koin = Locale.formatNumber(order.koin), xp = order.xp, decor = Locale.t(`decor.{order.decor}`) })
-		else Locale.t("order.reward", { koin = Locale.formatNumber(order.koin), xp = order.xp })
+	-- Weekly: Koin + XP saja, tanpa Bunga, tanpa dekor (Bab 14.7).
+	local reward = Locale.t("order.reward", { koin = Locale.formatNumber(order.koin), xp = order.xp })
 
 	if order.done then
 		UiKit.row(panel.list, order_, `{name}: {requestText(order, items)}`, reward, Locale.t("ui.done_check"), false)
@@ -65,7 +64,7 @@ local function addOrderRow(order: any, items: { [string]: number }, order_: numb
 		Net.Send("OrderDeliver", order.uid)
 	end)
 
-	if rerollText then
+	if showReroll then
 		local reroll = UiKit.button(row, "Reroll", Locale.t("ui.reroll"), UiKit.BUTTON_MUTED)
 		-- "Ganti" sits left of "Kirim"; the text gives up that width (title wraps to two lines if needed).
 		reroll.AnchorPoint = Vector2.new(1, 0.5)
@@ -92,18 +91,18 @@ local function render()
 	end
 	local items = snapshot.items
 	local orders = snapshot.orders
-	local rerollsLeft = (orders.freeRerolls or Orders.FREE_REROLLS) - orders.rerollsUsed
-	local rerollText = if rerollsLeft > 0
-		then Locale.t("order.rerolls_free", { n = rerollsLeft })
-		else Locale.t("order.rerolls_paid", { n = Orders.REROLL_BUNGA })
+	-- Reroll: 2 Bunga per Order, max 1x per Order per hari (Bab 14.7). Tombol hanya untuk
+	-- order harian yang belum di-reroll hari ini.
+	local rerolled = orders.rerolled or {}
+	local rerollText = Locale.t("order.rerolls_paid", { n = Orders.REROLL_BUNGA })
 
 	UiKit.header(panel.list, Locale.t("order.daily"), 1)
 	for index, order in orders.daily do
-		addOrderRow(order, items, 1 + index, false, rerollText)
+		addOrderRow(order, items, 1 + index, false, rerolled[order.uid] ~= true)
 	end
 	if orders.weekly and orders.weekly.uid then
 		UiKit.header(panel.list, Locale.t("order.weekly"), 20)
-		addOrderRow(orders.weekly, items, 21, true, nil)
+		addOrderRow(orders.weekly, items, 21, true, false)
 	end
 	panel.footerLabel.Text = rerollText
 end

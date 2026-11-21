@@ -11,7 +11,9 @@ local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 
+local Dapur = require(ReplicatedStorage.Shared.Config.Dapur)
 local Mining = require(ReplicatedStorage.Shared.Config.Mining)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Sfx = require(ReplicatedStorage.Shared.Sfx)
@@ -35,6 +37,7 @@ local states: { [string]: { hits: number, readyAt: number } } = {}
 local aksiButton: TextButton? = nil
 local ringFrame: Frame? = nil
 local ringOuter: Frame? = nil
+local ringTarget: Frame? = nil
 local nodeLabel: TextLabel? = nil
 local panel: UiKit.Panel? = nil
 
@@ -118,6 +121,18 @@ local function ringD(): number
 	return START_D - ringT * (START_D - END_D)
 end
 
+-- Jendela Critical (Bab 9.4): buff Tukang/Tebang aktif = target +25% lebih lebar.
+local function targetD(): number
+	local now = Workspace:GetServerTimeNow()
+	for _, buffId in { "tukang", "tebang" } do
+		local endsAt = player:GetAttribute(`Buff_{buffId}_End`)
+		if typeof(endsAt) == "number" and endsAt > now then
+			return TARGET_D * Dapur.BUFF_CRIT_WINDOW
+		end
+	end
+	return TARGET_D
+end
+
 local function sendHit(nodeId: string, crit: boolean)
 	Net.Send("MineHit", nodeId, crit)
 end
@@ -127,7 +142,7 @@ local function tapPukul()
 	if not nodeId or not ringing or not nodeReady(nodeId) then
 		return
 	end
-	local crit = ringD() <= TARGET_D
+	local crit = ringD() <= targetD()
 	sendHit(nodeId, crit)
 	ringT = 0 -- pukulan berikutnya mulai dari lingkaran penuh
 end
@@ -251,6 +266,7 @@ local function buildUi()
 	target.BackgroundTransparency = 0.4
 	target.BackgroundColor3 = Color3.fromRGB(120, 204, 96)
 	target.Parent = ring
+	ringTarget = target
 	local targetRound = Instance.new("UICorner")
 	targetRound.CornerRadius = UDim.new(1, 0)
 	targetRound.Parent = target
@@ -366,6 +382,10 @@ function MiningController.Start()
 		if outer then
 			local diameter = math.max(ringD(), END_D)
 			outer.Size = UDim2.fromOffset(diameter, diameter)
+		end
+		local tgt = ringTarget
+		if tgt then
+			tgt.Size = UDim2.fromOffset(targetD(), targetD())
 		end
 	end)
 

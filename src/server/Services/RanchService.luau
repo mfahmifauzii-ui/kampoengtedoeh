@@ -11,6 +11,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CollectionService = game:GetService("CollectionService")
 
 local Ranch = require(ReplicatedStorage.Shared.Config.Ranch)
+local Dapur = require(ReplicatedStorage.Shared.Config.Dapur)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local DecorGrid = require(ReplicatedStorage.Shared.Modules.DecorGrid)
 local Land = require(ReplicatedStorage.Shared.Modules.Land)
@@ -116,7 +117,7 @@ end
 
 -- Cari sel bebas untuk kandang w x d (scan deterministik dari belakang lahan). Nil bila penuh.
 local function findSpot(data: Types.PlayerData, w: number, d: number): (number?, number?)
-	local existing = Land.ranchRects(data.ranch.kandang, Ranch.KANDANG_SIZES)
+	local existing = Land.ranchRects(Dapur.buildings(data.ranch.kandang, data.dapur.spot, data.warung.spot), Dapur.BUILDING_SIZES)
 	local half = Land.REGION_HALF // Land.TILE
 	for cz = -half, half do
 		for cx = -half, half do
@@ -368,10 +369,31 @@ local function onHewan(player: Player, hewanId: any)
 	Net.Fire("Notify", player, "ranch.bought", { item = `hewan.{hewanId}` })
 end
 
--- Isi pakan penuh 1 kandang: "koin" (semua ekor, bayar per jatah) atau "jagung" (ayam saja,
--- 5 Jagung -> 6 jatah, yang paling lapar dulu).
+-- Isi pakan penuh 1 kandang: "koin" (semua ekor, bayar per jatah), "jagung" (ayam saja,
+-- 5 Jagung -> 6 jatah, yang paling lapar dulu) atau "pakan" (pakai item Pakan Jagung dari Dapur).
+-- Penuh = BLOCK + toast, tanpa potong apa pun (tanpa hangus).
+local function fillHungriest(entry: Types.RanchKandang, n: number): number
+	local added = 0
+	local left = n
+	while left > 0 do
+		local hungriest: Types.RanchAnimal? = nil
+		for _, animal in entry.animals do
+			if animal.feed < Ranch.FEED_MAX and (not hungriest or animal.feed < (hungriest :: Types.RanchAnimal).feed) then
+				hungriest = animal
+			end
+		end
+		if not hungriest then
+			break
+		end
+		(hungriest :: Types.RanchAnimal).feed += 1
+		added += 1
+		left -= 1
+	end
+	return added
+end
+
 local function onPakan(player: Player, hewanId: any, kind: any)
-	if typeof(hewanId) ~= "string" or (kind ~= "koin" and kind ~= "jagung") then
+	if typeof(hewanId) ~= "string" or (kind ~= "koin" and kind ~= "jagung" and kind ~= "pakan") then
 		return
 	end
 	local hewan = Ranch.byHewan[hewanId]
@@ -406,22 +428,33 @@ local function onPakan(player: Player, hewanId: any, kind: any)
 			return
 		end
 		InventoryService.Remove(player, "jagung", Ranch.PAKAN_JAGUNG.jagung)
-		local left = Ranch.PAKAN_JAGUNG.jatah
-		while left > 0 do
-			local hungriest: Types.RanchAnimal? = nil
-			for _, animal in entry.animals do
-				if animal.feed < Ranch.FEED_MAX and (not hungriest or animal.feed < (hungriest :: Types.RanchAnimal).feed) then
-					hungriest = animal
-				end
-			end
-			if not hungriest then
-				break -- tidak mungkin (space >= 6 sudah dicek), pengaman anti-loop
-			end
-			(hungriest :: Types.RanchAnimal).feed += 1
-			left -= 1
-		end
+		local added = fillHungriest(entry, Ranch.PAKAN_JAGUNG.jatah)
 		InventoryService.Sync(player)
-		Net.Fire("Notify", player, "ranch.jagung", { n = Ranch.PAKAN_JAGUNG.jatah })
+		Net.Fire("Notify", player, "ranch.jagung", { n = added })
+		return
+	end
+	if kind == "pakan" then
+		if hewanId ~= "ayam" then
+			return -- Pakan Jagung hanya untuk Pakan Ayam (Bab 9.2)
+		end
+		local space = 0
+		for _, animal in entry.animals do
+			space += math.max(Ranch.FEED_MAX - animal.feed, 0)
+		end
+		if space <= 0 then
+			Net.Fire("Notify", player, "ranch.feed_full")
+			return
+		end
+		local have = InventoryService.Count(player, "pakan_jagung")
+		if have <= 0 then
+			Net.Fire("Notify", player, "ranch.no_mats")
+			return
+		end
+		local take = math.min(have, 6, space)
+		InventoryService.Remove(player, "pakan_jagung", take)
+		local added = fillHungriest(entry, take)
+		InventoryService.Sync(player)
+		Net.Fire("Notify", player, "ranch.pakan", { n = added })
 		return
 	end
 	local missing = 0

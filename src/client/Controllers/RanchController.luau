@@ -102,6 +102,13 @@ local function rebuild()
 					Net.Send("RanchPakan", hewan.id, "jagung")
 				end
 				else nil)
+			if hewan.id == "ayam" then
+				order += 1
+				local snapItems = (snap and snap.items) or {}
+				UiKit.row(list, order, Locale.t("item.pakan_jagung"), `x{snapItems.pakan_jagung or 0}`, Locale.t("ranch.pakan_btn"), (snapItems.pakan_jagung or 0) > 0, function()
+					Net.Send("RanchPakan", hewan.id, "pakan")
+				end)
+			end
 			order += 1
 			UiKit.row(list, order, Locale.t("ranch.buy"), `{hewan.price} Koin`, Locale.t("ranch.buy"), true, function()
 				Net.Send("RanchHewan", hewan.id)

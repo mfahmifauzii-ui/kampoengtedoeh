@@ -6,8 +6,8 @@ return {
 	NPCS = { "pak_udin", "mak_sari", "kak_fajar", "pak_amran", "nek_ani" },
 
 	DAILY_COUNT = 3,
-	FREE_REROLLS = 1, -- per day
-	REROLL_BUNGA = 2, -- after the free ones
+	FREE_REROLLS = 0, -- v7.3 (Bab 14.7): reroll SELALU 2 Bunga, max 1x per Order per hari. Tidak ada yang gratis.
+	REROLL_BUNGA = 2,
 
 	-- Koin worth requested per item type, by level. Count = round(target / sellPrice).
 	valueTarget = function(level: number): number

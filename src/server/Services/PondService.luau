@@ -24,6 +24,7 @@ local Farm = require(ReplicatedStorage.Shared.Config.Farm)
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
 local Ranch = require(ReplicatedStorage.Shared.Config.Ranch)
+local Dapur = require(ReplicatedStorage.Shared.Config.Dapur)
 local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Map = require(ReplicatedStorage.Shared.Config.Map)
 local Monetization = require(ReplicatedStorage.Shared.Config.Monetization)
@@ -372,7 +373,7 @@ local function characterDistance(player: Player, position: Vector3): number?
 end
 
 local function decorRects(data: Types.PlayerData): { Land.Rect }
-	local rects: { Land.Rect } = Land.takenRects(data.pond.list, data.ranch.kandang, Ranch.KANDANG_SIZES)
+	local rects: { Land.Rect } = Land.takenRects(data.pond.list, Dapur.buildings(data.ranch.kandang, data.dapur.spot, data.warung.spot), Dapur.BUILDING_SIZES)
 	for _, entry in data.decor.placed do
 		local rect = DecorGrid.entryRect(entry)
 		if rect then

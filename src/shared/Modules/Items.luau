@@ -3,13 +3,14 @@
 -- Item ids: crops = "<cropId>", Kualitas = "<quality>_<cropId>" (bagus / prima), Super = "super_<cropId>" or "super_<quality>_<cropId>", fish = "<fishId>@<size>" (e.g. "nila@M"), bait = "pelet".
 
 local Crops = require(script.Parent.Parent.Config.Crops)
+local Dapur = require(script.Parent.Parent.Config.Dapur)
 local Farm = require(script.Parent.Parent.Config.Farm)
 local Kualitas = require(script.Parent.Parent.Config.Kualitas)
 local FishConfig = require(script.Parent.Parent.Config.Fish)
 local Fishing = require(script.Parent.Parent.Config.Fishing)
 local Locale = require(script.Parent.Parent.Locale)
 
-export type ItemKind = "crop" | "fish" | "bait" | "seed" | "bahan" | "ternak"
+export type ItemKind = "crop" | "fish" | "bait" | "seed" | "bahan" | "ternak" | "olahan"
 
 export type ItemInfo = {
 	id: string,
@@ -22,7 +23,7 @@ export type ItemInfo = {
 
 local Items = {}
 
-local KIND_ORDER: { [ItemKind]: number } = { crop = 1, fish = 2, bait = 3, seed = 4, bahan = 5, ternak = 6 }
+local KIND_ORDER: { [ItemKind]: number } = { crop = 1, fish = 2, bait = 3, seed = 4, bahan = 5, ternak = 6, olahan = 7 }
 
 -- Bahan (Bab 8.2 / 10.3 v7.3): 7 mentah (6 dari Nambang + Jerami bonus panen Padi; Daun Pisang
 -- bonus panen Pisang hanya untuk Pepes, bukan bahan craft) + 7 olahan (craft Nambang). Tidak bisa dijual di toko
@@ -43,6 +44,8 @@ local BAHAN: { [string]: string } = {
 	atap_ijuk = "item.atap_ijuk",
 	genteng = "item.genteng",
 	kaca = "item.kaca",
+	garam = "item.garam", -- beli di Pak Udin 10 Koin (Bab 9.2); bahan masak, tidak dijual
+	pakan_jagung = "item.pakan_jagung", -- 6 jatah Pakan Ayam (Dapur / RanchService); bukan Olahan
 }
 
 -- Produk ternak (Bab 7.1 v7.3): dijual ke Bang Jali (npc.buys.ternak), diolah di Dapur (P2-3).
@@ -100,6 +103,30 @@ function Items.info(itemId: string): ItemInfo?
 	local produk = TERNAK[itemId]
 	if produk then
 		return { id = itemId, kind = "ternak", nameKey = produk.name, sellPrice = produk.sell }
+	end
+
+	-- Olahan (Bab 9.1/9.2 v7.3): "{kualitas}_{resep}" atau "{kualitas}_{resep}_{base}" (resep 1.6x,
+	-- base = round10(1.6 x nilai bahan) dihitung saat masak). Harga = base x Kualitas Olahan.
+	local quality, rest = itemId:match("^(biasa|bagus|prima)_(.+)$")
+	if quality and rest then
+		local recipeId, base = rest:match("^(.+)_([0-9]+)$")
+		local recipe = Dapur.byId[if recipeId and Dapur.byId[recipeId] then recipeId else rest]
+		if recipe then
+			if not recipeId or not Dapur.byId[recipeId] then
+				base = nil
+			end
+			local unit = if recipe.sell then recipe.sell else (tonumber(base) or 0)
+			if unit > 0 then
+				local mult = if quality == "biasa" then 1 else (Kualitas.byId[quality] and Kualitas.byId[quality].mult or 1)
+				return {
+					id = itemId,
+					kind = "olahan",
+					nameKey = "item.olahan",
+					nameVars = { item = `olahan.{recipe.id}`, quality = `kualitas.{quality}` },
+					sellPrice = math.floor(unit * mult + 0.5),
+				}
+			end
+		end
 	end
 
 	local fishId, size = itemId:match("^(.+)@([%a]+)$")

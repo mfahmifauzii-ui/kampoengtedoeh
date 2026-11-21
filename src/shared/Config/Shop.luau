@@ -12,4 +12,8 @@ return {
 	UPGRADES = {
 		pond = { costs = { 1500, 5000 }, unlockLevel = 6 }, -- Fishing.POND.CAPS
 	} :: { [string]: { costs: { number }, unlockLevel: number } },
+
+	SUPPLIES = {
+		garam = { price = 10 }, -- Garam di Pak Udin (Bab 9.2): bahan masak
+	} :: { [string]: { price: number } },
 }

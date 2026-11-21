@@ -12,10 +12,11 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
+local Buffs = require(ReplicatedStorage.Shared.Config.Buffs)
 local Crops = require(ReplicatedStorage.Shared.Config.Crops)
+local Dapur = require(ReplicatedStorage.Shared.Config.Dapur)
 local Farm = require(ReplicatedStorage.Shared.Config.Farm)
 local Kualitas = require(ReplicatedStorage.Shared.Config.Kualitas)
-local Ranch = require(ReplicatedStorage.Shared.Config.Ranch)
 local DecorGrid = require(ReplicatedStorage.Shared.Modules.DecorGrid)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
 local Land = require(ReplicatedStorage.Shared.Modules.Land)
@@ -214,9 +215,9 @@ local function isCell(value: any): boolean
 	return typeof(value) == "number" and value % 1 == 0 and math.abs(value) <= MAX_CELL
 end
 
--- Rectangles tilling must avoid: placed decor, ponds and kandang (P2-2 Ternak).
+-- Rectangles tilling must avoid: placed decor, ponds and buildings (kandang/dapur/warung).
 local function decorRects(data: Types.PlayerData): { Land.Rect }
-	local rects: { Land.Rect } = Land.takenRects(data.pond.list, data.ranch.kandang, Ranch.KANDANG_SIZES)
+	local rects: { Land.Rect } = Land.takenRects(data.pond.list, Dapur.buildings(data.ranch.kandang, data.dapur.spot, data.warung.spot), Dapur.BUILDING_SIZES)
 	for _, entry in data.decor.placed do
 		local rect = DecorGrid.entryRect(entry)
 		if rect then
@@ -513,11 +514,12 @@ end
 
 -- Harvest roll (Bab 5.3 Super, Bab 5.4 Kualitas). Server only.
 --   Super: base 5%, +5% if the tile is Basah. Fase 1 forces it for the FTUE first harvest (forceSuper).
+--   Buff Tani (Bab 9.4): +10% peluang Super (superBonus). Tidak ngaruh ke waktu tumbuh.
 --   Kualitas: timing + Basah roll (rollQuality). Returns (super, qualityId?).
-local function rollHarvest(tile: Types.FarmTile, now: number, forceSuper: boolean): (boolean, string?)
+local function rollHarvest(tile: Types.FarmTile, now: number, forceSuper: boolean, superBonus: number): (boolean, string?)
 	local super = forceSuper
 	if not super then
-		local chance = Farm.SUPER_CHANCE + (if tile.watered == true then Farm.SUPER_WET_BONUS else 0)
+		local chance = Farm.SUPER_CHANCE + (if tile.watered == true then Farm.SUPER_WET_BONUS else 0) + superBonus
 		super = random:NextNumber() < chance
 	end
 	return super, rollQuality(tile, now)
@@ -547,7 +549,8 @@ local function onHarvest(player: Player, uid: any)
 		return
 	end
 	local guaranteed = takeFirstHarvestGuarantee(data)
-	local super, quality = rollHarvest(tile, now, guaranteed)
+	local taniBonus = if Buffs.active(data.buff, "tani", now) then Dapur.BUFF_TANI_SUPER else 0
+	local super, quality = rollHarvest(tile, now, guaranteed, taniBonus)
 	local itemId = Items.cropItemId(crop.id, super, quality)
 	if not InventoryService.Add(player, itemId, crop.yield) then
 		return

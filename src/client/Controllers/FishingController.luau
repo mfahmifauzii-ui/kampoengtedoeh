@@ -16,6 +16,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
+local Dapur = require(ReplicatedStorage.Shared.Config.Dapur)
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
@@ -268,11 +269,17 @@ local function showIdle()
 end
 
 -- Kotak tarik dari joran (Bab 6.3): Bambu 30% s/d Pusaka 45%. Default = ZONE_WIDTH saat joran tak dikenal.
+-- Buff Pancing (Bab 9.4): kotak +10% lebih lebar (baca atribut server, real-time).
 local function zoneWidth(): number
 	local snap = State.current :: any
 	local rodId = snap and snap.rod
 	local rod = if typeof(rodId) == "string" then Fishing.rods[rodId] else nil
-	return if rod and typeof(rod.box) == "number" then rod.box / 100 else ZONE_WIDTH
+	local width = if rod and typeof(rod.box) == "number" then rod.box / 100 else ZONE_WIDTH
+	local endsAt = player:GetAttribute("Buff_pancing_End")
+	if typeof(endsAt) == "number" and endsAt > Workspace:GetServerTimeNow() then
+		width *= Dapur.BUFF_PANCING_BOX
+	end
+	return width
 end
 
 local function runReel()

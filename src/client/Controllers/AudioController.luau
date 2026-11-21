@@ -39,6 +39,12 @@ local NOTIFY_ROLE: { [string]: string } = {
 	["ranch.collected"] = "order_done",
 	["pond.breed_done"] = "order_done",
 	["pond.breed_instant"] = "order_done",
+	["dapur.built"] = "place_item",
+	["dapur.done"] = "order_done",
+	["dapur.buff"] = "level_up",
+	["warung.built"] = "place_item",
+	["warung.sold"] = "coin_gain",
+	["warung.offline"] = "coin_gain",
 	["decor.stored"] = "place_item",
 }
 

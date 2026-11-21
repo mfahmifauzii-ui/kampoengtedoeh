@@ -66,6 +66,9 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		ponds = pondCells(data),
 		pondState = pondStateFor(data), -- breeding per kolam (uid, tier, kakek, breed) untuk UI
 		ranch = data.ranch, -- kandang + hewan + mood untuk panel Ternak
+		dapur = { tier = data.dapur.tier, slots = table.clone(data.dapur.slots) },
+		warung = data.warung, -- pajangan + nextVisit untuk panel Warung
+		buff = data.buff, -- buff aktif untuk panel (HUD baca atribut)
 		quests = { active = table.clone(data.quests.active), done = table.clone(data.quests.done), daily = table.clone(data.quests.daily) },
 		farm = { tiles = farmTiles(data), cap = FarmConfig.tileCap(data.level) },
 		landChunks = table.clone(data.land.chunks),
@@ -84,6 +87,7 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 			weekly = data.orders.weekly,
 			rerollsUsed = data.orders.rerollsUsed,
 			freeRerolls = OrdersConfig.FREE_REROLLS,
+			rerolled = data.orders.rerolled,
 		},
 		book = data.book,
 		playtime = table.clone(data.playtime),

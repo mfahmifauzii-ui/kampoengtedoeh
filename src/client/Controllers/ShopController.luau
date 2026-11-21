@@ -107,7 +107,7 @@ local function neededByOrders(snapshot: any, sellable: { string }): string
 		for _, need in entry.items do
 			local base = need.item
 			for _, itemId in sellable do
-				if (itemId == base or itemId:match("^(.+)@%a$") == base) and not seen[base] then
+				if (itemId == base or itemId:match("^(.+)@[%a]+$") == base) and not seen[base] then
 					seen[base] = true
 					local key = if Crops.byId[base] then `crop.{base}` else `fish.{base}`
 					table.insert(names, Locale.t(key))
@@ -309,6 +309,34 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 				end,
 				onAction = function(n)
 					confirmBuy(npcId, "bait", baitId, name, bait.price, n)
+				end,
+			})
+		end
+	end
+
+	-- Bahan masak (Pak Udin): Garam 10 Koin (Bab 9.2).
+	if sells.supplies then
+		UiKit.header(list, Locale.t("shop.section.supplies"), nextOrder())
+		for supplyId, supply in Shop.SUPPLIES do
+			anything = true
+			local name = Locale.t(`item.{supplyId}`)
+			UiKit.tradeRow(list, nextOrder(), {
+				name = name,
+				sub = `{Locale.t("shop.unit_price", { price = koin(supply.price) })}  ·  {Locale.t("ui.owned", { n = items[supplyId] or 0 })}`,
+				thumbKey = supplyId,
+				placeholderIcon = "pancing",
+				accent = UiKit.CAT.tool,
+				unitPrice = supply.price,
+				maxQty = Shop.MAX_AMOUNT,
+				pickQty = true,
+				qty = qtyBuy[supplyId],
+				money = money(),
+				actionText = Locale.t("ui.buy"),
+				onQty = function(n)
+					qtyBuy[supplyId] = n
+				end,
+				onAction = function(n)
+					confirmBuy(npcId, "supply", supplyId, name, supply.price, n)
 				end,
 			})
 		end

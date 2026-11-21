@@ -129,6 +129,11 @@ function BookService.RecordFish(player: Player, fishId: string, size: string)
 	record(player, "sungai", `{fishId}@{size}`, true, `fish.{fishId}`)
 end
 
+-- Album Dapur: 24 resep x 3 Kualitas (Bab 11). Direkam saat Olahan diambil (P2-3 Dapur).
+function BookService.RecordDapur(player: Player, recipeId: string, quality: string)
+	record(player, "dapur", `{recipeId}:{quality}`, true, `olahan.{recipeId}`)
+end
+
 function BookService.RecordDecor(player: Player, decorId: string)
 	record(player, "rumah", decorId, true, `decor.{decorId}`)
 end

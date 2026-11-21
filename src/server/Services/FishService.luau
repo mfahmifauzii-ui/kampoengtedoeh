@@ -17,6 +17,8 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
+local Buffs = require(ReplicatedStorage.Shared.Config.Buffs)
+local Dapur = require(ReplicatedStorage.Shared.Config.Dapur)
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
 local Ranch = require(ReplicatedStorage.Shared.Config.Ranch)
@@ -235,6 +237,10 @@ local function startCast(player: Player, spot: BasePart)
 	local biteDelay = random:NextNumber(Fishing.BITE_MIN, Fishing.BITE_MAX) * rod.biteMult
 	if usedBait then
 		biteDelay *= 1 - usedBait.biteReduction
+	end
+	-- Buff Pancing (Bab 9.4): gigitan 20% lebih cepat.
+	if Buffs.active(data.buff, "pancing", os.time()) then
+		biteDelay *= Dapur.BUFF_PANCING_BITE
 	end
 	local session: Session = { spot = spot, fishId = fishId, biteAt = os.clock() + biteDelay }
 	sessions[player] = session
