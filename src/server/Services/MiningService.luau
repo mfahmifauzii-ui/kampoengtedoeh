@@ -68,7 +68,10 @@ local function pushState(player: Player)
 	end
 end
 
--- Kapak: bonus bahan per node (Config/Farm TOOLS bonusBahan). Kapak terbaik yang dipunyai menang.
+-- Kapak: bonus bahan PER NODE TOTAL, bukan per pukulan (Config/Farm TOOLS bonusBahan). Kapak
+-- terbaik yang dipunyai menang, diberikan SEKALI saat node habis (lihat onHit: blok `entry.hits <= 0`).
+-- Cara hitung: 1 node = 4 pukulan x NORMAL_YIELD(1) = 4 bahan; + axeBonus Sekali. Contoh: 4x normal +
+-- Kapak Besi (bonusBahan 1) = 5 bahan, bukan 8. Critical hanya mengganti yield pukulan itu (2).
 local function axeBonus(data: Types.PlayerData): number
 	local best = 0
 	for toolId, owned in data.tools do
@@ -226,7 +229,8 @@ end
 local function buildPlaceholders()
 	local folder = Instance.new("Folder")
 	folder.Name = "Mining"
-	-- Sudut hutan (pojok map, di luar jalan dan lahan): fallback saja, map asli punya Hutan Nambang.
+	-- DEV ONLY: sudut hutan (pojok map, di luar jalan dan lahan). Fallback bila map Studio belum punya
+	-- 6 part Mining + NodeId. HAPUS SEBELUM RILIS bila Hutan Nambang asli sudah ada (lihat Roadmap §6).
 	local baseX, baseZ = 268, 268
 	for index, node in Mining.NODES do
 		local x = baseX + ((index - 1) % 3) * 12
