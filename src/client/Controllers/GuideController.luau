@@ -872,9 +872,14 @@ function refreshTutorial()
 		local highlight = stepDef.highlight
 		local kind = stepDef.done.kind
 		local groundKind = kind == "tiles" or kind == "ponds" or kind == "planted" or kind == "watered" or kind == "garap" -- steps done by tapping the ground in Garap mode (planting and watering too)
-		local onGround = groundKind and GarapController.Active
+		-- A step pointing AT the Garap tool button is asking the player to OPEN Garap mode: while it is
+		-- still closed the coachmark sits on the button; once it is open the ghost is the target (ground
+		-- mode) and the mode must stay open. Stopping it here trapped the tutorial: tap -> open ->
+		-- instant stop, the button hole stayed up and the step could never complete.
+		local wantsGarap = stepDef.highlight == "GarapButton"
+		local onGround = (groundKind or wantsGarap) and GarapController.Active
 		-- Past the tilling / pond steps, Garap mode must be closed: its open state hides the bed pills the next step points at.
-		if not (groundKind or kind == "pondmode") and GarapController.Active then
+		if not (groundKind or wantsGarap or kind == "pondmode") and GarapController.Active then
 			GarapController.Stop()
 		end
 		local coachText = if onGround then Locale.t("tut.coach.ground") elseif stepDef.coach then Locale.t(stepDef.coach) else Locale.t(stepDef.text)

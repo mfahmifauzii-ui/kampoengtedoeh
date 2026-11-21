@@ -106,7 +106,7 @@ function CoachmarkController.Init()
 			piece.ImageColor3 = Color3.fromRGB(0, 0, 0)
 			piece.ImageTransparency = OVERLAY_TRANSPARENCY
 			piece.Rotation = rotation
-			piece.Active = true -- swallows taps like the dark pieces
+			piece.Active = false -- visual only: the hitbox is a full square and would eat taps inside the hole
 			piece.Visible = false
 			piece.Parent = overlayGui
 			table.insert(corners, piece)
