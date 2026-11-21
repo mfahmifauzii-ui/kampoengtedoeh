@@ -26,10 +26,10 @@
 
 ## 4. P1 — Benerkan Angka (jangan tambah sistem baru)
 
-- [ ] 12 tanaman hilang (Singkong s/d Durian) — harga / waktu / XP persis Bab 5.3
-    - File: `src/shared/Config/Crops.luau` (sekarang 6 entri, baris 20-25: kangkung, bayam, tomat, sawi, jagung, ubi_jalar).
+- [x] 12 tanaman hilang (Singkong s/d Durian) — harga / waktu / XP persis Bab 5.3 — DONE 2026-11-21
+    - File yang diubah: `src/shared/Config/Crops.luau` (18 entri + tipe `Byproduct`), `src/shared/Modules/Items.luau` (kind `bahan` + jerami/daun_pisang, tidak bisa dijual), `src/server/Services/FarmService.luau` (grant byproduct non-blokir), `src/shared/Locale/id.luau` (8 nama tanaman + 2 nama bahan).
     - Angka v7.3: tambah 12 persis tabel Bab 5.3 #7-18 (Singkong 25mnt/30/95/40/Lv6; Cabai 30mnt/40/125/50/Lv8; Padi 2jam/120/400/140/Lv8 + 2 Jerami; Stroberi 2jam/130/420/150/Lv12; Pisang 3jam/160/520/180/Lv15 + 2 Daun Pisang; Tebu 40mnt/50/160/60/Lv15; Jahe 35mnt/45/140/55/Lv22; Kopi 4jam/200/650/220/Lv25; Teh 6jam/260/850/280/Lv25; Melati 30mnt/40/130/50/Lv30; Mangga 8jam/320/1100/360/Lv35; Durian 8jam/380/1300/400/Lv45).
-    - Cara Cek: `grep -c 'id = ' src/shared/Config/Crops.luau` = 18 + spot-check baris Pisang (`growSeconds` 3 jam, `sellPrice` 520).
+    - Cara Cek: `grep -c 'id = ' src/shared/Config/Crops.luau` = 18 ✓ + selene 4 file 0 errors ✓ + rojo build sukses ✓.
 - [ ] 8 ikan hilang + perbaiki harga 12 ikan lama — persis Bab 6.4
     - File: `src/shared/Config/Fish.luau` (sekarang 12 entri skema lama baris 21-32: wader 8, nila 10, mujair 10, lele 12, mas 20, bawal 28, gabus 35, belut 40, gurame 25, udang_galah 90, koi 150, arwana 500; tanpa `unlockLevel`/XP/spot/waktu v7.3).
     - Angka v7.3: 20 ikan persis tabel Bab 6.4 (Wader Cakul 20/10/Lv1 Kanal; Betok 26/12/Lv1; Sepat 30/14/Lv2; Lele 45/18/Lv2 Malam; Mujair 70/26/Lv5; Nila 90/32/Lv5; Tawes 110/38/Lv6 Siang; Gurame 160/50/Lv8; Patin 180/55/Lv10; Gabus 200/60/Lv10 Hujan; Baung 220/65/Lv12 Malam; Jelawat 350/95/Lv15; Toman 420/110/Lv18 Sore/Malam; Tapah 600/150/Lv18 Spot4 Malam; Sidat 650/160/Lv22 Spot4 Malam+Hujan; Semah 520/130/Lv25 Danau Pagi; Belida 700/170/Lv30; Gurame Raja 2200/550/Lv15; Belut Emas 2000/500/Lv20; Ikan Dewa 2500/600/Lv30) + ukuran Kecil x0,8 (40%) / Sedang x1,0 (40%) / Besar x1,2 (15%) / Jumbo x1,5 (5%).

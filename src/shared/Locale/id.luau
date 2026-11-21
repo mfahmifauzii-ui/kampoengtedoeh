@@ -16,7 +16,7 @@ return {
 	["notify.spent"] = "-{n} {currency}",
 	["notify.not_enough"] = "{currency} kamu belum cukup",
 
-	-- Crops
+	-- Crops (18 rilis, Bab 5.3 v7.3)
 	["crop.kangkung"] = "Kangkung",
 	["crop.bayam"] = "Bayam",
 	["crop.sawi"] = "Sawi",
@@ -28,6 +28,16 @@ return {
 	["crop.singkong"] = "Singkong",
 	["crop.padi"] = "Padi",
 	["crop.pisang"] = "Pisang",
+	["crop.stroberi"] = "Stroberi",
+	["crop.tebu"] = "Tebu",
+	["crop.jahe"] = "Jahe",
+	["crop.kopi"] = "Kopi",
+	["crop.teh"] = "Teh",
+	["crop.melati"] = "Melati",
+	["crop.mangga"] = "Mangga",
+	["crop.durian"] = "Durian",
+	["item.jerami"] = "Jerami",
+	["item.daun_pisang"] = "Daun Pisang",
 
 	-- Farm
 	["farm.ready"] = "Siap panen!",

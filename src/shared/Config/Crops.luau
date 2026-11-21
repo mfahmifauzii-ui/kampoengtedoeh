@@ -1,8 +1,13 @@
 --!strict
--- Tanaman. Fase 1 isi: 6 tanaman pertama (docs/Kampoeng_Tedoeh_Gameplay_Lengkap_v6.2.md Bab 5.3; waktu Early di v6.2.2).
--- Sisa 12 tanaman rilis masuk di Fase 8. Tambah tanaman: satu entri di sini + locale "crop.<id>".
+-- Tanaman rilis: 18 tanaman (Kampoeng_Tedoeh_v7.3 Bab 5.3, LOCKED). Tambah tanaman: satu entri di sini + locale "crop.<id>".
 -- growSeconds = waktu nyata (lanjut walau offline, Bab 5.1). yield = hasil per panen. regrows = panen ulang tambahan.
 -- seedPrice = bibit di Pak Udin (Bab 5.3 "Bibit"). sellPrice = Jual (Bab 5.3 "Jual"). xp = XP per panen (Bab 5.3).
+-- byproduct = bonus per panen (Bab 5.3: Padi -> 2 Jerami, Pisang -> 2 Daun Pisang).
+
+export type Byproduct = {
+	id: string, -- "jerami" | "daun_pisang" (Modules/Items, kind "bahan": tidak bisa dijual)
+	count: number,
+}
 
 export type Crop = {
 	id: string,
@@ -13,6 +18,7 @@ export type Crop = {
 	xp: number,
 	yield: number,
 	regrows: number,
+	byproduct: Byproduct?,
 	color: Color3,
 }
 
@@ -23,6 +29,18 @@ local list: { Crop } = {
 	{ id = "sawi", unlockLevel = 2, seedPrice = 25, growSeconds = 1200, sellPrice = 80, xp = 35, yield = 1, regrows = 0, color = Color3.fromRGB(92, 152, 98) },
 	{ id = "jagung", unlockLevel = 3, seedPrice = 35, growSeconds = 1800, sellPrice = 110, xp = 45, yield = 1, regrows = 0, color = Color3.fromRGB(214, 180, 92) },
 	{ id = "ubi_jalar", unlockLevel = 3, seedPrice = 12, growSeconds = 420, sellPrice = 38, xp = 18, yield = 1, regrows = 0, color = Color3.fromRGB(184, 120, 92) },
+	{ id = "singkong", unlockLevel = 6, seedPrice = 30, growSeconds = 1500, sellPrice = 95, xp = 40, yield = 1, regrows = 0, color = Color3.fromRGB(150, 110, 75) },
+	{ id = "cabai", unlockLevel = 8, seedPrice = 40, growSeconds = 1800, sellPrice = 125, xp = 50, yield = 1, regrows = 0, color = Color3.fromRGB(200, 60, 50) },
+	{ id = "padi", unlockLevel = 8, seedPrice = 120, growSeconds = 7200, sellPrice = 400, xp = 140, yield = 1, regrows = 0, byproduct = { id = "jerami", count = 2 }, color = Color3.fromRGB(220, 190, 110) },
+	{ id = "stroberi", unlockLevel = 12, seedPrice = 130, growSeconds = 7200, sellPrice = 420, xp = 150, yield = 1, regrows = 0, color = Color3.fromRGB(220, 90, 100) },
+	{ id = "pisang", unlockLevel = 15, seedPrice = 160, growSeconds = 10800, sellPrice = 520, xp = 180, yield = 1, regrows = 0, byproduct = { id = "daun_pisang", count = 2 }, color = Color3.fromRGB(140, 170, 90) },
+	{ id = "tebu", unlockLevel = 15, seedPrice = 50, growSeconds = 2400, sellPrice = 160, xp = 60, yield = 1, regrows = 0, color = Color3.fromRGB(130, 170, 100) },
+	{ id = "jahe", unlockLevel = 22, seedPrice = 45, growSeconds = 2100, sellPrice = 140, xp = 55, yield = 1, regrows = 0, color = Color3.fromRGB(180, 140, 90) },
+	{ id = "kopi", unlockLevel = 25, seedPrice = 200, growSeconds = 14400, sellPrice = 650, xp = 220, yield = 1, regrows = 0, color = Color3.fromRGB(150, 60, 60) },
+	{ id = "teh", unlockLevel = 25, seedPrice = 260, growSeconds = 21600, sellPrice = 850, xp = 280, yield = 1, regrows = 0, color = Color3.fromRGB(100, 150, 95) },
+	{ id = "melati", unlockLevel = 30, seedPrice = 40, growSeconds = 1800, sellPrice = 130, xp = 50, yield = 1, regrows = 0, color = Color3.fromRGB(235, 235, 225) },
+	{ id = "mangga", unlockLevel = 35, seedPrice = 320, growSeconds = 28800, sellPrice = 1100, xp = 360, yield = 1, regrows = 0, color = Color3.fromRGB(230, 150, 60) },
+	{ id = "durian", unlockLevel = 45, seedPrice = 380, growSeconds = 28800, sellPrice = 1300, xp = 400, yield = 1, regrows = 0, color = Color3.fromRGB(110, 140, 70) },
 }
 
 local byId: { [string]: Crop } = {}

@@ -527,6 +527,10 @@ local function onHarvest(player: Player, uid: any)
 	if not InventoryService.Add(player, itemId, crop.yield) then
 		return
 	end
+	-- Byproduct panen (Bab 5.3 v7.3): Padi -> 2 Jerami, Pisang -> 2 Daun Pisang. Tidak blokir panen kalau gagal.
+	if crop.byproduct then
+		InventoryService.Add(player, crop.byproduct.id, crop.byproduct.count)
+	end
 	if guaranteed then
 		data.guide.done.ftue_super = true -- marked only after the item is in the bag (a full bag must not waste it)
 	end

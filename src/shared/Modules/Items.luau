@@ -9,7 +9,7 @@ local FishConfig = require(script.Parent.Parent.Config.Fish)
 local Fishing = require(script.Parent.Parent.Config.Fishing)
 local Locale = require(script.Parent.Parent.Locale)
 
-export type ItemKind = "crop" | "fish" | "bait" | "seed"
+export type ItemKind = "crop" | "fish" | "bait" | "seed" | "bahan"
 
 export type ItemInfo = {
 	id: string,
@@ -22,7 +22,14 @@ export type ItemInfo = {
 
 local Items = {}
 
-local KIND_ORDER: { [ItemKind]: number } = { crop = 1, fish = 2, bait = 3, seed = 4 }
+local KIND_ORDER: { [ItemKind]: number } = { crop = 1, fish = 2, bait = 3, seed = 4, bahan = 5 }
+
+-- Bahan (Bab 10.3 v7.3): Jerami (bonus panen Padi) dan Daun Pisang (bonus panen Pisang, hanya untuk Pepes).
+-- Tidak bisa dijual di toko mana pun (sellPrice nil). Dipakai di Craft / Dapur (P2).
+local BAHAN: { [string]: string } = {
+	jerami = "item.jerami",
+	daun_pisang = "item.daun_pisang",
+}
 
 function Items.info(itemId: string): ItemInfo?
 	local crop = Crops.byId[itemId]
@@ -61,6 +68,12 @@ function Items.info(itemId: string): ItemInfo?
 	local seedCrop = itemId:match("^seed_(.+)$")
 	if seedCrop and Crops.byId[seedCrop] then
 		return { id = itemId, kind = "seed", nameKey = "item.seed", nameVars = { crop = `crop.{seedCrop}` } }
+	end
+
+	-- Bahan byproduct panen (Bab 5.3 / 10.3 v7.3): tidak bisa dijual.
+	local bahanKey = BAHAN[itemId]
+	if bahanKey then
+		return { id = itemId, kind = "bahan", nameKey = bahanKey }
 	end
 
 	local fishId, size = itemId:match("^(.+)@(%a)$")
