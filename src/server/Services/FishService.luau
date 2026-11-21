@@ -78,13 +78,13 @@ local function fishWeight(fish: Fish, phase: string, raining: boolean): number
 end
 
 -- Two-step roll: pick a rarity tier (only tiers with an available fish count),
--- then pick a fish inside that tier by its own weight.
-local function rollFish(location: string, rareBonus: number, legendaryBonus: number, allowed: { [Rarity]: boolean }?): string?
+-- then pick a fish inside that tier by its own weight. Buka Lv (Bab 6.4): only fish at or below the player's level.
+local function rollFish(location: string, level: number, rareBonus: number, legendaryBonus: number, allowed: { [Rarity]: boolean }?): string?
 	local phase, raining = getConditions()
 
 	local byTier: { [Rarity]: { { fish: Fish, weight: number } } } = {}
 	for _, fish in FishConfig.list do
-		if table.find(fish.locations, location) and isAvailable(fish, phase, raining) and (not allowed or allowed[fish.rarity]) then
+		if fish.unlockLevel <= level and table.find(fish.locations, location) and isAvailable(fish, phase, raining) and (not allowed or allowed[fish.rarity]) then
 			local tier = byTier[fish.rarity] or {}
 			table.insert(tier, { fish = fish, weight = fishWeight(fish, phase, raining) })
 			byTier[fish.rarity] = tier
@@ -210,7 +210,7 @@ local function startCast(player: Player, spot: BasePart)
 	if not rod then
 		return -- cannot happen after the rod check above; kept so the type stays exact
 	end
-	local fishId = rollFish(location, rod.rareBonus, rod.legendaryBonus, nil)
+	local fishId = rollFish(location, data.level, rod.rareBonus, rod.legendaryBonus, nil)
 	if not fishId then
 		Net.Fire("Notify", player, "fish.none_here")
 		return
@@ -322,7 +322,7 @@ local function collectPond(player: Player, pond: BasePart)
 	local allowed = { C = true, U = true }
 	local collected = 0
 	for _ = 1, count do
-		local fishId = rollFish("kolam", 0, 0, allowed)
+		local fishId = rollFish("kolam", data.level, 0, 0, allowed)
 		if not fishId then
 			break
 		end

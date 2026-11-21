@@ -22,7 +22,7 @@ type OrderEntry = Types.OrderEntry
 type Candidate = { id: string, price: number, maxCount: number }
 
 local RATE = { rate = 3, burst = 6 }
-local SIZE_ORDER = { "S", "M", "L" } -- fish sizes are consumed smallest first
+local SIZE_ORDER = { "S", "M", "L", "XL" } -- fish sizes are consumed smallest first
 
 local random = Random.new()
 
@@ -38,7 +38,7 @@ local function candidates(level: number): { Candidate }
 		end
 	end
 	for _, fish in FishConfig.list do
-		if (fish.rarity == "C" or fish.rarity == "U") and not fish.requirePhases and not fish.requireRain then
+		if fish.unlockLevel <= level and (fish.rarity == "C" or fish.rarity == "U") and not fish.requirePhases and not fish.requireRain then
 			for _, location in fish.locations do
 				local config = Fishing.LOCATIONS[location]
 				if config and config.unlockLevel <= level then
