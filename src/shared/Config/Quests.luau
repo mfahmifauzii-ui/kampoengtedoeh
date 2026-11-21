@@ -19,6 +19,11 @@ export type Quest = {
 	after: string?,
 	requireTutorial: boolean?, -- Stage 7: starts only after T1 (guide.done.t1_awal)
 	requireKakek: boolean?, -- P2-2: starts only after Kolam Kakek pulih (MQ4/Bundel P2-7)
+	requireAlbum: number?, -- P2-7-fix: mulai hanya bila % Album >= nilai (MQ12, Side Kolektor)
+	auto: boolean?, -- P2-7-fix: selesai saat mulai (tanpa langkah; MQ1/MQ4/MQ6, Side Kolektor)
+	anyOf: boolean?, -- P2-7-fix: langkah mana pun yang selesai = quest selesai (MQ11 Legenda/Prima Late)
+	giveHewan: string?, -- P2-7-fix: beri 1 ekor via RanchService.Give (MQ6 Ayam)
+	unlockKakek: boolean?, -- P2-7-fix: set pond.kakekUnlocked (MQ4, Bundel Kolam Kakek)
 	bonusDecor: string?, -- Stage 7: decor item added to the stock as a reward (free)
 	steps: { Step },
 	reward: Progression.Reward,
@@ -47,6 +52,184 @@ local list: { Quest } = {
 		},
 		reward = { koin = 50 },
 		bonusDecor = "pagar_bambu",
+	},
+	-- MQ: Main Quest linear, cerita Kakek (Bab 14.2, LOCKED, P2-7-fix). Berurutan via `after`.
+	{
+		id = "mq1_pulang",
+		unlockLevel = 1,
+		auto = true,
+		steps = {},
+		reward = { koin = 100, items = { seed_kangkung = 4 } },
+	},
+	{
+		id = "mq2_siram",
+		unlockLevel = 1,
+		after = "mq1_pulang",
+		steps = {
+			{ event = "water", count = 1 }, -- Siram 1 tanaman
+		},
+		reward = { koin = 50, xp = 20 },
+	},
+	{
+		id = "mq3_panen",
+		unlockLevel = 1,
+		after = "mq2_siram",
+		steps = {
+			{ event = "harvest", count = 1 }, -- Panen 1 tanaman (dijamin Super)
+		},
+		reward = { koin = 100, xp = 30 },
+	},
+	{
+		id = "mq4_kolam",
+		unlockLevel = 3,
+		after = "mq3_panen",
+		auto = true, -- Lv 3, Mak Sari datang: Kolam Kakek pulih
+		unlockKakek = true,
+		steps = {},
+		reward = { koin = 0 },
+	},
+	-- MQ5/MQ7/MQ8: Bubu/Tungku belum ada sistemnya di src. Reward Koin interim = USULAN (butuh lock owner).
+	{
+		id = "mq5_bubu",
+		unlockLevel = 6,
+		after = "mq4_kolam",
+		steps = {
+			{ event = "catch", count = 3 }, -- Mancing 3 ikan (Bubu menyusul)
+		},
+		reward = { koin = 150 },
+	},
+	{
+		id = "mq6_kokok",
+		unlockLevel = 5,
+		after = "mq5_bubu",
+		auto = true, -- Lv 5, Pak Udin: Ayam gratis (pakan penuh) + kandang Lv1 bila belum ada
+		giveHewan = "ayam",
+		steps = {},
+		reward = { koin = 0 },
+	},
+	{
+		id = "mq7_dapur",
+		unlockLevel = 6,
+		after = "mq6_kokok",
+		steps = {
+			{ event = "dapur_built", count = 1 }, -- Craft Dapur Tier 1
+		},
+		reward = { koin = 200 },
+	},
+	{
+		id = "mq8_jebakan",
+		unlockLevel = 6,
+		after = "mq7_dapur",
+		steps = {
+			{ event = "catch", count = 5 }, -- Mancing 5 ikan (Jebakan Kak Fajar = Bubu, menyusul)
+		},
+		reward = { koin = 250 },
+	},
+	-- MQ9: "Slot Warung" kedua belum ada sistem (Warung 1 slot). Reward Koin saja; slot = USULAN.
+	{
+		id = "mq9_warung",
+		unlockLevel = 6,
+		after = "mq8_jebakan",
+		steps = {
+			{ event = "warung_sale", count = 1 }, -- Jual 1 olahan di Warung sendiri
+		},
+		reward = { koin = 200 },
+	},
+	{
+		id = "mq10_bundel",
+		unlockLevel = 8,
+		after = "mq9_warung",
+		steps = {
+			{ event = "bundel_done", count = 1 }, -- Pulihkan 1 Bundel Kakek
+		},
+		reward = { koin = 300, bunga = 5 },
+	},
+	-- MQ11: Legenda ATAU Prima Late (anyOf, Bab 14.2). Title "Penakluk Legenda" = USULAN (v7.3 cuma "Title").
+	{
+		id = "mq11_legenda",
+		unlockLevel = 15,
+		after = "mq10_bundel",
+		anyOf = true,
+		steps = {
+			{ event = "catch_legenda", count = 1 }, -- Dapat 1 Ikan Legenda
+			{ event = "harvest_prima_late", count = 1 }, -- Panen 1 Prima Late
+		},
+		reward = { koin = 500, title = "penakluk_legenda" },
+	},
+	{
+		id = "mq12_warga",
+		unlockLevel = 15,
+		after = "mq11_legenda",
+		requireAlbum = 50,
+		auto = true, -- semua MQ + 50% Album: Title Warga Kampoeng Tedoeh + 10 Bunga
+		steps = {},
+		reward = { koin = 0, bunga = 10, title = "warga_tedoeh" },
+	},
+	-- Side Quest (Bab 14.4, LOCKED, P2-7-fix). Syarat buka = USULAN (v7.3 tak memberi).
+	-- Kucing Alun-alun + Joran Hilang BELUM BISA: tidak ada sistem kucing / joran hilang di src (tunggu P2-9).
+	{
+		id = "side_rumah_rapi",
+		unlockLevel = 8,
+		steps = {
+			{ event = "decor_placed", count = 20 }, -- Pasang 20 piece (Pak Amran)
+		},
+		reward = { title = "dinding_spesial" },
+	},
+	{
+		id = "side_tetangga",
+		unlockLevel = 5,
+		steps = {
+			{ event = "bantu", count = 10 }, -- Bantu 10 lahan (Nek Ani)
+		},
+		reward = { koin = 300 },
+	},
+	{
+		id = "side_resep",
+		unlockLevel = 6,
+		steps = {
+			{ event = "cook", count = 3 }, -- Masak 3 olahan (Mak Sari; "berbeda" belum ditegakkan, hitung total)
+		},
+		reward = { koin = 100 },
+	},
+	{
+		id = "side_prima",
+		unlockLevel = 8,
+		steps = {
+			{ event = "harvest_prima", count = 5 }, -- Panen 5 Kualitas Prima (Mak Sari)
+		},
+		reward = { koin = 200 },
+	},
+	{
+		id = "side_jumbo",
+		unlockLevel = 10,
+		steps = {
+			{ event = "catch_jumbo", count = 1 }, -- Dapat 1 Ikan Jumbo (Kak Fajar)
+		},
+		reward = { koin = 200, title = "raja_jumbo" },
+	},
+	{
+		id = "side_kolektor",
+		unlockLevel = 1,
+		requireAlbum = 25,
+		auto = true, -- Capai 25% Album (Nek Ani)
+		steps = {},
+		reward = { koin = 0, bunga = 10 },
+	},
+	{
+		id = "side_kerjabakti",
+		unlockLevel = 1,
+		steps = {
+			{ event = "kb", count = 10 }, -- Ikut 10 Kerja Bakti (Nek Ani)
+		},
+		reward = { koin = 500, title = "pekerja_bakti" },
+	},
+	{
+		id = "side_warung",
+		unlockLevel = 6,
+		steps = {
+			{ event = "warung_sale", count = 10 }, -- Jual 10 olahan di Warung sendiri (Mak Sari)
+		},
+		reward = { koin = 300 },
 	},
 }
 

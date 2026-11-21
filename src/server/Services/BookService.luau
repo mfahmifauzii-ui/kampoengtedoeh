@@ -36,6 +36,14 @@ local function guiTotal(data: Types.PlayerData): number
 	return total
 end
 
+function BookService.AlbumPercent(player: Player): number
+	local data = DataService.Get(player)
+	if not data then
+		return 0
+	end
+	return guiTotal(data) / TOTAL * 100
+end
+
 local function countIn(data: Types.PlayerData, category: string): number
 	local recorded = (data.book :: any)[category]
 	local count = 0

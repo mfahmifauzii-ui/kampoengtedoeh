@@ -44,6 +44,7 @@ local template: Types.PlayerData = {
 		list = {},-- { PondEntry } ponds the player built
 		nextUid = 1,
 		kakekUnlocked = false, -- Kolam Kakek pulih (MQ4/Bundel Kakek P2-7). PondBuild butuh ini.
+		freeBuilds = 0, -- token kolam gratis (Bundel Empang, Bab 14.6)
 	},
 
 	ranch = {
@@ -115,6 +116,8 @@ local template: Types.PlayerData = {
 		harian = { day = "", slots = {} }, -- Quest Harian 3/hari (P2-7)
 		mingguan = { week = "", slots = {} }, -- Quest Mingguan 3/minggu (P2-7), reset Senin 05:00 WIB
 	},
+	surat = { lastDay = "", logins = 0, progress = 0, done = {} }, -- Surat Kakek 30 (Bab 14.3): 1/hari login
+	bundel = { sumur_day = "" }, -- Bundel Kakek (Bab 14.6): [id] = { given, done } + sumur_day
 
 	playtime = { day = "", seconds = 0, claimed = 0 }, -- Hadiah playtime: active seconds today, chests opened today (Config/Progression PLAYTIME)
 

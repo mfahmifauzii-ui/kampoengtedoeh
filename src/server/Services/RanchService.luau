@@ -534,6 +534,39 @@ function RanchService.Collect(player: Player, hewanId: string)
 	end
 end
 
+-- Beri 1 ekor gratis, pakan penuh (MQ6 Ayam, Bab 14.2): kandang Lv1 ikut dibangun gratis
+-- bila belum ada (paket "Ayam gratis" Pak Udin). Gagal bila kandang penuh / tak ada lahan / tak ada plot.
+function RanchService.Give(player: Player, hewanId: string): boolean
+	local hewan = Ranch.byHewan[hewanId]
+	local data = DataService.Get(player)
+	local plot = PlotService.GetPlot(player)
+	if not hewan or not data or not plot or not plot.PrimaryPart then
+		return false
+	end
+	local entry = kandangOf(data, hewanId)
+	if not entry then
+		local costDef = Ranch.KANDANG[hewanId]
+		if not costDef then
+			return false
+		end
+		local cx, cz = findSpot(data, costDef.size[1], costDef.size[2])
+		if cx == nil or cz == nil then
+			return false
+		end
+		entry = { tier = 1, cx = cx :: number, cz = cz :: number, animals = {} }
+		data.ranch.kandang[hewanId] = entry
+		buildOne(plot, player, hewanId, entry)
+	end
+	local maxAnimals = hewan.maxAnimals[math.clamp(entry.tier, 1, #hewan.maxAnimals)]
+	if #entry.animals >= maxAnimals then
+		return false
+	end
+	RanchService.AdvanceAll(data, os.time())
+	table.insert(entry.animals, { feed = Ranch.FeedMax(0), prod = 0, last = os.time() })
+	InventoryService.Sync(player)
+	return true
+end
+
 local function onAmbil(player: Player, hewanId: any)
 	if typeof(hewanId) ~= "string" then
 		return

@@ -342,6 +342,12 @@ local function onReel(player: Player, score: any)
 		BookService.RecordFish(player, fish.id, size)
 		AnalyticsHooks.Step(player, "first_catch")
 		QuestService.Report(player, "catch")
+		if fish.rarity == "L" then
+			QuestService.Report(player, "catch_legenda") -- MQ11 Legenda Pertama (Bab 14.2)
+		end
+		if size == "Jumbo" then
+			QuestService.Report(player, "catch_jumbo") -- Side Ikan Jumbo (Bab 14.4)
+		end
 		if session.spot:GetAttribute("Location") == "kolam" then
 			QuestService.Report(player, "catch_pond")
 		end

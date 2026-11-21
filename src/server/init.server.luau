@@ -32,6 +32,8 @@ local ORDER = {
 	"ShopService",
 	"RepeatService", -- Event Berulang (P2-6): Gerobak/Pasar/Kerja Bakti/Tamu; butuh NpcService + WorldService (di atas)
 	"AgendaService", -- Agenda Harian (P2-7): 5 tugas dipilih player
+	"SuratService", -- Surat Kakek 30 (P2-7-fix, Bab 14.3): 1/hari login, kumulatif
+	"BundelService", -- Bundel Kakek 5 (P2-7-fix, Bab 14.6): setoran + hadiah + flag
 	"AlbumService", -- Toko Bunga + delegasi klaim Album (P2-7)
 	"DecorService",
 	"OrderService",

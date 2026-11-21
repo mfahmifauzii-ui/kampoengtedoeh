@@ -171,6 +171,32 @@ local list: { Item } = {
 		p(0.4, 1.6, 0.4, 1.2, 0.8, 0, DARKWOOD),
 		p(2.4, 1.8, 1.8, 0, 2.1, 0, Color3.fromRGB(150, 104, 66), nil, "wheel"),
 	} },
+	-- Bundel Kakek (Bab 14.6, P2-7-fix): hanya dari Bundel, tidak dijual di toko.
+	{ id = "sumur_tua", set = "bundel", w = 2, d = 2, currency = "koin", price = 400, parts = {
+		p(3.4, 0.4, 3.4, 0, 0.2, 0, STONE, Enum.Material.Slate),
+		p(0.5, 2.6, 0.5, -1.2, 1.7, -1.2, WOOD),
+		p(0.5, 2.6, 0.5, 1.2, 1.7, -1.2, WOOD),
+		p(0.5, 2.6, 0.5, -1.2, 1.7, 1.2, WOOD),
+		p(0.5, 2.6, 0.5, 1.2, 1.7, 1.2, WOOD),
+		p(3.4, 0.3, 3.4, 0, 3.1, 0, DARKWOOD),
+		p(0.3, 1.2, 0.3, 0, 2.4, 0, DARKWOOD),
+	} },
+	{ id = "saung_kakek", set = "bundel", w = 3, d = 3, currency = "koin", price = 800, parts = {
+		p(0.5, 4.5, 0.5, -2.2, 2.25, -2.2, WOOD),
+		p(0.5, 4.5, 0.5, 2.2, 2.25, -2.2, WOOD),
+		p(0.5, 4.5, 0.5, -2.2, 2.25, 2.2, WOOD),
+		p(0.5, 4.5, 0.5, 2.2, 2.25, 2.2, WOOD),
+		p(5.4, 0.4, 5.4, 0, 4.7, 0, BAMBOO),
+		p(4.4, 0.5, 0.3, 0, 1.2, 0, DARKWOOD),
+	} },
+	{ id = "lumbung", set = "bundel", w = 3, d = 2, currency = "koin", price = 600, parts = {
+		p(0.5, 3, 0.5, -1.8, 1.5, -1.2, WOOD),
+		p(0.5, 3, 0.5, 1.8, 1.5, -1.2, WOOD),
+		p(0.5, 3, 0.5, -1.8, 1.5, 1.2, WOOD),
+		p(0.5, 3, 0.5, 1.8, 1.5, 1.2, WOOD),
+		p(4.4, 2.6, 3.2, 0, 4.4, 0, BAMBOO),
+		p(4.8, 0.3, 3.6, 0, 5.9, 0, DARKWOOD),
+	} },
 }
 
 -- Stage 6: toko hias awal, bisa dibeli dengan Koin. Blueprint bukan gating (Bab 8.7). Ukuran sesuai spek: 2 stud = 1 sel, 4x4 stud = 2x2 sel.

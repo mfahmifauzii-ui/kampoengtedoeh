@@ -17,6 +17,7 @@ local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
 local InventoryService = require(script.Parent.InventoryService)
 local PlotService = require(script.Parent.PlotService)
+local QuestService = require(script.Parent.QuestService)
 
 local RATE = { rate = 4, burst = 8 }
 
@@ -248,6 +249,7 @@ function WarungService.Init()
 		data.warung.soldLogin = sold
 		InventoryService.Sync(player)
 		if sold > 0 then
+			QuestService.Report(player, "warung_sale", sold) -- MQ9 + Side Warung Laris
 			Net.Fire("Notify", player, "warung.offline", { n = sold })
 		end
 	end)
@@ -271,6 +273,7 @@ function WarungService.Start()
 				if data and data.warung.item then
 					local sold = processSales(player, data, os.time(), 999)
 					if sold > 0 then
+						QuestService.Report(player, "warung_sale", sold) -- MQ9 + Side Warung Laris
 						InventoryService.Sync(player)
 						Net.Fire("Notify", player, "warung.sold", { n = sold })
 					end

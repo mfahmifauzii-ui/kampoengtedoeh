@@ -12,11 +12,33 @@ local Quests = require(ReplicatedStorage.Shared.Config.Quests)
 local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local Types = require(ReplicatedStorage.Shared.Types)
 local AgendaService = require(script.Parent.AgendaService)
+local BookService = require(script.Parent.BookService)
 local DataService = require(script.Parent.DataService)
 local InventoryService = require(script.Parent.InventoryService)
 local ProgressionService = require(script.Parent.ProgressionService)
+local RanchService = require(script.Parent.RanchService)
+local SuratService = require(script.Parent.SuratService)
 
 local QuestService = {}
+
+-- Selesaikan 1 quest: grant + hook (hewan/kakek/dekor) + notify. Dipakai auto + langkah terakhir + anyOf.
+local function finishQuest(player: Player, data: Types.PlayerData, quest: Quests.Quest)
+	data.quests.active[quest.id] = nil
+	data.quests.done[quest.id] = true
+	ProgressionService.Grant(player, quest.reward, `quest:{quest.id}`)
+	if quest.bonusDecor then
+		data.decor.stock[quest.bonusDecor] = (data.decor.stock[quest.bonusDecor] or 0) + 1
+	end
+	if quest.giveHewan then
+		if not RanchService.Give(player, quest.giveHewan) then
+			return -- kandang penuh / belum ada plot: coba lagi di evaluate berikut (quest tetap aktif)
+		end
+	end
+	if quest.unlockKakek then
+		data.pond.kakekUnlocked = true
+	end
+	Net.Fire("Notify", player, "quest.done", { title = `quest.{quest.id}.title` })
+end
 
 -- Starts every quest the player now qualifies for. Returns true if something started.
 local function startAvailable(player: Player, data: Types.PlayerData): boolean
@@ -29,10 +51,22 @@ local function startAvailable(player: Player, data: Types.PlayerData): boolean
 			and (quest.after == nil or data.quests.done[quest.after] == true)
 			and (quest.requireTutorial ~= true or data.guide.done.t1_awal == true)
 			and (quest.requireKakek ~= true or data.pond.kakekUnlocked == true)
+			and (quest.requireAlbum == nil or BookService.AlbumPercent(player) >= quest.requireAlbum)
 		then
-			data.quests.active[quest.id] = { step = 1, count = 0 }
-			started = true
-			Net.Fire("Notify", player, "quest.new", { title = `quest.{quest.id}.title` })
+			if quest.auto == true then
+				-- MQ1/MQ4/MQ6, Side Kolektor: selesai saat mulai. Give dulu (gagal = coba lagi
+				-- di evaluate berikut, tanpa active entry supaya tidak macet).
+				if not quest.giveHewan or RanchService.Give(player, quest.giveHewan) then
+					data.quests.active[quest.id] = { step = 1, count = 0 }
+					started = true
+					Net.Fire("Notify", player, "quest.new", { title = `quest.{quest.id}.title` })
+					finishQuest(player, data, quest)
+				end
+			else
+				data.quests.active[quest.id] = { step = 1, count = 0 }
+				started = true
+				Net.Fire("Notify", player, "quest.new", { title = `quest.{quest.id}.title` })
+			end
 		end
 	end
 	return started
@@ -107,6 +141,7 @@ function QuestService.Report(player: Player, event: string, amount: number?)
 	end
 	local add = amount or 1
 	AgendaService.Report(player, event, add) -- Agenda 5 tugas (P2-7)
+	SuratService.Report(player, event, add) -- Surat Kakek 30 (P2-7-fix)
 	rollHarian(data, os.time())
 	rollMingguan(data, os.time())
 	reportSlots(player, data.quests.harian.slots, Quests.HARIAN, "quest_harian", event, add)
@@ -115,23 +150,33 @@ function QuestService.Report(player: Player, event: string, amount: number?)
 
 	for questId, progress in data.quests.active do
 		local quest = Quests.byId[questId]
-		local step = quest and quest.steps[progress.step]
-		if quest and step and step.event == event then
-			changed = true
-			progress.count += add
-			if progress.count >= step.count then
-				progress.step += 1
-				progress.count = 0
-				if progress.step > #quest.steps then
-					data.quests.active[questId] = nil
-					data.quests.done[questId] = true
-					ProgressionService.Grant(player, quest.reward, `quest:{questId}`)
-					if quest.bonusDecor then
-						data.decor.stock[quest.bonusDecor] = (data.decor.stock[quest.bonusDecor] or 0) + 1
+		if quest and not quest.auto then
+			if quest.anyOf == true then
+				-- MQ11: langkah mana pun yang cocok dihitung; selesai saat salah satunya tuntas.
+				for _, alt in quest.steps do
+					if alt.event == event then
+						changed = true
+						progress.count += add
+						if progress.count >= alt.count then
+							finishQuest(player, data, quest)
+						end
+						break
 					end
-					Net.Fire("Notify", player, "quest.done", { title = `quest.{questId}.title` })
-				else
-					Net.Fire("Notify", player, "quest.step", { title = `quest.{questId}.title` })
+				end
+			else
+				local step = quest.steps[progress.step]
+				if step and step.event == event then
+					changed = true
+					progress.count += add
+					if progress.count >= step.count then
+						if progress.step >= #quest.steps then
+							finishQuest(player, data, quest) -- langkah terakhir
+						else
+							progress.step += 1
+							progress.count = 0
+							Net.Fire("Notify", player, "quest.step", { title = `quest.{questId}.title` })
+						end
+					end
 				end
 			end
 		end

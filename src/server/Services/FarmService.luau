@@ -449,6 +449,7 @@ local function onWater(player: Player, uid: any)
 	local _, tile = getValidTile(player, uid)
 	if tile and waterTile(tile, os.time()) then
 		sync(player, tile)
+		QuestService.Report(player, "water") -- MQ2 Siram Pertama (Bab 14.2)
 	end
 end
 
@@ -598,6 +599,12 @@ function FarmService.HarvestFor(owner: Player, data: Types.PlayerData, tile: Typ
 	end
 	if quality then
 		Net.Fire("Notify", owner, "farm.kualitas", { quality = `kualitas.{quality}` })
+	end
+	if quality == "prima" then
+		QuestService.Report(owner, "harvest_prima") -- Side Panen Prima (Bab 14.4)
+		if crop.growSeconds >= Kualitas.ANNOUNCE_MIN_GROW_SECONDS then
+			QuestService.Report(owner, "harvest_prima_late") -- MQ11 alternatif Prima Late (Bab 14.2)
+		end
 	end
 	-- Banner server: Panen Prima pada tanaman Late (2 jam+, Bab 5.4).
 	if quality and Kualitas.byId[quality].announce and crop.growSeconds >= Kualitas.ANNOUNCE_MIN_GROW_SECONDS then

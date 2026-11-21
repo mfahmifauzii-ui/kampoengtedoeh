@@ -22,6 +22,7 @@ local EconomyService = require(script.Parent.EconomyService)
 local InventoryService = require(script.Parent.InventoryService)
 local NpcService = require(script.Parent.NpcService)
 local ProgressionService = require(script.Parent.ProgressionService)
+local QuestService = require(script.Parent.QuestService)
 local WorldService = require(script.Parent.WorldService)
 
 local random = Random.new()
@@ -489,6 +490,7 @@ function RepeatService.KBCollect(player: Player, part: BasePart)
 		if paid < Repeat.KERJA.MAX_POINTS and (counted or kbCount(data) < Repeat.KERJA.MAX_PER_DAY) then
 			EconomyService.Add(player, "koin", Repeat.KERJA.KOIN_PER_POINT, "kb:poin")
 			ProgressionService.AddXp(player, Repeat.KERJA.XP_PER_POINT, "kb:poin")
+			QuestService.Report(player, "kb") -- Side Kerja Bakti 10x (Bab 14.4)
 			kb.points[uid] = paid + 1
 			if not counted then
 				kb.counted[uid] = true

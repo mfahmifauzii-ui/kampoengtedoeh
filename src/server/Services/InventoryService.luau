@@ -7,6 +7,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local DecorConfig = require(ReplicatedStorage.Shared.Config.Decor)
 local FarmConfig = require(ReplicatedStorage.Shared.Config.Farm)
 local RepeatConfig = require(ReplicatedStorage.Shared.Config.Repeat)
+local SuratConfig = require(ReplicatedStorage.Shared.Config.Surat)
 local Monetization = require(ReplicatedStorage.Shared.Config.Monetization)
 local OrdersConfig = require(ReplicatedStorage.Shared.Config.Orders)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
@@ -20,6 +21,20 @@ local MonetizationService = require(script.Parent.MonetizationService)
 local InventoryService = {}
 
 local pendingSync: { [Player]: boolean } = {}
+
+-- Surat aktif untuk tracker: nomor terkecil yang belum selesai dan sudah dibuka (0 = tidak ada).
+local function suratSnapshot(data: Types.PlayerData): { n: number, progress: number, need: number }
+	for n = 1, SuratConfig.COUNT do
+		if not data.surat.done[n] then
+			local def = SuratConfig.byN[n]
+			if def and n <= data.surat.logins then
+				return { n = n, progress = data.surat.progress, need = def.count }
+			end
+			return { n = 0, progress = 0, need = 0 }
+		end
+	end
+	return { n = 0, progress = 0, need = 0 }
+end
 
 local function isValid(itemId: any, amount: any): boolean
 	return typeof(itemId) == "string" and typeof(amount) == "number" and amount > 0 and amount % 1 == 0
@@ -67,6 +82,7 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		ponds = pondCells(data),
 		pondState = pondStateFor(data), -- breeding per kolam (uid, tier, kakek, breed) untuk UI
 		ranch = data.ranch, -- kandang + hewan + mood untuk panel Ternak
+		bundel = data.bundel, -- Bundel Kakek (Bab 14.6): [id] = { given, done } + sumur_day (UI mendatang)
 		dapur = { tier = data.dapur.tier, slots = table.clone(data.dapur.slots) },
 		warung = data.warung, -- pajangan + nextVisit untuk panel Warung
 		buff = data.buff, -- buff aktif untuk panel (HUD baca atribut)
@@ -80,6 +96,7 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 			daily = table.clone(data.quests.daily),
 			harian = table.clone(data.quests.harian),
 			mingguan = table.clone(data.quests.mingguan),
+			surat = suratSnapshot(data),
 		},
 		farm = { tiles = farmTiles(data), cap = FarmConfig.tileCap(data.level) },
 		landChunks = table.clone(data.land.chunks),

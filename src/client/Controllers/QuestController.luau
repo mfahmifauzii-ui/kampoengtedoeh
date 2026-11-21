@@ -219,6 +219,37 @@ local function refresh()
 	if quests then
 		order = addSlotRows(order, quests.harian and quests.harian.slots, Quests.HARIAN, "quest_harian", TimeKeys.day(os.time() - Quests.DAILY_RESET_HOUR * 3600), quests.harian and quests.harian.day or "")
 		order = addSlotRows(order, quests.mingguan and quests.mingguan.slots, Quests.MINGGUAN, "quest_mingguan", TimeKeys.week(os.time() - Quests.DAILY_RESET_HOUR * 3600), quests.mingguan and quests.mingguan.week or "")
+		local surat = quests.surat
+		if surat and surat.n > 0 then
+			order += 1
+			local row = Instance.new("Frame")
+			row.Name = "surat"
+			row.LayoutOrder = order
+			row.BackgroundTransparency = 1
+			row.Size = UDim2.new(1, 0, 0, 46)
+			row.Parent = tracker
+			local title = Instance.new("TextLabel")
+			title.Name = "Title"
+			title.BackgroundTransparency = 1
+			title.Size = UDim2.new(1, 0, 0, 20)
+			title.Font = UiKit.FONT
+			title.TextSize = 14
+			title.TextColor3 = UiKit.TEXT
+			title.TextXAlignment = Enum.TextXAlignment.Left
+			title.Text = `{Locale.t("surat.title")} #{surat.n}`
+			title.Parent = row
+			local step = Instance.new("TextLabel")
+			step.Name = "Step"
+			step.BackgroundTransparency = 1
+			step.Position = UDim2.fromOffset(0, 20)
+			step.Size = UDim2.new(1, 0, 0, 20)
+			step.Font = UiKit.FONT
+			step.TextSize = 13
+			step.TextColor3 = UiKit.TEXT
+			step.TextXAlignment = Enum.TextXAlignment.Left
+			step.Text = `{surat.progress}/{surat.need}`
+			step.Parent = row
+		end
 	end
 	tracker.Visible = order > 0 or tracker:FindFirstChild("daily") ~= nil
 end

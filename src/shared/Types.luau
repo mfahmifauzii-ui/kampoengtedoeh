@@ -132,10 +132,13 @@ export type PlayerData = {
 		harian: { day: string, slots: { { kind: string, progress: number, claimed: boolean } } },
 		mingguan: { week: string, slots: { { kind: string, progress: number, claimed: boolean } } },
 	},
+	surat: { lastDay: string, logins: number, progress: number, done: { [number]: boolean } },
+	bundel: { [string]: any }, -- Bundel Kakek (Bab 14.6): [id] = { given, done } + sumur_day
 	pond: {
 		list: { PondEntry },
 		nextUid: number,
 		kakekUnlocked: boolean, -- Kolam Kakek pulih (MQ4/Bundel P2-7). PondBuild butuh ini.
+		freeBuilds: number, -- token kolam gratis (Bundel Empang, Bab 14.6)
 	},
 	ranch: {
 		kandang: { [string]: RanchKandang }, -- [hewanId], satu kandang per jenis

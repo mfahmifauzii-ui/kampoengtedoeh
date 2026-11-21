@@ -460,9 +460,12 @@ local function onBuild(player: Player, cx: any, cz: any)
 
 	-- Kolam pertama setelah unlock = gratis + Kolam Kakek (P2-7 memberi unlock-nya). Kolam 2-4
 	-- = harga tier Tanah (Bab 7.2: Lv 3, 1000 Koin + 20 Batu). Gate tutorial (kolamUnlocked) tidak berubah.
+	-- Token gratis Bundel Empang (Bab 14.6): "spot mancing pribadi" = 1 kolam gratis.
 	local first = #data.pond.list == 0
 	local price, mats = 0, {}
-	if not first then
+	if not first and (data.pond.freeBuilds or 0) > 0 then
+		data.pond.freeBuilds -= 1
+	elseif not first then
 		local tanah = Ranch.byTier.tanah
 		if data.level < tanah.unlockLevel then
 			Net.Fire("Notify", player, "fish.locked", { level = tanah.unlockLevel })

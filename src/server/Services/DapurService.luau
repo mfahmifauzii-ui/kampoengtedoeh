@@ -350,6 +350,7 @@ local function onBuild(player: Player)
 	end
 	InventoryService.Sync(player)
 	Net.Fire("Notify", player, "dapur.built")
+	QuestService.Report(player, "dapur_built") -- MQ7 Dapur Pertama (Bab 14.2)
 end
 
 -- Upgrade: craft Inti baru, ganti lama, refund 100% mats lama. Olahan berjalan tidak hilang.

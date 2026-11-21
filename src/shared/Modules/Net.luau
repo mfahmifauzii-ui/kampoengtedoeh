@@ -83,6 +83,7 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	GelangThrow = "Event", -- C->S () lempar gelang (max 3/malam)
 	TamuDeliver = "Event", -- C->S () serahkan semua barang Pesanan Tamu
 	BungaBuy = "Event", -- C->S (itemId: string) tukar Bunga dengan dekor langka / bibit varian (AlbumService, P2-7)
+	BundelGive = "Event", -- C->S (bundelId: string, itemId: string, count?: number) setor barang Bundel (BundelService, P2-7-fix)
 	DapurBuild = "Event", -- C->S () bangun Inti Tier 1
 	DapurUpgrade = "Event", -- C->S () upgrade ke tier berikut (refund 100% Inti lama)
 	DapurCook = "Event", -- C->S (slot: number, recipeId: string) mulai masak (slot 0 = otomatis)
