@@ -163,7 +163,7 @@ return {
 	["size.S"] = "Kecil",
 	["size.M"] = "Sedang",
 	["size.L"] = "Besar",
-	["size.XL"] = "Jumbo",
+	["size.Jumbo"] = "Jumbo",
 
 	-- Fishing
 	["prompt.fish"] = "Mancing",

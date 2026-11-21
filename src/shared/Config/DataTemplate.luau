@@ -75,7 +75,7 @@ local template: Types.PlayerData = {
 
 	book = {
 		ladang = {}, -- ["{crop}:{biasa|bagus|prima}"] = true
-		sungai = {}, -- ["{fish}@{S|M|L|XL}"] = true
+		sungai = {}, -- ["{fish}@{S|M|L|Jumbo}"] = true
 		kandang = {}, -- [id] = true
 		rumah = {}, -- [id] = true
 		dapur = {}, -- ["{resep}:{biasa|bagus|prima}"] = true

@@ -94,7 +94,7 @@ export type PlayerData = {
 	playtime: { day: string, seconds: number, claimed: number },
 	book: {
 		ladang: { [string]: boolean }, -- "{crop}:{biasa|bagus|prima}"
-		sungai: { [string]: boolean }, -- "{fish}@{S|M|L|XL}"
+		sungai: { [string]: boolean }, -- "{fish}@{S|M|L|Jumbo}"
 		kandang: { [string]: boolean },
 		rumah: { [string]: boolean },
 		dapur: { [string]: boolean }, -- "{resep}:{biasa|bagus|prima}"

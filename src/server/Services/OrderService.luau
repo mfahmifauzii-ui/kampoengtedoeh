@@ -22,7 +22,7 @@ type OrderEntry = Types.OrderEntry
 type Candidate = { id: string, price: number, maxCount: number }
 
 local RATE = { rate = 3, burst = 6 }
-local SIZE_ORDER = { "S", "M", "L", "XL" } -- fish sizes are consumed smallest first
+local SIZE_ORDER = { "S", "M", "L", "Jumbo" } -- fish sizes are consumed smallest first
 
 local random = Random.new()
 
