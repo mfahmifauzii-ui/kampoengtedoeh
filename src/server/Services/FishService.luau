@@ -267,7 +267,7 @@ local function onReel(player: Player, score: any)
 			caughtData.guide.fishCaught = true -- the t1b "after_catch" step only passes after a real catch
 		end
 		local fish = FishConfig.byId[session.fishId]
-		ProgressionService.AddXp(player, Progression.FISH_XP[fish.rarity] or 0, `catch:{fish.id}`)
+		ProgressionService.AddXp(player, fish.xp or 0, `catch:{fish.id}`)
 		BookService.RecordFish(player, fish.id, size)
 		AnalyticsHooks.Step(player, "first_catch")
 		QuestService.Report(player, "catch")

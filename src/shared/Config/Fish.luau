@@ -1,8 +1,8 @@
 --!strict
 -- All fish (Kampoeng_Tedoeh_v7.3 Bab 6.4, LOCKED: 20 ikan). Add a fish here + a "fish.<id>" locale key.
--- Rarity = tier internal (C Early, U Mid, R Late, L Legenda): dipakai roll bobot, pond, FISH_FOR_SALE, FISH_XP.
+-- Rarity = tier internal (C Early, U Mid, R Late, L Legenda): dipakai roll bobot, pond, FISH_FOR_SALE.
 -- requirePhases / requireRain: the fish can ONLY be caught then.
--- unlockLevel = Buka Lv Bab 6.4. xp = XP per tangkapan Bab 6.4 (dipakai P1-10, sekarang FISH_XP).
+-- unlockLevel = Buka Lv Bab 6.4. xp = XP per tangkapan Bab 6.4 (dipakai FishService).
 -- Day phases: "pagi" | "siang" | "sore" | "malam".
 -- Lokasi pakai id Studio yang ada (sungai/empang/kolam, map LOCKED): Kanal/Danau/Sungai v7.3 dipetakan ke
 -- sungai+empang; Spot 4 belum ada di Studio jadi Late/Spot4 ikut empang+sungai.
