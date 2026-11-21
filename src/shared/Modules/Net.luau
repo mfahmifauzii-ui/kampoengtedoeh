@@ -60,6 +60,16 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	MineState = "Event", -- S->C ({ nodes: { [nodeId]: { hits, readyAt } } }) sisa pukulan per-player
 	MineFx = "Event", -- S->C (nodeId: string, crit: boolean) efek pukul (suara + partikel)
 
+	RanchKandang = "Event", -- C->S (hewanId: string, tier: number) bangun (tier 1) / upgrade (tier 2) kandang
+	RanchHewan = "Event", -- C->S (hewanId: string) beli 1 ekor (kandang harus ada + ada slot)
+	RanchPakan = "Event", -- C->S (hewanId: string, kind: "koin"|"jagung") isi pakan penuh (jagung: ayam saja)
+	RanchAmbil = "Event", -- C->S (hewanId: string) ambil semua produk 1 kandang
+	RanchOpen = "Event", -- S->C () buka panel Ternak (dari prompt Kelola di kandang)
+	BreedStart = "Event", -- C->S (pondUid: number, fishId: string) mulai breeding (2 ikan + 20 Koin)
+	BreedCollect = "Event", -- C->S (pondUid: number) ambil anak ikan
+	BreedInstant = "Event", -- C->S (pondUid: number) instant breeding pakai Bunga (Bab 18.5)
+	PondTier = "Event", -- C->S (pondUid: number, tier: string) upgrade tier kolam (semen/keramik)
+
 	PlaytimeClaim = "Event", -- C->S (index: number) open playtime peti number index (in order, Config/Progression PLAYTIME)
 	BookClaim = "Event", -- C->S (key: string) claim a Book reward: "cat:<category>" or a milestone id (Config/Book)
 

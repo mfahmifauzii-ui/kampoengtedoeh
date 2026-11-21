@@ -19,6 +19,7 @@ local Workspace = game:GetService("Workspace")
 
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
+local Ranch = require(ReplicatedStorage.Shared.Config.Ranch)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local DataService = require(script.Parent.DataService)
@@ -287,8 +288,12 @@ FishService.Cancel = onCancel -- used by SocialService when teleporting
 
 -- Pond (kolam) -------------------------------------------------------------------
 
-local function pondCap(tier: number): number
-	return Fishing.POND.CAPS[math.clamp(tier + 1, 1, #Fishing.POND.CAPS)]
+-- Kapasitas simpan efektif kolam: max(upgrade global "pond", breed tier) — USULAN stacking (P2-2),
+-- final ikut playtest. Baseline sama (upgrade 0 + Tanah = 10), jadi pemain baru tidak berubah.
+local function pondCap(data: Types.PlayerData, entry: Types.PondEntry): number
+	local upgrade = Fishing.POND.CAPS[math.clamp(Upgrades.tier(data, "pond") + 1, 1, #Fishing.POND.CAPS)]
+	local tierDef = Ranch.byTier[entry.tier or "tanah"] or Ranch.byTier.tanah
+	return math.max(upgrade, tierDef.cap)
 end
 
 -- Each pond part carries Attribute "PondUid" = its PondEntry.uid in data.pond.list.
@@ -307,7 +312,7 @@ local function syncPond(player: Player, pond: BasePart)
 	local entry = data and findEntry(data, pond)
 	if data and entry then
 		pond:SetAttribute("LastCollect", entry.lastCollect)
-		pond:SetAttribute("Cap", pondCap(Upgrades.tier(data, "pond")))
+		pond:SetAttribute("Cap", pondCap(data, entry))
 	end
 end
 
@@ -326,7 +331,7 @@ local function collectPond(player: Player, pond: BasePart)
 	end
 
 	local now = os.time()
-	local cap = pondCap(Upgrades.tier(data, "pond"))
+	local cap = pondCap(data, entry)
 	local ready = (now - entry.lastCollect) // Fishing.POND.INTERVAL
 	local count = math.min(ready, cap)
 	if count <= 0 then

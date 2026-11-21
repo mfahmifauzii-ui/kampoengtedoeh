@@ -9,7 +9,7 @@ local FishConfig = require(script.Parent.Parent.Config.Fish)
 local Fishing = require(script.Parent.Parent.Config.Fishing)
 local Locale = require(script.Parent.Parent.Locale)
 
-export type ItemKind = "crop" | "fish" | "bait" | "seed" | "bahan"
+export type ItemKind = "crop" | "fish" | "bait" | "seed" | "bahan" | "ternak"
 
 export type ItemInfo = {
 	id: string,
@@ -22,7 +22,7 @@ export type ItemInfo = {
 
 local Items = {}
 
-local KIND_ORDER: { [ItemKind]: number } = { crop = 1, fish = 2, bait = 3, seed = 4, bahan = 5 }
+local KIND_ORDER: { [ItemKind]: number } = { crop = 1, fish = 2, bait = 3, seed = 4, bahan = 5, ternak = 6 }
 
 -- Bahan (Bab 8.2 / 10.3 v7.3): 7 mentah (6 dari Nambang + Jerami bonus panen Padi; Daun Pisang
 -- bonus panen Pisang hanya untuk Pepes, bukan bahan craft) + 7 olahan (craft Nambang). Tidak bisa dijual di toko
@@ -43,6 +43,13 @@ local BAHAN: { [string]: string } = {
 	atap_ijuk = "item.atap_ijuk",
 	genteng = "item.genteng",
 	kaca = "item.kaca",
+}
+
+-- Produk ternak (Bab 7.1 v7.3): dijual ke Bang Jali (npc.buys.ternak), diolah di Dapur (P2-3).
+local TERNAK: { [string]: { name: string, sell: number } } = {
+	telur_ayam = { name = "item.telur_ayam", sell = 40 },
+	telur_bebek = { name = "item.telur_bebek", sell = 55 },
+	susu = { name = "item.susu", sell = 160 },
 }
 
 function Items.info(itemId: string): ItemInfo?
@@ -84,10 +91,15 @@ function Items.info(itemId: string): ItemInfo?
 		return { id = itemId, kind = "seed", nameKey = "item.seed", nameVars = { crop = `crop.{seedCrop}` } }
 	end
 
-	-- Bahan byproduct panen (Bab 5.3 / 10.3 v7.3): tidak bisa dijual.
+-- Bahan byproduct panen (Bab 5.3 / 10.3 v7.3): tidak bisa dijual.
 	local bahanKey = BAHAN[itemId]
 	if bahanKey then
 		return { id = itemId, kind = "bahan", nameKey = bahanKey }
+	end
+
+	local produk = TERNAK[itemId]
+	if produk then
+		return { id = itemId, kind = "ternak", nameKey = produk.name, sellPrice = produk.sell }
 	end
 
 	local fishId, size = itemId:match("^(.+)@([%a]+)$")

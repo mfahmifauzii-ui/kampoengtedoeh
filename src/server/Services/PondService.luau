@@ -3,8 +3,14 @@
 --   * The water is TERRAIN (a pit dug 8 studs deep, filled with Water, sand bed under it), exactly like the river.
 --     The only Parts are an invisible fishing/collect spot per pond and a few decoration parts per upgrade tier.
 --   * Ponds are 16 x 16 studs = 2 x 2 farm-tile cells, saved in data.pond.list and rebuilt on join.
---   * The first pond is free; the next ones cost Fishing.POND.PRICES. Removing one refunds REFUND_RATE of what
---     was paid. Capacity upgrades (Upgrades.tier "pond") apply to every pond and change how they look.
+--   * Breed tiers (Bab 7.2, Config/Ranch KOLAM_TIERS): Tanah (Lv 3, 1000+20 Batu, 6 jam, cap 10) /
+--     Semen (Lv 15, 5 jam, cap 20) / Keramik (Lv 30, 4 jam, cap 30). Kolam baru = tier Tanah.
+--   * The first pond is free + flagged Kolam Kakek (placeholder sampai Bundel Kakek P2-7 memberinya);
+--     ponds 2-4 cost the Tanah price. Upgrade tier = bayar harga tier target (Semen/Keramik, berurutan).
+--     Removing one refunds REFUND_RATE of the koin paid (mats hangus).
+--   * Breeding: 2 ikan sejenis non-Legenda + 20 Koin -> 1 anak (@M/Sedang, 100% harga).
+--     Kakek -10% waktu, Mood Hujan -10% waktu. Instant Bunga via InstantCost (Bab 18.5, max 30).
+--   * Kapasitas simpan efektif = max(upgrade global "pond", breed tier) — USULAN stacking, final ikut playtest.
 --   * Fishing/collecting is FishService (FishService.SetupPond); this file only digs, fills and decorates.
 
 local CollectionService = game:GetService("CollectionService")
@@ -14,7 +20,9 @@ local Workspace = game:GetService("Workspace")
 
 local DecorGrid = require(ReplicatedStorage.Shared.Modules.DecorGrid)
 local Farm = require(ReplicatedStorage.Shared.Config.Farm)
+local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
+local Ranch = require(ReplicatedStorage.Shared.Config.Ranch)
 local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Map = require(ReplicatedStorage.Shared.Config.Map)
 local Monetization = require(ReplicatedStorage.Shared.Config.Monetization)
@@ -23,6 +31,7 @@ local Types = require(ReplicatedStorage.Shared.Types)
 local Upgrades = require(ReplicatedStorage.Shared.Modules.Upgrades)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
+local RanchService = require(script.Parent.RanchService)
 local FishService = require(script.Parent.FishService)
 local InventoryService = require(script.Parent.InventoryService)
 local PlotService = require(script.Parent.PlotService)
@@ -307,6 +316,17 @@ local function buildOne(player: Player, plot: Model, data: Types.PlayerData, ent
 	buildLook(plot, entry, Upgrades.tier(data, "pond"))
 end
 
+-- Save lama (sebelum P2-2) belum punya tier/kakek/breed. Kolam pertama = Kakek (placeholder
+-- sampai Bundel Kakek P2-7 memberi flag-nya sendiri).
+local function normalizeEntry(list: { Types.PondEntry }, entry: Types.PondEntry)
+	if typeof(entry.tier) ~= "string" or not Ranch.byTier[entry.tier] then
+		entry.tier = "tanah"
+	end
+	if entry.kakek ~= true and entry.kakek ~= false then
+		entry.kakek = list[1] == entry
+	end
+end
+
 -- Rebuilds every pond from saved data (on join).
 local function buildAll(player: Player, plot: Model)
 	local data = DataService.Get(player)
@@ -314,6 +334,7 @@ local function buildAll(player: Player, plot: Model)
 		return
 	end
 	for _, entry in data.pond.list do
+		normalizeEntry(data.pond.list, entry)
 		buildOne(player, plot, data, entry)
 	end
 end
@@ -350,7 +371,7 @@ local function characterDistance(player: Player, position: Vector3): number?
 end
 
 local function decorRects(data: Types.PlayerData): { Land.Rect }
-	local rects: { Land.Rect } = {}
+	local rects: { Land.Rect } = Land.takenRects(data.pond.list, data.ranch.kandang, Ranch.KANDANG_SIZES)
 	for _, entry in data.decor.placed do
 		local rect = DecorGrid.entryRect(entry)
 		if rect then
@@ -363,6 +384,34 @@ end
 -- Price of the NEXT pond for this player.
 function PondService.NextPrice(data: Types.PlayerData): number
 	return Fishing.POND.PRICES[math.min(#data.pond.list + 1, #Fishing.POND.PRICES)]
+end
+
+-- Koin + bahan: cek bahan dulu, baru potong koin. Gagal aman tanpa refund.
+local function payBuild(player: Player, koin: number, mats: { { id: string, count: number } }, reason: string): boolean
+	for _, mat in mats do
+		if InventoryService.Count(player, mat.id) < mat.count then
+			return false
+		end
+	end
+	if koin > 0 and not EconomyService.TrySpend(player, "koin", koin, reason) then
+		return false
+	end
+	for _, mat in mats do
+		InventoryService.Remove(player, mat.id, mat.count)
+	end
+	return true
+end
+
+local function findPond(data: Types.PlayerData, uid: any): Types.PondEntry?
+	if typeof(uid) ~= "number" then
+		return nil
+	end
+	for _, entry in data.pond.list do
+		if entry.uid == uid then
+			return entry
+		end
+	end
+	return nil
 end
 
 -- Requests ----------------------------------------------------------------------------
@@ -400,19 +449,185 @@ local function onBuild(player: Player, cx: any, cz: any)
 		return
 	end
 
-	local price = PondService.NextPrice(data)
-	if price > 0 and not EconomyService.TrySpend(player, "koin", price, `pond:{#data.pond.list + 1}`) then
-		Net.Fire("Notify", player, "notify.not_enough", { currency = "currency.koin" })
+	-- Kolam pertama = gratis + Kolam Kakek (placeholder Bundel Kakek P2-7). Kolam 2-4 = harga
+	-- tier Tanah (Bab 7.2: Lv 3, 1000 Koin + 20 Batu). Gate tutorial (kolamUnlocked) tidak berubah.
+	local first = #data.pond.list == 0
+	local price, mats = 0, {}
+	if not first then
+		local tanah = Ranch.byTier.tanah
+		if data.level < tanah.unlockLevel then
+			Net.Fire("Notify", player, "fish.locked", { level = tanah.unlockLevel })
+			return
+		end
+		price, mats = tanah.koin, tanah.mats
+	end
+	local affordKoin = price <= 0 or EconomyService.CanAfford(player, "koin", price)
+	if not payBuild(player, price, mats, `pond:{#data.pond.list + 1}`) then
+		Net.Fire("Notify", player, if affordKoin then "ranch.no_mats" else "notify.not_enough", { currency = "currency.koin" })
 		return
 	end
 
-	local entry: Types.PondEntry = { uid = data.pond.nextUid, cx = cx, cz = cz, paid = price, lastCollect = os.time() }
+	local entry: Types.PondEntry = {
+		uid = data.pond.nextUid,
+		cx = cx,
+		cz = cz,
+		paid = price,
+		lastCollect = os.time(),
+		tier = "tanah",
+		kakek = first,
+		breed = nil,
+	}
 	data.pond.nextUid += 1
 	table.insert(data.pond.list, entry)
 	buildOne(player, plot, data, entry)
 	InventoryService.Sync(player)
 	Net.Fire("Notify", player, "pond.built")
 	QuestService.Report(player, "pond_built")
+end
+
+-- Breeding (Bab 7.2): 2 ikan sejenis non-Legenda + Pakan Ikan 20 Koin -> 1 anak (@M).
+-- Durasi = tier kolam x Kakek 0.9 x Mood 0.9. Anak = 100% harga Sedang (otomatis via Items.info).
+local function speciesCount(player: Player, fishId: string): number
+	local total = 0
+	for _, size in FishConfig.SIZES do
+		total += InventoryService.Count(player, FishService.ItemId(fishId, size.id))
+	end
+	return total
+end
+
+local function takeSpecies(player: Player, fishId: string, need: number): boolean
+	local left = need
+	for _, size in FishConfig.SIZES do -- S/M/L/Jumbo: yang kecil dipakai dulu
+		if left <= 0 then
+			break
+		end
+		local id = FishService.ItemId(fishId, size.id)
+		local take = math.min(left, InventoryService.Count(player, id))
+		if take > 0 then
+			InventoryService.Remove(player, id, take)
+			left -= take
+		end
+	end
+	return left == 0
+end
+
+local function onBreedStart(player: Player, pondUid: any, fishId: any)
+	if typeof(fishId) ~= "string" then
+		return
+	end
+	local fish = FishConfig.byId[fishId]
+	local data = DataService.Get(player)
+	if not fish or not data then
+		return
+	end
+	if fish.rarity == "L" then
+		Net.Fire("Notify", player, "pond.breed_legend")
+		return
+	end
+	local entry = findPond(data, pondUid)
+	if not entry then
+		return
+	end
+	if entry.breed then
+		Net.Fire("Notify", player, "pond.breed_busy")
+		return
+	end
+	if speciesCount(player, fishId) < 2 then
+		Net.Fire("Notify", player, "pond.breed_need2")
+		return
+	end
+	if not EconomyService.TrySpend(player, "koin", Ranch.BREED_FEED_KOIN, `pond:{entry.uid}:breed`) then
+		Net.Fire("Notify", player, "notify.not_enough", { currency = "currency.koin" })
+		return
+	end
+	if not takeSpecies(player, fishId, 2) then
+		return
+	end
+	local tierDef = Ranch.byTier[entry.tier or "tanah"] or Ranch.byTier.tanah
+	local mult = (if entry.kakek then Ranch.KAKEK_MULT else 1) * (if RanchService.MoodActive(data) then Ranch.MOOD_BREED_MULT else 1)
+	local now = os.time()
+	entry.breed = { fish = fishId, startedAt = now, endsAt = now + math.floor(tierDef.hours * 3600 * mult) }
+	InventoryService.Sync(player)
+	Net.Fire("Notify", player, "pond.breed_started", { item = `fish.{fishId}` })
+end
+
+local function collectBaby(player: Player, entry: Types.PondEntry)
+	local breed = entry.breed
+	if not breed then
+		return
+	end
+	if not InventoryService.Add(player, FishService.ItemId(breed.fish, "M"), 1) then
+		return
+	end
+	entry.breed = nil
+	InventoryService.Sync(player)
+	Net.Fire("Notify", player, "pond.breed_done", { item = `fish.{breed.fish}` })
+end
+
+local function onBreedCollect(player: Player, pondUid: any)
+	local data = DataService.Get(player)
+	local entry = data and findPond(data, pondUid)
+	if not data or not entry or not entry.breed then
+		return
+	end
+	if os.time() < entry.breed.endsAt then
+		Net.Fire("Notify", player, "pond.breed_wait", { s = entry.breed.endsAt - os.time() })
+		return
+	end
+	collectBaby(player, entry)
+end
+
+-- Instant Kolam pakai Bunga (Bab 18.5): 1 Bunga/10 mnt sisa, max 30. Bubu tidak bisa instant
+-- (tidak ada sistem Bubu di src/). Bunga tidak bisa beli bahan/hewan (Bab 18.1).
+local function onBreedInstant(player: Player, pondUid: any)
+	local data = DataService.Get(player)
+	local entry = data and findPond(data, pondUid)
+	if not data or not entry or not entry.breed then
+		return
+	end
+	local remaining = entry.breed.endsAt - os.time()
+	if remaining <= 0 then
+		collectBaby(player, entry) -- sudah matang: langsung ambil
+		return
+	end
+	local cost = PondService.InstantCost(remaining)
+	if not EconomyService.TrySpend(player, "bunga", cost, `pond:{entry.uid}:instant`) then
+		Net.Fire("Notify", player, "notify.not_enough", { currency = "currency.bunga" })
+		return
+	end
+	entry.breed.endsAt = os.time()
+	InventoryService.Sync(player)
+	Net.Fire("Notify", player, "pond.breed_instant", { n = cost })
+end
+
+-- Upgrade tier kolam berurutan (Tanah -> Semen -> Keramik), bayar harga tier target.
+local TIER_ORDER = { tanah = 1, semen = 2, keramik = 3 }
+
+local function onPondTier(player: Player, pondUid: any, tierId: any)
+	if typeof(tierId) ~= "string" then
+		return
+	end
+	local target = Ranch.byTier[tierId]
+	local data = DataService.Get(player)
+	local entry = data and findPond(data, pondUid)
+	if not target or not data or not entry then
+		return
+	end
+	if (TIER_ORDER[entry.tier or "tanah"] or 1) + 1 ~= TIER_ORDER[tierId] then
+		return -- harus berurutan, tidak bisa loncat
+	end
+	if data.level < target.unlockLevel then
+		Net.Fire("Notify", player, "fish.locked", { level = target.unlockLevel })
+		return
+	end
+	local affordKoin = EconomyService.CanAfford(player, "koin", target.koin)
+	if not payBuild(player, target.koin, target.mats, `pond:{entry.uid}:{tierId}`) then
+		Net.Fire("Notify", player, if affordKoin then "ranch.no_mats" else "notify.not_enough", { currency = "currency.koin" })
+		return
+	end
+	entry.tier = tierId
+	InventoryService.Sync(player)
+	Net.Fire("Notify", player, "pond.tier_up", { tier = `pond.tier.{tierId}` })
 end
 
 -- Anyone swimming in the pit would be buried by the sand: lift them onto the bank first.
@@ -510,6 +725,10 @@ end
 function PondService.Start()
 	Net.On("PondBuild", onBuild, RATE)
 	Net.On("PondRemove", onRemove, RATE)
+	Net.On("BreedStart", onBreedStart, RATE)
+	Net.On("BreedCollect", onBreedCollect, RATE)
+	Net.On("BreedInstant", onBreedInstant, RATE)
+	Net.On("PondTier", onPondTier, RATE)
 end
 
 return PondService

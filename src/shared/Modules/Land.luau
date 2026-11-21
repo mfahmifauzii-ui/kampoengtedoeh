@@ -191,6 +191,15 @@ function Land.pondRect(cx: number, cz: number): Rect
 	return { minX = minX, minZ = minZ, maxX = minX + POND_TILES * TILE, maxZ = minZ + POND_TILES * TILE }
 end
 
+-- Ponds + kandang yang harus dihindari fitur lain (till, gali kolam, decor): gabungan pondRects + ranchRects.
+function Land.takenRects(ponds: { { cx: number, cz: number } }, kandang: { [string]: { cx: number, cz: number } }, sizes: { [string]: { number } }): { Rect }
+	local rects = Land.pondRects(ponds)
+	for _, rect in Land.ranchRects(kandang, sizes) do
+		table.insert(rects, rect)
+	end
+	return rects
+end
+
 -- The rectangles of a list of ponds. Added to the "taken" rectangles wherever tilling or decor is checked, so
 -- soil and decor can never sit on water.
 function Land.pondRects(ponds: { { cx: number, cz: number } }): { Rect }
@@ -219,6 +228,62 @@ function Land.canPond(cx: number, cz: number, tiles: { { cx: number, cz: number 
 	end
 	for _, pond in ponds do
 		if Land.rectsOverlap(rect, Land.pondRect(pond.cx, pond.cz)) then
+			return false
+		end
+	end
+	for _, other in extraRects do
+		if Land.rectsOverlap(rect, other) then
+			return false
+		end
+	end
+	return true
+end
+
+-- Kandang ----------------------------------------------------------------------------------
+-- Kandang duduk di grid sel TILE yang sama (2x2 sel untuk Ayam/Bebek, 3x2 untuk Sapi).
+-- (cx, cz) = sel min-corner, (w, d) = lebar/depth dalam sel.
+function Land.ranchRect(cx: number, cz: number, w: number, d: number): Rect
+	local minX, minZ = cx * TILE + TILE_OFFSET, cz * TILE + TILE_OFFSET
+	return { minX = minX, minZ = minZ, maxX = minX + w * TILE, maxZ = minZ + d * TILE }
+end
+
+-- The rectangles of a player's kandang list. Added to "taken" wherever tilling, digging or
+-- decor is checked, so soil, water and decor can never sit on a kandang (and vice versa).
+function Land.ranchRects(kandang: { [string]: { cx: number, cz: number } }, sizes: { [string]: { number } }): { Rect }
+	local rects: { Rect } = {}
+	for id, entry in kandang do
+		local size = sizes[id]
+		if size then
+			table.insert(rects, Land.ranchRect(entry.cx, entry.cz, size[1], size[2]))
+		end
+	end
+	return rects
+end
+
+-- Bisa bangun kandang w x d sel dengan min-corner (cx, cz)? tiles/ponds/ranches = milik player,
+-- extraRects = mis. decor. Sama ketatnya dengan canPond.
+function Land.canRanch(cx: number, cz: number, w: number, d: number, tiles: { { cx: number, cz: number } }, ponds: { { cx: number, cz: number } }, ranches: { Rect }, extraRects: { Rect }, chunks: Chunks?): boolean
+	local rect = Land.ranchRect(cx, cz, w, d)
+	if not Land.rectInside(rect, chunks) then
+		return false
+	end
+	for _, other in Land.fixedRects() do
+		if Land.rectsOverlap(rect, other) then
+			return false
+		end
+	end
+	for _, tile in tiles do
+		if Land.rectsOverlap(rect, Land.tileRect(tile.cx, tile.cz)) then
+			return false
+		end
+	end
+	for _, pond in ponds do
+		if Land.rectsOverlap(rect, Land.pondRect(pond.cx, pond.cz)) then
+			return false
+		end
+	end
+	for _, other in ranches do
+		if Land.rectsOverlap(rect, other) then
 			return false
 		end
 	end

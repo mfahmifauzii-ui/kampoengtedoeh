@@ -26,18 +26,45 @@ export type DecorEntry = {
 -- A player-built pond (water terrain). cx/cz = farm-tile cell (8 studs, same grid as FarmTile) of its min corner;
 -- it covers Fishing.POND.SIZE / 8 tiles per side.
 -- paid = koin spent (refund on removal is Fishing.POND.REFUND_RATE of it; 0 for the free tutorial pond).
+-- tier = breed tier Tanah/Semen/Keramik (Bab 7.2); kakek = Kolam Kakek (breeding 10% lebih cepat).
 export type PondEntry = {
 	uid: number,
 	cx: number,
 	cz: number,
 	paid: number,
 	lastCollect: number, -- os.time of the last collect (fish accrue from here)
+	tier: string,
+	kakek: boolean,
+	breed: PondBreed?,
 }
 
 -- Per-player mining node: sisa pukulan + kapan respawn (os.time, 0 = siap). Node habis = hits 0.
 export type MiningNodeState = {
 	hits: number,
 	readyAt: number,
+}
+
+-- Satu ekor ternak: feed = jatah pakan (0..FEED_MAX), prod = produk menumpuk (0..PROD_MAX),
+-- last = os.time siklus produksi terakhir yang dihitung.
+export type RanchAnimal = {
+	feed: number,
+	prod: number,
+	last: number,
+}
+
+-- Satu kandang (satu jenis hewan): tier 1/2, posisi sel grid, isi hewan.
+export type RanchKandang = {
+	tier: number,
+	cx: number,
+	cz: number,
+	animals: { RanchAnimal },
+}
+
+-- Breeding kolam yang jalan: 1 anak per kolam per siklus.
+export type PondBreed = {
+	fish: string, -- id spesies indukan (non-Legenda)
+	startedAt: number,
+	endsAt: number, -- os.time siap diambil (instant Bunga memajukan ke now)
 }
 
 -- items[i].item is a crop id or a fish id (any size counts for fish).
@@ -83,6 +110,10 @@ export type PlayerData = {
 	pond: {
 		list: { PondEntry },
 		nextUid: number,
+	},
+	ranch: {
+		kandang: { [string]: RanchKandang }, -- [hewanId], satu kandang per jenis
+		moodUntil: number, -- os.time akhir Mood Hujan (0 = tidak aktif)
 	},
 	mining: {
 		nodes: { [string]: MiningNodeState },

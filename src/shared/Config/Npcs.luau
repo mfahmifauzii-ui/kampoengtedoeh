@@ -128,7 +128,7 @@ for i = 1, MINI_COUNT do
 		miniIndex = i,
 		model = "bang_jali",
 		look = { skin = Color3.fromRGB(168, 120, 84), shirt = Color3.fromRGB(176, 104, 74), pants = Color3.fromRGB(78, 70, 62) },
-		buys = { crop = MINI_BUY_MULT, fish = MINI_BUY_MULT },
+		buys = { crop = MINI_BUY_MULT, fish = MINI_BUY_MULT, ternak = MINI_BUY_MULT }, -- EVERYTHING: produk ternak Bab 7.1
 		sells = {},
 	})
 end

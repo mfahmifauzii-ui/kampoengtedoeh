@@ -34,6 +34,11 @@ local NOTIFY_ROLE: { [string]: string } = {
 	["order.new_day"] = "notify_ding",
 	["pond.built"] = "place_item",
 	["mine.crafted"] = "place_item",
+	["ranch.built"] = "place_item",
+	["pond.tier_up"] = "place_item",
+	["ranch.collected"] = "order_done",
+	["pond.breed_done"] = "order_done",
+	["pond.breed_instant"] = "order_done",
 	["decor.stored"] = "place_item",
 }
 

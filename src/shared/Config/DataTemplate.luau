@@ -50,6 +50,11 @@ local template: Types.PlayerData = {
 		nextUid = 1,
 	},
 
+	ranch = {
+		kandang = {}, -- [hewanId] = { tier, cx, cz, animals } (Config/Ranch)
+		moodUntil = 0, -- os.time akhir Mood Hujan, 0 = tidak aktif
+	},
+
 	mining = {
 		nodes = {}, -- [nodeId] = { hits, readyAt }: sisa pukulan + waktu respawn per-player (Config/Mining)
 	},

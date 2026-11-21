@@ -15,6 +15,7 @@ local Workspace = game:GetService("Workspace")
 local Crops = require(ReplicatedStorage.Shared.Config.Crops)
 local Farm = require(ReplicatedStorage.Shared.Config.Farm)
 local Kualitas = require(ReplicatedStorage.Shared.Config.Kualitas)
+local Ranch = require(ReplicatedStorage.Shared.Config.Ranch)
 local DecorGrid = require(ReplicatedStorage.Shared.Modules.DecorGrid)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
 local Land = require(ReplicatedStorage.Shared.Modules.Land)
@@ -213,9 +214,9 @@ local function isCell(value: any): boolean
 	return typeof(value) == "number" and value % 1 == 0 and math.abs(value) <= MAX_CELL
 end
 
--- Rectangles tilling must avoid: placed decor and ponds.
+-- Rectangles tilling must avoid: placed decor, ponds and kandang (P2-2 Ternak).
 local function decorRects(data: Types.PlayerData): { Land.Rect }
-	local rects: { Land.Rect } = Land.pondRects(data.pond.list)
+	local rects: { Land.Rect } = Land.takenRects(data.pond.list, data.ranch.kandang, Ranch.KANDANG_SIZES)
 	for _, entry in data.decor.placed do
 		local rect = DecorGrid.entryRect(entry)
 		if rect then

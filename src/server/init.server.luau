@@ -24,6 +24,7 @@ local ORDER = {
 	"FishService",
 	"PondService", -- after FishService: gives each pond its fishing/collect spot
 	"MiningService", -- after QuestService (reports "mine") + PondService: Nambang + Crafting (Bab 8)
+	"RanchService", -- after QuestService + PlotService + WorldService: Ternak (Bab 7.1)
 	"NpcService",
 	"ShopService",
 	"DecorService",

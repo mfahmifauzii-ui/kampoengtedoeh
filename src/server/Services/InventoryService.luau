@@ -42,6 +42,19 @@ local function pondCells(data: Types.PlayerData)
 	return ponds
 end
 
+-- Breeding per kolam untuk UI (PondService): tier + kakek + breed aktif. Save lama yang belum
+-- punya field-nya dikirim apa adanya; client menganggap tier hilang = "tanah".
+local function pondStateFor(data: Types.PlayerData)
+	local out = {}
+	if not data.pond then
+		return out
+	end
+	for _, pond in data.pond.list do
+		table.insert(out, { uid = pond.uid, tier = pond.tier, kakek = pond.kakek, breed = pond.breed })
+	end
+	return out
+end
+
 local function buildSnapshot(player: Player, data: Types.PlayerData)
 	local passes = {}
 	for _, pass in Monetization.PASSES do
@@ -51,6 +64,8 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		items = table.clone(data.inventory),
 		pondTier = Upgrades.tier(data, "pond"),
 		ponds = pondCells(data),
+		pondState = pondStateFor(data), -- breeding per kolam (uid, tier, kakek, breed) untuk UI
+		ranch = data.ranch, -- kandang + hewan + mood untuk panel Ternak
 		quests = { active = table.clone(data.quests.active), done = table.clone(data.quests.done), daily = table.clone(data.quests.daily) },
 		farm = { tiles = farmTiles(data), cap = FarmConfig.tileCap(data.level) },
 		landChunks = table.clone(data.land.chunks),
