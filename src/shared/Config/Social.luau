@@ -26,4 +26,18 @@ return {
 		{ id = "tepuk", anim = "cheer" },
 		{ id = "ketawa", anim = "laugh" },
 	} :: { { id: string, anim: string? } },
+
+	-- Batas sosial harian (Bab 12, P2-5). BANTU_MAX_DAY +1 via Tetangga Baik (SocialService.MaxBantu).
+	BANTU_REWARD_KOIN = 40, -- +40 Koin per bantu (pembantu)
+	BANTU_REWARD_XP = 10, -- +10 XP per bantu (pembantu)
+	GIFT_UNLOCK = 20, -- Kirim Hadiah buka Lv 20
+	GIFT_MAX_DAY = 3, -- max 3 hadiah dikirim per hari
+	GIFT_MAX_VALUE = 500, -- max 500 Koin per hadiah (barang, bukan Koin mentah)
+	GIFT_SENDER_KOIN = 20, -- pengirim +20 Koin per hadiah
+	GIFT_SENDER_XP = 5, -- pengirim +5 XP per hadiah
+	GESTURE_COOLDOWN = 3, -- detik antar gestur
+	LIKE_REWARD_KOIN = 20, -- pemberi like +20 Koin
+	LIKE_REWARD_MAX_DAY = 10, -- max 10 like berhadiah per hari
+	GALERI_TOP = 5, -- 5 lahan like mingguan terbanyak
+	GALERI_CACHE_SECONDS = 120, -- cache papan Galeri (OrderedDataStore)
 }

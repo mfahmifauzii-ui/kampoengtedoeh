@@ -186,8 +186,12 @@ export type PlayerData = {
 	social: {
 		likes: number,
 		milestones: { [string]: boolean },
-		likedDay: string,
-		likedToday: { [string]: boolean },
+		likedEver: { [string]: boolean }, -- 1x per lahan selamanya (P2-5)
+		weekly: { week: string, count: number }, -- likes diterima minggu ini (Galeri)
+		likesGiven: { day: string, count: number }, -- +20 Koin max 10/hari
+		helpGiven: { day: string, plots: { [string]: boolean } }, -- max 5 lahan/hari
+		helpRecv: { day: string, siram: boolean, panen: boolean },
+		gifts: { day: string, sent: number }, -- kirim hadiah max 3/hari
 	},
 	settings: { music: boolean, ambient: boolean, sfx: boolean, musicVol: number, sfxVol: number, quality: number }, -- vol 0..1, quality 1..3 (Rendah / Sedang / Tinggi)
 	passes: { [string]: boolean },

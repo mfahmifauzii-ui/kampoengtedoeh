@@ -114,8 +114,12 @@ local template: Types.PlayerData = {
 	social = {
 		likes = 0, -- likes received on your plot (all time)
 		milestones = {}, -- [likesThreshold as string] = true
-		likedDay = "", -- WIB day of likedToday
-		likedToday = {}, -- [ownerUserId as string] = true (plots you liked today)
+		likedEver = {}, -- [ownerUserId] = true: 1x per lahan selamanya (P2-5)
+		weekly = { week = "", count = 0 }, -- likes diterima minggu ini (Galeri Kampung)
+		likesGiven = { day = "", count = 0 }, -- +20 Koin max 10 like berhadiah/hari
+		helpGiven = { day = "", plots = {} }, -- max 5 lahan/hari (6 dengan Tetangga Baik)
+		helpRecv = { day = "", siram = false, panen = false }, -- 1 Siram + 1 Panen/lahan/hari
+		gifts = { day = "", sent = 0 }, -- kirim hadiah max 3/hari
 	},
 
 	settings = { music = true, ambient = true, sfx = true, musicVol = 1, sfxVol = 1, quality = 2 }, -- volumes are a share (0..1) of Audio.VOLUME; quality 1 Rendah, 2 Sedang, 3 Tinggi

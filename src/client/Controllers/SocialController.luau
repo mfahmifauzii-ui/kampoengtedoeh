@@ -7,11 +7,12 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
+local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
+local Items = require(ReplicatedStorage.Shared.Modules.Items)
 local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Social = require(ReplicatedStorage.Shared.Config.Social)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
-local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local State = require(script.Parent.Parent.State)
 local UiKit = require(script.Parent.Parent.UiKit)
 
@@ -24,16 +25,35 @@ local SocialController = {}
 local panel: UiKit.Panel
 local likeButton: TextButton
 local currentOwnerId: number? = nil -- owner of the plot you're standing on (not you)
+local galeriList: { { userId: number, name: string, likes: number } } = {}
+local galeriWeek: string = ""
 
-local function playEmote(name: string)
-	local character = player.Character
-	local animate = character and character:FindFirstChild("Animate")
+-- Satu banner emote di karakter mana pun (server memvalidasi + cooldown; playback jalan di
+-- tiap client via SocialEmoteFx. Animate yang tidak punya PlayEmote: no-op, aman).
+local function playEmoteOn(character: Model?, name: string?)
+	if not character or not name then
+		return
+	end
+	local animate = character:FindFirstChild("Animate")
 	local playEmoteFn = animate and animate:FindFirstChild("PlayEmote")
 	if playEmoteFn and playEmoteFn:IsA("BindableFunction") then
 		task.spawn(function()
 			pcall(playEmoteFn.Invoke, playEmoteFn, name)
 		end)
 	end
+end
+
+local function playEmote(name: string)
+	playEmoteOn(player.Character, name)
+end
+
+local function findAnim(emoteId: string): string?
+	for _, def in Social.EMOTES do
+		if def.id == emoteId then
+			return def.anim
+		end
+	end
+	return nil
 end
 
 local function plotLikes(userId: number): number
@@ -47,6 +67,52 @@ local function plotLikes(userId: number): number
 		end
 	end
 	return 0
+end
+
+local function plotUnderMe(): number?
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	local plots = Workspace:FindFirstChild("Plots")
+	if not root or not plots then
+		return nil
+	end
+	for _, plot in plots:GetChildren() do
+		local ownerId = plot:GetAttribute("OwnerUserId")
+		local origin = plot:IsA("Model") and plot.PrimaryPart
+		if typeof(ownerId) == "number" and ownerId ~= player.UserId and origin then
+			local localPos = origin.CFrame:PointToObjectSpace(root.Position)
+			if Land.contains(localPos.X, localPos.Z, Social.LIKE_MARGIN - 1) then -- a bit stricter than the server
+				return ownerId
+			end
+		end
+	end
+	return nil
+end
+
+-- Like 1x per lahan selamanya (Bab 12.7, P2-5).
+local function likedEver(ownerId: number): boolean
+	local snapshot = State.current :: any
+	local social = snapshot and snapshot.social
+	if not social or not social.likedEver then
+		return false
+	end
+	return social.likedEver[tostring(ownerId)] == true
+end
+
+local function giftableIds(items: { [string]: number }): { string }
+	local ids = {}
+	for itemId, count in items do
+		local info = Items.info(itemId)
+		if info and count > 0 then
+			local baseId = itemId:match("^(.+)@") or itemId
+			local fish = FishConfig.byId[baseId]
+			local legendary = fish ~= nil and fish.rarity == "L"
+			if not legendary and (info.sellPrice or 0) <= Social.GIFT_MAX_VALUE then
+				table.insert(ids, itemId)
+			end
+		end
+	end
+	return Items.sortIds(ids)
 end
 
 local function render()
@@ -77,8 +143,9 @@ local function render()
 		button.Size = UDim2.new(1 / #Social.EMOTES, -6, 1, 0)
 		button.Activated:Connect(function()
 			if emote.anim then
-				playEmote(emote.anim)
+				playEmote(emote.anim) -- langsung (responsif) + server broadcast ke yang lain
 			end
+			Net.Send("SocialEmote", emote.id)
 		end)
 	end
 
@@ -102,45 +169,60 @@ local function render()
 	if others == 0 then
 		UiKit.row(panel.list, nextOrder(), Locale.t("social.alone"))
 	end
+
+	-- Bantu + Hadiah di lahan yang sedang dikunjungi (Bab 12.2/12.3, P2-5).
+	local here = plotUnderMe()
+	local snap = State.current :: any
+	if here then
+		UiKit.header(panel.list, Locale.t("bantu.title"), nextOrder())
+		local helpGiven = (snap and snap.social and snap.social.helpGiven) or {}
+		local doneCount = 0
+		for _ in (helpGiven.plots or {}) do
+			doneCount += 1
+		end
+		local skills = (snap and snap.skills) or {}
+		local maxPlots = if (skills.tetangga_baik or 0) >= 3 then Social.BANTU_MAX_DAY + 1 else Social.BANTU_MAX_DAY
+		UiKit.row(panel.list, nextOrder(), Locale.t("bantu.siram"), `{doneCount}/{maxPlots}`, Locale.t("bantu.siram"), true, function()
+			Net.Send("SocialBantu", here, "siram")
+		end)
+		UiKit.row(panel.list, nextOrder(), Locale.t("bantu.panen"), `{doneCount}/{maxPlots}`, Locale.t("bantu.panen"), true, function()
+			Net.Send("SocialBantu", here, "panen")
+		end)
+
+		UiKit.header(panel.list, Locale.t("gift.title"), nextOrder())
+		local items = (snap and snap.items) or {}
+		for _, itemId in giftableIds(items) do
+			local info = Items.info(itemId)
+			UiKit.row(panel.list, nextOrder(), if info then Items.displayName(info) else itemId, `x{items[itemId]}`, Locale.t("gift.send"), true, function()
+				Net.Send("SocialGift", here, itemId)
+			end)
+		end
+	end
+
+	-- Galeri Kampung: top 5 like mingguan (global). Pencet = visit (Bab 8.7/12.7, P2-5).
+	UiKit.header(panel.list, Locale.t("social.galeri"), nextOrder())
+	UiKit.row(panel.list, nextOrder(), Locale.t("social.galeri_show"), galeriWeek, Locale.t("social.galeri_show"), true, function()
+		Net.Send("GaleriGet")
+	end)
+	for _, entry in galeriList do
+		UiKit.row(panel.list, nextOrder(), entry.name, Locale.t("social.likes", { n = entry.likes }), Locale.t("social.visit"), true, function()
+			Net.Send("SocialVisit", entry.userId)
+			panel.gui.Enabled = false
+		end)
+	end
+	if #galeriList == 0 then
+		UiKit.row(panel.list, nextOrder(), Locale.t("social.galeri_empty"))
+	end
 end
 
 -- Like button ------------------------------------------------------------------------
-
-local function likedToday(ownerId: number): boolean
-	local snapshot = State.current :: any
-	local social = snapshot and snapshot.social
-	if not social or social.likedDay ~= TimeKeys.day(math.floor(Workspace:GetServerTimeNow())) then
-		return false
-	end
-	return social.likedToday[tostring(ownerId)] == true
-end
-
-local function plotUnderMe(): number?
-	local character = player.Character
-	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
-	local plots = Workspace:FindFirstChild("Plots")
-	if not root or not plots then
-		return nil
-	end
-	for _, plot in plots:GetChildren() do
-		local ownerId = plot:GetAttribute("OwnerUserId")
-		local origin = plot:IsA("Model") and plot.PrimaryPart
-		if typeof(ownerId) == "number" and ownerId ~= player.UserId and origin then
-			local localPos = origin.CFrame:PointToObjectSpace(root.Position)
-			if Land.contains(localPos.X, localPos.Z, Social.LIKE_MARGIN - 1) then -- a bit stricter than the server
-				return ownerId
-			end
-		end
-	end
-	return nil
-end
 
 local function refreshLike()
 	currentOwnerId = plotUnderMe()
 	local gui = likeButton:FindFirstAncestorOfClass("ScreenGui") :: ScreenGui
 	gui.Enabled = currentOwnerId ~= nil
 	if currentOwnerId then
-		local liked = likedToday(currentOwnerId)
+		local liked = likedEver(currentOwnerId)
 		likeButton.Text = Locale.t(if liked then "social.liked" else "social.like")
 		likeButton.AutoButtonColor = not liked
 		likeButton.BackgroundColor3 = if liked then UiKit.BUTTON_MUTED else UiKit.BUTTON
@@ -174,6 +256,22 @@ function SocialController.Init()
 end
 
 function SocialController.Start()
+	Net.Listen("SocialEmoteFx", function(userId: any, emoteId: any)
+		if typeof(userId) ~= "number" or typeof(emoteId) ~= "string" then
+			return
+		end
+		local who = Players:GetPlayerByUserId(userId)
+		playEmoteOn(who and who.Character or nil, findAnim(emoteId))
+	end)
+	Net.Listen("GaleriBoard", function(payload: any)
+		if typeof(payload) == "table" and typeof(payload.list) == "table" then
+			galeriList = payload.list
+			galeriWeek = if typeof(payload.week) == "string" then payload.week else ""
+			if panel.gui.Enabled then
+				render()
+			end
+		end
+	end)
 	State.Changed:Connect(function()
 		render()
 		refreshLike()

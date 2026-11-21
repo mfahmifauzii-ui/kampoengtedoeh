@@ -558,18 +558,24 @@ local function onHarvest(player: Player, uid: any)
 	local guaranteed = takeFirstHarvestGuarantee(data)
 	local taniBonus = if Buffs.active(data.buff, "tani", now) then Dapur.BUFF_TANI_SUPER else 0
 	local super, quality = rollHarvest(tile, now, guaranteed, taniBonus, data.skill.mata_kualitas or 0)
+	FarmService.HarvestFor(player, data, tile, crop, now, guaranteed, super, quality)
+end
+
+-- Panen untuk pemilik petak (dipakai onHarvest + Bantu Panen P2-5). Semua hasil, XP, buku,
+-- quest "harvest" dan notif masuk ke pemilik (owner). Kembalikan false bila tas penuh.
+function FarmService.HarvestFor(owner: Player, data: Types.PlayerData, tile: Types.FarmTile, crop: Crops.Crop, now: number, guaranteed: boolean, super: boolean, quality: string?): boolean
 	local itemId = Items.cropItemId(crop.id, super, quality)
-	if not InventoryService.Add(player, itemId, crop.yield) then
-		return
+	if not InventoryService.Add(owner, itemId, crop.yield) then
+		return false
 	end
 	-- Byproduct panen (Bab 5.3 v7.3): Padi -> 2 Jerami, Pisang -> 2 Daun Pisang. Tidak blokir panen kalau gagal.
 	if crop.byproduct then
-		InventoryService.Add(player, crop.byproduct.id, crop.byproduct.count)
+		InventoryService.Add(owner, crop.byproduct.id, crop.byproduct.count)
 	end
 	-- Skill Bibit Hemat (Bab 4.5, P2-4): 4%/lv, 1 bibit kembali saat panen.
 	if random:NextNumber() < 0.04 * (data.skill.bibit_hemat or 0) then
-		InventoryService.Add(player, `seed_{crop.id}`, 1)
-		Net.Fire("Notify", player, "farm.seed_back", { crop = `crop.{crop.id}` })
+		InventoryService.Add(owner, `seed_{crop.id}`, 1)
+		Net.Fire("Notify", owner, "farm.seed_back", { crop = `crop.{crop.id}` })
 	end
 	if guaranteed then
 		data.guide.done.ftue_super = true -- marked only after the item is in the bag (a full bag must not waste it)
@@ -585,23 +591,57 @@ local function onHarvest(player: Player, uid: any)
 	else
 		clearCrop(tile) -- the tile itself (uid, cell) stays: the soil stays tilled
 	end
-	sync(player, tile)
-	Net.Fire("Notify", player, "farm.harvested", { n = crop.yield, item = `crop.{crop.id}` })
+	sync(owner, tile)
+	Net.Fire("Notify", owner, "farm.harvested", { n = crop.yield, item = `crop.{crop.id}` })
 	if super then
-		Net.Fire("Notify", player, "farm.super")
+		Net.Fire("Notify", owner, "farm.super")
 	end
 	if quality then
-		Net.Fire("Notify", player, "farm.kualitas", { quality = `kualitas.{quality}` })
+		Net.Fire("Notify", owner, "farm.kualitas", { quality = `kualitas.{quality}` })
 	end
 	-- Banner server: Panen Prima pada tanaman Late (2 jam+, Bab 5.4).
 	if quality and Kualitas.byId[quality].announce and crop.growSeconds >= Kualitas.ANNOUNCE_MIN_GROW_SECONDS then
-		Net.FireAll("KualitasBanner", player.Name, crop.id, quality)
+		Net.FireAll("KualitasBanner", owner.Name, crop.id, quality)
 	end
 	local xp = math.floor(crop.xp * (if super then Farm.SUPER_XP_MULT else 1) + 0.5)
-	ProgressionService.AddXp(player, xp, `harvest:{crop.id}`)
-	AnalyticsHooks.Step(player, "first_harvest")
-	BookService.RecordCrop(player, crop.id, quality) -- Album Ladang: entri per Kualitas (Bab 11)
-	QuestService.Report(player, "harvest")
+	ProgressionService.AddXp(owner, xp, `harvest:{crop.id}`)
+	AnalyticsHooks.Step(owner, "first_harvest")
+	BookService.RecordCrop(owner, crop.id, quality) -- Album Ladang: entri per Kualitas (Bab 11)
+	QuestService.Report(owner, "harvest")
+	return true
+end
+
+-- Bantu Panen (P2-5): panen 1 petak pemilik yang sudah matang. Kembalikan uid + cropId, atau nil.
+function FarmService.HarvestRipeFor(owner: Player, data: Types.PlayerData): (number?, string?)
+	local now = os.time()
+	for _, tile in data.farm.tiles do
+		if tile.crop ~= nil and tile.readyAt ~= nil and now >= tile.readyAt then
+			local crop = Crops.byId[tile.crop]
+			if crop then
+				local taniBonus = if Buffs.active(data.buff, "tani", now) then Dapur.BUFF_TANI_SUPER else 0
+				local super, quality = rollHarvest(tile, now, false, taniBonus, data.skill.mata_kualitas or 0)
+				if FarmService.HarvestFor(owner, data, tile, crop, now, false, super, quality) then
+					return tile.uid, crop.id
+				end
+				return nil, nil -- tas pemilik penuh: berhenti, jangan lanjut ke petak lain
+			end
+		end
+	end
+	return nil, nil
+end
+
+-- Bantu Siram (P2-5): siram 1 petak pemilik yang tanamannya belum Basah. Kembalikan uid atau nil.
+function FarmService.WaterFor(owner: Player, data: Types.PlayerData): number?
+	local now = os.time()
+	for _, tile in data.farm.tiles do
+		if tile.crop ~= nil and tile.watered ~= true then
+			if waterTile(tile, now) then
+				sync(owner, tile)
+				return tile.uid
+			end
+		end
+	end
+	return nil
 end
 
 -- The tile cap changed (farm expansion / pass): the client snapshot shows it.

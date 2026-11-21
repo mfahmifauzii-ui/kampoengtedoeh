@@ -54,7 +54,13 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	PondRemove = "Event", -- C->S (uid: number) fill a pond back in (refund)
 
 	SocialVisit = "Event", -- C->S (ownerUserId: number) teleport to that plot; your own id = go home
-	SocialLike = "Event", -- C->S (ownerUserId: number) like the plot you're standing on
+	SocialLike = "Event", -- C->S (ownerUserId: number) like the plot you're standing on (1x selamanya)
+	SocialBantu = "Event", -- C->S (ownerUserId: number, kind: "siram"|"panen") bantu di lahan pemain
+	SocialGift = "Event", -- C->S (ownerUserId: number, itemId: string) kirim 1 barang sebagai hadiah
+	SocialEmote = "Event", -- C->S (emoteId: string) gestur ramah (cooldown 3 dtk, server-validated)
+	SocialEmoteFx = "Event", -- S->C (userId: number, emoteId: string) mainkan gestur pemain itu
+	GaleriGet = "Event", -- C->S () minta papan Galeri (top 5 mingguan)
+	GaleriBoard = "Event", -- S->C ({ week: string, list: {{ userId, name, likes }} }) papan Galeri
 
 	MineHit = "Event", -- C->S (nodeId: string, crit: boolean) pukul node (ritme di client, server validasi)
 	MineCraft = "Event", -- C->S (recipeId: string, times: 1|10) craft olahan instan
