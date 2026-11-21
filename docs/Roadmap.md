@@ -37,10 +37,12 @@
 - [ ] Joran 6 + umpan 4 + gembor / sabit / kapak — persis Bab 17.5
     - File: `src/shared/Config/Fishing.luau` (sekarang 4 joran baris 13-17: bambu/rotan/fiber/juragan; 1 umpan `BAIT` pelet 5), `src/shared/Config/Farm.luau` (cuma `TOOLS.gembor`).
     - Angka v7.3: 6 joran Bab 6.3 (Bambu gratis/30%/Lv1; Kayu 900+10 Bambu/33%/Lv2; Kayu Jati 3500+20 Bambu/36%/Lv4; Bambu Wulung 9000+30 Bambu/39%/Lv6; Besi 18000+30 Bambu+15 Batu/42%/Lv8; Pusaka 35000+40 Bambu+20 Batu+10 Ijuk/45%/Lv10) + 4 umpan (Cacing 10; Jangkrik 25; Pelet 45; Udang Kecil 80/Lv6) + 9 alat Bab 17.5 (Gembor Plastik gratis; Seng 2000+10 Kayu/Lv3; Kuningan 8000+20 Papan/Lv8; Sabit Kayu gratis; Sabit Besi 5000+10 Batu/Lv5; Sepatu Bot 800+5 Ijuk/Lv2; Kapak Batu gratis; Kapak Besi 3000+15 Batu/Lv3; Kapak Baja 10000+20 Batu+10 Semen/Lv7).
+    - Efek: Jangkrik gigitan 30% lebih cepat; Pelet +15% peluang Mid+; Udang Kecil +10% peluang Late+; Gembor Seng siram 2 petak (garis); Gembor Kuningan siram 3 petak (garis); Sabit Besi panen 3 petak (garis); Kapak Besi +1 bahan per node; Kapak Baja +2 bahan per node; Sepatu Bot jalan +5% di lahan sendiri.
     - Cara Cek: `rodList` 6 baris + tabel umpan 4 baris + `TOOLS` 9 kunci.
 - [ ] Album 214 + milestone Bunga — Bab 11
     - File: `src/shared/Config/Book.luau` (sekarang kategori crops/fish/decor otomatis; milestone p25/50/75/100 = 500 Koin / 10 Bunga / dekor / title — bukan Bab 11).
     - Angka v7.3: Ladang 54 (18×3 Kualitas) + Sungai 80 (20×4 ukuran) + Dapur 72 (24×3) + Varian 8 = 214 GUI + milestone 25%→10 Bunga, 50%→20 Bunga + Title Kolektor, 75%→30 Bunga + Dekor Bingkai Emas, 100%→50 Bunga + Title Legenda Kampung.
+    - Catatan: milestone 25%→10, 50%→20+Title, 75%→30+Bingkai Emas, 100%→50+Title adalah USULAN di v7.3 Bab 11, bukan LOCKED. Implementasi sebagai USULAN, tandai BUTUH LOCK OWNER.
     - Cara Cek: total `ENTRIES` = 214 + `MILESTONES` 4 baris cocok Bab 11.
 - [ ] Playtime 5 peti (10 / 20 / 30 / 45 / 60) — Bab 15.2
     - File: `src/shared/Config/Progression.luau` (sekarang `PLAYTIME` 3 baris 38-44: 10→50, 30→150, 60→300).
@@ -88,7 +90,8 @@
     - [ ] 16 skill bisa dibeli pakai SP + efeknya kebaca di sistem masing-masing
     - File yang akan diubah: tambah Config/Logic Skill (tidak ada di `src/`, grep `Mata Kualitas|Panen Raya|Joran Kuat|Firasat|Tetangga Baik` 0 hasil). `CABANG` (Bertani/Mancing/Beternak/Tukang Lv 0-10) dan `data.sp += 1` per level sudah ada, belum bisa dibelanjakan.
     - Angka v7.3: 16 skill persis tabel Bab 4.5 (max Lv 5 tiap skill).
-    - Cara Cek: `grep -r "mata_kualitas\|panen_raya" src/` ada hasil + beli 1 skill pakai SP + efek +2% Bagus kebaca saat panen.
+    - Hapus CABANG lama (Bertani/Mancing/Beternak/Tukang Lv 0-10) total. Jangan sisakan 2 sistem skill.
+    - Cara Cek: `grep -r "mata_kualitas\|panen_raya" src/` ada hasil + beli 1 skill pakai SP + efek +2% Bagus kebaca saat panen + `grep -r "CABANG" src/` 0 hasil.
 5. Bantu / Hadiah / Chat / Galeri (Bab 12)
     - [ ] Bantu Siram+Panen + Hadiah + Gestur + Chat + Visit/Like/Galeri full
     - File yang akan diubah: `src/server/Services/SocialService.luau` (sekarang cuma visit/like) + tambah Bantu/Hadiah/Chat/Galeri.
