@@ -1,12 +1,12 @@
 --!strict
--- Default save for a NEW player (version 62, docs/Kampoeng_Tedoeh_Gameplay_Lengkap_v6.2.md Bab 28). ProfileStore:Reconcile()
+-- Default save for a NEW player (version 72, Kampoeng_Tedoeh_v7.3 Bab 28). ProfileStore:Reconcile()
 -- adds missing keys. No migration code: the game is unreleased, a changed shape means a new DATA_STAGE in DataService.
 
 local Economy = require(script.Parent.Economy)
 local Types = require(script.Parent.Parent.Types)
 
 local template: Types.PlayerData = {
-	version = 62,
+	version = 72,
 
 	koin = Economy.START_KOIN,
 	bunga = Economy.START_BUNGA,

@@ -17,7 +17,7 @@ local Types = require(ReplicatedStorage.Shared.Types)
 -- Studio always uses its own store, so testing never touches real player saves.
 -- DATA_STAGE: "playtest" during closed playtests → set to "live" ONCE, right before public
 -- launch (fresh saves for everyone), then never touch it again. See docs/Launch_Checklist.md.
-local DATA_STAGE = "v62" -- bumped for v6.2 (T-08): no real players yet, so old saves are simply not loaded; no migration code
+local DATA_STAGE = "v72" -- bumped for v7.3 (Bab 28): no real players yet, so old saves are simply not loaded; no migration code
 local STORE_NAME = if RunService:IsStudio() then "KampungTeduh_Studio" else `KampungTeduh_Player_{DATA_STAGE}`
 
 local PlayerStore = ProfileStore.New(STORE_NAME, DataTemplate)
