@@ -434,21 +434,37 @@ local function act(part: BasePart, kind: string)
 	end
 end
 
--- STAGE 2: Gembor mode -------------------------------------------------------------------------
--- The Gembor button shows once you own the tool. When it is ON, a tap on a dry bed waters the 3x3 block of beds
--- around it (server: FarmWaterArea). Only planted, growing and dry beds get water.
+-- Gembor mode (Bab 17.5) -------------------------------------------------------------------------
+-- The Gembor button shows once you own a gembor. When it is ON, a tap on a dry bed waters a line of beds
+-- (server: FarmWaterArea): plastik 1 petak, seng 2 petak, kuningan 3 petak. Only planted, growing and dry beds get water.
 local gemborOn = false
 local gemborButton: TextButton? = nil
 
-local function gemborOwned(): boolean
-	local snapshot = State.current
-	return snapshot ~= nil and snapshot.tools ~= nil and snapshot.tools.gembor == true
+local GEMBOR_ORDER = { "gembor_kuningan", "gembor_seng", "gembor_plastik" } -- best first
+
+local function gemborCells(): number?
+	local snapshot = State.current :: any
+	local tools = snapshot and snapshot.tools
+	if not tools then
+		return nil
+	end
+	for _, toolId in GEMBOR_ORDER do
+		if tools[toolId] == true then
+			local tool = Farm.TOOLS[toolId]
+			return tool and tool.cells or nil
+		end
+	end
+	return nil
 end
 
--- The 3x3 area, lit for a moment around the tapped bed (beds sit one grid cell = Land.PITCH apart).
+local function gemborOwned(): boolean
+	return gemborCells() ~= nil
+end
+
+-- The line, lit for a moment from the tapped bed (beds sit one grid cell = Land.PITCH apart).
 local function showGemborArea(part: BasePart)
-	local radius = Farm.TOOLS.gembor.radius
-	local side = (radius * 2 + 1) * Land.PITCH - (Land.PITCH - Farm.BED_SIZE)
+	local cells = gemborCells() or 1
+	local length = cells * Land.PITCH - (Land.PITCH - Farm.BED_SIZE)
 	local box = Instance.new("Part")
 	box.Name = "GemborArea"
 	box.Anchored = true
@@ -458,7 +474,7 @@ local function showGemborArea(part: BasePart)
 	box.Material = Enum.Material.SmoothPlastic
 	box.Color = UiKit.BAMBOO
 	box.Transparency = 0.55
-	box.Size = Vector3.new(side, 0.2, side)
+	box.Size = Vector3.new(length, 0.2, Farm.BED_SIZE)
 	box.CFrame = part.CFrame * CFrame.new(0, part.Size.Y / 2 + 0.25, 0)
 	box.Parent = Workspace
 	local TweenService = game:GetService("TweenService")

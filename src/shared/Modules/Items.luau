@@ -92,7 +92,8 @@ function Items.info(itemId: string): ItemInfo?
 		end
 	end
 
-	if itemId == Fishing.BAIT.id then
+	local bait = Fishing.baitsById[itemId]
+	if bait then
 		return { id = itemId, kind = "bait", nameKey = `item.{itemId}` }
 	end
 	return nil

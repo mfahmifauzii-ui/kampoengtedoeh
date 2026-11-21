@@ -135,10 +135,10 @@ local function onChatted(player: Player, message: string)
 			InventoryService.Sync(player)
 		end
 	elseif command == "tool" and arg == "gembor" then
-		-- Stage 2 test: "!tool gembor" owns the Gembor without paying (Studio only path, same as !rod).
+		-- Stage 2 test: "!tool gembor" owns the Gembor Plastik without paying (Studio only path, same as !rod).
 		local data = DataService.Get(player)
 		if data then
-			data.tools.gembor = true
+			data.tools.gembor_plastik = true
 			InventoryService.Sync(player)
 		end
 	elseif command == "tut" then

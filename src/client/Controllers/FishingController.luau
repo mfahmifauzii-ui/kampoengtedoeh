@@ -267,6 +267,14 @@ local function showIdle()
 	removeBobber()
 end
 
+-- Kotak tarik dari joran (Bab 6.3): Bambu 30% s/d Pusaka 45%. Default = ZONE_WIDTH saat joran tak dikenal.
+local function zoneWidth(): number
+	local snap = State.current :: any
+	local rodId = snap and snap.rod
+	local rod = if typeof(rodId) == "string" then Fishing.rods[rodId] else nil
+	return if rod and typeof(rod.box) == "number" then rod.box / 100 else ZONE_WIDTH
+end
+
 local function runReel()
 	reeling = true
 	statusFrame.Visible = false
@@ -275,6 +283,8 @@ local function runReel()
 		bobber.Position -= Vector3.new(0, 0.4, 0) -- dip
 	end
 
+	local zoneW = zoneWidth()
+	zone.Size = UDim2.fromScale(zoneW, 1)
 	local duration = Fishing.REEL_SECONDS
 	local elapsed, inZone, zoneX = 0, 0, 0.35
 	local phase = math.random() * math.pi * 2
@@ -294,8 +304,8 @@ local function runReel()
 		end
 		elapsed += dt
 		local fishX = 0.5 + 0.35 * math.sin(elapsed * 1.6 + phase) + 0.08 * math.sin(elapsed * 4.1)
-		zoneX = math.clamp(zoneX + (if holding then ZONE_SPEED else -ZONE_SPEED) * dt, 0, 1 - ZONE_WIDTH)
-		if fishX >= zoneX and fishX <= zoneX + ZONE_WIDTH then
+		zoneX = math.clamp(zoneX + (if holding then ZONE_SPEED else -ZONE_SPEED) * dt, 0, 1 - zoneW)
+		if fishX >= zoneX and fishX <= zoneX + zoneW then
 			inZone += dt
 		end
 

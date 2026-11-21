@@ -3,23 +3,44 @@
 
 export type Rod = {
 	id: string,
-	price: number,
-	unlockLevel: number,
+	price: number, -- Koin
+	unlockLevel: number, -- Mancing Lv (Bab 6.3): player level
+	box: number, -- Kotak tarik, persen lebar bar (Bab 6.3)
+	mats: { { id: string, count: number } }, -- bahan (P2-1: belum ada sumber, belum bisa dipenuhi)
+	-- Tuning sementara, ikut kurva lama (bambu/rotan/fiber/juragan). Playtest yang mengunci (Bab 17.8).
 	biteMult: number, -- multiplies bite wait time
 	rareBonus: number, -- added to R tier weight
 	legendaryBonus: number, -- added to L tier weight
 }
 
 local rodList: { Rod } = {
-	{ id = "bambu", price = 0, unlockLevel = 1, biteMult = 1.0, rareBonus = 0, legendaryBonus = 0 },
-	{ id = "rotan", price = 500, unlockLevel = 5, biteMult = 0.85, rareBonus = 2, legendaryBonus = 0 },
-	{ id = "fiber", price = 2000, unlockLevel = 10, biteMult = 0.75, rareBonus = 4, legendaryBonus = 0 },
-	{ id = "juragan", price = 6000, unlockLevel = 18, biteMult = 0.65, rareBonus = 6, legendaryBonus = 1 },
+	{ id = "bambu", price = 0, unlockLevel = 1, box = 30, mats = {}, biteMult = 1.0, rareBonus = 0, legendaryBonus = 0 },
+	{ id = "kayu", price = 900, unlockLevel = 2, box = 33, mats = { { id = "bambu", count = 10 } }, biteMult = 0.9, rareBonus = 2, legendaryBonus = 0 },
+	{ id = "kayu_jati", price = 3500, unlockLevel = 4, box = 36, mats = { { id = "bambu", count = 20 } }, biteMult = 0.8, rareBonus = 3, legendaryBonus = 0 },
+	{ id = "bambu_wulung", price = 9000, unlockLevel = 6, box = 39, mats = { { id = "bambu", count = 30 } }, biteMult = 0.75, rareBonus = 4, legendaryBonus = 0 },
+	{ id = "besi", price = 18000, unlockLevel = 8, box = 42, mats = { { id = "bambu", count = 30 }, { id = "batu", count = 15 } }, biteMult = 0.7, rareBonus = 5, legendaryBonus = 0 },
+	{ id = "pusaka", price = 35000, unlockLevel = 10, box = 45, mats = { { id = "bambu", count = 40 }, { id = "batu", count = 20 }, { id = "ijuk", count = 10 } }, biteMult = 0.65, rareBonus = 6, legendaryBonus = 1 },
 }
 
 local rods: { [string]: Rod } = {}
 for _, rod in rodList do
 	rods[rod.id] = rod
+end
+
+export type Bait = { id: string, price: number, unlockLevel: number?, biteReduction: number, midMult: number?, lateMult: number? }
+
+-- Umpan (Bab 6.3): dipakai otomatis per lemparan, yang pertama dipunyai dari urutan list.
+-- Efek: Jangkrik gigitan 30% lebih cepat; Pelet +15% peluang Mid+; Udang Kecil +10% peluang Late+.
+local baitList: { Bait } = {
+	{ id = "cacing", price = 10, biteReduction = 0 },
+	{ id = "jangkrik", price = 25, biteReduction = 0.3 },
+	{ id = "pelet", price = 45, biteReduction = 0, midMult = 1.15 },
+	{ id = "udang_kecil", price = 80, unlockLevel = 6, biteReduction = 0, lateMult = 1.1 },
+}
+
+local baitsById: { [string]: Bait } = {}
+for _, bait in baitList do
+	baitsById[bait.id] = bait
 end
 
 return {
@@ -36,11 +57,10 @@ return {
 		kolam = { unlockLevel = 1 }, -- building a kolam (Garap > Kolam) and fishing in it
 	} :: { [string]: { unlockLevel: number } },
 
-	-- Optional bait: one is used automatically per cast while you have any.
-	BAIT = { id = "pelet", price = 5, biteReduction = 0.3 },
-
 	rodList = rodList,
 	rods = rods,
+	BAITS = baitList,
+	baitsById = baitsById,
 
 	POND = {
 		INTERVAL = 600, -- one fish every 10 minutes, also offline

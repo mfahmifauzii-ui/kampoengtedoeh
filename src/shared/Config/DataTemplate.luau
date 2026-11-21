@@ -43,7 +43,7 @@ local template: Types.PlayerData = {
 		ownedRods = {},
 	},
 
-	tools = { gembor = false }, -- Stage 2: owned farm tools (Config/Farm TOOLS), bought with Koin
+	tools = {}, -- owned farm tools (Config/Farm TOOLS: gembor/sabit/sepatu/kapak), bought with Koin + bahan
 
 	pond = {
 		list = {},-- { PondEntry } ponds the player built (the Lv 2 quest gives the first one free)

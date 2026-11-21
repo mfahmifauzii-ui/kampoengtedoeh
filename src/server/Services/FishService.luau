@@ -79,7 +79,8 @@ end
 
 -- Two-step roll: pick a rarity tier (only tiers with an available fish count),
 -- then pick a fish inside that tier by its own weight. Buka Lv (Bab 6.4): only fish at or below the player's level.
-local function rollFish(location: string, level: number, rareBonus: number, legendaryBonus: number, allowed: { [Rarity]: boolean }?): string?
+-- bait = umpan yang kepakai: Pelet +15% Mid (U), Udang Kecil +10% Late (R) — Bab 6.3.
+local function rollFish(location: string, level: number, rareBonus: number, legendaryBonus: number, bait: Fishing.Bait?, allowed: { [Rarity]: boolean }?): string?
 	local phase, raining = getConditions()
 
 	local byTier: { [Rarity]: { { fish: Fish, weight: number } } } = {}
@@ -100,6 +101,13 @@ local function rollFish(location: string, level: number, rareBonus: number, lege
 				weight += rareBonus
 			elseif rarity == "L" then
 				weight += legendaryBonus
+			end
+			if bait then
+				if rarity == "U" and bait.midMult then
+					weight *= bait.midMult
+				elseif rarity == "R" and bait.lateMult then
+					weight *= bait.lateMult
+				end
 			end
 			if raining and FishConfig.RAIN_MULT[rarity] then
 				weight *= FishConfig.RAIN_MULT[rarity]
@@ -210,15 +218,23 @@ local function startCast(player: Player, spot: BasePart)
 	if not rod then
 		return -- cannot happen after the rod check above; kept so the type stays exact
 	end
-	local fishId = rollFish(location, data.level, rod.rareBonus, rod.legendaryBonus, nil)
+	-- Umpan (Bab 6.3): yang pertama dipunyai dari urutan BAITS. Jangkrik = gigitan 30% lebih cepat.
+	local usedBait: Fishing.Bait? = nil
+	for _, bait in Fishing.BAITS do
+		if InventoryService.Remove(player, bait.id, 1) then
+			usedBait = bait
+			break
+		end
+	end
+	local fishId = rollFish(location, data.level, rod.rareBonus, rod.legendaryBonus, usedBait, nil)
 	if not fishId then
 		Net.Fire("Notify", player, "fish.none_here")
 		return
 	end
 
 	local biteDelay = random:NextNumber(Fishing.BITE_MIN, Fishing.BITE_MAX) * rod.biteMult
-	if InventoryService.Remove(player, Fishing.BAIT.id, 1) then
-		biteDelay *= 1 - Fishing.BAIT.biteReduction
+	if usedBait then
+		biteDelay *= 1 - usedBait.biteReduction
 	end
 	local session: Session = { spot = spot, fishId = fishId, biteAt = os.clock() + biteDelay }
 	sessions[player] = session
@@ -322,7 +338,7 @@ local function collectPond(player: Player, pond: BasePart)
 	local allowed = { C = true, U = true }
 	local collected = 0
 	for _ = 1, count do
-		local fishId = rollFish("kolam", data.level, 0, 0, allowed)
+		local fishId = rollFish("kolam", data.level, 0, 0, nil, allowed)
 		if not fishId then
 			break
 		end

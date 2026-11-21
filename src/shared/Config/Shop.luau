@@ -1,5 +1,5 @@
 --!strict
--- NPC shops (see Config/Npcs for who sells what). Rods come from Fishing.rodList, bait from Fishing.BAIT.
+-- NPC shops (see Config/Npcs for who sells what). Rods come from Fishing.rodList, bait from Fishing.BAITS.
 -- Upgrade cost i = price of going from tier i-1 to tier i.
 -- Tas tanpa cap slot, stack 99 (Bab 18.1 v7.3). Tidak ada Upgrade Tas.
 

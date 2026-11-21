@@ -34,10 +34,19 @@ return {
 		return if n <= TILE_FREE then 0 else n * TILE_COST
 	end,
 
-	-- STAGE 2: alat siram. Bought with Koin from Pak Udin (Alat section). Gembor waters a 3x3 block of beds in one tap.
-	-- Sprinkler (Lv 7, Koin 800) is NOT built yet (see docs/OVERNIGHT_LOG.md).
+	-- Alat Koin (Kampoeng_Tedoeh_v7.3 Bab 17.5, LOCKED). Bought with Koin + bahan from Pak Udin (Alat section).
+	-- mats = bahan (P2-1: belum ada sumber, belum bisa dipenuhi). cells = petak per tap (garis, gembor/sabit).
+	-- Efek sabit (panen garis) + sepatu (jalan) + kapak (bonus bahan) di-wire di P2; gembor garis jalan sekarang.
 	TOOLS = {
-		gembor = { price = 300, unlockLevel = 4, radius = 1 }, -- radius 1 = 3x3 beds around the tapped one
+		gembor_plastik = { price = 0, unlockLevel = 1, mats = {}, cells = 1 }, -- siram 1 petak
+		gembor_seng = { price = 2000, unlockLevel = 3, mats = { { id = "kayu", count = 10 } }, cells = 2 }, -- siram 2 petak (garis)
+		gembor_kuningan = { price = 8000, unlockLevel = 8, mats = { { id = "papan", count = 20 } }, cells = 3 }, -- siram 3 petak (garis)
+		sabit_kayu = { price = 0, unlockLevel = 1, mats = {}, cells = 1 }, -- panen 1 petak
+		sabit_besi = { price = 5000, unlockLevel = 5, mats = { { id = "batu", count = 10 } }, cells = 3 }, -- panen 3 petak (garis)
+		sepatu_bot = { price = 800, unlockLevel = 2, mats = { { id = "ijuk", count = 5 } }, speedMult = 1.05 }, -- jalan +5% di lahan sendiri
+		kapak_batu = { price = 0, unlockLevel = 1, mats = {} }, -- normal
+		kapak_besi = { price = 3000, unlockLevel = 3, mats = { { id = "batu", count = 15 } }, bonusBahan = 1 }, -- +1 bahan per node
+		kapak_baja = { price = 10000, unlockLevel = 7, mats = { { id = "batu", count = 20 }, { id = "semen", count = 10 } }, bonusBahan = 2 }, -- +2 bahan per node
 	},
 
 	-- A bed = soil painted on the terrain (flat, the dark furrow color you see in the gaps) + a low soil slab (a Part)

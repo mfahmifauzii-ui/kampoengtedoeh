@@ -56,6 +56,18 @@ local function koin(n: number): string
 	return Locale.t("ui.koin", { n = Locale.formatNumber(n) })
 end
 
+-- "10 Bambu + 15 Batu" untuk biaya bahan (Bab 6.3 / 17.5). nil = tanpa bahan.
+local function matsText(mats: { { id: string, count: number } }?): string?
+	if not mats or #mats == 0 then
+		return nil
+	end
+	local parts = {}
+	for _, mat in mats do
+		table.insert(parts, `{mat.count} {Locale.t(`item.{mat.id}`)}`)
+	end
+	return table.concat(parts, " + ")
+end
+
 -- Returns (current tier, detail text) for an upgrade.
 local function upgradeInfo(upgradeId: string, snapshot: any): (number, string)
 	if upgradeId == "pond" then
@@ -199,7 +211,7 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 		end
 	end
 
-	-- Stage 2: farm tools (Gembor Bambu). Koin only; locked until its level.
+	-- Alat Kebun (Bab 17.5): Koin + bahan (bahan dari Nambang, P2-1); locked until its level.
 	if sells.tools then
 		UiKit.header(list, Locale.t("shop.section.tools"), nextOrder())
 		for toolId, tool in Farm.TOOLS do
@@ -211,6 +223,7 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 				local unlocked = playerLevel >= tool.unlockLevel
 				UiKit.tradeRow(list, nextOrder(), {
 					name = name,
+					sub = matsText(tool.mats),
 					thumbKey = toolId,
 					placeholderIcon = "pancing",
 					accent = UiKit.CAT.tool,
@@ -252,7 +265,8 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 			else
 				local unlocked = playerLevel >= rod.unlockLevel
 				UiKit.tradeRow(list, nextOrder(), {
-					name = name,
+					name = `{name} ({rod.box}%)`,
+					sub = matsText(rod.mats),
 					thumbKey = rod.id,
 					placeholderIcon = "pancing",
 						accent = UiKit.CAT.tool,
@@ -269,30 +283,35 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 			end
 		end
 	end
+	-- Umpan (Bab 6.3): 4 umpan, Udang Kecil Lv 6.
 	if sells.bait then
 		UiKit.header(list, Locale.t("shop.section.bait"), nextOrder())
-		anything = true
-		local baitId = Fishing.BAIT.id
-		local name = Locale.t(`item.{baitId}`)
-		UiKit.tradeRow(list, nextOrder(), {
-			name = name,
-			sub = `{Locale.t("shop.unit_price", { price = koin(Fishing.BAIT.price) })}  ·  {Locale.t("ui.owned", { n = items[baitId] or 0 })}`,
-			thumbKey = baitId,
-			placeholderIcon = "pancing",
-						accent = UiKit.CAT.tool,
-			unitPrice = Fishing.BAIT.price,
-			maxQty = Shop.MAX_AMOUNT,
-			pickQty = true,
-			qty = qtyBuy[baitId],
-			money = money(),
-			actionText = Locale.t("ui.buy"),
-			onQty = function(n)
-				qtyBuy[baitId] = n
-			end,
-			onAction = function(n)
-				confirmBuy(npcId, "bait", baitId, name, Fishing.BAIT.price, n)
-			end,
-		})
+		for _, bait in Fishing.BAITS do
+			anything = true
+			local baitId = bait.id
+			local name = Locale.t(`item.{baitId}`)
+			local unlocked = bait.unlockLevel == nil or playerLevel >= bait.unlockLevel
+			UiKit.tradeRow(list, nextOrder(), {
+				name = name,
+				sub = `{Locale.t("shop.unit_price", { price = koin(bait.price) })}  ·  {Locale.t("ui.owned", { n = items[baitId] or 0 })}`,
+				thumbKey = baitId,
+				placeholderIcon = "pancing",
+							accent = UiKit.CAT.tool,
+				unitPrice = bait.price,
+				maxQty = if unlocked then Shop.MAX_AMOUNT else 0,
+				pickQty = true,
+				qty = qtyBuy[baitId],
+				money = money(),
+				actionText = Locale.t("ui.buy"),
+				disabledText = bait.unlockLevel and Locale.t("ui.locked", { level = bait.unlockLevel }) or nil,
+				onQty = function(n)
+					qtyBuy[baitId] = n
+				end,
+				onAction = function(n)
+					confirmBuy(npcId, "bait", baitId, name, bait.price, n)
+				end,
+			})
+		end
 	end
 
 	-- Upgrades (Pak Udin)

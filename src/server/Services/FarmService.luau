@@ -444,20 +444,44 @@ local function onWater(player: Player, uid: any)
 	end
 end
 
--- Stage 2: Gembor Bambu. Waters the tapped bed and every bed within Farm.TOOLS.gembor.radius cells of it (3x3 at radius 1),
--- but only beds that are planted, growing and dry. Needs the tool owned; the distance check runs on the tapped bed.
+-- Gembor tiers (Bab 17.5): gembor_plastik 1 petak, gembor_seng 2 petak (garis), gembor_kuningan 3 petak (garis).
+-- Waters the tapped bed + the nearest (cells - 1) beds on the same row, but only beds that are planted, growing and
+-- dry. Needs the tool owned; the distance check runs on the tapped bed.
+local GEMBOR_ORDER = { "gembor_kuningan", "gembor_seng", "gembor_plastik" } -- best first
+
+local function gemborCells(data: Types.PlayerData): number?
+	for _, toolId in GEMBOR_ORDER do
+		if data.tools[toolId] == true then
+			local tool = Farm.TOOLS[toolId]
+			return tool and tool.cells or nil
+		end
+	end
+	return nil
+end
+
 local function onWaterArea(player: Player, uid: any)
 	local data, tile = getValidTile(player, uid)
-	if not data or not tile or data.tools.gembor ~= true then
+	if not data or not tile then
 		return
 	end
-	local radius = Farm.TOOLS.gembor.radius
+	local cells = gemborCells(data)
+	if not cells then
+		return
+	end
 	local now = os.time()
+	-- Same row (cz), nearest first, tapped bed included.
+	local row = {}
 	for _, other in data.farm.tiles do
-		if math.abs(other.cx - tile.cx) <= radius and math.abs(other.cz - tile.cz) <= radius then
-			if waterTile(other, now) then
-				sync(player, other)
-			end
+		if other.cz == tile.cz then
+			table.insert(row, other)
+		end
+	end
+	table.sort(row, function(a, b)
+		return math.abs(a.cx - tile.cx) < math.abs(b.cx - tile.cx)
+	end)
+	for i = 1, math.min(cells, #row) do
+		if waterTile(row[i], now) then
+			sync(player, row[i])
 		end
 	end
 end

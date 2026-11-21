@@ -131,6 +131,19 @@ end
 -- Buying ---------------------------------------------------------------------------
 -- Each function returns true when the purchase went through.
 
+-- Koin + bahan (Bab 6.3 / 17.5). Bahan belum ada sumber (P2-1 Nambang): gagal aman, tidak belanja apa pun.
+local function payMats(player: Player, mats: { { id: string, count: number } }): boolean
+	for _, mat in mats do
+		if InventoryService.Count(player, mat.id) < mat.count then
+			return false
+		end
+	end
+	for _, mat in mats do
+		InventoryService.Remove(player, mat.id, mat.count)
+	end
+	return true
+end
+
 local function buyRod(player: Player, data: Types.PlayerData, rodId: string): boolean
 	local rod = Fishing.rods[rodId]
 	if not rod or rod.price <= 0 or data.fishing.ownedRods[rodId] then
@@ -144,6 +157,11 @@ local function buyRod(player: Player, data: Types.PlayerData, rodId: string): bo
 		notEnough(player)
 		return false
 	end
+	if not payMats(player, rod.mats) then
+		EconomyService.Add(player, "koin", rod.price, `rod:{rodId}:refund`)
+		Net.Fire("Notify", player, "shop.no_mats")
+		return false
+	end
 	data.fishing.ownedRods[rodId] = true
 	data.fishing.rod = rodId
 	InventoryService.Sync(player)
@@ -151,7 +169,7 @@ local function buyRod(player: Player, data: Types.PlayerData, rodId: string): bo
 	return true
 end
 
--- Stage 2: Gembor Bambu (one-off, Koin only). Owned tools are checked by FarmService when the player waters.
+-- Owned tools are checked by FarmService when the player waters (gembor garis).
 local function buyTool(player: Player, data: Types.PlayerData, toolId: string): boolean
 	local tool = Farm.TOOLS[toolId]
 	if not tool or data.tools[toolId] == true then
@@ -165,20 +183,30 @@ local function buyTool(player: Player, data: Types.PlayerData, toolId: string): 
 		notEnough(player)
 		return false
 	end
+	if not payMats(player, tool.mats) then
+		EconomyService.Add(player, "koin", tool.price, `tool:{toolId}:refund`)
+		Net.Fire("Notify", player, "shop.no_mats")
+		return false
+	end
 	data.tools[toolId] = true
 	InventoryService.Sync(player)
 	Net.Fire("Notify", player, "shop.bought", { item = `tool.{toolId}` })
 	return true
 end
 
-local function buyBait(player: Player, baitId: string, amount: any): boolean
-	if baitId ~= Fishing.BAIT.id or not validPack(amount) then
+local function buyBait(player: Player, data: Types.PlayerData, baitId: string, amount: any): boolean
+	local bait = Fishing.baitsById[baitId]
+	if not bait or not validPack(amount) then
+		return false
+	end
+	if bait.unlockLevel and data.level < bait.unlockLevel then
+		Net.Fire("Notify", player, "shop.locked", { level = bait.unlockLevel })
 		return false
 	end
 	if not InventoryService.CanAdd(player, baitId, amount) then
 		return false
 	end
-	if not EconomyService.TrySpend(player, "koin", Fishing.BAIT.price * amount, `bait:{baitId}`) then
+	if not EconomyService.TrySpend(player, "koin", bait.price * amount, `bait:{baitId}`) then
 		notEnough(player)
 		return false
 	end
@@ -250,7 +278,7 @@ local function onBuy(player: Player, npcId: any, kind: any, id: any, amount: any
 	if kind == "rod" and npc.sells.rods then
 		buyRod(player, data, id)
 	elseif kind == "bait" and npc.sells.bait then
-		buyBait(player, id, amount)
+		buyBait(player, data, id, amount)
 	elseif kind == "upgrade" and npc.sells.upgrades then
 		buyUpgrade(player, data, id)
 	elseif kind == "seed" and npc.sells.seeds then
