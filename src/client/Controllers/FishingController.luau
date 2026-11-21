@@ -257,6 +257,14 @@ local function placeBobber(spot: BasePart)
 	bobber = part
 end
 
+-- Gelembung emas di pelampung (Bab 6.5 Firasat, P2-4-fix): pity >= 75% + dekat Kak Fajar.
+-- Tanpa angka pity di UI; warna kembali normal saat sesi selesai (showIdle hapus bobber).
+local function gildBobber()
+	if bobber then
+		bobber.Color = Color3.fromRGB(255, 206, 92)
+	end
+end
+
 -- States --------------------------------------------------------------------------
 
 local function showIdle()
@@ -427,6 +435,9 @@ function FishingController.Start()
 		elseif state == "idle" then
 			showIdle()
 		end
+	end)
+	Net.Listen("FishFirasat", function()
+		gildBobber()
 	end)
 
 	-- Click-and-hold anywhere on screen also reels (desktop).

@@ -21,11 +21,13 @@ local Buffs = require(ReplicatedStorage.Shared.Config.Buffs)
 local Dapur = require(ReplicatedStorage.Shared.Config.Dapur)
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
+local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local Ranch = require(ReplicatedStorage.Shared.Config.Ranch)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local DataService = require(script.Parent.DataService)
 local InventoryService = require(script.Parent.InventoryService)
+local NpcService = require(script.Parent.NpcService)
 local PlotService = require(script.Parent.PlotService)
 local ProgressionService = require(script.Parent.ProgressionService)
 local BookService = require(script.Parent.BookService)
@@ -237,6 +239,7 @@ local function startCast(player: Player, spot: BasePart)
 	local pityAt = math.max(150, 200 - 10 * firasat)
 	local forcedId: string? = nil
 	local forcedCount = -1
+	local bestRatio = 0
 	do
 		local phase, raining = getConditions()
 		for _, fish in FishConfig.list do
@@ -247,10 +250,23 @@ local function startCast(player: Player, spot: BasePart)
 			then
 				local n = (data.fishing.pity[fish.id] or 0) + 1
 				data.fishing.pity[fish.id] = n
+				bestRatio = math.max(bestRatio, n / pityAt)
 				if n >= pityAt and n > forcedCount then
 					forcedId, forcedCount = fish.id, n
 				end
 			end
+		end
+	end
+	-- Firasat (Bab 6.5, P2-4-fix): pity >= 75% + dekat Kak Fajar (<= NPC_DISTANCE, USULAN:
+	-- v7.3 cuma bilang "kalau dekat") -> bubble Kak Fajar + gelembung emas di pelampung.
+	-- Tanpa angka pity di UI.
+	if bestRatio >= 0.75 then
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		local kakekPos = NpcService.Position("kak_fajar")
+		if root and root:IsA("BasePart") and kakekPos and (root.Position - kakekPos).Magnitude <= Shop.NPC_DISTANCE then
+			Net.Fire("Notify", player, "fish.firasat")
+			Net.Fire("FishFirasat", player)
 		end
 	end
 	local fishId = forcedId or rollFish(location, data.level, rod.rareBonus, rod.legendaryBonus, usedBait, nil)
@@ -289,6 +305,22 @@ local function onReel(player: Player, score: any)
 	end
 	-- NO TIMEOUT: the bite never expires, the player can reel in whenever they tap (no fail state).
 
+	-- LEPAS (Bab 6.2, P2-4-fix): skor 0 = tidak pernah menahan ikan di kotak = ikan lepas, umpan
+	-- hilang, tanpa hukuman lain. Skor > 0 sekecil apa pun tetap dapat (menjaga "tanpa fail").
+	-- Skill Umpan Hemat (Bab 4.5): 5%/lv umpan kembali saat lepas.
+	if score <= 0 then
+		local lepasData = DataService.Get(player)
+		if lepasData and session.usedBait and random:NextNumber() < 0.05 * (lepasData.skill.umpan_hemat or 0) then
+			InventoryService.Add(player, session.usedBait.id, 1)
+			Net.Fire("Notify", player, "fish.bait_back")
+		else
+			Net.Fire("Notify", player, "fish.lepas")
+		end
+		sessions[player] = nil
+		Net.Fire("FishState", player, "idle")
+		return
+	end
+
 	-- Skill Ikan Besar (Bab 4.5, P2-4): skor +2%/lv (peluang Besar/Jumbo naik, nilai harapan).
 	local reelData = DataService.Get(player)
 	local ikanBesar = reelData and reelData.skill.ikan_besar or 0
@@ -320,13 +352,11 @@ end
 local function onCancel(player: Player)
 	local session = sessions[player]
 	if session then
-		-- Skill Umpan Hemat (Bab 4.5, P2-4): 5%/lv umpan yang dipakai kembali saat lepas (cancel).
+		-- Batal/teleport/jalan menjauh = umpan SELALU kembali (Bab 6.1: ketarik otomatis,
+		-- umpan tidak hilang). Umpan Hemat hanya untuk LEPAS, bukan cancel (P2-4-fix).
 		if session.usedBait then
-			local data = DataService.Get(player)
-			if data and random:NextNumber() < 0.05 * (data.skill.umpan_hemat or 0) then
-				InventoryService.Add(player, session.usedBait.id, 1)
-				Net.Fire("Notify", player, "fish.bait_back")
-			end
+			InventoryService.Add(player, session.usedBait.id, 1)
+			Net.Fire("Notify", player, "fish.bait_back")
 		end
 		endSession(player)
 	end

@@ -24,6 +24,7 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	FishReel = "Event", -- C->S (score: number 0..1)
 	FishCancel = "Event", -- C->S ()
 	FishCast = "Event", -- C->S () cast at the nearest fishing spot in reach (the server picks it; v6.2.3 Mancing button)
+	FishFirasat = "Event", -- S->C () pity >= 75% + dekat Kak Fajar: gelembung emas di pelampung (Bab 6.5)
 
 	StateSync = "Event", -- S->C (snapshot: items, slots, tiers, rods) — see InventoryService
 	StateRequest = "Event", -- C->S () ask for a fresh snapshot

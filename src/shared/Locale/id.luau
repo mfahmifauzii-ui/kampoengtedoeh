@@ -177,6 +177,8 @@ return {
 	["fish.caught"] = "Dapat {item} ({size})!",
 	["fish.locked"] = "Terbuka di Level {level}",
 	["fish.bait_back"] = "Umpan kembali!",
+	["fish.lepas"] = "Ikan lepas!",
+	["fish.firasat"] = "Airnya lagi tenang banget... firasatku bagus.",
 	["fish.none_here"] = "Belum ada ikan di sini sekarang",
 	["fish.need_rod"] = "Kamu belum punya joran. Temui Kak Fajar di Toko Pancing dulu",
 	["fish.tut_locked"] = "Kamu belum bisa mancing, selesaikan tutorial agar bisa mancing",
