@@ -74,7 +74,13 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		pasar = data.pasar,
 		tamu = data.tamu,
 		discountUntil = data.discountUntil, -- Diskon Warga (P2-6) untuk tab Acara
-		quests = { active = table.clone(data.quests.active), done = table.clone(data.quests.done), daily = table.clone(data.quests.daily) },
+		quests = {
+			active = table.clone(data.quests.active),
+			done = table.clone(data.quests.done),
+			daily = table.clone(data.quests.daily),
+			harian = table.clone(data.quests.harian),
+			mingguan = table.clone(data.quests.mingguan),
+		},
 		farm = { tiles = farmTiles(data), cap = FarmConfig.tileCap(data.level) },
 		landChunks = table.clone(data.land.chunks),
 		landExtra = Land.extraCount(data.land.chunks),

@@ -129,6 +129,8 @@ export type PlayerData = {
 	quests: {
 		active: { [string]: { step: number, count: number } },
 		done: { [string]: boolean },
+		harian: { day: string, slots: { { kind: string, progress: number, claimed: boolean } } },
+		mingguan: { week: string, slots: { { kind: string, progress: number, claimed: boolean } } },
 	},
 	pond: {
 		list: { PondEntry },

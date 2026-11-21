@@ -11,6 +11,7 @@ local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Quests = require(ReplicatedStorage.Shared.Config.Quests)
 local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local Types = require(ReplicatedStorage.Shared.Types)
+local AgendaService = require(script.Parent.AgendaService)
 local DataService = require(script.Parent.DataService)
 local InventoryService = require(script.Parent.InventoryService)
 local ProgressionService = require(script.Parent.ProgressionService)
@@ -38,36 +39,65 @@ local function startAvailable(player: Player, data: Types.PlayerData): boolean
 end
 
 
--- Stage 7 Daily: one random kind per WIB day, starting at Quests.DAILY_RESET_HOUR. Progress is counted, never lost:
--- an unfinished daily is replaced by a new one the next day (no fail state).
-local function rollDaily(data: Types.PlayerData, now: number)
-	local day = TimeKeys.day(now - Quests.DAILY_RESET_HOUR * 3600)
-	if data.quests.daily.day == day then
-		return
+-- Agenda (Bab 14.5): 5 tugas dipilih player, reset 05:00 WIB. Logika di AgendaService (P2-7);
+-- QuestService.Report meneruskannya. Roll awal dilakukan AgendaService saat join.
+
+-- Quest Harian (Bab 9-10, P2-7): 3 quest per hari, reset 05:00 WIB, tidak bisa di-reroll / ditumpuk.
+local function pickDistinct(pool: { any }, count: number): { any }
+	local copy: { any } = {}
+	for _, item in pool do
+		table.insert(copy, item)
 	end
-	local pick = Quests.DAILY[math.random(1, #Quests.DAILY)]
-	data.quests.daily = { day = day, kind = pick.id, progress = 0, claimed = false }
+	local picked: { any } = {}
+	while #picked < count and #copy > 0 do
+		table.insert(picked, table.remove(copy, math.random(1, #copy)))
+	end
+	return picked
 end
 
-local function reportDaily(player: Player, data: Types.PlayerData, event: string, add: number)
-	rollDaily(data, os.time())
-	local daily = data.quests.daily
-	local def = nil
-	for _, candidate in Quests.DAILY do
-		if candidate.id == daily.kind then
-			def = candidate
-		end
-	end
-	if not def or def.event ~= event or daily.claimed then
+local function rollHarian(data: Types.PlayerData, now: number)
+	local day = TimeKeys.day(now - Quests.DAILY_RESET_HOUR * 3600)
+	if data.quests.harian.day == day then
 		return
 	end
-	daily.progress = math.min(daily.progress + add, def.count)
-	if daily.progress >= def.count then
-		daily.claimed = true
-		ProgressionService.Grant(player, def.reward, `daily:{def.id}`)
-		Net.Fire("Notify", player, "quest.done", { title = `daily.{def.id}.title` })
+	local slots = {}
+	for _, def in pickDistinct(Quests.HARIAN, Quests.HARIAN_COUNT) do
+		table.insert(slots, { kind = def.id, progress = 0, claimed = false })
 	end
-	InventoryService.Sync(player)
+	data.quests.harian = { day = day, slots = slots }
+end
+
+-- Quest Mingguan (Bab 9-10, P2-7): 3 quest per minggu, reset Senin 05:00 WIB (TimeKeys.week).
+local function rollMingguan(data: Types.PlayerData, now: number)
+	local week = TimeKeys.week(now - Quests.DAILY_RESET_HOUR * 3600)
+	if data.quests.mingguan.week == week then
+		return
+	end
+	local slots = {}
+	for _, def in pickDistinct(Quests.MINGGUAN, Quests.MINGGUAN_COUNT) do
+		table.insert(slots, { kind = def.id, progress = 0, claimed = false })
+	end
+	data.quests.mingguan = { week = week, slots = slots }
+end
+
+local function reportSlots(player: Player, slots: { any }, pool: { any }, label: string, event: string, add: number)
+	for _, slot in slots do
+		local def = nil
+		for _, candidate in pool do
+			if candidate.id == slot.kind then
+				def = candidate
+				break
+			end
+		end
+		if def and def.event == event and not slot.claimed then
+			slot.progress = math.min(slot.progress + add, def.count)
+			if slot.progress >= def.count then
+				slot.claimed = true
+				ProgressionService.Grant(player, def.reward, `{label}:{def.id}`)
+				Net.Fire("Notify", player, "quest.done", { title = `{label}.{def.id}.title` })
+			end
+		end
+	end
 end
 
 function QuestService.Report(player: Player, event: string, amount: number?)
@@ -76,7 +106,11 @@ function QuestService.Report(player: Player, event: string, amount: number?)
 		return
 	end
 	local add = amount or 1
-	reportDaily(player, data, event, add)
+	AgendaService.Report(player, event, add) -- Agenda 5 tugas (P2-7)
+	rollHarian(data, os.time())
+	rollMingguan(data, os.time())
+	reportSlots(player, data.quests.harian.slots, Quests.HARIAN, "quest_harian", event, add)
+	reportSlots(player, data.quests.mingguan.slots, Quests.MINGGUAN, "quest_mingguan", event, add)
 	local changed = false
 
 	for questId, progress in data.quests.active do
@@ -123,7 +157,9 @@ local function evaluate(player: Player)
 			data.level = wanted
 		end
 	end
-	rollDaily(data, os.time())
+	AgendaService.Roll(data, os.time())
+	rollHarian(data, os.time())
+	rollMingguan(data, os.time())
 	startAvailable(player, data)
 	InventoryService.Sync(player)
 end

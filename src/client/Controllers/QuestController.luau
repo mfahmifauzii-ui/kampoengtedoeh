@@ -19,6 +19,57 @@ local QuestController = {}
 
 local tracker: Frame
 
+-- Baris slot (Quest Harian / Mingguan): 1 baris per slot yang belum selesai.
+local function addSlotRows(order: number, slots: { any }?, pool: { any }, label: string, current: string, saved: string): number
+	if type(slots) ~= "table" or saved ~= current then
+		return order
+	end
+	for _, slot in slots do
+		if not slot.claimed then
+			local def = nil
+			for _, candidate in pool do
+				if candidate.id == slot.kind then
+					def = candidate
+					break
+				end
+			end
+			if def then
+				order += 1
+				local row = Instance.new("Frame")
+				row.Name = `{label}_{def.id}`
+				row.LayoutOrder = order
+				row.BackgroundTransparency = 1
+				row.Size = UDim2.new(1, 0, 0, 46)
+				row.Parent = tracker
+
+				local title = Instance.new("TextLabel")
+				title.Name = "Title"
+				title.BackgroundTransparency = 1
+				title.Size = UDim2.new(1, 0, 0, 20)
+				title.Font = UiKit.FONT
+				title.TextSize = 14
+				title.TextColor3 = UiKit.TEXT
+				title.TextXAlignment = Enum.TextXAlignment.Left
+				title.Text = Locale.t(`{label}.title`)
+				title.Parent = row
+
+				local step = Instance.new("TextLabel")
+				step.Name = "Step"
+				step.BackgroundTransparency = 1
+				step.Position = UDim2.fromOffset(0, 20)
+				step.Size = UDim2.new(1, 0, 0, 20)
+				step.Font = UiKit.FONT
+				step.TextSize = 13
+				step.TextColor3 = UiKit.TEXT
+				step.TextXAlignment = Enum.TextXAlignment.Left
+				step.Text = `{Locale.t(`{label}.{def.id}`)}  {slot.progress}/{def.count}`
+				step.Parent = row
+			end
+		end
+	end
+	return order
+end
+
 -- Stage 7: the Daily row ("Misi Harian  2/5"). Shown only for today's daily; the server re-rolls it after 05:00 WIB.
 local function addDailyRow(order: number)
 	local snapshot = State.current :: any
@@ -164,6 +215,11 @@ local function refresh()
 		end
 	end
 	addDailyRow(order + 1)
+	local quests = snapshot and snapshot.quests
+	if quests then
+		order = addSlotRows(order, quests.harian and quests.harian.slots, Quests.HARIAN, "quest_harian", TimeKeys.day(os.time() - Quests.DAILY_RESET_HOUR * 3600), quests.harian and quests.harian.day or "")
+		order = addSlotRows(order, quests.mingguan and quests.mingguan.slots, Quests.MINGGUAN, "quest_mingguan", TimeKeys.week(os.time() - Quests.DAILY_RESET_HOUR * 3600), quests.mingguan and quests.mingguan.week or "")
+	end
 	tracker.Visible = order > 0 or tracker:FindFirstChild("daily") ~= nil
 end
 

@@ -55,7 +55,7 @@ local list: { Npc } = {
 		stand = { x = -3.832, z = 55.594, y = 5.8, yaw = math.rad(-32.99) }, -- spot picked in Studio (x -3.832, z 55.594, yaw -32.99 deg); y lowered from 8.449 to 5.8 so the feet touch the plank (plank top ~5.1 here; pivot = feet + 0.68). Explicit y: NpcService does not re-seat him
 		look = { skin = Color3.fromRGB(198, 148, 102), shirt = Color3.fromRGB(220, 206, 176), pants = Color3.fromRGB(96, 70, 50) },
 		buys = { crop = 1.0, ternak = 1.0 }, -- hasil mentah (Bab 10.1): produk ternak 100% di Pak Udin
-		sells = { seeds = true, upgrades = true, tools = true, supplies = true },
+		sells = { seeds = true, upgrades = true, tools = true, supplies = true, bunga = true }, -- bunga = Toko Bunga (P2-7)
 	},
 	{
 		-- Toko Pancing (shop slot 5): joran, umpan, and buys fish at full price. Moves to the canal bank in Fase 3.

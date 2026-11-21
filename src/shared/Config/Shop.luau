@@ -16,4 +16,19 @@ return {
 	SUPPLIES = {
 		garam = { price = 10 }, -- Garam di Pak Udin (Bab 9.2): bahan masak
 	} :: { [string]: { price: number } },
+
+	-- Toko Bunga (Bab 9-10, P2-7): tukar Bunga dengan dekor langka / bibit varian.
+	-- Harga = USULAN (v7.3 tak memberi angka; butuh lock owner/playtest 17.8).
+	BUNGA_GOODS = {
+		{ id = "gazebo_bambu", kind = "decor", bunga = 30 },
+		{ id = "lampion_gantung", kind = "decor", bunga = 25 },
+		{ id = "sepeda_onthel", kind = "decor", bunga = 40 },
+		{ id = "kursi_rotan", kind = "decor", bunga = 20 },
+		{ id = "seed_jagung_ungu", kind = "seed", bunga = 15 },
+		{ id = "seed_tomat_kuning", kind = "seed", bunga = 12 },
+		{ id = "seed_semangka_kotak", kind = "seed", bunga = 20 },
+		{ id = "seed_cabai_pelangi", kind = "seed", bunga = 16 },
+		{ id = "seed_stroberi_putih", kind = "seed", bunga = 22 },
+		{ id = "seed_pisang_merah", kind = "seed", bunga = 22 },
+	} :: { { id: string, kind: string, bunga: number } },
 }

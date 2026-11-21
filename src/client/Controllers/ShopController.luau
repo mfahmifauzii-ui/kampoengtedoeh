@@ -52,6 +52,11 @@ local function money(): number
 	return if typeof(value) == "number" then value else 0
 end
 
+local function bunga(): number
+	local value = player:GetAttribute("Bunga")
+	return if typeof(value) == "number" then value else 0
+end
+
 local function koin(n: number): string
 	return Locale.t("ui.koin", { n = Locale.formatNumber(n) })
 end
@@ -312,6 +317,30 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 				end,
 				onAction = function(n)
 					confirmBuy(npcId, "bait", baitId, name, bait.price, n)
+				end,
+			})
+		end
+	end
+
+	-- Toko Bunga (Pak Udin, P2-7): tukar Bunga dengan dekor langka / bibit varian.
+	if sells.bunga then
+		UiKit.header(list, Locale.t("shop.section.bunga"), nextOrder())
+		for _, good in Shop.BUNGA_GOODS do
+			anything = true
+			local name = if good.kind == "decor" then Locale.t(`decor.{good.id}`) else Locale.t(`crop.{good.id:match("^seed_(.+)$") or good.id}`)
+			UiKit.tradeRow(list, nextOrder(), {
+				name = name,
+				sub = Locale.t("reward.bunga", { n = Locale.formatNumber(good.bunga) }),
+				thumbKey = good.id,
+				placeholderIcon = "tas",
+				accent = UiKit.CAT.tool,
+				unitPrice = good.bunga,
+				maxQty = 1,
+				pickQty = false,
+				money = bunga(),
+				actionText = Locale.t("ui.buy"),
+				onAction = function()
+					Net.Send("BungaBuy", good.id)
 				end,
 			})
 		end

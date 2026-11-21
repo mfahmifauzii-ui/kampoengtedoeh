@@ -30,6 +30,9 @@ local ORDER = {
 	"WarungService", -- after DapurService + EconomyService: Warung Player (Bab 9.3)
 	"NpcService",
 	"ShopService",
+	"RepeatService", -- Event Berulang (P2-6): Gerobak/Pasar/Kerja Bakti/Tamu; butuh NpcService + WorldService (di atas)
+	"AgendaService", -- Agenda Harian (P2-7): 5 tugas dipilih player
+	"AlbumService", -- Toko Bunga + delegasi klaim Album (P2-7)
 	"DecorService",
 	"OrderService",
 	"SocialService",

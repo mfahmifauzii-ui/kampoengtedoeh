@@ -111,7 +111,9 @@ local template: Types.PlayerData = {
 	quests = {
 		active = {}, -- [questId] = { step = 1, count = 0 } (see Config/Quests)
 		done = {}, -- [questId] = true
-		daily = { day = "", kind = "", progress = 0, claimed = false }, -- Stage 7: Daily Quest (Config/Quests DAILY), reset 05:00 WIB
+		daily = { day = "", kind = "", progress = 0, claimed = false }, -- Agenda (Config/Quests DAILY/AGENDA), reset 05:00 WIB
+		harian = { day = "", slots = {} }, -- Quest Harian 3/hari (P2-7)
+		mingguan = { week = "", slots = {} }, -- Quest Mingguan 3/minggu (P2-7), reset Senin 05:00 WIB
 	},
 
 	playtime = { day = "", seconds = 0, claimed = 0 }, -- Hadiah playtime: active seconds today, chests opened today (Config/Progression PLAYTIME)
