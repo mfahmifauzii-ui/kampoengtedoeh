@@ -217,7 +217,7 @@ return {
 	byId = byId,
 
 	CELL = 2, -- studs per grid cell
-	MAX_PLACED = 150, -- Decor Expansion pass adds +100 (Phase 8)
+	MAX_PLACED = 800, -- Bab 8.3 v7.3: cap per lahan 800 piece
 	BLOCK_MARGIN = 1, -- studs kept clear around the farm and pond
 
 	-- Extra no-build areas in plot-local studs (e.g. your house), as {min = Vector2(x, z), max = Vector2(x, z)}.
