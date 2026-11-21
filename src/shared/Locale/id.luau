@@ -793,6 +793,7 @@ return {
 	["emote.tepuk"] = "Tepuk",
 	["emote.ketawa"] = "Ketawa",
 	["social.offline"] = "Pemain sedang offline",
+	["social.server_full"] = "Server kebun penuh, coba lagi nanti",
 	["social.galeri"] = "Galeri Kampung",
 	["social.galeri_show"] = "Lihat Galeri",
 	["social.galeri_empty"] = "Belum ada data minggu ini",
@@ -812,6 +813,7 @@ return {
 	["gift.too_rich"] = "Hadiah max 500 Koin",
 	["gift.no_item"] = "Barang tidak ada",
 	["gift.no_legend"] = "Legenda tidak bisa dihadiahkan",
+	["gift.no_currency"] = "Bunga/Robux tidak bisa dihadiahkan",
 	["title.kebun_favorit"] = "Kebun Favorit",
 
 	-- Events

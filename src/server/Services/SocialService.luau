@@ -2,9 +2,11 @@
 -- Mampir (teleport to a plot in this server) and Suka (like a plot once per WIB day).
 -- Visitors can look but never touch: farm/decor/pond actions always use the actor's OWN plot.
 
+local MemoryStoreService = game:GetService("MemoryStoreService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local DataStoreService = game:GetService("DataStoreService")
+local TeleportService = game:GetService("TeleportService")
 local TextChatService = game:GetService("TextChatService")
 
 local PlotsConfig = require(ReplicatedStorage.Shared.Config.Plots)
@@ -57,10 +59,53 @@ local function isOnPlot(player: Player, plot: Model): boolean
 	return Land.contains(localPos.X, localPos.Z, Social.LIKE_MARGIN)
 end
 
+-- Presence lintas-server (Galeri Kampung = global, Bab 8.7/12.7 P2-5-fix): userId -> jobId,
+-- TTL 5 menit + heartbeat. Dipakai untuk teleport ke server pemilik yang sedang online.
+local function presenceMapFor(): MemoryStoreSortedMap?
+	local ok, map = pcall(function()
+		return MemoryStoreService:GetSortedMap("KampoengPresence")
+	end)
+	if ok then
+		return map
+	end
+	return nil
+end
+
+local function publishPresence(player: Player)
+	local map = presenceMapFor()
+	if not map then
+		return
+	end
+	pcall(function()
+		map:SetAsync(tostring(player.UserId), game.JobId, 300)
+	end)
+end
+
 local function onVisit(player: Player, ownerUserId: any)
 	local owner = playerById(ownerUserId)
 	if owner == nil and ownerUserId ~= nil then
-		Net.Fire("Notify", player, "social.offline") -- pemilik offline (Galeri lintas server = follow-up)
+		-- Pemilik tidak di server ini: coba servernya via presence global.
+		local map = presenceMapFor()
+		local jobId: string? = nil
+		if map then
+			local ok, value = pcall(function()
+				return map:GetAsync(tostring(ownerUserId))
+			end)
+			if ok and typeof(value) == "string" and value ~= "" and value ~= game.JobId then
+				jobId = value
+			end
+		end
+		if jobId then
+			local ok = pcall(function()
+				TeleportService:TeleportToPlaceInstance(game.PlaceId, jobId :: string, { player })
+			end)
+			if not ok then
+				Net.Fire("Notify", player, "social.server_full")
+			end
+		else
+			-- Pemilik offline: rumah snapshot read-only = P2-5-fix, tanggal 2026-11-28.
+			Net.Fire("Notify", player, "social.offline")
+		end
 		return
 	end
 	local plot = owner and PlotService.GetPlot(owner)
@@ -335,6 +380,10 @@ local function onGift(sender: Player, ownerId: any, itemId: any)
 		Net.Fire("Notify", sender, "gift.no_item")
 		return
 	end
+	if itemId == "bunga" or itemId == "robux" then
+		Net.Fire("Notify", sender, "gift.no_currency")
+		return
+	end
 	local baseId = itemId:match("^(.+)@") or itemId
 	local fish = FishConfig.byId[baseId]
 	if fish and fish.rarity == "L" then
@@ -463,9 +512,25 @@ function SocialService.Start()
 	Net.On("SocialGift", onGift, { rate = 2, burst = 4 })
 	Net.On("SocialEmote", onEmote, { rate = 6, burst = 12 })
 	Net.On("GaleriGet", onGaleriGet, { rate = 2, burst = 4 })
+	Players.PlayerAdded:Connect(publishPresence)
 	Players.PlayerRemoving:Connect(function(player)
 		lastVisit[player] = nil
 		lastEmote[player] = nil
+		local map = presenceMapFor()
+		if map then
+			pcall(function()
+				map:RemoveAsync(tostring(player.UserId))
+			end)
+		end
+	end)
+	-- Heartbeat presence: publish ulang tiap 60 detik (TTL 300).
+	task.spawn(function()
+		while true do
+			task.wait(60)
+			for _, player in Players:GetPlayers() do
+				publishPresence(player)
+			end
+		end
 	end)
 end
 

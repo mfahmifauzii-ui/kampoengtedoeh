@@ -303,9 +303,22 @@ local function runReel()
 
 	local zoneW = zoneWidth()
 	zone.Size = UDim2.fromScale(zoneW, 1)
-	local duration = Fishing.REEL_SECONDS
+	-- Mini-game Tarik (Bab 6.2, P2-5-fix): progress mulai 30%. Ikan di kotak +15%/detik,
+	-- di luar -10%/detik. 100% = dapat (skor = porsi waktu di kotak, untuk ukuran).
+	-- 0% = lepas, umpan hilang, tanpa hukuman lain. Skor 0 = server anggap lepas.
 	local elapsed, inZone, zoneX = 0, 0, 0.35
+	local progress = 0.3
 	local phase = math.random() * math.pi * 2
+
+	local connection: RBXScriptConnection? = nil
+	local function finish(score: number)
+		if connection then
+			connection:Disconnect()
+		end
+		ContextActionService:UnbindAction(REEL_ACTION)
+		reeling = false
+		Net.Send("FishReel", score)
+	end
 
 	-- Space / gamepad A reel instead of jumping while the mini-game runs.
 	ContextActionService:BindActionAtPriority(REEL_ACTION, function(_, inputState)
@@ -313,7 +326,6 @@ local function runReel()
 		return Enum.ContextActionResult.Sink
 	end, false, Enum.ContextActionPriority.High.Value, Enum.KeyCode.Space, Enum.KeyCode.ButtonA)
 
-	local connection: RBXScriptConnection
 	connection = RunService.RenderStepped:Connect(function(dt)
 		if not reeling then
 			connection:Disconnect()
@@ -323,19 +335,22 @@ local function runReel()
 		elapsed += dt
 		local fishX = 0.5 + 0.35 * math.sin(elapsed * 1.6 + phase) + 0.08 * math.sin(elapsed * 4.1)
 		zoneX = math.clamp(zoneX + (if holding then ZONE_SPEED else -ZONE_SPEED) * dt, 0, 1 - zoneW)
-		if fishX >= zoneX and fishX <= zoneX + zoneW then
+		local inside = fishX >= zoneX and fishX <= zoneX + zoneW
+		if inside then
 			inZone += dt
+			progress = math.min(progress + 0.15 * dt, 1)
+		else
+			progress = math.max(progress - 0.10 * dt, 0)
 		end
 
 		marker.Position = UDim2.fromScale(fishX, 0.5)
 		zone.Position = UDim2.fromScale(zoneX, 0)
-		progressFill.Size = UDim2.fromScale(math.min(elapsed / duration, 1), 1)
+		progressFill.Size = UDim2.fromScale(progress, 1)
 
-		if elapsed >= duration then
-			connection:Disconnect()
-			ContextActionService:UnbindAction(REEL_ACTION)
-			reeling = false
-			Net.Send("FishReel", inZone / duration)
+		if progress >= 1 then
+			finish(if elapsed > 0 then math.clamp(inZone / elapsed, 0, 1) else 1)
+		elseif progress <= 0 then
+			finish(0) -- lepas: server anggap skor 0 = ikan lepas
 		end
 	end)
 end
