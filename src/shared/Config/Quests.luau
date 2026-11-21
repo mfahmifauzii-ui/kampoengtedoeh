@@ -48,16 +48,18 @@ local list: { Quest } = {
 	},
 }
 
--- Stage 7: Daily Quest, one per day (reset 05:00 WIB), picked at random. Never fails: an unfinished daily is simply
--- replaced the next day. Reward is paid once when the count is reached.
-export type Daily = { id: string, event: string, count: number }
+-- Agenda Harian (Kampoeng_Tedoeh_v7.3 Bab 14.5, LOCKED): 5 tugas per hari, reset 05:00 WIB. Contoh: Panen 5 tanaman,
+-- Mancing 3 ikan, Masak 1 olahan, Bantu 1 lahan, Nambang 10 bahan. Hadiah 150-400 Koin per tugas, tanpa Bunga.
+-- Masak/Bantu/Nambang belum ada pencatatnya (Dapur P2-3, Sosial P2-5, Nambang P2-1): tugasnya belum bisa selesai sampai P2.
+export type Daily = { id: string, event: string, count: number, reward: Progression.Reward }
 local DAILY: { Daily } = {
-	{ id = "tanam", event = "plant", count = 5 }, -- Tanam 5 apa saja
-	{ id = "panen", event = "harvest", count = 5 }, -- Panen 5
-	{ id = "pancing", event = "catch", count = 2 }, -- Mancing 2
+	{ id = "panen", event = "harvest", count = 5, reward = { koin = 200, xp = 10 } },
+	{ id = "pancing", event = "catch", count = 3, reward = { koin = 250, xp = 10 } },
+	{ id = "masak", event = "cook", count = 1, reward = { koin = 300, xp = 10 } },
+	{ id = "bantu", event = "bantu", count = 1, reward = { koin = 150, xp = 10 } },
+	{ id = "nambang", event = "mine", count = 10, reward = { koin = 400, xp = 10 } },
 }
 local DAILY_RESET_HOUR = 5 -- WIB
-local DAILY_REWARD = { koin = 40, xp = 10 }
 
 local byId: { [string]: Quest } = {}
 for _, quest in list do
@@ -69,5 +71,4 @@ return {
 	byId = byId,
 	DAILY = DAILY,
 	DAILY_RESET_HOUR = DAILY_RESET_HOUR,
-	DAILY_REWARD = DAILY_REWARD,
 }

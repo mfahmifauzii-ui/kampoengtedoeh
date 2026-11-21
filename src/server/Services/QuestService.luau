@@ -63,7 +63,7 @@ local function reportDaily(player: Player, data: Types.PlayerData, event: string
 	daily.progress = math.min(daily.progress + add, def.count)
 	if daily.progress >= def.count then
 		daily.claimed = true
-		ProgressionService.Grant(player, Quests.DAILY_REWARD, `daily:{def.id}`)
+		ProgressionService.Grant(player, def.reward, `daily:{def.id}`)
 		Net.Fire("Notify", player, "quest.done", { title = `daily.{def.id}.title` })
 	end
 	InventoryService.Sync(player)
