@@ -169,12 +169,20 @@ local function updateGoal()
 		end
 	end
 
-	for _, category in Book.CATEGORIES do
+	-- Kandang/Dapur/Varian dilewati: pencatatnya belum ada (Ternak P2-2, Dapur P2-3, Gerobak P2-6).
+	for _, category in { "ladang", "sungai", "rumah" } do
 		local recorded = snapshot.book[category]
 		for _, id in Book.ENTRIES[category] do
 			if not recorded[id] then
-				local prefix = if category == "crops" then "crop" elseif category == "fish" then "fish" else "decor"
-				HudController.SetGoal(Locale.t("goal.book", { item = Locale.t(`{prefix}.{id}`) }))
+				local item: string
+				if category == "ladang" then
+					item = Locale.t(`crop.{id:match("^(.+):") or id}`)
+				elseif category == "sungai" then
+					item = Locale.t(`fish.{id:match("^(.+)@") or id}`)
+				else
+					item = Locale.t(`decor.{id}`)
+				end
+				HudController.SetGoal(Locale.t("goal.book", { item = item }))
 				return
 			end
 		end

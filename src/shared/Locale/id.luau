@@ -314,6 +314,7 @@ return {
 	["item.super_crop"] = "{crop} Super",
 	["item.crop_kualitas"] = "{crop} {quality}",
 	["item.super_kualitas"] = "{crop} {quality} Super",
+	["kualitas.biasa"] = "Biasa",
 	["kualitas.bagus"] = "Bagus",
 	["kualitas.prima"] = "Prima",
 	["banner.kualitas"] = "{player} panen {crop} {quality}!",
@@ -507,9 +508,12 @@ return {
 
 	-- Collection Book
 	["ui.book"] = "Koleksi",
-	["book.cat.crops"] = "Tanaman",
-	["book.cat.fish"] = "Ikan",
-	["book.cat.decor"] = "Set Pondok Sawah",
+	["book.cat.ladang"] = "Ladang",
+	["book.cat.sungai"] = "Sungai",
+	["book.cat.kandang"] = "Kandang",
+	["book.cat.rumah"] = "Rumah",
+	["book.cat.dapur"] = "Dapur",
+	["book.cat.varian"] = "Varian",
 	["book.progress"] = "{n}/{total} ({percent}%)",
 	["book.unknown"] = "???",
 	["book.found"] = "Sudah dikoleksi",
@@ -522,6 +526,8 @@ return {
 	["book.titles"] = "Gelar: {titles}",
 	["title.warga_teladan"] = "Warga Teladan",
 	["title.juragan_pondok"] = "Juragan Pondok",
+	["title.kolektor"] = "Kolektor",
+	["title.legenda_kampung"] = "Legenda Kampung",
 
 	-- Goal chip
 	["goal.order_ready"] = "Pesanan {npc} siap dikirim!",

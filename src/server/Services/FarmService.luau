@@ -584,7 +584,7 @@ local function onHarvest(player: Player, uid: any)
 	local xp = math.floor(crop.xp * (if super then Farm.SUPER_XP_MULT else 1) + 0.5)
 	ProgressionService.AddXp(player, xp, `harvest:{crop.id}`)
 	AnalyticsHooks.Step(player, "first_harvest")
-	BookService.RecordCrop(player, crop.id) -- Album: crop entry; mutation entries come in Fase 2
+	BookService.RecordCrop(player, crop.id, quality) -- Album Ladang: entri per Kualitas (Bab 11)
 	QuestService.Report(player, "harvest")
 end
 

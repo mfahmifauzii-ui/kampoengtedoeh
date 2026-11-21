@@ -1,11 +1,12 @@
 --!strict
--- Collection Book: records first harvest / catch (+ best fish size) / first placement. A finished category or a
+-- Collection Book (Bab 11 v7.3): 214 entri GUI (ladang 54 + sungai 80 + dapur 72 + varian 8) + tab kandang/rumah.
+-- Records first harvest per Kualitas / catch per size / first placement. A finished category or a
 -- reached milestone is claimed by hand (BookClaim), so the reward is never a surprise.
+-- Milestone = USULAN, bukan LOCKED (BUTUH LOCK OWNER).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Book = require(ReplicatedStorage.Shared.Config.Book)
-local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
@@ -15,9 +16,23 @@ local Progression = require(ReplicatedStorage.Shared.Config.Progression)
 
 local BookService = {}
 
+-- Milestone dihitung dari 214 entri GUI (kandang + rumah tab terpisah, tidak dihitung).
 local TOTAL = 0
-for _, category in Book.CATEGORIES do
+for _, category in Book.GUI_CATEGORIES do
 	TOTAL += #Book.ENTRIES[category]
+end
+
+local function guiTotal(data: Types.PlayerData): number
+	local total = 0
+	for _, category in Book.GUI_CATEGORIES do
+		local recorded = (data.book :: any)[category]
+		for _, id in Book.ENTRIES[category] do
+			if recorded[id] then
+				total += 1
+			end
+		end
+	end
+	return total
 end
 
 local function countIn(data: Types.PlayerData, category: string): number
@@ -34,17 +49,14 @@ end
 -- Rewards are NOT granted here any more (R3 17.5): a finished category or a reached milestone waits for the player to
 -- press "Klaim" (BookService.Claim). This only tells the player once that something is ready to claim.
 local function checkReached(player: Player, data: Types.PlayerData)
-	local total = 0
 	for _, category in Book.CATEGORIES do
-		local count = countIn(data, category)
-		total += count
 		local key = `cat:{category}`
-		if count == #Book.ENTRIES[category] and not data.book.claimed[key] then
+		if countIn(data, category) == #Book.ENTRIES[category] and not data.book.claimed[key] then
 			Net.Fire("Notify", player, "book.category_done", { category = `book.cat.{category}` })
 		end
 	end
 
-	local percent = total / TOTAL * 100
+	local percent = guiTotal(data) / TOTAL * 100
 	for _, milestone in Book.MILESTONES do
 		if percent >= milestone.percent and not data.book.claimed[milestone.id] then
 			Net.Fire("Notify", player, "book.milestone", { percent = milestone.percent })
@@ -62,16 +74,12 @@ function BookService.Claim(player: Player, key: string): boolean
 	local category = string.match(key, "^cat:(%w+)$")
 	if category and table.find(Book.CATEGORIES, category) then
 		if countIn(data, category) == #Book.ENTRIES[category] then
-			reward = Book.CATEGORY_REWARDS[category]
+			reward = Book.CATEGORY_REWARDS[category] -- nil untuk kandang/dapur/varian: tidak ada hadiah kategori, klaim tidak membayar
 		end
 	else
 		for _, milestone in Book.MILESTONES do
 			if milestone.id == key then
-				local total = 0
-				for _, c in Book.CATEGORIES do
-					total += countIn(data, c)
-				end
-				if total / TOTAL * 100 >= milestone.percent then
+				if guiTotal(data) / TOTAL * 100 >= milestone.percent then
 					reward = milestone.reward
 				end
 			end
@@ -112,22 +120,17 @@ local function record(player: Player, category: string, id: string, value: any, 
 	InventoryService.Sync(player)
 end
 
-function BookService.RecordCrop(player: Player, cropId: string)
-	record(player, "crops", cropId, true, `crop.{cropId}`)
+function BookService.RecordCrop(player: Player, cropId: string, qualityId: string?)
+	local quality = qualityId or "biasa"
+	record(player, "ladang", `{cropId}:{quality}`, true, `crop.{cropId}`)
 end
 
 function BookService.RecordFish(player: Player, fishId: string, size: string)
-	local sizeIndex = 1
-	for index, entry in FishConfig.SIZES do
-		if entry.id == size then
-			sizeIndex = index
-		end
-	end
-	record(player, "fish", fishId, sizeIndex, `fish.{fishId}`)
+	record(player, "sungai", `{fishId}@{size}`, true, `fish.{fishId}`)
 end
 
 function BookService.RecordDecor(player: Player, decorId: string)
-	record(player, "decor", decorId, true, `decor.{decorId}`)
+	record(player, "rumah", decorId, true, `decor.{decorId}`)
 end
 
 return BookService

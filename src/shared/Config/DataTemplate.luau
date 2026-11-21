@@ -74,9 +74,12 @@ local template: Types.PlayerData = {
 	playtime = { day = "", seconds = 0, claimed = 0 }, -- Hadiah playtime: active seconds today, chests opened today (Config/Progression PLAYTIME)
 
 	book = {
-		crops = {}, -- [id] = true
-		fish = {}, -- [id] = best size index (1 = S, 2 = M, 3 = L)
-		decor = {}, -- [id] = true
+		ladang = {}, -- ["{crop}:{biasa|bagus|prima}"] = true
+		sungai = {}, -- ["{fish}@{S|M|L|XL}"] = true
+		kandang = {}, -- [id] = true
+		rumah = {}, -- [id] = true
+		dapur = {}, -- ["{resep}:{biasa|bagus|prima}"] = true
+		varian = {}, -- [id] = true
 		claimed = {}, -- [milestoneId or "cat:<category>"] = true
 	},
 

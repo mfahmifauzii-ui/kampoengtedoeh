@@ -93,9 +93,12 @@ export type PlayerData = {
 	},
 	playtime: { day: string, seconds: number, claimed: number },
 	book: {
-		crops: { [string]: boolean },
-		fish: { [string]: number },
-		decor: { [string]: boolean },
+		ladang: { [string]: boolean }, -- "{crop}:{biasa|bagus|prima}"
+		sungai: { [string]: boolean }, -- "{fish}@{S|M|L|XL}"
+		kandang: { [string]: boolean },
+		rumah: { [string]: boolean },
+		dapur: { [string]: boolean }, -- "{resep}:{biasa|bagus|prima}"
+		varian: { [string]: boolean },
 		claimed: { [string]: boolean },
 	},
 	titles: { [string]: boolean },

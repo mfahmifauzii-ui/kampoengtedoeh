@@ -39,11 +39,11 @@
     - Angka v7.3: 6 joran Bab 6.3 (Bambu gratis/30%/Lv1; Kayu 900+10 Bambu/33%/Lv2; Kayu Jati 3500+20 Bambu/36%/Lv4; Bambu Wulung 9000+30 Bambu/39%/Lv6; Besi 18000+30 Bambu+15 Batu/42%/Lv8; Pusaka 35000+40 Bambu+20 Batu+10 Ijuk/45%/Lv10) + 4 umpan (Cacing 10; Jangkrik 25; Pelet 45; Udang Kecil 80/Lv6) + 9 alat Bab 17.5 (Gembor Plastik gratis; Seng 2000+10 Kayu/Lv3; Kuningan 8000+20 Papan/Lv8; Sabit Kayu gratis; Sabit Besi 5000+10 Batu/Lv5; Sepatu Bot 800+5 Ijuk/Lv2; Kapak Batu gratis; Kapak Besi 3000+15 Batu/Lv3; Kapak Baja 10000+20 Batu+10 Semen/Lv7).
     - Efek: Jangkrik gigitan 30% lebih cepat; Pelet +15% peluang Mid+; Udang Kecil +10% peluang Late+; Gembor Seng siram 2 petak (garis); Gembor Kuningan siram 3 petak (garis); Sabit Besi panen 3 petak (garis); Kapak Besi +1 bahan per node; Kapak Baja +2 bahan per node; Sepatu Bot jalan +5% di lahan sendiri. Catatan: biaya bahan belum bisa dipenuhi (sumber bahan = Nambang P2-1) → beli gagal aman + refund; tuning biteMult/bonus ikut kurva lama, kunci di playtest (Bab 17.8); efek sabit/sepatu/kapak di-wire P2.
     - Cara Cek: `rodList` 6 baris + `BAITS` 4 baris + `TOOLS` 9 kunci ✓ + selene 0 errors ✓ + rojo build sukses ✓.
-- [ ] Album 214 + milestone Bunga — Bab 11
-    - File: `src/shared/Config/Book.luau` (sekarang kategori crops/fish/decor otomatis; milestone p25/50/75/100 = 500 Koin / 10 Bunga / dekor / title — bukan Bab 11).
-    - Angka v7.3: Ladang 54 (18×3 Kualitas) + Sungai 80 (20×4 ukuran) + Dapur 72 (24×3) + Varian 8 = 214 GUI + milestone 25%→10 Bunga, 50%→20 Bunga + Title Kolektor, 75%→30 Bunga + Dekor Bingkai Emas, 100%→50 Bunga + Title Legenda Kampung.
+- [x] Album 214 + milestone Bunga — Bab 11 — DONE 2026-11-21
+    - File yang diubah: `Book.luau` (6 tab + 214 GUI: ladang 54 + sungai 80 + dapur 72 + varian 8; milestone USULAN), `BookService.luau` (persen dari GUI; rekam per Kualitas/ukuran), `BookController.luau` (nama Kualitas/ukuran; persen GUI; klaim hanya kategori berhadiah), `FarmService.luau` (rekam Kualitas), `OrdersController.luau` (goal chip ladang/sungai/rumah), `DataTemplate.luau` + `Types.luau` (6 tab), `id.luau` (6 `book.cat`, `kualitas.biasa`, 2 title).
+    - Angka v7.3: Ladang 54 (18×3 Kualitas) + Sungai 80 (20×4 ukuran) + Dapur 72 (24×3) + Varian 8 = 214 GUI + milestone 25%→10 Bunga, 50%→20 Bunga + Title Kolektor, 75%→30 Bunga + Dekor Bingkai Emas, 100%→50 Bunga + Title Legenda Kampung. Kandang 5 + Rumah (auto Decor) tab terpisah.
     - Catatan: milestone 25%→10, 50%→20+Title, 75%→30+Bingkai Emas, 100%→50+Title adalah USULAN di v7.3 Bab 11, bukan LOCKED. Implementasi sebagai USULAN, tandai BUTUH LOCK OWNER.
-    - Cara Cek: total `ENTRIES` = 214 + `MILESTONES` 4 baris cocok Bab 11.
+    - Cara Cek: 54+80+72+8 = 214 ✓ + `MILESTONES` 4 baris cocok Bab 11 ✓ + selene 0 errors (2 warnings pre-existing) ✓ + rojo build sukses ✓. Dapur/Varian/Kandang direkam saat sistemnya ada (P2-2/P2-3/P2-6).
 - [ ] Playtime 5 peti (10 / 20 / 30 / 45 / 60) — Bab 15.2
     - File: `src/shared/Config/Progression.luau` (sekarang `PLAYTIME` 3 baris 38-44: 10→50, 30→150, 60→300).
     - Angka v7.3: 5 peti (10→50, 20→100, 30→150, 45→200, 60→300 Koin, hanya Koin).
