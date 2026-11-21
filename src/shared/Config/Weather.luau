@@ -27,7 +27,7 @@ return {
 	HISTORY_SECONDS = 10800,
 
 	-- Client visuals (Bab 21.3). Particle counts are kept low for the 4 GB phone target (Bab 21 limits).
-	PARTICLES = { gerimis = 30, deres = 80, petir = 80 },
+	PARTICLES = { gerimis = 30, deres = 60, petir = 90 }, -- Bab 21: Gerimis 30, Deres 60, Petir 90 + kilat
 	LIGHTNING_INTERVAL = 20, -- Petir: a flash every 20 s
 	LIGHTNING_FLASH_SECONDS = 0.1, -- the flash itself is at most 0.1 s
 	UI_ANIMATION_SCALE = 0.5, -- Bab 21 limits: UI animations run at half duration on phones
