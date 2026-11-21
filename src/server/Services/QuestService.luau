@@ -27,6 +27,7 @@ local function startAvailable(player: Player, data: Types.PlayerData): boolean
 			and data.level >= quest.unlockLevel
 			and (quest.after == nil or data.quests.done[quest.after] == true)
 			and (quest.requireTutorial ~= true or data.guide.done.t1_awal == true)
+			and (quest.requireKakek ~= true or data.pond.kakekUnlocked == true)
 		then
 			data.quests.active[quest.id] = { step = 1, count = 0 }
 			started = true

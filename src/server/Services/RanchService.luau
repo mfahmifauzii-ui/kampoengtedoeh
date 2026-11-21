@@ -392,11 +392,12 @@ local function onPakan(player: Player, hewanId: any, kind: any)
 		if hewanId ~= "ayam" then
 			return -- Pakan Jagung hanya untuk Pakan Ayam (Bab 7.1)
 		end
+		-- Penuh (tidak muat 6 jatah) = BLOCK + toast, Jagung tidak dipotong. Tanpa hangus.
 		local space = 0
 		for _, animal in entry.animals do
 			space += math.max(Ranch.FEED_MAX - animal.feed, 0)
 		end
-		if space <= 0 then
+		if space < Ranch.PAKAN_JAGUNG.jatah then
 			Net.Fire("Notify", player, "ranch.feed_full")
 			return
 		end
@@ -405,7 +406,7 @@ local function onPakan(player: Player, hewanId: any, kind: any)
 			return
 		end
 		InventoryService.Remove(player, "jagung", Ranch.PAKAN_JAGUNG.jagung)
-		local left = math.min(Ranch.PAKAN_JAGUNG.jatah, space)
+		local left = Ranch.PAKAN_JAGUNG.jatah
 		while left > 0 do
 			local hungriest: Types.RanchAnimal? = nil
 			for _, animal in entry.animals do
@@ -414,13 +415,13 @@ local function onPakan(player: Player, hewanId: any, kind: any)
 				end
 			end
 			if not hungriest then
-				break
+				break -- tidak mungkin (space >= 6 sudah dicek), pengaman anti-loop
 			end
 			(hungriest :: Types.RanchAnimal).feed += 1
 			left -= 1
 		end
 		InventoryService.Sync(player)
-		Net.Fire("Notify", player, "ranch.jagung", { n = Ranch.PAKAN_JAGUNG.jatah - left })
+		Net.Fire("Notify", player, "ranch.jagung", { n = Ranch.PAKAN_JAGUNG.jatah })
 		return
 	end
 	local missing = 0

@@ -22,7 +22,7 @@ local WorldService = require(script.Parent.WorldService)
 local MonetizationService = require(script.Parent.MonetizationService)
 local EventService = require(script.Parent.EventService)
 
-local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !orders, !grow, !time malam, !rain, !cuaca terik|gerimis|deres|petir, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 2: !level 2),!inv, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !buff tani 60 (UI test only: no effect yet), !give kangkung 30, !tut [reset|fast]"
+local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !orders, !grow, !time malam, !rain, !cuaca terik|gerimis|deres|petir, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 2: !level 2),!inv, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !buff tani 60 (UI test only: no effect yet), !give kangkung 30, !tut [reset|fast], !kakek (unlock Kolam Kakek: MQ4/Bundel placeholder)"
 
 local DevService = {}
 
@@ -163,6 +163,14 @@ local function onChatted(player: Player, message: string)
 		end
 	elseif command == "pond" then
 		FishService.DevFillPond(player)
+	elseif command == "kakek" then
+		-- DEV ONLY (sampai MQ4/Bundel P2-7 memberi unlock-nya): pulihkan Kolam Kakek untuk playtest.
+		local data = DataService.Get(player)
+		if data then
+			data.pond.kakekUnlocked = true
+			InventoryService.Sync(player)
+			print(`[DevService] Kolam Kakek pulih untuk {player.Name} (dev unlock)`)
+		end
 	elseif command == "inv" then
 		local data = DataService.Get(player)
 		if data then

@@ -18,6 +18,7 @@ export type Quest = {
 	unlockLevel: number,
 	after: string?,
 	requireTutorial: boolean?, -- Stage 7: starts only after T1 (guide.done.t1_awal)
+	requireKakek: boolean?, -- P2-2: starts only after Kolam Kakek pulih (MQ4/Bundel P2-7)
 	bonusDecor: string?, -- Stage 7: decor item added to the stock as a reward (free)
 	steps: { Step },
 	reward: Progression.Reward,
@@ -27,6 +28,7 @@ local list: { Quest } = {
 	{
 		id = "kolam_pertama",
 		unlockLevel = 2, -- same level the Kolam fishing location opens (Config/Fishing)
+		requireKakek = true, -- P2-2: Kolam Kakek keluar dari tutorial (MQ4/Bundel P2-7)
 		steps = {
 			{ event = "pond_built", count = 1 }, -- the first pond is free
 			{ event = "catch_pond", count = 1 },

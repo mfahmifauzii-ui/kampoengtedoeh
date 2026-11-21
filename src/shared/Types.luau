@@ -110,6 +110,7 @@ export type PlayerData = {
 	pond: {
 		list: { PondEntry },
 		nextUid: number,
+		kakekUnlocked: boolean, -- Kolam Kakek pulih (MQ4/Bundel P2-7). PondBuild butuh ini.
 	},
 	ranch: {
 		kandang: { [string]: RanchKandang }, -- [hewanId], satu kandang per jenis

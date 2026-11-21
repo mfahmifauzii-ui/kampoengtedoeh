@@ -5,8 +5,9 @@
 --   * Ponds are 16 x 16 studs = 2 x 2 farm-tile cells, saved in data.pond.list and rebuilt on join.
 --   * Breed tiers (Bab 7.2, Config/Ranch KOLAM_TIERS): Tanah (Lv 3, 1000+20 Batu, 6 jam, cap 10) /
 --     Semen (Lv 15, 5 jam, cap 20) / Keramik (Lv 30, 4 jam, cap 30). Kolam baru = tier Tanah.
---   * The first pond is free + flagged Kolam Kakek (placeholder sampai Bundel Kakek P2-7 memberinya);
---     ponds 2-4 cost the Tanah price. Upgrade tier = bayar harga tier target (Semen/Keramik, berurutan).
+--   * Kolam Kakek BUKAN tutorial (P2-2-fix, Bab 7.2/14.2/14.6): PondBuild butuh pond.kakekUnlocked
+--     (diset MQ4/Bundel Kakek P2-7; Studio: !kakek). Kolam pertama setelah unlock = gratis + Kakek;
+--     kolam 2-4 = harga tier Tanah. Upgrade tier = bayar harga tier target (Semen/Keramik, berurutan).
 --     Removing one refunds REFUND_RATE of the koin paid (mats hangus).
 --   * Breeding: 2 ikan sejenis non-Legenda + 20 Koin -> 1 anak (@M/Sedang, 100% harga).
 --     Kakek -10% waktu, Mood Hujan -10% waktu. Instant Bunga via InstantCost (Bab 18.5, max 30).
@@ -316,14 +317,14 @@ local function buildOne(player: Player, plot: Model, data: Types.PlayerData, ent
 	buildLook(plot, entry, Upgrades.tier(data, "pond"))
 end
 
--- Save lama (sebelum P2-2) belum punya tier/kakek/breed. Kolam pertama = Kakek (placeholder
--- sampai Bundel Kakek P2-7 memberi flag-nya sendiri).
-local function normalizeEntry(list: { Types.PondEntry }, entry: Types.PondEntry)
+-- Save lama (sebelum P2-2-fix) belum punya tier/kakek: tier default Tanah, kakek TIDAK
+-- di-auto-grant (hanya MQ4/Bundel P2-7 yang memberi, via kakekUnlocked + kolam pertama).
+local function normalizeEntry(_list: { Types.PondEntry }, entry: Types.PondEntry)
 	if typeof(entry.tier) ~= "string" or not Ranch.byTier[entry.tier] then
 		entry.tier = "tanah"
 	end
-	if entry.kakek ~= true and entry.kakek ~= false then
-		entry.kakek = list[1] == entry
+	if entry.kakek ~= true then
+		entry.kakek = false
 	end
 end
 
@@ -430,6 +431,13 @@ local function onBuild(player: Player, cx: any, cz: any)
 		Net.Fire("Notify", player, "pond.tut_locked")
 		return
 	end
+	-- Kolam Kakek keluar dari tutorial (P2-2, Bab 7.2/14.2/14.6): bangun kolam apa pun butuh
+	-- Kolam Kakek pulih (MQ4/Bundel P2-7 set kakekUnlocked; Studio: !kakek). Kolam 2-4 otomatis
+	-- ikut kegate karena kolam pertama = Kolam Kakek.
+	if data.pond.kakekUnlocked ~= true then
+		Net.Fire("Notify", player, "pond.locked")
+		return
+	end
 	local unlock = Fishing.LOCATIONS.kolam.unlockLevel
 	if data.level < unlock then
 		Net.Fire("Notify", player, "fish.locked", { level = unlock })
@@ -449,8 +457,8 @@ local function onBuild(player: Player, cx: any, cz: any)
 		return
 	end
 
-	-- Kolam pertama = gratis + Kolam Kakek (placeholder Bundel Kakek P2-7). Kolam 2-4 = harga
-	-- tier Tanah (Bab 7.2: Lv 3, 1000 Koin + 20 Batu). Gate tutorial (kolamUnlocked) tidak berubah.
+	-- Kolam pertama setelah unlock = gratis + Kolam Kakek (P2-7 memberi unlock-nya). Kolam 2-4
+	-- = harga tier Tanah (Bab 7.2: Lv 3, 1000 Koin + 20 Batu). Gate tutorial (kolamUnlocked) tidak berubah.
 	local first = #data.pond.list == 0
 	local price, mats = 0, {}
 	if not first then

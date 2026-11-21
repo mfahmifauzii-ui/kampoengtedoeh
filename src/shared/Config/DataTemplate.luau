@@ -46,8 +46,9 @@ local template: Types.PlayerData = {
 	tools = {}, -- owned farm tools (Config/Farm TOOLS: gembor/sabit/sepatu/kapak), bought with Koin + bahan
 
 	pond = {
-		list = {},-- { PondEntry } ponds the player built (the Lv 2 quest gives the first one free)
+		list = {},-- { PondEntry } ponds the player built
 		nextUid = 1,
+		kakekUnlocked = false, -- Kolam Kakek pulih (MQ4/Bundel Kakek P2-7). PondBuild butuh ini.
 	},
 
 	ranch = {

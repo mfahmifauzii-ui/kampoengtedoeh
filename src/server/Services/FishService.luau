@@ -31,7 +31,6 @@ local QuestService = require(script.Parent.QuestService)
 local AnalyticsHooks = require(script.Parent.AnalyticsHooks)
 local Progression = require(ReplicatedStorage.Shared.Config.Progression)
 local Types = require(ReplicatedStorage.Shared.Types)
-local Upgrades = require(ReplicatedStorage.Shared.Modules.Upgrades)
 
 type Fish = FishConfig.Fish
 type Rarity = FishConfig.Rarity
@@ -288,12 +287,12 @@ FishService.Cancel = onCancel -- used by SocialService when teleporting
 
 -- Pond (kolam) -------------------------------------------------------------------
 
--- Kapasitas simpan efektif kolam: max(upgrade global "pond", breed tier) — USULAN stacking (P2-2),
--- final ikut playtest. Baseline sama (upgrade 0 + Tanah = 10), jadi pemain baru tidak berubah.
-local function pondCap(data: Types.PlayerData, entry: Types.PondEntry): number
-	local upgrade = Fishing.POND.CAPS[math.clamp(Upgrades.tier(data, "pond") + 1, 1, #Fishing.POND.CAPS)]
+-- Kapasitas simpan kolam = tier persis (P2-2-fix, Bab 7.2 LOCKED): Tanah 10 / Semen 20 / Keramik 30.
+-- Upgrade global "pond" kini hanya visual (lampu tier 2+ di PondService.buildLook). _data
+-- dipertahankan agar pemanggil (syncPond/collectPond) tidak berubah.
+local function pondCap(_data: Types.PlayerData, entry: Types.PondEntry): number
 	local tierDef = Ranch.byTier[entry.tier or "tanah"] or Ranch.byTier.tanah
-	return math.max(upgrade, tierDef.cap)
+	return tierDef.cap
 end
 
 -- Each pond part carries Attribute "PondUid" = its PondEntry.uid in data.pond.list.

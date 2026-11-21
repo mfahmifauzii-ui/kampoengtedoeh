@@ -179,6 +179,7 @@ return {
 	["fish.need_rod"] = "Kamu belum punya joran. Temui Kak Fajar di Toko Pancing dulu",
 	["fish.tut_locked"] = "Kamu belum bisa mancing, selesaikan tutorial agar bisa mancing",
 	["pond.tut_locked"] = "Belum bisa bikin kolam, selesaikan tutorial",
+	["pond.locked"] = "Kolam Kakek belum pulih (selesaikan MQ4)",
 	["decor.tut_locked"] = "Belum bisa menghias, selesaikan tutorial",
 	["dialog.understand"] = "Mengerti",
 	["rod.gift"] = "Kamu mendapatkan Joran Bambu dan pelet dari Kak Fajar! Sekarang kamu bisa mancing",
