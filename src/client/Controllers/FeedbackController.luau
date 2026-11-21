@@ -29,7 +29,7 @@ local FeedbackController = {}
 local FLY_SECONDS = 0.6
 local PULSE_SECONDS = 0.2
 local COIN_COUNT_SECONDS = 0.8
-local BANNER_SECONDS = 3 -- server banner for rare Mutasi (Bab 5.4): slides in from the top, stays 3 s, does not block
+local BANNER_SECONDS = 3 -- server banner for Prima Late (Bab 5.4): slides in from the top, stays 3 s, does not block
 local BANNER_SLIDE_SECONDS = 0.3
 
 local fxGui: ScreenGui
@@ -240,7 +240,7 @@ function FeedbackController.Init()
 	plusTag.Parent = fxGui
 
 	bannerLabel = Instance.new("TextLabel")
-	bannerLabel.Name = "MutasiBanner"
+	bannerLabel.Name = "KualitasBanner"
 	bannerLabel.AnchorPoint = Vector2.new(0.5, 0)
 	bannerLabel.Position = UDim2.new(0.5, 0, 0, -40)
 	bannerLabel.Size = UDim2.new(0.8, 0, 0, 36)
@@ -252,19 +252,19 @@ function FeedbackController.Init()
 	bannerLabel.TextScaled = false
 	bannerLabel.Visible = false
 	bannerLabel.Parent = fxGui
-	Net.Listen("MutasiBanner", FeedbackController.ShowMutasiBanner)
+	Net.Listen("KualitasBanner", FeedbackController.ShowKualitasBanner)
 end
 
--- Rare Mutasi from the server (FarmService): a line at the top of every player's screen for BANNER_SECONDS.
+-- Banner Prima Late from the server (FarmService): a line at the top of every player's screen for BANNER_SECONDS.
 -- Phones get half-length animations (Bab 21 limits).
-function FeedbackController.ShowMutasiBanner(playerName: string, cropId: string, mutationId: string)
+function FeedbackController.ShowKualitasBanner(playerName: string, cropId: string, qualityId: string)
 	bannerToken += 1
 	local myToken = bannerToken
 	local scale = if UserInputService.TouchEnabled then WeatherConfig.UI_ANIMATION_SCALE else 1
-	bannerLabel.Text = Locale.t("banner.mutasi", {
+	bannerLabel.Text = Locale.t("banner.kualitas", {
 		player = playerName,
 		crop = Locale.t(`crop.{cropId}`),
-		mutation = Locale.t(`mutasi.{mutationId}`),
+		quality = Locale.t(`kualitas.{qualityId}`),
 	})
 	bannerLabel.Position = UDim2.new(0.5, 0, 0, -40)
 	bannerLabel.TextTransparency = 0

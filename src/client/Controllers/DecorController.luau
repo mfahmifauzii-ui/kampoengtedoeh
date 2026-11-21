@@ -376,12 +376,6 @@ local function catalogText(item: Item, snapshot: State.Snapshot?): (string, bool
 	if stock > 0 then
 		return `{name}\n{Locale.t("decor.stock", { n = stock })}`, true
 	end
-	-- Buying needs the blueprint (owned stock above never does).
-	local blueprints = snapshot and snapshot.decorBlueprints or {}
-	if item.blueprint and blueprints[item.blueprint] ~= true then
-		local blueprintName = Locale.t(`blueprint.{item.blueprint}`)
-		return `{name}\n{Locale.t("decor.need_blueprint", { name = blueprintName })}`, false
-	end
 	local priceKey = if item.currency == "bunga" then "ui.bunga" else "ui.koin"
 	return `{name}\n{Locale.t(priceKey, { n = Locale.formatNumber(item.price) })}`, true
 end

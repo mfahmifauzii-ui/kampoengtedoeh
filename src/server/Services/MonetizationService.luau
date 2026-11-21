@@ -1,5 +1,6 @@
 --!strict
--- Game passes, developer products (ProcessReceipt), Instant Grow tokens, Premium perks.
+-- Game passes, developer products (ProcessReceipt), Premium perks.
+-- Tidak ada Instant Panen (Bab 29). Instant Kolam pakai Bunga langsung (Bab 18.5, PondService.InstantCost).
 --
 -- Receipts follow ProfileStore's PurchaseId-cache pattern: grant + record the PurchaseId,
 -- then only return PurchaseGranted once that PurchaseId is confirmed SAVED. A crash before
@@ -14,8 +15,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Monetization = require(ReplicatedStorage.Shared.Config.Monetization)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Signal = require(ReplicatedStorage.Shared.Modules.Signal)
-local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
-local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
 
@@ -91,42 +90,10 @@ function MonetizationService.IsPremium(player: Player): boolean
 	return player.MembershipType == Enum.MembershipType.Premium
 end
 
--- Instant Grow -------------------------------------------------------------------------
-
-local function refreshInstantDay(data: Types.PlayerData)
-	local today = TimeKeys.day()
-	if data.instantGrow.day ~= today then
-		data.instantGrow.day = today
-		data.instantGrow.usedToday = 0
-	end
-end
-
--- Consumes one token if allowed today. Called by FarmService.
-function MonetizationService.TryUseInstantGrow(player: Player): boolean
-	local data = DataService.Get(player)
-	if not data then
-		return false
-	end
-	refreshInstantDay(data)
-	local state = data.instantGrow
-	if state.tokens <= 0 or state.usedToday >= Monetization.INSTANT_GROW_DAILY_LIMIT then
-		return false
-	end
-	state.tokens -= 1
-	state.usedToday += 1
-	MonetizationService.Changed:Fire(player)
-	return true
-end
-
 -- Products / receipts ----------------------------------------------------------------------
 
 local function grantProduct(player: Player, product: Product)
-	if product.kind == "bunga" then
-		EconomyService.Add(player, "bunga", product.amount, `iap:{product.key}`)
-	elseif product.kind == "instant_grow" then
-		local data = DataService.Get(player) :: Types.PlayerData
-		data.instantGrow.tokens += product.amount
-	end
+	EconomyService.Add(player, "bunga", product.amount, `iap:{product.key}`)
 	MonetizationService.Changed:Fire(player)
 	Net.Fire("Notify", player, "store.thanks")
 end
@@ -217,20 +184,12 @@ local function onStoreBuy(player: Player, kind: any, key: any)
 			Net.Fire("Notify", player, "store.unavailable")
 			return
 		end
-		if product.kind == "instant_grow" then
-			refreshInstantDay(data)
-			if data.instantGrow.tokens + data.instantGrow.usedToday >= Monetization.INSTANT_GROW_DAILY_LIMIT then
-				Net.Fire("Notify", player, "store.instant_limit", { n = Monetization.INSTANT_GROW_DAILY_LIMIT })
-				return
-			end
-		end
 		MarketplaceService:PromptProductPurchase(player, product.id)
 	end
 end
 
 function MonetizationService.Init()
-	DataService.Loaded:Connect(function(player: Player, data: Types.PlayerData)
-		refreshInstantDay(data)
+	DataService.Loaded:Connect(function(player: Player)
 		task.spawn(checkPasses, player)
 	end)
 	Players.PlayerRemoving:Connect(function(player)

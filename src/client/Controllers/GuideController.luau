@@ -140,7 +140,7 @@ local function computeStep(): string
 		return Crops.byId[itemId] ~= nil
 	end)
 	local seeds = hasInBag(snap, function(itemId)
-		return itemId:match("^seedx?_") ~= nil
+		return itemId:match("^seed_") ~= nil
 	end)
 	if not active() then
 		-- After the first sale trips the guide is quiet, except for the one thing that stops the loop dead: no bibit and nothing

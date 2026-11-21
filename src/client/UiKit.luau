@@ -942,7 +942,7 @@ function UiKit.thumb(parent: Instance, size: number, thumbKey: string?, placehol
 	picture.ZIndex = 2
 	picture.Parent = slot
 	-- A harvested crop (key "kangkung") or its seed ("seed_kangkung") shows the crop's own 3D model; else the picture / an icon.
-	local cropId = if thumbKey then thumbKey:gsub("^seedx?_", "") else nil
+	local cropId = if thumbKey then thumbKey:gsub("^seed_", "") else nil
 	if cropId and UiKit.modelView(picture, cropId) then
 		return slot
 	end

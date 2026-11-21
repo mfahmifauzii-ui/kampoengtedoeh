@@ -17,6 +17,7 @@ local Farm = require(ReplicatedStorage.Shared.Config.Farm)
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
 local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Map = require(ReplicatedStorage.Shared.Config.Map)
+local Monetization = require(ReplicatedStorage.Shared.Config.Monetization)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Types = require(ReplicatedStorage.Shared.Types)
 local Upgrades = require(ReplicatedStorage.Shared.Modules.Upgrades)
@@ -495,6 +496,15 @@ function PondService.Init()
 	PlotService.Released:Connect(function(_player: Player, plot: Model)
 		clearPlot(plot) -- the next owner of this plot must not inherit the water
 	end)
+end
+
+-- Instant Kolam (Bab 18.5 v7.3): instant kolam pakai Bunga. 1 Bunga per 10 menit sisa, max 30 Bunga.
+-- PondEntry belum ada timestamp breeding; helper ini dipakai saat breeding di-code.
+function PondService.InstantCost(remainingSeconds: number): number
+	if remainingSeconds <= 0 then
+		return 0
+	end
+	return math.min(Monetization.INSTANT_KOLAM_MAX_BUNGA, math.ceil(remainingSeconds / 600) * Monetization.INSTANT_KOLAM_BUNGA_PER_600S)
 end
 
 function PondService.Start()

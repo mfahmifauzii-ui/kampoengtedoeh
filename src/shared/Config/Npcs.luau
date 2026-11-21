@@ -6,19 +6,17 @@
 -- stand : world studs on the town island (x, z) and the rig's yaw (a rig looks toward its local -Z, so yaw = pi looks
 --         toward +Z). Shop NPCs stand in front of their shop's door and face the island center (Config/Map SHOPS).
 -- buys  : item kind -> price multiplier (what the NPC pays you), see Modules/Trade. Raw produce = crop.
--- sells : what the NPC sells: seeds, seedsUnggul (faster-growing, pricier), rods, bait, upgrades, fish, blueprints, tools.
+-- sells : what the NPC sells: seeds, rods, bait, upgrades, fish, tools. Bibit Unggul DIHAPUS (Bab 29), Blueprint bukan gating (Bab 8.7).
 -- unlockLevel : the NPC's shop stays closed below this player level; the dialogue shows npc.<id>.locked instead.
 -- hidden : the NPC is in the config but not spawned yet (its feature comes in a later phase).
 -- Prices live in Modules/Trade; trade rules are enforced by ServerScriptService ShopService.
 
 export type Sells = {
 	seeds: boolean?,
-	seedsUnggul: boolean?,
 	rods: boolean?,
 	bait: boolean?,
 	upgrades: boolean?,
 	fish: boolean?,
-	blueprints: boolean?, -- decor blueprints (Config/Blueprints)
 	tools: boolean?, -- farm tools (Config/Farm TOOLS)
 }
 
@@ -50,13 +48,13 @@ end
 
 local list: { Npc } = {
 	{
-		-- Behind the counter of the main warung. Sells seeds (incl. the faster bibit unggul) and tools, buys raw produce at full price.
+		-- Behind the counter of the main warung. Sells bibit biasa and tools, buys raw produce at full price. Bibit Unggul DIHAPUS (Bab 29).
 		id = "pak_udin",
 		meet = "npc.pak_udin.meet",
 		stand = { x = -3.832, z = 55.594, y = 5.8, yaw = math.rad(-32.99) }, -- spot picked in Studio (x -3.832, z 55.594, yaw -32.99 deg); y lowered from 8.449 to 5.8 so the feet touch the plank (plank top ~5.1 here; pivot = feet + 0.68). Explicit y: NpcService does not re-seat him
 		look = { skin = Color3.fromRGB(198, 148, 102), shirt = Color3.fromRGB(220, 206, 176), pants = Color3.fromRGB(96, 70, 50) },
 		buys = { crop = 1.0 },
-		sells = { seeds = true, seedsUnggul = true, upgrades = true, tools = true },
+		sells = { seeds = true, upgrades = true, tools = true },
 	},
 	{
 		-- Toko Pancing (shop slot 5): joran, umpan, and buys fish at full price. Moves to the canal bank in Fase 3.
@@ -68,13 +66,13 @@ local list: { Npc } = {
 		sells = { rods = true, bait = true, fish = true },
 	},
 	{
-		-- Toko Tukang (shop slot 4): the carpenter. Sells decor blueprints.
+		-- Toko Tukang (shop slot 4): the carpenter. Blueprint = simpan / share desain, bukan gating (Bab 8.7). Simpan/share belum di-code.
 		id = "pak_amran",
 		meet = "npc.pak_amran.meet",
 		stand = atShop(4), -- shop 4
 		look = { skin = Color3.fromRGB(196, 146, 104), shirt = Color3.fromRGB(228, 176, 76), pants = Color3.fromRGB(86, 96, 120) },
 		buys = {},
-		sells = { blueprints = true },
+		sells = {},
 	},
 	{
 		-- Warung Mak Sari (shop slot 7). Buys processed food (olahan) at full price once the Dapur is open (Lv 6).
@@ -151,7 +149,6 @@ return {
 	TALK_DISTANCE = 16, -- studs: how close the "Ngobrol" prompt appears
 	LEAVE_DISTANCE = 30, -- the client closes the dialogue / shop when you walk this far away
 
-	SEED_UNGGUL_PRICE_MULT = 1.5, -- Pak Udin's faster seeds (bibit unggul) cost this much more than his normal seeds
 	FISH_SELL_MULT = 1.3, -- Kak Fajar sells fish (size Kecil) at this multiple of its sell value
 	FISH_FOR_SALE = { C = true, U = true } :: { [string]: boolean }, -- rarities Kak Fajar keeps in stock
 }

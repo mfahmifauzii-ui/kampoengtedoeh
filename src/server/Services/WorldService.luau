@@ -1,8 +1,8 @@
 --!strict
 -- Server-wide day cycle + weather (Config/Weather, Bab 3.3). Publishes Workspace attributes:
 --   CycleStart (number, os.time), DayPhase ("pagi"|"siang"|"sore"|"malam"),
---   Weather ("terik"|"gerimis"|"deres"|"petir"|"pelangi"), WeatherEndsAt (os.time), Raining (bool: gerimis/deres/petir)
--- Clients render lighting/sound from these; gameplay (fish, crops, Mutasi) reads them on the server.
+--   Weather ("terik"|"gerimis"|"deres"|"petir"), WeatherEndsAt (os.time), Raining (bool: gerimis/deres/petir)
+-- Clients render lighting/sound from these; gameplay (fish, crops) reads them on the server.
 -- Server-local: every server runs its own cycle. Nothing is saved or shared between servers (Prinsip #16).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -54,7 +54,7 @@ function WorldService.CurrentWeather(): string
 end
 
 -- The weather kind at os.time `t` on this server. nil when `t` is before this server started or older than
--- WeatherConfig.HISTORY_SECONDS. Mutasi uses it: "the weather when this crop finished growing".
+-- WeatherConfig.HISTORY_SECONDS.
 function WorldService.WeatherAt(t: number): string?
 	for i = #history, 1, -1 do
 		local entry = history[i]
@@ -96,16 +96,10 @@ local function setWeather(kind: string, seconds: number)
 	end
 end
 
--- Terik -> rain (3 menit). Rain -> 40% Pelangi after Deres/Petir (60 detik), else Terik. Pelangi -> Terik.
+-- Terik -> rain (3 menit). Rain -> Terik. Tidak ada Pelangi di game (Bab 29).
 local function advance()
 	if weather == "terik" then
 		setWeather(rollRain(), WeatherConfig.RAIN_SECONDS)
-	elseif WeatherConfig.IS_RAIN[weather] then
-		if WeatherConfig.PELANGI_AFTER[weather] and random:NextNumber() < WeatherConfig.PELANGI_CHANCE then
-			setWeather("pelangi", WeatherConfig.PELANGI_SECONDS)
-		else
-			setWeather("terik", randomTerik())
-		end
 	else
 		setWeather("terik", randomTerik())
 	end
@@ -171,8 +165,6 @@ function WorldService.DevSetWeather(kind: string): boolean
 		setWeather("terik", randomTerik())
 	elseif WeatherConfig.IS_RAIN[kind] then
 		setWeather(kind, WeatherConfig.RAIN_SECONDS)
-	elseif kind == "pelangi" then
-		setWeather("pelangi", WeatherConfig.PELANGI_SECONDS)
 	else
 		return false
 	end

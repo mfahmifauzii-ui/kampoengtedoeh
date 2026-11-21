@@ -8,7 +8,6 @@ export type FarmTile = {
 	cx: number, -- tile cell on the plot grid (bed min corner, plot-local studs = cell * Land.PITCH)
 	cz: number,
 	crop: string?,
-	fast: boolean?, -- planted with bibit unggul: grows faster on every cycle
 	plantedAt: number?,
 	readyAt: number?,
 	watered: boolean?,
@@ -62,7 +61,7 @@ export type PlayerData = {
 		sessions: number,
 	},
 	inventory: { [string]: number },
-	upgrades: { [string]: number }, -- tier per permanent upgrade: backpack, pond (Modules/Upgrades)
+	upgrades: { [string]: number }, -- tier per permanent upgrade: pond (Modules/Upgrades)
 	farm: {
 		tiles: { FarmTile },
 		nextUid: number,
@@ -83,7 +82,6 @@ export type PlayerData = {
 		placed: { DecorEntry },
 		stock: { [string]: number },
 		nextUid: number,
-		blueprints: { [string]: boolean }, -- owned Config/Blueprints ids
 	},
 	orders: {
 		day: string,
@@ -113,7 +111,6 @@ export type PlayerData = {
 	},
 	settings: { music: boolean, ambient: boolean, sfx: boolean, musicVol: number, sfxVol: number, quality: number }, -- vol 0..1, quality 1..3 (Rendah / Sedang / Tinggi)
 	passes: { [string]: boolean },
-	instantGrow: { tokens: number, day: string, usedToday: number },
 	onboarding: { [string]: boolean },
 	guide: {
 		sells: number, -- finished sale trips so far: the old new-player guide (hints + NPC arrow) runs for Onboarding.TRIES of them

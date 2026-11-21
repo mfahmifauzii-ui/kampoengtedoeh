@@ -127,8 +127,6 @@ local function applyLighting(instant: boolean)
 	local preset = World.PRESETS[if typeof(phase) == "string" then phase else "siang"] or World.PRESETS.siang
 	local raining = Workspace:GetAttribute("Raining") == true
 	local rain = World.RAIN_LIGHTING
-	-- Pelangi: a brief clear, warm sky (the rainbow itself is an asset still to come).
-	local pelangi = Workspace:GetAttribute("Weather") == "pelangi"
 
 	local info = TweenInfo.new(if instant then 0 else World.TRANSITION_SECONDS, Enum.EasingStyle.Sine)
 	TweenService:Create(Lighting, info, {
@@ -138,7 +136,7 @@ local function applyLighting(instant: boolean)
 	}):Play()
 	TweenService:Create(colorCorrection, info, {
 		TintColor = if raining then preset.tint:Lerp(rain.tint, 0.6) else preset.tint,
-		Saturation = preset.saturation + (if raining then rain.saturationAdd elseif pelangi then 0.1 else 0),
+		Saturation = preset.saturation + (if raining then rain.saturationAdd else 0),
 	}):Play()
 	TweenService:Create(atmosphere, info, {
 		Density = preset.atmosphereDensity + (if raining then rain.densityAdd else 0),

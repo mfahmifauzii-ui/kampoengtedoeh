@@ -7,7 +7,6 @@ local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
-local Blueprints = require(ReplicatedStorage.Shared.Config.Blueprints)
 local Buffs = require(ReplicatedStorage.Shared.Config.Buffs)
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
@@ -23,7 +22,7 @@ local WorldService = require(script.Parent.WorldService)
 local MonetizationService = require(script.Parent.MonetizationService)
 local EventService = require(script.Parent.EventService)
 
-local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !orders, !grow, !time malam, !rain, !cuaca terik|gerimis|deres|petir|pelangi, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 2: !level 2),!inv, !pass backpack, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !buff tani 60 (UI test only: no effect yet), !give kangkung 30, !tut [reset|fast],!blueprint all|taman|pondok_sawah"
+local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !orders, !grow, !time malam, !rain, !cuaca terik|gerimis|deres|petir, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 2: !level 2),!inv, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !buff tani 60 (UI test only: no effect yet), !give kangkung 30, !tut [reset|fast]"
 
 local DevService = {}
 
@@ -62,14 +61,18 @@ local function onChatted(player: Player, message: string)
 	end
 
 	-- "!buff tani 60": lights a buff slot on the player card for 60 seconds (0 = off). Display only, the effect is not coded.
+	-- Cuma 1 buff aktif (Bab 9.4): buff lain dimatikan.
 	local buffId, buffSeconds = normalized:match("^!buff%s+(%a+)%s*(%d*)%s*$")
 	if buffId then
 		local seconds = tonumber(buffSeconds) or 60
+		local now = Workspace:GetServerTimeNow()
 		for _, def in Buffs.SLOTS do
 			if def.id == buffId then
 				player:SetAttribute(`Buff_{def.id}_Dur`, math.max(seconds, 1))
-				player:SetAttribute(`Buff_{def.id}_End`, Workspace:GetServerTimeNow() + seconds)
+				player:SetAttribute(`Buff_{def.id}_End`, now + seconds)
 				print(`[DevService] buff {def.id} for {seconds}s (display only)`)
+			else
+				player:SetAttribute(`Buff_{def.id}_End`, now)
 			end
 		end
 		return
@@ -136,17 +139,6 @@ local function onChatted(player: Player, message: string)
 		local data = DataService.Get(player)
 		if data then
 			data.tools.gembor = true
-			InventoryService.Sync(player)
-		end
-	elseif command == "blueprint" then
-		-- "!blueprint all" or "!blueprint taman": own a blueprint without buying it.
-		local data = DataService.Get(player)
-		if data then
-			for _, blueprint in Blueprints.list do
-				if arg == "all" or arg == blueprint.id then
-					data.decor.blueprints[blueprint.id] = true
-				end
-			end
 			InventoryService.Sync(player)
 		end
 	elseif command == "tut" then

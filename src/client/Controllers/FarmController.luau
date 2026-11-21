@@ -26,7 +26,6 @@ local FarmFloat = require(script.Parent.Parent.FarmFloat)
 local FarmFx = require(script.Parent.Parent.FarmFx)
 local FeedbackController = require(script.Parent.FeedbackController)
 
-local openTilePanel: (index: number) -> ()
 local onTileTapped: (part: BasePart) -> ()
 
 local TILE_TAG = "FarmTile"
@@ -378,8 +377,8 @@ local function refreshPickerCards()
 	for _, crop in Crops.list do
 		local card = cards[crop.id]
 		local unlocked = playerLevel >= crop.unlockLevel
-		-- Planting uses bibit from the bag (bought from Pak Udin / Pak Udin).
-		local have = (items[`seed_{crop.id}`] or 0) + (items[`seedx_{crop.id}`] or 0)
+		-- Planting uses bibit from the bag (bought from Pak Udin).
+		local have = items[`seed_{crop.id}`] or 0
 		local usable = unlocked and have > 0
 		card.button.Visible = unlocked or crop.unlockLevel <= playerLevel + 5 -- show only the next few locked crops
 		card.button.Active = usable
@@ -398,27 +397,6 @@ local function openPicker(bed: BasePart)
 	pickerBed = bed
 	refreshPickerCards()
 	panel.gui.Enabled = true
-end
-
--- Growing + already watered: optional Instant Grow (token) panel. Never shown automatically.
-local tilePanel: UiKit.Panel? = nil
-
-openTilePanel = function(index: number)
-	local current = tilePanel or UiKit.panel("TilePanel", Locale.t("tile.title"), function()
-		(tilePanel :: UiKit.Panel).gui.Enabled = false
-	end)
-	tilePanel = current
-	UiKit.clear(current.list)
-	local snapshot = State.current :: any
-	local tokens = snapshot and snapshot.instantGrow and snapshot.instantGrow.tokens or 0
-	UiKit.row(current.list, 1, Locale.t("tile.instant"), Locale.t("tile.instant_sub", { n = tokens }), Locale.t("tile.instant"), tokens > 0, function()
-		Net.Send("FarmInstantGrow", index)
-		current.gui.Enabled = false
-	end)
-	UiKit.row(current.list, 2, Locale.t("store.product.instant_grow"), nil, Locale.t("tile.buy_token"), true, function()
-		Net.Send("StoreBuy", "product", "instant_grow")
-	end)
-	current.gui.Enabled = true
 end
 
 -- Tile interaction -------------------------------------------------------------
@@ -452,7 +430,7 @@ local function act(part: BasePart, kind: string)
 			Net.Send("FarmWater", index)
 		end)
 	else
-		openTilePanel(index) -- growing and already watered: Instant Grow
+		return -- growing and already watered: Instant Panen DIHAPUS (Bab 29), tap does nothing
 	end
 end
 
@@ -946,7 +924,7 @@ local function fillPopup(bed: BasePart)
 	local items = if snapshot and snapshot.items then snapshot.items else {}
 	for order, crop in Crops.list do
 		local unlocked = playerLevel >= crop.unlockLevel
-		local have = (items[`seed_{crop.id}`] or 0) + (items[`seedx_{crop.id}`] or 0)
+		local have = items[`seed_{crop.id}`] or 0
 		-- Locked seeds are hidden from the card entirely (no lock icon, no "Lv"): the shop shows them as a goal instead.
 		if not unlocked then
 			continue

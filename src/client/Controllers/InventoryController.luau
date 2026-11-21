@@ -30,7 +30,7 @@ local selectedTab = "all"
 
 -- Category of an item: seeds (bibit), crops (panen), fish, everything else (tools, bait).
 local function categoryOf(itemId: string, info: any): string
-	if itemId:match("^seedx?_") then
+	if itemId:match("^seed_") then
 		return "seed"
 	end
 	if info.kind == "crop" then
@@ -51,8 +51,6 @@ local function render()
 	if not snapshot then
 		return
 	end
-
-	panel.footerLabel.Text = Locale.t("ui.slots", { used = snapshot.slotsUsed, max = snapshot.slotsMax })
 
 	local ids = {}
 	for itemId in snapshot.items do
@@ -91,13 +89,13 @@ local function render()
 		local info = Items.info(itemId)
 		local count = snapshot.items[itemId]
 		if info then
-			-- Icon by category, never a specific icon for another category. A harvest (Super, Mutasi) uses its crop's model
+			-- Icon by category, never a specific icon for another category. A harvest (Super, Kualitas) uses its crop's model
 			-- and the harvest icon; bait and anything without its own icon uses the generic bag icon (Tas).
 			local isCrop = info.kind == "crop"
 			local isFish = info.kind == "fish"
 			local isSeed = info.kind == "seed"
 			local variant = if isCrop then Items.cropVariant(itemId) else nil
-			local cropId: string? = if isCrop then (if variant then variant.crop.id else itemId) elseif isSeed then itemId:gsub("^seedx?_", "") else nil
+			local cropId: string? = if isCrop then (if variant then variant.crop.id else itemId) elseif isSeed then itemId:gsub("^seed_", "") else nil
 			local icon = if isFish then "ikan" elseif isSeed then "bibit" elseif isCrop then "panen" else "tas"
 			UiKit.cell(grid, order, {
 				name = Items.displayName(info),

@@ -13,13 +13,10 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Blueprints = require(ReplicatedStorage.Shared.Config.Blueprints)
 local Crops = require(ReplicatedStorage.Shared.Config.Crops)
-local Decor = require(ReplicatedStorage.Shared.Config.Decor)
 local Farm = require(ReplicatedStorage.Shared.Config.Farm)
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
-local InventoryConfig = require(ReplicatedStorage.Shared.Config.Inventory)
 local Npcs = require(ReplicatedStorage.Shared.Config.Npcs)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
@@ -61,20 +58,16 @@ end
 
 -- Returns (current tier, detail text) for an upgrade.
 local function upgradeInfo(upgradeId: string, snapshot: any): (number, string)
-	if upgradeId == "backpack" then
-		local tier = snapshot.backpackTier
-		local nextSlots = InventoryConfig.SLOTS[tier + 2]
-		return tier, Locale.t("upgrade.backpack.detail", { from = InventoryConfig.SLOTS[tier + 1], to = nextSlots or "-" })
-	elseif upgradeId == "pond" then
+	if upgradeId == "pond" then
 		local tier = snapshot.pondTier
 		local nextCap = Fishing.POND.CAPS[tier + 2]
 		return tier, Locale.t("upgrade.pond.detail", { from = Fishing.POND.CAPS[tier + 1], to = nextCap or "-" })
 	end
 end
 
-local UPGRADE_ICON = { backpack = "tas", pond = "kolam" }
+local UPGRADE_ICON = { pond = "kolam" }
 
--- Asks "buy this?" with the total; Setuju sends the purchase. `amount` nil = a one-off purchase (rod, upgrade, blueprint).
+-- Asks "buy this?" with the total; Setuju sends the purchase. `amount` nil = a one-off purchase (rod, upgrade).
 local function confirmBuy(npcId: string, kind: string, id: string, itemName: string, unitPrice: number, amount: number?)
 	local count = amount or 1
 	local total = unitPrice * count
@@ -139,15 +132,15 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 	local list = panel.list
 	local anything = false
 
-	-- Seeds and faster seeds (Pak Udin)
-	local function seedSection(headerKey: string, itemPrefix: string, kind: string, unggul: boolean)
+	-- Seeds (Pak Udin). Bibit Unggul DIHAPUS (Bab 29).
+	local function seedSection(headerKey: string, itemPrefix: string, kind: string)
 		UiKit.header(list, Locale.t(headerKey), nextOrder())
 		for _, crop in Crops.list do
 			if crop.unlockLevel <= playerLevel + 5 then -- show only the next few locked crops
 				anything = true
 				local unlocked = playerLevel >= crop.unlockLevel
 				local itemId = itemPrefix .. crop.id
-				local unit = Trade.seedPrice(crop, unggul)
+				local unit = Trade.seedPrice(crop)
 				local name = Locale.t(`crop.{crop.id}`)
 				UiKit.tradeRow(list, nextOrder(), {
 					name = name,
@@ -172,10 +165,7 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 		end
 	end
 	if sells.seeds then
-		seedSection("shop.section.seeds", "seed_", "seed", false)
-	end
-	if sells.seedsUnggul then
-		seedSection("shop.section.seedsx", "seedx_", "seedx", true)
+		seedSection("shop.section.seeds", "seed_", "seed")
 	end
 
 	-- Fish (Kak Fajar)
@@ -338,55 +328,6 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 				thumbKey = `upgrade_{upgradeId}`,
 				placeholderIcon = UPGRADE_ICON[upgradeId],
 			})
-		end
-	end
-
-	-- Decor blueprints (Pak Amran): each unlocks buying a whole set of decor.
-	if sells.blueprints then
-		UiKit.header(list, Locale.t("shop.section.blueprints"), nextOrder())
-		local owned = snapshot.decorBlueprints or {}
-		for _, blueprint in Blueprints.list do
-			anything = true
-			local names = {}
-			for _, item in Decor.list do
-				if item.blueprint == blueprint.id then
-					table.insert(names, Locale.t(`decor.{item.id}`))
-				end
-			end
-			local detail = Locale.t("blueprint.items", { items = table.concat(names, ", ") })
-			local name = Locale.t(`blueprint.{blueprint.id}`)
-			if owned[blueprint.id] == true then
-				UiKit.tradeRow(list, nextOrder(), {
-					name = name,
-					sub = detail,
-					thumbKey = `blueprint_{blueprint.id}`,
-					placeholderIcon = "pesanan",
-						accent = UiKit.CAT.decor,
-					maxQty = 0,
-					pickQty = false,
-					actionText = Locale.t("blueprint.owned"),
-					disabledText = Locale.t("blueprint.owned"),
-					onAction = function() end,
-				})
-			else
-				local unlocked = playerLevel >= blueprint.unlockLevel
-				UiKit.tradeRow(list, nextOrder(), {
-					name = name,
-					sub = detail,
-					thumbKey = `blueprint_{blueprint.id}`,
-					placeholderIcon = "pesanan",
-						accent = UiKit.CAT.decor,
-					unitPrice = blueprint.price,
-					maxQty = if unlocked then 1 else 0,
-					pickQty = false,
-					money = money(),
-					actionText = Locale.t("ui.buy"),
-					disabledText = Locale.t("ui.locked", { level = blueprint.unlockLevel }),
-					onAction = function()
-						confirmBuy(npcId, "blueprint", blueprint.id, name, blueprint.price, nil)
-					end,
-				})
-			end
 		end
 	end
 

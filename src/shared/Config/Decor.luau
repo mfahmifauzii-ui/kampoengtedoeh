@@ -17,7 +17,6 @@ export type PartSpec = {
 export type Item = {
 	id: string,
 	set: string?, -- Collection Book category
-	blueprint: string?, -- Config/Blueprints id needed to BUY it (nil = always available). Owned stock never needs it.
 	unlockLevel: number?, -- Stage 8/2: player level needed to BUY it (server checks; the Sprinkler needs Lv 7)
 	waters: boolean?, -- Stage 2: a Sprinkler, waters the 3x3 beds around it every 60 s (FarmService)
 	w: number,
@@ -51,7 +50,7 @@ end
 
 local list: { Item } = {
 	-- Set: Pondok Sawah ----------------------------------------------------------------
-	{ id = "bale_bambu", blueprint = "pondok_sawah", set = "pondok_sawah", w = 3, d = 2, currency = "koin", price = 300, parts = {
+	{ id = "bale_bambu", set = "pondok_sawah", w = 3, d = 2, currency = "koin", price = 300, parts = {
 		p(5.6, 1.2, 3.6, 0, 0.6, 0, WOOD),
 		p(6, 0.3, 4, 0, 1.35, 0, BAMBOO),
 	} },
@@ -59,11 +58,11 @@ local list: { Item } = {
 		p(1.6, 1, 1.6, 0, 0.5, 0, BAMBOO),
 		p(1.6, 1.4, 0.3, 0, 1.7, -0.65, BAMBOO),
 	} },
-	{ id = "meja_kayu", blueprint = "pondok_sawah", set = "pondok_sawah", w = 2, d = 1, currency = "koin", price = 120, parts = {
+	{ id = "meja_kayu", set = "pondok_sawah", w = 2, d = 1, currency = "koin", price = 120, parts = {
 		p(3, 2, 1.2, 0, 1, 0, DARKWOOD),
 		p(3.6, 0.3, 1.8, 0, 2.15, 0, WOOD),
 	} },
-	{ id = "lampu_teplok", blueprint = "pondok_sawah", set = "pondok_sawah", w = 1, d = 1, currency = "koin", price = 60, parts = {
+	{ id = "lampu_teplok", set = "pondok_sawah", w = 1, d = 1, currency = "koin", price = 60, parts = {
 		p(0.4, 4, 0.4, 0, 2, 0, DARKWOOD),
 		lamp(p(0.9, 0.9, 0.9, 0, 4.4, 0, Color3.fromRGB(230, 200, 140), Enum.Material.SmoothPlastic)),
 	} },
@@ -85,24 +84,24 @@ local list: { Item } = {
 	{ id = "jalan_batu", set = "pondok_sawah", w = 1, d = 1, currency = "koin", price = 10, parts = {
 		p(1.8, 0.2, 1.8, 0, 0.1, 0, STONE, Enum.Material.Slate),
 	} },
-	{ id = "orang_orangan_sawah", blueprint = "pondok_sawah", set = "pondok_sawah", w = 1, d = 1, currency = "koin", price = 150, parts = {
+	{ id = "orang_orangan_sawah", set = "pondok_sawah", w = 1, d = 1, currency = "koin", price = 150, parts = {
 		p(0.4, 5, 0.4, 0, 2.5, 0, WOOD),
 		p(3, 0.3, 0.3, 0, 3.6, 0, WOOD),
 		p(1.4, 1.6, 0.6, 0, 3.2, 0, Color3.fromRGB(110, 120, 140), Enum.Material.Fabric),
 		p(1, 1, 1, 0, 4.6, 0, CLOTH, Enum.Material.Fabric, "ball"),
 		p(2, 0.3, 2, 0, 5.2, 0, BAMBOO),
 	} },
-	{ id = "gentong_air", blueprint = "pondok_sawah", set = "pondok_sawah", w = 1, d = 1, currency = "koin", price = 90, parts = {
+	{ id = "gentong_air", set = "pondok_sawah", w = 1, d = 1, currency = "koin", price = 90, parts = {
 		p(2, 1.7, 1.7, 0, 1, 0, CLAY, nil, "cylinder"),
 	} },
-	{ id = "jemuran", blueprint = "pondok_sawah", set = "pondok_sawah", w = 3, d = 1, currency = "koin", price = 110, parts = {
+	{ id = "jemuran", set = "pondok_sawah", w = 3, d = 1, currency = "koin", price = 110, parts = {
 		p(0.3, 4, 0.3, -2.6, 2, 0, WOOD),
 		p(0.3, 4, 0.3, 2.6, 2, 0, WOOD),
 		p(5.4, 0.1, 0.1, 0, 3.8, 0, DARKWOOD),
 		p(1.4, 1.6, 0.1, -1.2, 2.9, 0, CLOTH, Enum.Material.Fabric),
 		p(1.2, 1.2, 0.1, 1, 3.1, 0, Color3.fromRGB(170, 120, 100), Enum.Material.Fabric),
 	} },
-	{ id = "sepeda_onthel", blueprint = "pondok_sawah", set = "pondok_sawah", w = 2, d = 1, currency = "koin", price = 250, parts = {
+	{ id = "sepeda_onthel", set = "pondok_sawah", w = 2, d = 1, currency = "koin", price = 250, parts = {
 		p(0.2, 2, 2, -1.2, 1, 0, METAL, nil, "wheel"),
 		p(0.2, 2, 2, 1.2, 1, 0, METAL, nil, "wheel"),
 		p(2.6, 0.3, 0.3, 0, 1.6, 0, Color3.fromRGB(70, 84, 70)),
@@ -110,11 +109,11 @@ local list: { Item } = {
 	} },
 
 	-- Basic (Koin) -------------------------------------------------------------------
-	{ id = "pohon_pisang", blueprint = "taman", w = 2, d = 2, currency = "koin", price = 120, parts = {
+	{ id = "pohon_pisang", w = 2, d = 2, currency = "koin", price = 120, parts = {
 		p(0.8, 5, 0.8, 0, 2.5, 0, Color3.fromRGB(120, 130, 80)),
 		p(4, 1.5, 4, 0, 5.4, 0, LEAF, Enum.Material.Grass, "ball"),
 	} },
-	{ id = "rumpun_bambu", blueprint = "taman", w = 2, d = 2, currency = "koin", price = 100, parts = {
+	{ id = "rumpun_bambu", w = 2, d = 2, currency = "koin", price = 100, parts = {
 		p(0.5, 8, 0.5, -0.8, 4, -0.6, BAMBOO_GREEN),
 		p(0.5, 7, 0.5, 0.8, 3.5, -0.4, BAMBOO_GREEN),
 		p(0.5, 7.5, 0.5, 0, 3.75, 0.8, BAMBOO_GREEN),
@@ -126,11 +125,11 @@ local list: { Item } = {
 	{ id = "batu_besar", w = 1, d = 1, currency = "koin", price = 25, parts = {
 		p(1.8, 1.2, 1.6, 0, 0.6, 0, STONE, Enum.Material.Slate),
 	} },
-	{ id = "bangku_kayu", blueprint = "taman", w = 2, d = 1, currency = "koin", price = 70, parts = {
+	{ id = "bangku_kayu", w = 2, d = 1, currency = "koin", price = 70, parts = {
 		p(3, 1, 0.8, 0, 0.5, 0, DARKWOOD),
 		p(3.6, 0.4, 1.2, 0, 1.2, 0, WOOD),
 	} },
-	{ id = "bunga_kertas", blueprint = "taman", w = 1, d = 1, currency = "koin", price = 50, parts = {
+	{ id = "bunga_kertas", w = 1, d = 1, currency = "koin", price = 50, parts = {
 		p(1, 1.2, 1.2, 0, 0.5, 0, CLAY, nil, "cylinder"),
 		p(1.8, 1.6, 1.8, 0, 1.8, 0, Color3.fromRGB(176, 110, 130), Enum.Material.Grass, "ball"),
 	} },
@@ -174,7 +173,7 @@ local list: { Item } = {
 	} },
 }
 
--- Stage 6: toko hias awal, bisa dibeli dengan Koin tanpa blueprint. Ukuran sesuai spek: 2 stud = 1 sel, 4x4 stud = 2x2 sel.
+-- Stage 6: toko hias awal, bisa dibeli dengan Koin. Blueprint bukan gating (Bab 8.7). Ukuran sesuai spek: 2 stud = 1 sel, 4x4 stud = 2x2 sel.
 local STARTER_HIAS: { Item } = {
 	{ id = "pagar_bambu", set = "taman", w = 1, d = 1, currency = "koin", price = 30, parts = {
 		p(1.8, 1.2, 0.3, 0, 0.6, 0, BAMBOO),

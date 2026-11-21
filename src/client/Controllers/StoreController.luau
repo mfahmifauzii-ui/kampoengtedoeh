@@ -131,13 +131,6 @@ local function render()
 			else selected == "hias"
 		if inTab then
 			local sub: string? = nil
-			if product.kind == "instant_grow" and snapshot and snapshot.instantGrow then
-				sub = Locale.t("store.instant_info", {
-					tokens = snapshot.instantGrow.tokens,
-					used = snapshot.instantGrow.usedToday,
-					limit = Monetization.INSTANT_GROW_DAILY_LIMIT,
-				})
-			end
 			local def = product
 			UiKit.productCard(panel.list, nextOrder(), {
 				title = Locale.t(`store.product.{product.kind}`, { n = Locale.formatNumber(product.amount) }),

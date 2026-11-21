@@ -132,11 +132,9 @@ local function onPlace(player: Player, itemId: any, x: any, z: any, r: any)
 	end
 
 	local stock = data.decor.stock[item.id] or 0
+	-- Blueprint bukan gating (Bab 8.7): dekor langsung di-craft pakai bahan tanpa beli Blueprint.
 	if stock > 0 then
-		data.decor.stock[item.id] = if stock == 1 then nil else stock - 1 -- owned items never need the blueprint
-	elseif item.blueprint and data.decor.blueprints[item.blueprint] ~= true then
-		Net.Fire("Notify", player, "blueprint.needed", { name = `blueprint.{item.blueprint}` })
-		return
+		data.decor.stock[item.id] = if stock == 1 then nil else stock - 1
 	elseif item.unlockLevel and data.level < item.unlockLevel then
 		Net.Fire("Notify", player, "shop.locked", { level = item.unlockLevel })
 		return

@@ -1,147 +1,133 @@
-# Roadmap
+# Roadmap Kampoeng Tedoeh — Implementasi v7.3
 
-Tanpa tanggal. Aturan kerja: **satu tahap satu waktu, tunggu "lanjut"**. Tiap tahap: kode, tes di Studio (screenshot), update docs, baru dianggap selesai. Migrasi data wajib uji pakai save lama. Tahap besar dipecah dan dites bertahap.
+> Sumber kebenaran: Kampoeng_Tedoeh_v7.3.md. File ini adalah rencana kerja, bukan dokumen desain. Jangan ubah angka di v7.3 dari file ini.
 
-Desain lengkap di `00_Design_Doc.md`, peta di `Map_Plan.md`.
+## 1. Status Ringkasan
 
----
+| Tahap | Status | Sisa |
+|-------|--------|------|
+| P0 | Done | 10/10 + hapus Upgrade Tas Koin. Sisa di kode hanya komentar penanda DIHAPUS (Weather.luau:5, WorldService.luau:99). File baru `Kualitas.luau`, file dihapus `Mutasi.luau` + `Blueprints.luau`. |
+| P1 | Belum | 0/10 item. Angka di `src/` masih versi lama (tanaman 6/18, ikan 12 skema lama, joran 4/6, Album bukan 214, Playtime 3/5, version 62, partikel 30/80/80, cap hias 150, Agenda 40 Koin, XP ikan rarity). |
+| P2 | Belum | 0/9 grup. Definisi Order/Buff/Instant-Kolam-cost ada di kode tapi efek/wiring full belum (Buff cuma slot + display, breeding kolam belum ada timer, Dapur/Warung/Nambang/Ternak/Skill-16/Sosial/Event/Quest/Login/Season/Blueprint-share belum di-code). |
 
-## Sudah selesai (menurut dokumen terakhir)
+## 2. Aturan Kerja (LOCKED)
 
-| Fase | Isi |
-|---|---|
-| 1–11 | Fondasi, bertani, memancing, tas/toko, hias, pesanan + Buku + level, siang-malam + hujan + audio, monetisasi + analitik, sosial ringan (Mampir, Suka), playtest plan, live-ops plan |
-| 12 | Lahan & **Garap** (tanah Terrain, simpan, migrasi) |
-| 13 | NPC & dialog (Pak Darmo, Bu Wati, Mas Joko, Mbok Minah); bibit jadi item |
-| 14 | Bang Tarno + tawar + kedekatan + skill ⛔ *(dibatalkan; kode dihapus di R1, Bang Tarno tetap sebagai penadah)* |
-| 15 | Mbak Arsi + blueprint (**belum dites di Studio**) |
-| 16 | Model tanaman + kit GUI ForgeGUI, HUD baru |
-| 17 (sebagian) | Bar stamina di HUD ⛔ *(hanya tampilan, tidak ada sistem; dihapus di R1)* |
-| R1 | Kuota warung + penadah + pembersihan ✅ dikodekan dan dites di Studio |
-| – | Repo git `kampoengtedoeh` (privat), docs dirapikan |
+- Kerjakan urut: Sisa P0 → P1 → P2. Jangan loncat ke P2 sebelum P1 kelar.
+- Satu tahap = satu commit / satu laporan. Jangan campur P1 + P2 dalam 1 commit.
+- Setiap tugas harus ada "Cara Cek" (grep / file:baris / nilai yang diharapkan). Jangan tulis "sudah bener" tanpa cara cek.
+- Jangan ubah v7.3.md. Jangan ubah map. Jangan ngarang angka. Kalau angka tidak ada di v7.3, STOP dan tulis di Roadmap sebagai "BUTUH KEPUTUSAN OWNER" — jangan isi sendiri.
+- Setiap selesai 1 tugas, update Roadmap.md: ganti `[ ]` jadi `[x]`, tulis tanggal + file yang diubah + hasil verifikasi (selene / rojo build / grep).
 
-**Dibatalkan:** stamina, istirahat, bonus bangku, tawar-menawar, kedekatan NPC, skill Tawar.
-**Ditunda sampai setelah playtest:** peternakan, rumah, mode foto, tujuan bersama, warung pemain/masak, hias v2.
+## 3. Sisa P0 — Bereskan dulu (1 tugas)
 
----
+- [x] Upgrade Tas Koin (`Shop.UPGRADES.backpack`) — HASIL CEK (2026-11-21): fungsinya nambah cap slot tas (50→60→80→100 via `Inventory.SLOTS`), jadi itu gating slot. SUDAH DIHAPUS TOTAL karena v7.3 Bab 18.1: Tas tanpa cap slot, stack 99.
+    - File yang diubah: `src/shared/Config/Shop.luau` (entri backpack + UPGRADE_ORDER → `{"pond"}`), `src/shared/Config/Inventory.luau` (`SLOTS` + `LEVEL_100_SLOTS` dibuang, sisa `STACK_SIZE = 99`), `src/shared/Modules/Upgrades.luau` (`IDS = {"pond"}`), `src/server/Services/InventoryService.luau` (`slotsFor/slotsUsed/slotsMax/HasFreeSlot` + `inv.full` + snapshot slots dibuang, `CanAdd` cek valid saja), `src/server/Services/FishService.luau` (gate `HasFreeSlot` dibuang), `src/server/Services/ShopService.luau` (3 cek `inv.full` dibuang), `src/client/Controllers/ShopController.luau` (cabang backpack + ikon dibuang), `src/client/State.luau` (`slotsUsed/slotsMax/backpackTier` dibuang), `src/client/Controllers/InventoryController.luau` (footer `ui.slots` dibuang), `src/shared/Config/DataTemplate.luau` (`upgrades = {pond = 0}`), `src/shared/Types.luau`, `src/shared/Locale/id.luau` (`upgrade.backpack`, `upgrade.backpack.detail`, `ui.slots`, `inv.full` dibuang). Upgrade Kolam (`pond`) tidak disentuh.
+    - Cara Cek: `grep -r "UPGRADES.backpack|upgrade.backpack|backpackTier|LEVEL_100_SLOTS|ui.slots|inv.full|HasFreeSlot" src/` → 0 hasil (2026-11-21, lolos). `selene` file tersentuh 0 errors, `rojo build` sukses.
 
-## R1 — Pembersihan & kuota warung ✅ selesai dan dites di Studio (14 Nov 2026)
+## 4. P1 — Benerkan Angka (jangan tambah sistem baru)
 
-Mengubah desain NPC jual-beli dan membuang kode yang dibatalkan.
+- [ ] 12 tanaman hilang (Singkong s/d Durian) — harga / waktu / XP persis Bab 5.3
+    - File: `src/shared/Config/Crops.luau` (sekarang 6 entri, baris 20-25: kangkung, bayam, tomat, sawi, jagung, ubi_jalar).
+    - Angka v7.3: tambah 12 persis tabel Bab 5.3 #7-18 (Singkong 25mnt/30/95/40/Lv6; Cabai 30mnt/40/125/50/Lv8; Padi 2jam/120/400/140/Lv8 + 2 Jerami; Stroberi 2jam/130/420/150/Lv12; Pisang 3jam/160/520/180/Lv15 + 2 Daun Pisang; Tebu 40mnt/50/160/60/Lv15; Jahe 35mnt/45/140/55/Lv22; Kopi 4jam/200/650/220/Lv25; Teh 6jam/260/850/280/Lv25; Melati 30mnt/40/130/50/Lv30; Mangga 8jam/320/1100/360/Lv35; Durian 8jam/380/1300/400/Lv45).
+    - Cara Cek: `grep -c 'id = ' src/shared/Config/Crops.luau` = 18 + spot-check baris Pisang (`growSeconds` 3 jam, `sellPrice` 520).
+- [ ] 8 ikan hilang + perbaiki harga 12 ikan lama — persis Bab 6.4
+    - File: `src/shared/Config/Fish.luau` (sekarang 12 entri skema lama baris 21-32: wader 8, nila 10, mujair 10, lele 12, mas 20, bawal 28, gabus 35, belut 40, gurame 25, udang_galah 90, koi 150, arwana 500; tanpa `unlockLevel`/XP/spot/waktu v7.3).
+    - Angka v7.3: 20 ikan persis tabel Bab 6.4 (Wader Cakul 20/10/Lv1 Kanal; Betok 26/12/Lv1; Sepat 30/14/Lv2; Lele 45/18/Lv2 Malam; Mujair 70/26/Lv5; Nila 90/32/Lv5; Tawes 110/38/Lv6 Siang; Gurame 160/50/Lv8; Patin 180/55/Lv10; Gabus 200/60/Lv10 Hujan; Baung 220/65/Lv12 Malam; Jelawat 350/95/Lv15; Toman 420/110/Lv18 Sore/Malam; Tapah 600/150/Lv18 Spot4 Malam; Sidat 650/160/Lv22 Spot4 Malam+Hujan; Semah 520/130/Lv25 Danau Pagi; Belida 700/170/Lv30; Gurame Raja 2200/550/Lv15; Belut Emas 2000/500/Lv20; Ikan Dewa 2500/600/Lv30) + ukuran Kecil x0,8 (40%) / Sedang x1,0 (40%) / Besar x1,2 (15%) / Jumbo x1,5 (5%).
+    - Cara Cek: 20 entri + `sellPrice` 20 ikan cocok tabel + SIZES memuat x0,8.
+- [ ] Joran 6 + umpan 4 + gembor / sabit / kapak — persis Bab 17.5
+    - File: `src/shared/Config/Fishing.luau` (sekarang 4 joran baris 13-17: bambu/rotan/fiber/juragan; 1 umpan `BAIT` pelet 5), `src/shared/Config/Farm.luau` (cuma `TOOLS.gembor`).
+    - Angka v7.3: 6 joran Bab 6.3 (Bambu gratis/30%/Lv1; Kayu 900+10 Bambu/33%/Lv2; Kayu Jati 3500+20 Bambu/36%/Lv4; Bambu Wulung 9000+30 Bambu/39%/Lv6; Besi 18000+30 Bambu+15 Batu/42%/Lv8; Pusaka 35000+40 Bambu+20 Batu+10 Ijuk/45%/Lv10) + 4 umpan (Cacing 10; Jangkrik 25; Pelet 45; Udang Kecil 80/Lv6) + 9 alat Bab 17.5 (Gembor Plastik gratis; Seng 2000+10 Kayu/Lv3; Kuningan 8000+20 Papan/Lv8; Sabit Kayu gratis; Sabit Besi 5000+10 Batu/Lv5; Sepatu Bot 800+5 Ijuk/Lv2; Kapak Batu gratis; Kapak Besi 3000+15 Batu/Lv3; Kapak Baja 10000+20 Batu+10 Semen/Lv7).
+    - Cara Cek: `rodList` 6 baris + tabel umpan 4 baris + `TOOLS` 9 kunci.
+- [ ] Album 214 + milestone Bunga — Bab 11
+    - File: `src/shared/Config/Book.luau` (sekarang kategori crops/fish/decor otomatis; milestone p25/50/75/100 = 500 Koin / 10 Bunga / dekor / title — bukan Bab 11).
+    - Angka v7.3: Ladang 54 (18×3 Kualitas) + Sungai 80 (20×4 ukuran) + Dapur 72 (24×3) + Varian 8 = 214 GUI + milestone 25%→10 Bunga, 50%→20 Bunga + Title Kolektor, 75%→30 Bunga + Dekor Bingkai Emas, 100%→50 Bunga + Title Legenda Kampung.
+    - Cara Cek: total `ENTRIES` = 214 + `MILESTONES` 4 baris cocok Bab 11.
+- [ ] Playtime 5 peti (10 / 20 / 30 / 45 / 60) — Bab 15.2
+    - File: `src/shared/Config/Progression.luau` (sekarang `PLAYTIME` 3 baris 38-44: 10→50, 30→150, 60→300).
+    - Angka v7.3: 5 peti (10→50, 20→100, 30→150, 45→200, 60→300 Koin, hanya Koin).
+    - Cara Cek: `PLAYTIME` 5 baris + nilai cocok.
+- [ ] `PlayerData.version` 62 → 72 — Bab 28
+    - File: `src/shared/Config/DataTemplate.luau:9` (`version = 62`), `src/server/Services/DataService.luau:20` (`DATA_STAGE = "v62"`).
+    - Angka v7.3: `version` = 72.
+    - Cara Cek: `grep -r "version = 72" src/shared/Config/DataTemplate.luau` + `DATA_STAGE = "v72"`.
+- [ ] Partikel hujan 30 / 60 / 90 — Bab 21
+    - File: `src/shared/Config/Weather.luau:30` (sekarang `PARTICLES = {gerimis = 30, deres = 80, petir = 80}`).
+    - Angka v7.3: Gerimis 30, Deres 60, Petir 90 + kilat.
+    - Cara Cek: baris `PARTICLES` = 30/60/90.
+- [ ] Cap hias 150 → 800 — Bab 8.3
+    - File: `src/shared/Config/Decor.luau:220` (sekarang `MAX_PLACED = 150`).
+    - Angka v7.3: 800 per lahan.
+    - Cara Cek: `grep "MAX_PLACED = 800" src/shared/Config/Decor.luau`.
+- [ ] Daily reward Agenda 40 → 150-400 Koin — Bab 14.5
+    - File: `src/shared/Config/Quests.luau:54-60` (sekarang 3 daily: tanam/panen/pancing; `DAILY_REWARD = {koin = 40, xp = 10}`).
+    - Angka v7.3: 5 tugas per hari, 150-400 Koin per tugas, tanpa Bunga.
+    - Cara Cek: `DAILY` 5 baris + reward per tugas dalam rentang 150-400 Koin.
+- [ ] XP ikan 3/6/15/40 → 10 s/d 600 per ikan — Bab 6.4
+    - File: `src/shared/Config/Progression.luau` (`FISH_XP = {C = 3, U = 6, R = 15, L = 40}`).
+    - Angka v7.3: XP per ikan dari tabel Bab 6.4 (10 s/d 600, mis. Wader 10, Ikan Dewa 600).
+    - Cara Cek: tiap entri ikan memuat `xp` cocok tabel + `FISH_XP` lama tidak dipakai FishService.
 
-**Teruji di Studio (1 pemain, Play):** server start tanpa error baru; save masuk sebagai v8 dengan `npc`/`skills` nil; jual 20 kangkung ke Pak Darmo (+180), sisa ditolak dengan toast; jual sisa ke Bang Tarno 0,7× (+72); panel Pak Darmo dan Bang Tarno tampil benar (sisa kuota, tanpa tombol Tawar); upgrade Kapasitas Warung (kuota 20 → 25); harga beli di Mas Joko, Mbok Minah, Bu Wati, Mbak Arsi tanpa diskon; migrasi v7 → v8 dari save buatan dan pergantian hari pada kuota diuji lewat skrip.
-**Belum teruji:** 2+ pemain, HP asli, pergantian hari WIB sungguhan (hanya lewat skrip), save v7 asli dari DataStore, dan penolakan "terlalu jauh" dari NPC.
-Perintah dev baru: `!give <item> <n>`, `!sales`, `!quota reset`.
+## 5. P2 — Bangun Yang Hilang, Urut Core Loop (jangan dibalik)
 
-Hasil simulasi (`balance_sim.py`, setelah R1): hari ke-42 Koin tertimbun ±162 ribu (sebelumnya ±205 ribu). **Kuota menurunkan pemasukan sekitar 20–25%, tapi tidak menyelesaikan penimbunan Koin.** Sink sebenarnya tetap harus datang dari chunk lahan (R2), upgrade, dan konten berikutnya.
+1. Nambang (6 node, Ritme Critical, respawn 4 menit) + Bahan 7+7 + Craft
+    - [ ] Service + node per-player + Ritme Pukul + respawn + bahan + craft gratis/instan + x10
+    - File yang akan diubah: tambah Config Nambang + Service Nambang (tidak ada di `src/`, grep `Critical|respawn` node 0 hasil).
+    - Angka v7.3: node Pohon/Rumpun Bambu/Batu Kali/Tebing Tanah/Pinggir Kali/Pohon Aren (Lv 15); 1 node = 4 pukulan; normal +1, Critical +2; respawn 4 menit; mentah Kayu/Bambu/Batu/Tanah Liat/Pasir/Jerami/Ijuk; olahan Papan 2 Kayu, Bata 2 Tanah Liat, Semen 2 Pasir+1 Batu, Anyaman 3 Bambu, Atap Ijuk 3 Ijuk, Genteng 3 Tanah Liat, Kaca 3 Pasir (Lv 25); craft instan gratis + tombol x10.
+    - Cara Cek: `grep -r "respawn\|Critical" src/server/Services/` ada hasil + playtest 1 putaran ±5 menit = 30-45 bahan.
+2. Ternak (Ayam / Bebek / Sapi + Kandang + Pakan + Mood Hujan) + Kolam breeding (Tanah / Semen / Keramik + Kolam Kakek + Instant Kolam di-wire ke UI + timer breeding)
+    - [ ] Service Ternak + kandang + pakan + produk + Mood Hujan; timer breeding + Kolam Kakek + instant pakai Bunga via `PondService.InstantCost`
+    - File yang akan diubah: tambah Service Ternak (tidak ada di `src/`, grep `Ayam|Bebek|Sapi|Kandang` 0 hasil); `src/server/Services/PondService.luau` (helper `InstantCost` sudah ada, timer breeding belum ada — `PondEntry` tanpa timestamp breeding).
+    - Angka v7.3: Bab 7.1 (Ayam 300/6-10/15/15mnt/Telur 40/10XP; Bebek 600/5-8/20/20mnt/55/13XP; Sapi 3500/2-4/30/30mnt/160/28XP; kandang + upgrade; Pakan Jagung 5 Jagung→6 jatah; Tempat Pakan max 3/5; Mood Hujan 5 mnt +10% Koin) + Bab 7.2 (Tanah 1000+20 Batu/6jam/10; Semen 3000+20 Bata+15 Semen/5jam/20; Keramik 6000+30 Bata+25 Semen/4jam/30; max 4 kolam; Kolam Kakek gratis 10% lebih cepat; instant 1 Bunga/10 mnt max 30; Bubu tidak bisa instant).
+    - Cara Cek: playtest beli Ayam → isi pakan → ambil telur + Mood Hujan setelah hujan; breeding 2 ikan → anak 1 + tombol instant potong Bunga sesuai sisa.
+3. Dapur 24 resep + Warung Player + Buff Olahan efek gameplay (4 buff beneran ngaruh, bukan cuma display) + Order Villager di-wire full
+    - [ ] Service Dapur (Tier/Slot/resep/Kualitas Olahan) + Warung (pajang 1 olahan, NPC beli, max 5 offline) + efek 4 buff + Order setor/reroll/reset full
+    - File yang akan diubah: tambah Service Dapur + Warung (tidak ada di `src/`); `src/shared/Config/Buffs.luau` (definisi + durasi 600/720/900 sudah ada, EFEK belum di-code); `src/server/Services/OrderService.luau` (definisi Daily 3 + Weekly 1, x1,5/x3, reroll 2 Bunga sudah ada — wiring full setor Kualitas spesifik / reset 05:00 / max 1x reroll per Order per hari dicek di playtest).
+    - Angka v7.3: 24 resep persis Bab 9.2 (bahan/waktu/jual/XP); Warung Bab 9.3 (Lv 6, 1 slot, NPC 5-10 mnt, base×Kualitas, max 5 offline); Buff Bab 9.4 (Tani +10% Super; Pancing gigitan 20% + kotak 10%; Tukang jendela +25% + +1 bahan non-Kayu; Tebang jendela +25% + +1 Kayu; durasi Biasa 10/Bagus 12/Prima 15 mnt; 1 aktif; haram: Ternak/Kolam/Dapur/Bubu/Warung/Mood/Dekor); Order Bab 14.7 (Daily 3 + Weekly 1, reset 05:00, 5 NPC, x1,5/x3, Koin+XP saja, reroll 2 Bunga max 1x/hari, Weekly tanpa dekor, hilang saat reset tanpa hukuman).
+    - Cara Cek: masak 1 resep Tier 1 → Kualitas Olahan dari bahan tertinggi; pajang di Warung → NPC beli; makan Olahan → 1 buff aktif + efek kebaca di aksi; Order deliver + reroll + reset 05:00 di playtest.
+4. Skill 16 (Bab 4.5) + SP bisa dibelanjakan
+    - [ ] 16 skill bisa dibeli pakai SP + efeknya kebaca di sistem masing-masing
+    - File yang akan diubah: tambah Config/Logic Skill (tidak ada di `src/`, grep `Mata Kualitas|Panen Raya|Joran Kuat|Firasat|Tetangga Baik` 0 hasil). `CABANG` (Bertani/Mancing/Beternak/Tukang Lv 0-10) dan `data.sp += 1` per level sudah ada, belum bisa dibelanjakan.
+    - Angka v7.3: 16 skill persis tabel Bab 4.5 (max Lv 5 tiap skill).
+    - Cara Cek: `grep -r "mata_kualitas\|panen_raya" src/` ada hasil + beli 1 skill pakai SP + efek +2% Bagus kebaca saat panen.
+5. Bantu / Hadiah / Chat / Galeri (Bab 12)
+    - [ ] Bantu Siram+Panen + Hadiah + Gestur + Chat + Visit/Like/Galeri full
+    - File yang akan diubah: `src/server/Services/SocialService.luau` (sekarang cuma visit/like) + tambah Bantu/Hadiah/Chat/Galeri.
+    - Angka v7.3: Bantu per lahan 1 Siram+1 Panen/hari, max 5 lahan/hari, reset 05:00; dibantu: Basah + hasil ke pemilik + 1 bibit; pembantu +40 Koin +10 XP; Hadiah Lv 20, 3/hari, max 500 Koin, +20/+5 pengirim; Gestur 4 (Lambai/Jempol/Tepuk/Ketawa), cooldown 3 dtk; Chat per server + filter, tanpa DM/link; Like 1x/lahan/player, +20 Koin max 10/hari; Galeri 5 lahan like mingguan.
+    - Cara Cek: playtest bantu 1 lahan → kedua pihak dapat hadiah + reset 05:00.
+6. Gerobak Kaget / Pasar Malam / Kerja Bakti Kilat / Pesanan Tamu (Bab 13)
+    - [ ] 4 event berulang jalan + hadiah + batas harian
+    - File yang akan diubah: tambah Service Event Berulang (`EventService` sekarang cuma musiman; `WorldService.RainEnded` sudah ada untuk pemicu Kerja Bakti).
+    - Angka v7.3: Gerobak restock 15 mnt, 3 slot (60/35/5%), max 3/slot, 6 Bibit Varian + 2 Hewan Varian; Pasar Malam tiap Malam 9 mnt, +50% max 10, Lempar Gelang 3x gratis; Kerja Bakti setelah Deres/Petir, kotoran 10+6×player (max 58), 15 Koin+3 XP/poin max 20, max 4/hari, bonus 100% +150 Koin + Diskon Warga -10% 30 mnt; Pesanan Tamu 3-5 barang.
+    - Cara Cek: playtest tunggu Deres → Kerja Bakti muncul + hadiah masuk + batas 4/hari.
+7. MQ1-MQ12 + Surat 30 + Side 10 + Agenda 5 + Bundel 5 (Bab 14)
+    - [ ] Semua questline jalan berurutan + hadiah + reset Agenda 05:00
+    - File yang akan diubah: `src/shared/Config/Quests.luau` (sekarang cuma `kolam_pertama` + `misi_utama` 3 langkah + 3 daily) + QuestService wiring.
+    - Angka v7.3: MQ1-MQ12 persis tabel Bab 14.2; Surat 30 kumulatif; Side 10 persis tabel Bab 14.4; Agenda 5 tugas 150-400 Koin; Bundel 5 persis tabel Bab 14.6 (Sumur Tua Lv6, Saung Lv20, Lumbung Lv15 + 1 Prima, Empang Lv30, Kolam Kakek Lv3).
+    - Cara Cek: playtest MQ1→MQ3 berurutan + Surat #1 hari ke-1 + 1 Bundel pulih.
+8. Login Mingguan + Peti Bunga + Title (Bab 15) + Season (Bab 19)
+    - [ ] Login 7 hari kumulatif + peti + title + Season 2 track
+    - File yang akan diubah: tambah Service Login/Season (tidak ada di `src/`; `RewardsController` + `ProgressionService` cuma komentar Fase 6; hitung detik aktif PlaytimeService sudah ada, tabel hadiah dibetulkan di P1).
+    - Angka v7.3: Login 100/150/200/2B/300/3B/500+5B kumulatif; Peti dari Login/Pencapaian/Album/Season/Event/Bundel (10 Bunga/bangunan)/Robux; Title permanen; Season 30 hari F2P (Koin/bahan/30 Bunga/dekor) + Premium 150 Bunga (kosmetik eksklusif tidak dijual lagi).
+    - Cara Cek: klaim Login hari 1-2 + 1 Peti + 1 Title + Season track kebaca di UI.
+9. Blueprint simpan / share (Bab 8.7) + Akuarium / Bingkai Album + Effects / Animasi / GUI lengkap (Bab 20-23) + KPI / LiveOps (Bab 25-26)
+    - [ ] Slot simpan 3 + share kode + Akuarium 8 ikan + Bingkai % + partikel/suara/haptic + GUI + log analytics
+    - File yang akan diubah: tambah simpan/share Blueprint (gating sudah dicabut; simpan/share belum di-code); Akuarium/Bingkai cuma nama di Unlock (Lv 25/Lv 15); `Weather.PARTICLES` dibetulkan di P1; banner Prima Late sudah; sisanya Studio (§6).
+    - Angka v7.3: simpan 3 slot gratis + share kode + ghost per bagian; Akuarium 8 ikan (termasuk Legenda/Jumbo); Bingkai tampilkan % Album; Bab 20-23; analytics Bab 25.2 (Plant/Water/Harvest/Cast/Bite/PullSuccess/Fish/Feed/Collect/Cook/WarungSale/Bantu/KerjaBakti/Quest/Surat/Album/Login/Playtime/GerobakKaget/PasarMalam); LiveOps Bab 26 (+20 Lv, +20 piece, +3 resep, +2 ikan, +1 tanaman, +1 hewan per Update Besar).
+    - Cara Cek: simpan 1 desain + pakai kode di lahan sendiri (bahan sendiri kepotong); Akuarium isi 1 Legenda; `grep -r "WarungSale\|GerobakKaget" src/` ada hasil.
 
-- Hapus: `AffinityService`, `SkillService`, `Config/Skills`, tawar di `NpcService`/`ShopService`, sapaan berdasar kedekatan, diskon kedekatan, perintah dev `!affinity`, `!skill`, `!skillxp`, tampilan kedekatan di dialog, bar stamina di `HudController` dan atribut `Stamina`.
-- Migrasi data: buang `skills` dan data kedekatan (bumpkan versi; uji save lama).
-- Tambah: **kuota harian Pak Darmo** per jenis tanaman (20, *asumsi*), `data.sales`; **Bang Tarno** jadi penadah 0,7× tanpa tawar; tampil sisa kuota di panel; upgrade **Kapasitas Warung** (+5/tingkat, *asumsi*) lewat Koin.
-- Perbarui `tools/balance_sim.py`: tambah kuota dan penadah.
-- Selesai bila: jual sampai kuota habis, lalu jual ke Bang Tarno 0,7×; reset 00:00 WIB; save lama masuk tanpa error.
+## 6. Cek Studio (tidak ada di src/)
 
-## R2 — Peta cincin + lahan chunk
+- [ ] Model NPC 6 (Pak Udin, Kak Fajar, Pak Amran, Mak Sari, Nek Ani, Bang Jali ×8) — rig + posisi + dialog. Tidak ada di `src/` (cek `ServerStorage.NpcModels` di Studio), jangan ngarang.
+- [ ] Model Akuarium (Lv 25) + Bingkai Album (Lv 15) — pajang 8 ikan + tampilkan % Album.
+- [ ] Model Dapur (Tungku + Meja Olah, Tier 1-3) + Warung Player (1 slot pajang) — bangunan + GUI Slot 1/2/3.
+- [ ] Map — SUDAH ADA di Studio, JANGAN DIUBAH. Cek saja: alun-alun tengah, 8 lahan simetris, Hutan Nambang, 4 spot (Kanal/Danau/Sungai/Spot 4).
+- [ ] Animasi player + hewan + ikan + NPC (Bab 22) — cek di Studio.
+- [ ] Suara + haptic (Bab 20) — Ayam Pagi, jangkrik Sore, kunang Malam, Gerimis/Deres/Petir; haptic panen/Critical/tarik/Legenda.
+- [ ] FPS ≥ 30 di HP 4GB, 8 player, hujan + Kerja Bakti (Bab 24/30.6).
 
-Perubahan terbesar. Detail di `Map_Plan.md`. Dipecah: **R2 (peta + lahan awal 128, ✅)** dan **R2b (beli chunk)**.
+## 7. Cara Verifikasi Tiap Tahap
 
-### R2 — peta cincin ✅ selesai dan dites di Studio (14 Nov 2026)
-Versi pertama (R2a: 10 lahan 96×96 dalam cincin persegi dengan sungai X) **digantikan** setelah kamu menilai tidak adil dan terlalu kecil. Sekarang mengikuti konsep gambarmu: kanal bundar + pulau kota + cincin jalan batu + 4 jalan silang, **8 lahan identik**, awal **128×128** dalam kotak cadangan **192×192** berisi hutan perluasan. Migrasi v8 → v9 (lahan 96) dan v9 → v10 (kerangka koordinat baru). Detail dan screenshot di `Map_Plan.md`. Belum teruji: 2+ pemain, HP asli dan performa, memancing dari dermaga baru.
-
-### R2b — beli chunk ✅ selesai dan dites di Studio (14 Nov 2026)
-- Lahan tumbuh dari 128×128 ke 192×192 dengan membeli **blok 32×32** (14 blok yang bisa dibeli; 6 blok di sisi depan tidak dijual) yang **menempel** pada lahan milik (tombol **+** melayang di atas tiap blok yang bisa dibeli, popup beli; lihat perombakan UI di bawah). `Modules/Land` memakai daftar blok milik pemain; garap, kolam, dan hias memakai daftar yang sama. *(Awalnya chunk 16×16 × 80; diperbesar setelah kamu menilai terlalu kecil dan pagarnya bergerigi: migrasi v11 → v12.)*
-- Membeli blok: hutan `ExpansionOf` di blok itu disembunyikan, tanah dicat rumput terang, pagar bergeser keluar; data `land.chunks`. Harga `1.500 × 1,2ⁿ` (14 blok yang bisa dibeli ±89.000 Koin).
-- Batas jumlah petak tanam dihapus (katup pengaman 100); upgrade "Perluas Kebun" dihapus (refund lewat migrasi v10 → v11). Pass "Petak Ekstra" jadi **"Diskon Lahan"** (−20% harga chunk, ukuran akhir tetap sama untuk semua).
-- `plotSlot` tersimpan dan dicoba dipakai lagi saat masuk.
-- `LandService` baru; `MapService.SetChunkOwned` / `RebuildFence`.
-
-**Teruji (Studio, 1 pemain):** harga dan urutan 2.590 → 3.110 → 3.730 → 4.480 (blok ke-4 sampai ke-7); beli ditolak untuk blok milik dan yang tidak menempel; Koin kurang ditolak; tanah jadi rumput terang, pohon di blok disembunyikan, pagar mengikuti tepi blok dengan rapi (bentuk L bersih); garap dan hias hanya di blok milik; blok, petak, dan hutan kembali benar setelah rejoin; UI popup menampilkan harga; migrasi v10 → v11 (refund) dan v11 → v12 (6 chunk lama jadi 3 blok).
-**Belum teruji:** reset lahan saat pemain keluar lalu pemain lain masuk (butuh 2 pemain), `plotSlot` dengan 2 pemain, klik langsung di dunia untuk membeli (jalur beli diuji lewat remote yang sama), HP asli, dan performa saat banyak chunk dibeli.
-### Perombakan UI sebelum playtest ✅ dikodekan dan dites di Studio (14 Nov 2026)
-Detail dan screenshot di `GUI_Design.md`. Ringkas: menu kanan atas jadi kolom vertikal yang menciut di HP (animasi), uang di tengah atas, semua tombol bulat **tanpa caption** (tooltip hover), kartu pemain dengan bar XP ramping + **3 slot buff** (Segar Bertani, Umpan Wangi, Kenyang; efeknya belum dikodekan), menu Garap bambu gelap dengan badge tutup dan nama baru (**Cangkul, Hapus Petak, Gali Kolam, Urug Kolam**), dan beli lahan dipindah ke tombol **+** melayang + popup. Harga chunk dinaikkan ke `250 × 1,06ⁿ`.
-**Belum teruji:** HP asli (menu menciut disimulasikan di PC dengan `CompactHud`), ketukan jari pada tombol **+** dan popup, dan tombol Menu bersama joystick/tombol lompat.
-
-**Risiko ekonomi:** tanpa batas petak, simulasi (dengan asumsi +4 petak per blok) mencapai Lv 30 di hari ke-23 (dulu hari 31), dan 15 dari 20 blok terbeli di hari 42, jadi blok efektif menyerap Koin. Perlu data playtest, bukan tebakan.
-
-### Perbaikan dari playtest AI persona putaran 1 ✅ dites di Studio (14 Nov 2026)
-Temuan di `Playtest_AI_Persona_1.md`. Diperbaiki: Garap tidak lagi menelan ketukan petak; tanaman bisa diketuk langsung; **panduan pemain baru + jalur panah di tanah ke Pak Darmo** untuk 3 perjalanan jual pertama (`Config/Onboarding`, `data.guide.sells`, tanpa migrasi karena kunci baru ditambah Reconcile); toko NPC bertab Beli/Jual dengan number picker, total merah, slot gambar placeholder; modal konfirmasi standar (Batal kiri merah, Setuju kanan) untuk beli, Jual Semua, dan beli lahan; server menerima jumlah bebas 1–99 untuk beli dan jual (`Sell(npc, item, amount?)`, `Shop.MAX_AMOUNT` menggantikan `PACKS`).
-**Belum teruji:** HP asli (picker, tahan tombol, panah di tepi layar dengan joystick), 2+ pemain, toko NPC selain Pak Darmo (Bu Wati, Mas Joko, Mbok Minah, Mbak Arsi memakai kode yang sama tetapi belum dibuka satu per satu), tombol Jual satu item untuk NPC non-kuota. Temuan 6–9 di dokumen persona masih terbuka.
-
-### Poles malam 15 Nov 2026 (kerja otomatis, detail di `Overnight_Log.md`)
-Toko kota versi bisa diwarnai di Roblox (`Config/ShopPalette`, belum di-upload); VFX hadiah + ambient (`AmbientFx`, kilau tanaman siap panen); model tanaman dari Part (`Shared/CropBuilder`); seed picker bergaya UiKit; temuan persona 6–9 ditutup; duplikat skrip di Studio dihapus.
-**Belum teruji:** tampilan di layar (screenshot Studio timeout), mancing penuh dari dermaga baru, HP asli.
-
-### P1 — Mesin tutorial ✅ dikodekan dan dites di Studio (15 Nov 2026)
-Detail teknis: `Tutorial_Engine.md`. `data.guide` bertambah `step{id,n}`, `done`, `skipped`, `fastLeft` (lewat Reconcile, tanpa migrasi); `TutorialService` (server) menyimpan langkah, membayar hadiah, mencatat analytics, dan menjalankan bibit cepat (6 penanaman pertama save baru tumbuh 20 d, 16 d bila disiram); `GuideController` menjalankan banyak tutorial dari `Config/Onboarding.TUTORIALS` (satu aktif, antrean jeda 120 d, simpan dan lanjut per langkah, tombol Lewati, cincin berdenyut di tombol HUD, deteksi macet 45/90 d); Atur > Panduan untuk mengulang tanpa hadiah. **Isi T1 belum ada** (P2); hanya tutorial tes khusus Studio (`TEST_TUTORIAL`, `auto = false`). Sprint dibatalkan.
-**Belum teruji:** lihat bagian "Belum teruji" di `Tutorial_Engine.md`.
-
-### P1b — Penyederhanaan Garap + penunjuk tombol ✅ dikodekan, dites sebagian di Studio (15 Nov 2026)
-Menu popup Garap (Cangkul / Hapus Petak / Gali Kolam / Urug Kolam) **dibuang**. Dua tombol dock: **Garap (Cangkul)** dan **Kolam** (ikon `kolam` yang sudah ada). Alat membaca isi bawah penunjuk: rumput → petak, petak kosong → hapus petak otomatis, petak bertanaman → siram/panen; kolam kosong → gali, kolam ada → urug (dengan konfirmasi). Kotak hijau/oranye + label kecil menunjukkan aksi. Penunjuk tutorial kini menjangkau tombol mana pun (cincin + panah melambung). Detail di `GUI_Design.md`; penilaian gameplay di `Gameplay_Review.md`.
-**Belum teruji:** HP asli (dock 5 tombol di antara joystick dan lompat, tap di dunia vs tombol dock), konfirmasi urug kolam, hapus petak lewat tap sungguhan di HP.
-
-## Gerbang: Playtest #1
-
-Jangan tambah fitur baru sebelum ini. Isi: `Playtest_Plan.md`.
-- **Playtest AI persona** (jalan lewat alur dari sudut pandang pemain baru) untuk menemukan kebingungan dan bug. Bukan pengganti uji orang asli (AI tidak bisa menilai "seru").
-- **3–5 orang asli** dari target (perempuan 16+), tanpa dijelaskan.
-- Keluar dari gerbang dengan daftar perbaikan, bukan daftar fitur.
-
-## R3 — Hadiah, Upgrade, Toko (dari rencana Fase 17 yang masih dipakai)
-
-**Status: semua tahap dikodekan (17.0, 17.3, 17.4, 17.7, 17.5, 17.6). Belum dites di HP asli, 2+ pemain, atau dengan save v12 asli.** Diuji di Studio: server start tanpa error, panel Hadiah / Koleksi / Toko tampil dengan data sungguhan, migrasi v12 → v13 (uji lewat skrip), kompilasi semua modul.
-- **Keputusan sementara (asumsi, perlu playtest):** peti main 5 / 10 / 20 / 30 / 45 / 60 menit (koin 50, 75, pelet 5, bunga 1, koin 150, bunga 2); aktif = karakter bergerak ≥ 1 stud tiap 10 detik.
-- **Lahan tidak dibuat sebagai upgrade tingkat.** Lahan dibeli per blok (R2b); upgrade yang ada: Tas, Kolam, Kapasitas Warung.
-- **Toko:** tab Paket (Tas Ekstra, Kolam 2×, Diskon Lahan), Koin, Bunga, Hias (Hias Lebih Banyak + Langsung Panen).
-- **Koleksi:** hadiah kategori dan milestone sekarang diklaim manual (`BookClaim`). Tidak perlu migrasi: klaim lama sudah tercatat `claimed`.
-- **Migrasi v13:** `backpackTier`, `pond.tier`, `sales.tier` pindah ke `upgrades{backpack,pond,warung}`; `playtime` baru.
-
-Urutan: 17.0 → 17.3 → 17.4 → 17.7 → 17.5 → 17.6.
-- **17.0 Fondasi GUI:** `UiKit.tabs`, `productCard`, `progressDots`, `notifyDot`, `rewardPopup`; aset ForgeGUI (hemat kredit, cek `assets/gui` dulu): ikon hadiah, kalender, upgrade, titik notifikasi, kartu produk, tab.
-- **17.3 Hadiah harian:** kalender 7 kartu di atas Kunjungan Harian yang sudah ada (kumulatif, tanpa hukuman).
-- **17.4 Hadiah playtime:** 6 peti/hari, gratis, hitung di server, anti-AFK sederhana.
-- **17.7 Upgrade:** `UpgradeService` umum (Tas, Kolam, Lahan, Kapasitas Warung); data `upgrades[id] = tier`; pindahkan logika dari `ShopService`; migrasi dari `backpackTier`, `pond.tier`, `farm.expansions`. Simulasi harga di `balance_sim.py`.
-- **17.5 Koleksi:** grid kategori, milestone diklaim manual; migrasi: milestone yang sudah tercapai ditandai "sudah diklaim".
-- **17.6 Toko:** satu panel dengan tab samping dan kartu produk (Paket, Koin, Bunga, Hias); ID masih 0 → "Belum tersedia". Tidak ada boost baru tanpa `Monetization_Review.md`.
-- Catatan teknis dari fase GUI: skin gambar di atas latar tapi di bawah teks (`ZIndexBehavior = Sibling`, skin `ZIndex = 0`); pakai cache preload agar tombol tidak berkedip; panel dibangun ulang tiap perubahan data, jadi komponen harus murah; HUD memakai `IgnoreGuiInset = true` + `ScreenInsets = DeviceSafeInsets`; cek `Source` di Studio setelah edit karena sinkronisasi file tidak selalu otomatis.
-
-## R4 — QA & poles
-
-Tes di HP asli (sentuhan, joystick vs kartu status, notch, rotasi); semua string lewat `Locale/id.luau`; hook analitik (klaim harian, klaim playtime, upgrade); perbarui docs.
-
-## Playtest #2
-
-Ulangi playtest dengan build R3–R4.
-
-## Setelah playtest (urutan ditentukan oleh data)
-
-Kandidat, bukan komitmen: **mode foto**, **tujuan bersama kampung**, **peternakan ayam**, **warung pemain + masak + buff**, **hadiah teman**, **kucing**, **rumah Tahap A lalu B**, **hias v2** (grid + highlight dulu, undo/redo dan tampak atas belakangan), **tinggal bareng**.
-
----
-
-### Playtest menyeluruh 1 (15 Nov 2026) ✅ sebagian
-`Playtest_Menyeluruh_1.md`: teks dipangkas, outline teks diperbaiki, 7 role suara baru dan efek suara bisa dimatikan, kamera ngobrol NPC, banner naik level, pisang diperbaiki harganya. Temuan terbuka: pesanan mingguan Lv 1 terlalu besar, XP pesanan awal, NPC yatim. **Viewport 3D hitam saat capture, jadi visual 3D tidak dilihat ulang.**
-
-### L1a — Bertani bertahap: GUI melayang + animasi + model tanaman ✅ dikodekan, dites di Studio sebagian (15 Nov 2026)
-Pil melayang di atas petak sendiri (`client/FarmFloat`): Kosong → ketuk menanam; Siram + sisa waktu; Panen!; bibit/ketuk hanya muncul untuk petak dekat, maksimal 3, tidak menumpuk. Pemilih bibit = panel bambu standar dengan **model 3D tiap tanaman di kartu** (ViewportFrame, model sama dengan di petak). Animasi: menanam (gali, **VFX di petak**), menyiram (karakter memegang kaleng siram, air mengalir ke petak, percik di petak), panen (kilau di petak). Delapan model tanaman dan dua ikon dari ForgeGUI sudah di-upload dan dipasang (`Aset_Roblox.md`). NPC `bang_tarno` yatim dihapus. Pak Darmo punya model baru (`ServerStorage.NpcModels`).
-**Belum:** model NPC lain (Bu Wati, Mas Joko, Mbok Minah, Mbak Arsi, Bang Tarno) dan penilaian visual model Pak Darmo/tanaman di kamera game; tekstur tanaman tampak pucat di petak (diperiksa: tekstur hijau benar, kemungkinan pencahayaan/Overlay alpha); kamera ngobrol Pak Darmo dari depan stall belum dites ulang setelah tabrakan kamera ditambah; tombol Siram untuk ikon baru belum dilihat di layar (ikon fallback `kolam` tampil sampai gambar termuat).
-
-### L1b — Perbaikan umpan balik (15 Nov 2026)
-Tanaman abu-abu: penyebabnya **normal map** hasil ForgeGUI yang terlalu kuat di cahaya game (bukan warna); NormalMap, MetalnessMap, RoughnessMap dikosongkan di `CropModels`. Ukuran tanaman diperbesar (kangkung 2,2 → 4 stud, jagung 5 → 8, pisang 6 → 9, dst.). Kaleng siram dibenarkan arahnya (tanpa rotasi ekstra; moncong ke depan). Pil melayang dikecilkan (132×38), label Garap (92×22), papan titik pancing (124×36, jarak 45 stud). GUI mancing dibangun ulang bergaya bambu (kartu Status + Reel dengan jalur air, zona hijau, ikon ikan, tombol Tarik! UiKit). Dites: kangkung hijau dan besar, kaleng di tangan menuang ke petak, kartu Reel tampil.
-**Belum:** cabai masih tampak gelap keabuan di petak (kemungkinan tekstur/UV, tertutup pil saat dicek); papan titik pancing dan kartu Status belum dilihat; model NPC lain (lihat `Aset_Roblox.md`).
-
-### Perombakan daftar GUI (15 Nov 2026)
-`UIUX_Spec.md`: alasan UX, warna per kategori, komponen baru, hasil. Tas, Koleksi, Atur, Toko NPC sudah dipadatkan; Pesanan, Hadiah, Warga, Toko Robux masih gaya lama.
-
-## Penilaian gameplay (15 Nov 2026)
-`Gameplay_Review.md`: loop inti tidak busuk tapi terlalu banyak ketukan dan sedikit keputusan; usulan L1 (tanam/panen/siram sekali ketuk), L2 (variasi waktu tumbuh), L3 (sink Koin), L4 (alasan ke alun-alun). Menunggu persetujuan urutan.
-
-## Keputusan terbuka
-
-1. ~~Sungai di peta cincin~~ — selesai di R2: kanal bundar mengelilingi pulau kota, tidak ada lahan yang tersilang air.
-2. **Kuota Pak Darmo:** 20 per jenis cocok? Apakah kuota naik juga per level? (R1, simulasikan)
-3. **Harga blok lahan:** kurva `1.500 × 1,2ⁿ` sudah dikunci sementara; cocok atau terlalu murah/mahal? Ukuran blok 32 bisa diganti (mis. 64) di `Config/Plots` `CHUNK.SIZE`. (data playtest)
-8. **Buff:** efek tiga buff (tumbuh 10%, gigit 25%, XP +10%) dan sumbernya (makanan dari warung pemain, hadiah) belum dikodekan; ikon ForgeGUI (kosong + penuh) menunggu daftar buff final.
-4. **Kecepatan progres tanpa batas petak:** perlu dijinakkan (kuota, harga bibit, kurva XP) bila playtest menunjukkan terlalu cepat.
-5. **Kartu status vs joystick di HP:** pakai thumbstick Dynamic atau geser kartu ke kanan? (R4, tes di HP)
-6. **Peta cincin:** apakah 8 slot cukup, atau perlu 12 (3 per jalan)? (setelah Playtest #1 melihat jumlah pemain sebenarnya)
-7. **Teras sawah di pojok peta** (ada di konsep): dibuat sekarang atau nanti? Pojok saat ini berupa hutan.
+- `selene src/` — 0 error di file yang lo sentuh
+- `rojo build default.project.json` — sukses, tidak ada require hilang
+- `grep -r "mutasi|pelangi|greenhouse|rak pajangan|lapak|instant_grow|bibit unggul|backpack pass|blueprint gating" src/` — hanya komentar DIHAPUS
+- Playtest checklist Bab 30 v7.3

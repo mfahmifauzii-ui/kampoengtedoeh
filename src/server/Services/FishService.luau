@@ -206,12 +206,6 @@ local function startCast(player: Player, spot: BasePart)
 		return
 	end
 
-	-- Need a free slot up front so a finished reel is never lost to a full bag.
-	if not InventoryService.HasFreeSlot(player) then
-		Net.Fire("Notify", player, "inv.full")
-		return
-	end
-
 	local rod = Fishing.rods[data.fishing.rod]
 	if not rod then
 		return -- cannot happen after the rod check above; kept so the type stays exact

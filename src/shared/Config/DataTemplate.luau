@@ -29,7 +29,7 @@ local template: Types.PlayerData = {
 	},
 
 	inventory = { seed_kangkung = 6 }, -- [itemId] = count. A new player starts with a few seeds (Pak Udin sells more)
-	upgrades = { backpack = 0, pond = 0 }, -- tier per upgrade (Config/Shop UPGRADES, Modules/Upgrades)
+	upgrades = { pond = 0 }, -- tier per upgrade (Config/Shop UPGRADES, Modules/Upgrades)
 
 	farm = {
 		tiles = {}, -- tilled soil tiles { uid, cx, cz, crop?... }; a new player tills their own (Garap)
@@ -54,7 +54,6 @@ local template: Types.PlayerData = {
 		placed = {}, -- { {uid, id, x, z, r} } grid cells on the owner's plot
 		stock = {}, -- [itemId] = count owned but not placed
 		nextUid = 1,
-		blueprints = {}, -- [blueprintId] = true (bought from Pak Amran, Config/Blueprints)
 	},
 
 	orders = {
@@ -98,7 +97,6 @@ local template: Types.PlayerData = {
 	settings = { music = true, ambient = true, sfx = true, musicVol = 1, sfxVol = 1, quality = 2 }, -- volumes are a share (0..1) of Audio.VOLUME; quality 1 Rendah, 2 Sedang, 3 Tinggi
 
 	passes = {}, -- [passKey] = true; cache of confirmed game pass ownership (fallback if API is down)
-	instantGrow = { tokens = 0, day = "", usedToday = 0 },
 	onboarding = {}, -- [stepNumber] = true (analytics funnel, logged once)
 	-- sells: sale trips done (Config/Onboarding TRIES), the old guide stops after that many.
 	-- Tutorial engine (Config/Onboarding TUTORIALS, server/TutorialService): step = the running tutorial {id, n = steps done},

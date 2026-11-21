@@ -42,7 +42,7 @@ local levelBadge: TextLabel? -- level number on the photo's star
 local toastLabel: TextLabel?
 local hudGui: ScreenGui? = nil
 type BuffSlot = { def: Buffs.Buff, slot: Frame, stroke: UIStroke, clip: Frame, hit: TextButton }
-local buffSlots: { BuffSlot } = {} -- the three buff icons on the player card (empty = off, full and draining = on)
+local buffSlots: { BuffSlot } = {} -- the four buff icons on the player card (empty = off, full and draining = on)
 local toastQueue: { string } = {}
 local toastRunning = false
 
@@ -79,7 +79,7 @@ local function buildPlaceholder(): ScreenGui
 	local bungaChip = bunga.Parent :: Frame
 	bungaChip.LayoutOrder = 2
 
-	-- BOTTOM LEFT: the player card = photo + level star + name + a slim XP bar, and under it the three buff slots.
+	-- BOTTOM LEFT: the player card = photo + level star + name + a slim XP bar, and under it the four buff slots.
 	-- The bamboo frame of the card is thick, so everything inside keeps a 14 px inset from its edges (nothing touches it).
 	local card = UiKit.pill(gui, "StatusCard", 248, 92)
 	card.AnchorPoint = Vector2.new(0, 1)
@@ -183,7 +183,7 @@ local function buildPlaceholder(): ScreenGui
 	xpBarLabel.TextStrokeTransparency = 0.25
 	xpBarLabel.Parent = track
 
-	-- The three buff slots (Config/Buffs): empty icon until the buff is on, then the full icon draining away.
+	-- The four buff slots (Config/Buffs): empty icon until the buff is on, then the full icon draining away.
 	for index, def in Buffs.SLOTS do
 		local slot = Instance.new("Frame")
 		slot.Name = `Buff_{def.id}`
@@ -246,14 +246,14 @@ local function buildPlaceholder(): ScreenGui
 		table.insert(buffSlots, { def = def, slot = slot, stroke = slotStroke, clip = clip, hit = hit })
 	end
 
-	-- PHONE: the player card is compact (180 x 60, avatar 36, XP bar 8 px, name 14 px) and the three buff icons are hidden,
+	-- PHONE: the player card is compact (180 x 60, avatar 36, XP bar 8 px, name 14 px) and the four buff icons are hidden,
 	-- so the card never takes a quarter of the width. Desktop keeps the full card. Sits 12 px in from the safe edges.
 	local function layoutCard()
 		local camera = Workspace.CurrentCamera :: Camera
 		local view = camera.ViewportSize
 		local phone = view.X < 900 or view.Y < 450
 		-- Phone size (the middle size the player asked for): card 220 x 70, 8 px inner padding, avatar 48, name 14 px,
-		-- XP bar 8 px, three buff icons 28 px with 4 px gaps, all visible. Desktop keeps the full card.
+		-- XP bar 8 px, four buff icons 28 px with 4 px gaps, all visible. Desktop keeps the full card.
 		card.Position = if phone then UDim2.new(0, 12, 1, -12) else UDim2.new(0, 8, 1, -6)
 		card.Size = if phone then UDim2.fromOffset(250, 100) else UDim2.fromOffset(248, 92) -- the bamboo frame keeps a 14 px inset: every element sits inside it
 		local function set(name: string, props: { [string]: any })
@@ -272,8 +272,9 @@ local function buildPlaceholder(): ScreenGui
 		set("Icon_bintang", { Visible = not phone }) -- the star under the photo: desktop only
 		for index, entry in buffSlots do
 			if phone then
-				-- row under the name, spread across the card like the PC layout (space between the three icons)
-				entry.slot.Position = UDim2.fromOffset(80 + (index - 1) * 64, 56) -- three 28 px icons, evenly spaced inside the frame
+				-- row under the name, spread across the card like the PC layout (space between the four icons)
+				local along = (index - 1) / (#Buffs.SLOTS - 1)
+				entry.slot.Position = UDim2.fromOffset(80 + along * 132, 56) -- four 28 px icons, evenly spaced inside the frame
 				entry.slot.Size = UDim2.fromOffset(28, 28)
 			else
 				local along = (index - 1) / (#Buffs.SLOTS - 1)

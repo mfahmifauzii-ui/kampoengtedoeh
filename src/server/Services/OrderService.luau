@@ -82,7 +82,6 @@ local function newOrder(data: Types.PlayerData, weekly: boolean): OrderEntry
 		items = items,
 		koin = koin,
 		xp = math.max(5, math.floor(koin * Orders.XP_PER_KOIN * (if weekly then Orders.WEEKLY_XP_MULT else 1) + 0.5)),
-		decor = if weekly then Orders.WEEKLY_DECOR_POOL[random:NextInteger(1, #Orders.WEEKLY_DECOR_POOL)] else nil,
 		done = false,
 	}
 	data.orders.nextUid += 1

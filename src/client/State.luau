@@ -1,5 +1,5 @@
 --!strict
--- Latest server snapshot (inventory, slots, upgrade tiers, rods). Read-only on the client.
+-- Latest server snapshot (inventory, upgrade tiers, rods). Read-only on the client.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -8,9 +8,6 @@ local Signal = require(ReplicatedStorage.Shared.Modules.Signal)
 
 export type Snapshot = {
 	items: { [string]: number },
-	slotsUsed: number,
-	slotsMax: number,
-	backpackTier: number,
 	playtime: { day: string, seconds: number, claimed: number }, -- Hadiah playtime (seconds is live via the "PlaytimeSec" attribute)
 	pondTier: number,
 	ponds: { { uid: number, cx: number, cz: number } },
@@ -22,7 +19,6 @@ export type Snapshot = {
 	ownedRods: { [string]: boolean },
 	tools: { [string]: boolean },
 	decorStock: { [string]: number },
-	decorBlueprints: { [string]: boolean },
 	decorPlaced: number,
 	decorMax: number,
 }

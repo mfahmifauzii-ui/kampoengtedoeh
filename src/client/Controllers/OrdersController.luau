@@ -5,7 +5,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Blueprints = require(ReplicatedStorage.Shared.Config.Blueprints)
 local Book = require(ReplicatedStorage.Shared.Config.Book)
 local Crops = require(ReplicatedStorage.Shared.Config.Crops)
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
@@ -126,9 +125,6 @@ local function nextUnlock(level: number): (number?, string?)
 	end
 	for location, config in Fishing.LOCATIONS do
 		consider(config.unlockLevel, `location.{location}`)
-	end
-	for _, blueprint in Blueprints.list do
-		consider(blueprint.unlockLevel, `blueprint.{blueprint.id}`)
 	end
 	if bestKey then
 		return bestLevel, bestKey

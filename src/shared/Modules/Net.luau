@@ -13,7 +13,7 @@ type RemoteKind = "Event" | "Function"
 
 local DEFINITIONS: { [string]: RemoteKind } = {
 	Notify = "Event", -- S->C (localeKey: string, vars: {[string]: any}?)
-	MutasiBanner = "Event", -- S->C (playerName: string, cropId: string, mutationId: string) rare Mutasi, sent to every player (FarmService)
+	KualitasBanner = "Event", -- S->C (playerName: string, cropId: string, qualityId: string) Prima Late, sent to every player (FarmService)
 
 	FarmPlant = "Event", -- C->S (tileIndex: number, cropId: string)
 	FarmWater = "Event", -- C->S (tileIndex: number)
@@ -29,7 +29,7 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	StateRequest = "Event", -- C->S () ask for a fresh snapshot
 	NpcTalk = "Event", -- S->C (npcId: string) the player pressed "Ngobrol": open the dialogue
 	Sell = "Event", -- C->S (npcId: string, itemId: string | "all", amount: number?)
-	ShopBuy = "Event", -- C->S (npcId: string, kind: "rod"|"bait"|"upgrade"|"seed"|"seedx"|"fish", id: string, amount: number?)
+	ShopBuy = "Event", -- C->S (npcId: string, kind: "rod"|"bait"|"upgrade"|"seed"|"fish"|"tool", id: string, amount: number?)
 	ShopEquipRod = "Event", -- C->S (rodId: string)
 
 	DecorPlace = "Event", -- C->S (itemId: string, x: number, z: number, r: number)
@@ -42,7 +42,6 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	SettingsSet = "Event", -- C->S (key: "music"|"ambient"|"sfx", value: boolean) or (key: "musicVol"|"sfxVol", value: 0..1) or (key: "quality", value: 1..3)
 
 	StoreBuy = "Event", -- C->S (kind: "pass"|"product", key: string) server re-checks, then prompts
-	FarmInstantGrow = "Event", -- C->S (tileIndex: number) uses one Instant Grow token
 
 	FarmTill = "Event", -- C->S (cx: number, cz: number) turn a grass cell of your land into soil
 	FarmLevel = "Event", -- C->S (tileUid: number) remove an empty bed: back to grass (menu "Hapus Petak", asks first)

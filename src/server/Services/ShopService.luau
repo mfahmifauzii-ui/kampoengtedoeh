@@ -2,12 +2,11 @@
 -- Trading with town NPCs. Every request names an NPC (Config/Npcs) and is distance-checked to it; what an NPC
 -- buys and sells comes from its config, prices from Modules/Trade. The client only sends requests.
 --   Sell(npcId, itemId | "all", amount?)                NPC buys items from the player (amount: whole number 1-99, one item only)
---   ShopBuy(npcId, kind, id, amount?)                   kind: rod | bait | upgrade | seed | seedx | fish | blueprint | tool
+--   ShopBuy(npcId, kind, id, amount?)                   kind: rod | bait | upgrade | seed | fish | tool
 -- Bang Jali (Warung Mini, 0.9x) buys everything at 90% of the price. Every other NPC buys only what its config says.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Blueprints = require(ReplicatedStorage.Shared.Config.Blueprints)
 local Crops = require(ReplicatedStorage.Shared.Config.Crops)
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local Farm = require(ReplicatedStorage.Shared.Config.Farm)
@@ -177,7 +176,6 @@ local function buyBait(player: Player, baitId: string, amount: any): boolean
 		return false
 	end
 	if not InventoryService.CanAdd(player, baitId, amount) then
-		Net.Fire("Notify", player, "inv.full")
 		return false
 	end
 	if not EconomyService.TrySpend(player, "koin", Fishing.BAIT.price * amount, `bait:{baitId}`) then
@@ -193,28 +191,11 @@ local function buyUpgrade(player: Player, data: Types.PlayerData, upgradeId: str
 	return UpgradeService.Buy(player, data, upgradeId)
 end
 
--- Pak Amran's blueprints: one purchase unlocks buying every decor item of that set (Config/Blueprints).
-local function buyBlueprint(player: Player, data: Types.PlayerData, blueprintId: string): boolean
-	local blueprint = Blueprints.byId[blueprintId]
-	if not blueprint or data.decor.blueprints[blueprintId] == true then
-		return false
-	end
-	if data.level < blueprint.unlockLevel then
-		Net.Fire("Notify", player, "shop.locked", { level = blueprint.unlockLevel })
-		return false
-	end
-	if not EconomyService.TrySpend(player, "koin", blueprint.price, `blueprint:{blueprintId}`) then
-		notEnough(player)
-		return false
-	end
-	data.decor.blueprints[blueprintId] = true
-	InventoryService.Sync(player)
-	Net.Fire("Notify", player, "shop.bought", { item = `blueprint.{blueprintId}` })
-	return true
-end
+-- Blueprint bukan gating (Bab 8.7): dekor langsung di-craft pakai bahan. Blueprint hanya simpan / share desain (belum di-code).
+-- Bibit Unggul DIHAPUS (Bab 29): yang dijual cuma bibit biasa.
 
--- Seeds go into the bag; planting uses them (FarmService). unggul = Pak Udin's faster, pricier kind.
-local function buySeed(player: Player, data: Types.PlayerData, cropId: string, amount: any, unggul: boolean): boolean
+-- Seeds go into the bag; planting uses them (FarmService).
+local function buySeed(player: Player, data: Types.PlayerData, cropId: string, amount: any): boolean
 	local crop = Crops.byId[cropId]
 	if not crop or not validPack(amount) then
 		return false
@@ -223,18 +204,17 @@ local function buySeed(player: Player, data: Types.PlayerData, cropId: string, a
 		Net.Fire("Notify", player, "shop.locked", { level = crop.unlockLevel })
 		return false
 	end
-	local itemId = (if unggul then "seedx_" else "seed_") .. crop.id
+	local itemId = "seed_" .. crop.id
 	if not InventoryService.CanAdd(player, itemId, amount) then
-		Net.Fire("Notify", player, "inv.full")
 		return false
 	end
-	local cost = Trade.seedPrice(crop, unggul) * amount
+	local cost = Trade.seedPrice(crop) * amount
 	if not EconomyService.TrySpend(player, "koin", cost, `seed:{crop.id}`) then
 		notEnough(player)
 		return false
 	end
 	InventoryService.Add(player, itemId, amount)
-	Net.Fire("Notify", player, if unggul then "shop.bought_seedx" else "shop.bought_seed", { n = amount, crop = `crop.{crop.id}` })
+	Net.Fire("Notify", player, "shop.bought_seed", { n = amount, crop = `crop.{crop.id}` })
 	return true
 end
 
@@ -246,7 +226,6 @@ local function buyFish(player: Player, fishId: string, amount: any): boolean
 	end
 	local itemId = FishService.ItemId(fish.id, "S")
 	if not InventoryService.CanAdd(player, itemId, amount) then
-		Net.Fire("Notify", player, "inv.full")
 		return false
 	end
 	local cost = Trade.fishPrice(fish.sellPrice) * amount
@@ -275,13 +254,9 @@ local function onBuy(player: Player, npcId: any, kind: any, id: any, amount: any
 	elseif kind == "upgrade" and npc.sells.upgrades then
 		buyUpgrade(player, data, id)
 	elseif kind == "seed" and npc.sells.seeds then
-		buySeed(player, data, id, amount, false)
-	elseif kind == "seedx" and npc.sells.seedsUnggul then
-		buySeed(player, data, id, amount, true)
+		buySeed(player, data, id, amount)
 	elseif kind == "fish" and npc.sells.fish then
 		buyFish(player, id, amount)
-	elseif kind == "blueprint" and npc.sells.blueprints then
-		buyBlueprint(player, data, id)
 	elseif kind == "tool" and npc.sells.tools then
 		buyTool(player, data, id)
 	end

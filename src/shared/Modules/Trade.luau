@@ -1,7 +1,6 @@
 --!strict
 -- Prices for NPC trading. Shared so the client shows exactly what the server will charge or pay.
 
-local Crops = require(script.Parent.Parent.Config.Crops)
 local Npcs = require(script.Parent.Parent.Config.Npcs)
 local Items = require(script.Parent.Items)
 
@@ -16,9 +15,9 @@ function Trade.buyPrice(npc: Npcs.Npc, info: Items.ItemInfo): number?
 	return math.floor(info.sellPrice * multiplier + 0.5)
 end
 
--- Price of one seed. unggul = the faster-growing kind sold by Pak Udin.
-function Trade.seedPrice(crop: Crops.Crop, unggul: boolean): number
-	return if unggul then math.ceil(crop.seedPrice * Npcs.SEED_UNGGUL_PRICE_MULT) else crop.seedPrice
+-- Price of one bibit biasa (Bibit Unggul DIHAPUS, Bab 29).
+function Trade.seedPrice(crop: { seedPrice: number }): number
+	return crop.seedPrice
 end
 
 -- Price of one fish bought from Kak Fajar (always size Kecil).

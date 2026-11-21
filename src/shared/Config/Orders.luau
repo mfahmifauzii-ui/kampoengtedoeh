@@ -23,5 +23,4 @@ return {
 	WEEKLY_COUNT_MULT = 3,
 	WEEKLY_REWARD_MULT = 3,
 	WEEKLY_XP_MULT = 0.5, -- weekly XP = Koin × XP_PER_KOIN × this (avoids multi-level jumps early)
-	WEEKLY_DECOR_POOL = { "pohon_pisang", "rumpun_bambu", "bangku_kayu", "bunga_kertas" },
 }

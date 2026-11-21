@@ -1,5 +1,5 @@
 --!strict
--- Buying the permanent upgrades (Config/Shop UPGRADES): Tas, Kolam. The tier lives in data.upgrades
+-- Buying the permanent upgrades (Config/Shop UPGRADES): Kolam. The tier lives in data.upgrades
 -- (Modules/Upgrades). Other services react through UpgradeService.Bought (ShopService refreshes the ponds on "pond"),
 -- so this file needs no other game service and there are no require cycles.
 

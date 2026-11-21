@@ -1,12 +1,11 @@
 --!strict
--- Item counts with backpack capacity, plus the client state snapshot ("StateSync").
+-- Item counts. Tas tanpa cap slot, stack 99 (Bab 18.1 v7.3). Tidak ada Upgrade Tas, tidak ada Backpack Pass.
 -- Any service that changes something the client panels show calls InventoryService.Sync.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local DecorConfig = require(ReplicatedStorage.Shared.Config.Decor)
 local FarmConfig = require(ReplicatedStorage.Shared.Config.Farm)
-local InventoryConfig = require(ReplicatedStorage.Shared.Config.Inventory)
 local Monetization = require(ReplicatedStorage.Shared.Config.Monetization)
 local OrdersConfig = require(ReplicatedStorage.Shared.Config.Orders)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
@@ -17,31 +16,9 @@ local Upgrades = require(ReplicatedStorage.Shared.Modules.Upgrades)
 local DataService = require(script.Parent.DataService)
 local MonetizationService = require(script.Parent.MonetizationService)
 
-local STACK = InventoryConfig.STACK_SIZE
-
 local InventoryService = {}
 
 local pendingSync: { [Player]: boolean } = {}
-
-local function slotsFor(count: number): number
-	return math.ceil(count / STACK)
-end
-
-local function slotsUsed(data: Types.PlayerData): number
-	local used = 0
-	for _, count in data.inventory do
-		used += slotsFor(count)
-	end
-	return used
-end
-
-local function slotsMax(player: Player, data: Types.PlayerData): number
-	local base = InventoryConfig.SLOTS[math.clamp(Upgrades.tier(data, "backpack") + 1, 1, #InventoryConfig.SLOTS)]
-	if data.level >= InventoryConfig.LEVEL_100_SLOTS then
-		base = math.max(base, 100) -- Stage 8: Tas 100 from Lv 10
-	end
-	return base + (if MonetizationService.HasPass(player, "backpack") then Monetization.BACKPACK_BONUS_SLOTS else 0)
-end
 
 local function isValid(itemId: any, amount: any): boolean
 	return typeof(itemId) == "string" and typeof(amount) == "number" and amount > 0 and amount % 1 == 0
@@ -72,9 +49,6 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 	end
 	return {
 		items = table.clone(data.inventory),
-		slotsUsed = slotsUsed(data),
-		slotsMax = slotsMax(player, data),
-		backpackTier = Upgrades.tier(data, "backpack"),
 		pondTier = Upgrades.tier(data, "pond"),
 		ponds = pondCells(data),
 		quests = { active = table.clone(data.quests.active), done = table.clone(data.quests.done), daily = table.clone(data.quests.daily) },
@@ -86,11 +60,9 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		ownedRods = table.clone(data.fishing.ownedRods),
 		tools = table.clone(data.tools),
 		decorStock = table.clone(data.decor.stock),
-		decorBlueprints = table.clone(data.decor.blueprints),
 		decorPlaced = #data.decor.placed,
 		decorMax = DecorConfig.MAX_PLACED,
 		passes = passes,
-		instantGrow = data.instantGrow,
 		premium = MonetizationService.IsPremium(player),
 		orders = {
 			daily = data.orders.daily,
@@ -138,29 +110,15 @@ function InventoryService.Count(player: Player, itemId: string): number
 	return if data then data.inventory[itemId] or 0 else 0
 end
 
-function InventoryService.HasFreeSlot(player: Player): boolean
-	local data = DataService.Get(player)
-	return data ~= nil and slotsUsed(data) < slotsMax(player, data)
-end
-
+-- Tas tanpa cap slot (Bab 18.1 v7.3): CanAdd hanya cek valid.
 function InventoryService.CanAdd(player: Player, itemId: string, amount: number): boolean
 	local data = DataService.Get(player)
-	if not data or not isValid(itemId, amount) or Items.info(itemId) == nil then
-		return false
-	end
-	local current = data.inventory[itemId] or 0
-	local extra = slotsFor(current + amount) - slotsFor(current)
-	return slotsUsed(data) + extra <= slotsMax(player, data)
+	return data ~= nil and isValid(itemId, amount) and Items.info(itemId) ~= nil
 end
 
--- Returns false (and tells the player their bag is full) if it doesn't fit.
 function InventoryService.Add(player: Player, itemId: string, amount: number): boolean
 	local data = DataService.Get(player)
 	if not data or not isValid(itemId, amount) or Items.info(itemId) == nil then
-		return false
-	end
-	if not InventoryService.CanAdd(player, itemId, amount) then
-		Net.Fire("Notify", player, "inv.full")
 		return false
 	end
 	data.inventory[itemId] = (data.inventory[itemId] or 0) + amount

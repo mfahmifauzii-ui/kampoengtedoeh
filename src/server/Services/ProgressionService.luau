@@ -4,7 +4,6 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Blueprints = require(ReplicatedStorage.Shared.Config.Blueprints)
 local Crops = require(ReplicatedStorage.Shared.Config.Crops)
 local Decor = require(ReplicatedStorage.Shared.Config.Decor)
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
@@ -50,11 +49,6 @@ local function unlocksAt(level: number): { string }
 	for upgradeId, config in Shop.UPGRADES do
 		if config.unlockLevel == level and level > 1 then
 			table.insert(keys, `upgrade.{upgradeId}`)
-		end
-	end
-	for _, blueprint in Blueprints.list do
-		if blueprint.unlockLevel == level and level > 1 then
-			table.insert(keys, `blueprint.{blueprint.id}`)
 		end
 	end
 	return keys
