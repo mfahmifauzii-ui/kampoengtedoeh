@@ -118,7 +118,7 @@ return {
 
 	KANDANG_SIZES = KANDANG_SIZES,
 
-	FEED_MAX = 3, -- jatah per ekor (skill Tempat Pakan Besar P2-4 -> 5)
+	FEED_MAX = 3, -- jatah per ekor TANPA skill (lihat FeedMax di bawah)
 	PROD_MAX = 3, -- produk menumpuk per ekor
 	PAKAN_JAGUNG = { jagung = 5, jatah = 6 }, -- 5 Jagung -> 6 jatah Pakan Ayam (kandang ayam saja)
 	BREED_FEED_KOIN = 20, -- Pakan Ikan per 1x breeding
@@ -126,4 +126,10 @@ return {
 	MOOD_SECONDS = 300, -- 5 menit setelah hujan selesai (Bab 7.1 Mood Hujan, LOCKED)
 	MOOD_KOIN_MULT = 0.1, -- produk diambil di window mood: +10% Koin
 	MOOD_BREED_MULT = 0.9, -- breeding dimulai di window mood: -10% waktu
+
+	-- Tempat Pakan Besar (Bab 4.5, P2-4): max jatah 3 -> 5 saat skill lv >= 1 (USULAN: v7.3
+	-- tidak merinci progresi per level; final ikut owner/playtest 17.8).
+	FeedMax = function(skillLv: number): number
+		return if skillLv >= 1 then 5 else 3
+	end,
 }
