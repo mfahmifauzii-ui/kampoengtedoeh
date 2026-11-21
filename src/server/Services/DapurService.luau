@@ -65,24 +65,34 @@ local function takeInputs(player: Player, data: Types.PlayerData, recipe: Dapur.
 		if not crop then
 			return false
 		end
-		local have = InventoryService.Count(player, cropId)
-			+ InventoryService.Count(player, `bagus_{cropId}`)
-			+ InventoryService.Count(player, `prima_{cropId}`)
+		-- Super TIDAK ditolak: Super diabaikan, Kualitas base yang dipakai (P2-3-fix).
+		-- Contoh: kangkung@Prima+Super -> bisa dimasak jadi Olahan Prima, Super hilang.
+		local variants: { { id: string, quality: string } } = {
+			{ id = cropId, quality = "biasa" },
+			{ id = `bagus_{cropId}`, quality = "bagus" },
+			{ id = `prima_{cropId}`, quality = "prima" },
+			{ id = `super_{cropId}`, quality = "biasa" },
+			{ id = `super_bagus_{cropId}`, quality = "bagus" },
+			{ id = `super_prima_{cropId}`, quality = "prima" },
+		}
+		local have = 0
+		for _, variant in variants do
+			have += InventoryService.Count(player, variant.id)
+		end
 		if have < count then
 			return false
 		end
 		local left = count
-		for _, q in { "", "bagus_", "prima_" } do
+		for _, variant in variants do
 			if left <= 0 then
 				break
 			end
-			local id = `{q}{cropId}`
-			local take = math.min(left, InventoryService.Count(player, id))
+			local take = math.min(left, InventoryService.Count(player, variant.id))
 			if take > 0 then
-				table.insert(takes, { id = id, count = take })
+				table.insert(takes, { id = variant.id, count = take })
 				left -= take
-				if q ~= "" and qualityRank(q:sub(1, -2)) > qualityRank(best) then
-					best = q:sub(1, -2)
+				if qualityRank(variant.quality) > qualityRank(best) then
+					best = variant.quality
 				end
 			end
 		end
