@@ -1,6 +1,6 @@
 --!strict
 -- "Hadiah" panel (HUD "RewardButton"): two parts, both read from the server snapshot.
---   * Peti Main (Bab 15.2): three peti a day, opened in order by hand (PlaytimeClaim) once you have played long enough.
+--   * Peti Main (Bab 15.2): five peti a day, opened in order by hand (PlaytimeClaim) once you have played long enough.
 --     Kalender Harian was removed in v6.2 (T-28); Login Mingguan (Bab 15.1) will be the only login reward (Fase 6).
 -- The red dot on the button means a peti is ready to open.
 

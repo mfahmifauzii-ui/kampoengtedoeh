@@ -20,8 +20,7 @@ return {
 		return 200 + 30 * level
 	end,
 
-	-- XP per fish caught, by rarity (Fish.luau rarity C/U/R/L). Used by FishService. Bab 6 owns the final numbers (Fase 3).
-	FISH_XP = { C = 3, U = 6, R = 15, L = 40 } :: { [string]: number },
+	-- XP per tangkapan = per ikan (Fish.xp, Bab 6.4 v7.3).
 
 	UTC_OFFSET = 7 * 3600, -- WIB
 	RESET_HOUR = 5, -- daily and weekly resets at 05:00 WIB (Bab 3.2, 15.1): Agenda, Login, Bantu, Kerja Bakti, Playtime
@@ -33,14 +32,16 @@ return {
 		XP = { 300, 600, 900, 1200, 1500, 1500, 1500, 1500, 1500, 1500 },
 	},
 
-	-- Hadiah Waktu Bermain (Bab 15.2): active minutes per WIB day, Koin only (Kayu & Cacing wait for T-23 items).
+	-- Hadiah Waktu Bermain (Bab 15.2 v7.3, LOCKED): 5 peti, active minutes per WIB day, Koin only.
 	-- A tick counts only while the character moved MOVE_STUDS in TICK seconds, so standing AFK earns nothing.
 	PLAYTIME = {
 		TICK = 10, -- seconds per server check
 		MOVE_STUDS = 1,
 		CHESTS = {
 			{ minutes = 10, reward = { koin = 50 } },
+			{ minutes = 20, reward = { koin = 100 } },
 			{ minutes = 30, reward = { koin = 150 } },
+			{ minutes = 45, reward = { koin = 200 } },
 			{ minutes = 60, reward = { koin = 300 } },
 		} :: { { minutes: number, reward: Reward } },
 	},

@@ -44,30 +44,31 @@
     - Angka v7.3: Ladang 54 (18×3 Kualitas) + Sungai 80 (20×4 ukuran) + Dapur 72 (24×3) + Varian 8 = 214 GUI + milestone 25%→10 Bunga, 50%→20 Bunga + Title Kolektor, 75%→30 Bunga + Dekor Bingkai Emas, 100%→50 Bunga + Title Legenda Kampung. Kandang 5 + Rumah (auto Decor) tab terpisah.
     - Catatan: milestone 25%→10, 50%→20+Title, 75%→30+Bingkai Emas, 100%→50+Title adalah USULAN di v7.3 Bab 11, bukan LOCKED. Implementasi sebagai USULAN, tandai BUTUH LOCK OWNER.
     - Cara Cek: 54+80+72+8 = 214 ✓ + `MILESTONES` 4 baris cocok Bab 11 ✓ + selene 0 errors (2 warnings pre-existing) ✓ + rojo build sukses ✓. Dapur/Varian/Kandang direkam saat sistemnya ada (P2-2/P2-3/P2-6).
-- [ ] Playtime 5 peti (10 / 20 / 30 / 45 / 60) — Bab 15.2
-    - File: `src/shared/Config/Progression.luau` (sekarang `PLAYTIME` 3 baris 38-44: 10→50, 30→150, 60→300).
+- [x] Playtime 5 peti (10 / 20 / 30 / 45 / 60) — Bab 15.2 — DONE 2026-11-21
+    - File yang diubah: `Progression.luau` (`CHESTS` 5 baris), `PlaytimeService.luau` + `RewardsController.luau` (komentar 3/6 peti → 5).
     - Angka v7.3: 5 peti (10→50, 20→100, 30→150, 45→200, 60→300 Koin, hanya Koin).
-    - Cara Cek: `PLAYTIME` 5 baris + nilai cocok.
-- [ ] `PlayerData.version` 62 → 72 — Bab 28
-    - File: `src/shared/Config/DataTemplate.luau:9` (`version = 62`), `src/server/Services/DataService.luau:20` (`DATA_STAGE = "v62"`).
+    - Cara Cek: `PLAYTIME` 5 baris + nilai cocok ✓ + selene 0 errors ✓ (rojo di commit P1-10, kode generik ikut `CHESTS`).
+- [x] `PlayerData.version` 62 → 72 — Bab 28 — DONE 2026-11-21
+    - File yang diubah: `DataTemplate.luau:9` (`version = 72`), `DataService.luau:20` (`DATA_STAGE = "v72"`).
     - Angka v7.3: `version` = 72.
-    - Cara Cek: `grep -r "version = 72" src/shared/Config/DataTemplate.luau` + `DATA_STAGE = "v72"`.
-- [ ] Partikel hujan 30 / 60 / 90 — Bab 21
-    - File: `src/shared/Config/Weather.luau:30` (sekarang `PARTICLES = {gerimis = 30, deres = 80, petir = 80}`).
+    - Cara Cek: `grep` `version = 72` ✓ + `DATA_STAGE = "v72"` ✓ (selene + rojo di commit P1-10).
+- [x] Partikel hujan 30 / 60 / 90 — Bab 21 — DONE 2026-11-21
+    - File yang diubah: `Weather.luau` (`PARTICLES = {gerimis = 30, deres = 60, petir = 90}`). Kilat Petir sudah ada (`LIGHTNING_INTERVAL`/`LIGHTNING_FLASH_SECONDS`).
     - Angka v7.3: Gerimis 30, Deres 60, Petir 90 + kilat.
-    - Cara Cek: baris `PARTICLES` = 30/60/90.
-- [ ] Cap hias 150 → 800 — Bab 8.3
-    - File: `src/shared/Config/Decor.luau:220` (sekarang `MAX_PLACED = 150`).
+    - Cara Cek: baris `PARTICLES` = 30/60/90 ✓ (selene + rojo di commit P1-10).
+- [x] Cap hias 150 → 800 — Bab 8.3 — DONE 2026-11-21
+    - File yang diubah: `Decor.luau` (`MAX_PLACED = 800`).
     - Angka v7.3: 800 per lahan.
-    - Cara Cek: `grep "MAX_PLACED = 800" src/shared/Config/Decor.luau`.
-- [ ] Daily reward Agenda 40 → 150-400 Koin — Bab 14.5
-    - File: `src/shared/Config/Quests.luau:54-60` (sekarang 3 daily: tanam/panen/pancing; `DAILY_REWARD = {koin = 40, xp = 10}`).
-    - Angka v7.3: 5 tugas per hari, 150-400 Koin per tugas, tanpa Bunga.
-    - Cara Cek: `DAILY` 5 baris + reward per tugas dalam rentang 150-400 Koin.
-- [ ] XP ikan 3/6/15/40 → 10 s/d 600 per ikan — Bab 6.4
-    - File: `src/shared/Config/Progression.luau` (`FISH_XP = {C = 3, U = 6, R = 15, L = 40}`).
-    - Angka v7.3: XP per ikan dari tabel Bab 6.4 (10 s/d 600, mis. Wader 10, Ikan Dewa 600).
-    - Cara Cek: tiap entri ikan memuat `xp` cocok tabel + `FISH_XP` lama tidak dipakai FishService.
+    - Cara Cek: `grep "MAX_PLACED = 800"` ✓ (selene + rojo di commit P1-10).
+- [x] Daily reward Agenda 40 → 150-400 Koin — Bab 14.5 — DONE 2026-11-21
+    - File yang diubah: `Quests.luau` (5 daily + reward per tugas; `DAILY_REWARD` dihapus), `QuestService.luau` (grant `def.reward`), `id.luau` (5 desc + 5 title).
+    - Angka v7.3: 5 tugas per hari (Panen 5, Mancing 3, Masak 1, Bantu 1, Nambang 10 — contoh Bab 14.5), 150-400 Koin per tugas (Panen 200, Pancing 250, Masak 300, Bantu 150, Nambang 400), tanpa Bunga. XP 10 dipertahankan (tidak dibahas di v7.3 = LOCKED).
+    - Catatan: Masak/Bantu/Nambang belum ada pencatatnya (P2-3/P2-5/P2-1) → tugasnya belum bisa selesai sampai P2; acak harian yang belum selesai hilang saat reset, tanpa hukuman.
+    - Cara Cek: `DAILY` 5 baris + tiap reward 150-400 ✓ (selene + rojo di commit P1-10).
+- [x] XP ikan 3/6/15/40 → 10 s/d 600 per ikan — Bab 6.4 — DONE 2026-11-21
+    - File yang diubah: `FishService.luau` (`fish.xp`), `Progression.luau` (`FISH_XP` dihapus), `Fish.luau` (komentar).
+    - Angka v7.3: XP per ikan dari tabel Bab 6.4 (10 s/d 600, mis. Wader Cakul 10, Ikan Dewa 600 — sudah masuk di P1-2).
+    - Cara Cek: `grep -r "FISH_XP" src/` 0 hasil ✓ (selene + rojo di bawah).
 
 ## 5. P2 — Bangun Yang Hilang, Urut Core Loop (jangan dibalik)
 

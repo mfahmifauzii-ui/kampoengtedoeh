@@ -1,6 +1,6 @@
 --!strict
--- Hadiah playtime (Config/Progression PLAYTIME, R3 17.4). The server counts ACTIVE seconds per WIB day: a tick only counts
--- when the character moved at least MOVE_STUDS since the last tick, so standing AFK earns nothing. The six peti open in
+-- Hadiah playtime (Config/Progression PLAYTIME, Bab 15.2: 5 peti). The server counts ACTIVE seconds per WIB day: a tick only counts
+-- when the character moved at least MOVE_STUDS since the last tick, so standing AFK earns nothing. The five peti open in
 -- order, by hand (PlaytimeClaim). Attribute "PlaytimeSec" shows today's seconds on the client.
 
 local Players = game:GetService("Players")
