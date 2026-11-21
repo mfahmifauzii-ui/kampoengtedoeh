@@ -20,6 +20,7 @@ local ORDER = {
 	"RanchController", -- Ternak: tombol Kelola + panel kandang (Bab 7.1)
 	"PondController", -- Kolam: tombol Breeding + panel tier/breed/instant (Bab 7.2)
 	"DapurController", -- Dapur + Warung + Makan: panel resep/slot/warung/buff (Bab 9)
+	"SkillController", -- Skill 16 + SP: panel beli skill (Bab 4.5)
 	"InventoryController",
 	"ShopController",
 	"DialogueController",

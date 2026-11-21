@@ -12,14 +12,8 @@ local template: Types.PlayerData = {
 	bunga = Economy.START_BUNGA,
 	xp = 0,
 	level = 1,
-	sp = 0, -- Skill Point: 1 per Level Player (Bab 4.2), spent on Skill Cabang (Bab 4.5)
-	-- Level Cabang (Bab 4.2): Bertani, Mancing, Beternak, Tukang. Max Lv 10. XP is the same amount as the player's XP per action.
-	cabang = {
-		bertani = { lv = 0, xp = 0 },
-		mancing = { lv = 0, xp = 0 },
-		beternak = { lv = 0, xp = 0 },
-		tukang = { lv = 0, xp = 0 },
-	},
+	sp = 0, -- Skill Point: 1 per Level Player (Bab 4.2), spent on Skill (Bab 4.5)
+	-- CABANG DIHAPUS total (P2-4, Bab 4.5): Bertani/Mancing/Beternak/Tukang Lv 0-10 diganti 16 skill.
 	skill = {}, -- [skillId] = level 0..5 (Bab 4.5)
 
 	stats = {
@@ -41,6 +35,7 @@ local template: Types.PlayerData = {
 		-- Old accounts keep the rod they already have: this default only fills keys that are missing.
 		rod = "", -- equipped rod id ("" = none)
 		ownedRods = {},
+		pity = {}, -- [fishId] = lemparan cocok sejak Legenda terakhir (Bab 6.5, P2-4)
 	},
 
 	tools = {}, -- owned farm tools (Config/Farm TOOLS: gembor/sabit/sepatu/kapak), bought with Koin + bahan

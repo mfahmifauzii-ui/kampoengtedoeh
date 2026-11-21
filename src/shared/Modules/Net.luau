@@ -70,6 +70,7 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	BreedInstant = "Event", -- C->S (pondUid: number) instant breeding pakai Bunga (Bab 18.5)
 	PondTier = "Event", -- C->S (pondUid: number, tier: string) upgrade tier kolam (semen/keramik)
 
+	SkillBuy = "Event", -- C->S (skillId: string) beli 1 level skill pakai SP (max Lv 5)
 	DapurBuild = "Event", -- C->S () bangun Inti Tier 1
 	DapurUpgrade = "Event", -- C->S () upgrade ke tier berikut (refund 100% Inti lama)
 	DapurCook = "Event", -- C->S (slot: number, recipeId: string) mulai masak (slot 0 = otomatis)

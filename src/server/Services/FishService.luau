@@ -46,6 +46,7 @@ type Session = {
 	spot: BasePart,
 	fishId: string,
 	biteAt: number, -- os.clock
+	usedBait: Fishing.Bait?,
 }
 
 local sessions: { [Player]: Session } = {}
@@ -228,7 +229,31 @@ local function startCast(player: Player, spot: BasePart)
 			break
 		end
 	end
-	local fishId = rollFish(location, data.level, rod.rareBonus, rod.legendaryBonus, usedBait, nil)
+	-- Pity Legenda (Bab 6.5, LOCKED, P2-4): counter per player per jenis Legenda, naik hanya saat
+	-- lemparan di kondisi yang cocok. Lemparan ke-200 dijamin (dikurangi skill Firasat, min 150).
+	-- Counter reset setelah dapat.
+	data.fishing.pity = data.fishing.pity or {}
+	local firasat = data.skill.firasat or 0
+	local pityAt = math.max(150, 200 - 10 * firasat)
+	local forcedId: string? = nil
+	local forcedCount = -1
+	do
+		local phase, raining = getConditions()
+		for _, fish in FishConfig.list do
+			if fish.rarity == "L"
+				and data.level >= fish.unlockLevel
+				and table.find(fish.locations, location)
+				and isAvailable(fish, phase, raining)
+			then
+				local n = (data.fishing.pity[fish.id] or 0) + 1
+				data.fishing.pity[fish.id] = n
+				if n >= pityAt and n > forcedCount then
+					forcedId, forcedCount = fish.id, n
+				end
+			end
+		end
+	end
+	local fishId = forcedId or rollFish(location, data.level, rod.rareBonus, rod.legendaryBonus, usedBait, nil)
 	if not fishId then
 		Net.Fire("Notify", player, "fish.none_here")
 		return
@@ -242,7 +267,7 @@ local function startCast(player: Player, spot: BasePart)
 	if Buffs.active(data.buff, "pancing", os.time()) then
 		biteDelay *= Dapur.BUFF_PANCING_BITE
 	end
-	local session: Session = { spot = spot, fishId = fishId, biteAt = os.clock() + biteDelay }
+	local session: Session = { spot = spot, fishId = fishId, biteAt = os.clock() + biteDelay, usedBait = usedBait }
 	sessions[player] = session
 	Net.Fire("FishState", player, "waiting", spot)
 
@@ -264,7 +289,10 @@ local function onReel(player: Player, score: any)
 	end
 	-- NO TIMEOUT: the bite never expires, the player can reel in whenever they tap (no fail state).
 
-	local size = sizeFor(math.clamp(score, 0, 1))
+	-- Skill Ikan Besar (Bab 4.5, P2-4): skor +2%/lv (peluang Besar/Jumbo naik, nilai harapan).
+	local reelData = DataService.Get(player)
+	local ikanBesar = reelData and reelData.skill.ikan_besar or 0
+	local size = sizeFor(math.clamp(score + 0.02 * ikanBesar, 0, 1))
 	sessions[player] = nil
 	if InventoryService.Add(player, FishService.ItemId(session.fishId, size), 1) then
 		Net.Fire("Notify", player, "fish.caught", { item = `fish.{session.fishId}`, size = `size.{size}` })
@@ -273,6 +301,11 @@ local function onReel(player: Player, score: any)
 			caughtData.guide.fishCaught = true -- the t1b "after_catch" step only passes after a real catch
 		end
 		local fish = FishConfig.byId[session.fishId]
+		if fish.rarity == "L" and caughtData then
+			-- Pity reset (Bab 6.5): counter spesies ini kembali 0 setelah dapat.
+			caughtData.fishing.pity = caughtData.fishing.pity or {}
+			caughtData.fishing.pity[fish.id] = 0
+		end
 		ProgressionService.AddXp(player, fish.xp or 0, `catch:{fish.id}`)
 		BookService.RecordFish(player, fish.id, size)
 		AnalyticsHooks.Step(player, "first_catch")
@@ -285,7 +318,16 @@ local function onReel(player: Player, score: any)
 end
 
 local function onCancel(player: Player)
-	if sessions[player] then
+	local session = sessions[player]
+	if session then
+		-- Skill Umpan Hemat (Bab 4.5, P2-4): 5%/lv umpan yang dipakai kembali saat lepas (cancel).
+		if session.usedBait then
+			local data = DataService.Get(player)
+			if data and random:NextNumber() < 0.05 * (data.skill.umpan_hemat or 0) then
+				InventoryService.Add(player, session.usedBait.id, 1)
+				Net.Fire("Notify", player, "fish.bait_back")
+			end
+		end
 		endSession(player)
 	end
 end

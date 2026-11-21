@@ -397,6 +397,12 @@ local function clearCrop(tile: Types.FarmTile)
 	tile.harvestsLeft = nil
 end
 
+-- Skill Tangan Hijau (Bab 4.5, P2-4): tumbuh +2%/lv (waktu x (1 - 0,02 x lv)).
+local function growSeconds(data: Types.PlayerData, crop: Crops.Crop): number
+	local lv = data.skill.tangan_hijau or 0
+	return math.ceil(crop.growSeconds * (1 - 0.02 * lv))
+end
+
 local function onPlant(player: Player, uid: any, cropId: any)
 	if typeof(cropId) ~= "string" then
 		return
@@ -419,7 +425,7 @@ local function onPlant(player: Player, uid: any, cropId: any)
 	local now = os.time()
 	tile.crop = crop.id
 	tile.plantedAt = now
-	tile.readyAt = now + crop.growSeconds
+	tile.readyAt = now + growSeconds(data, crop)
 	-- Tutorial seeds: the first plantings of a new save grow fast (data.guide.fastLeft); later ones use the normal timer.
 	if TutorialService.ConsumeFast(player) then
 		tile.readyAt = now + Onboarding.FAST_GROW_SECONDS
@@ -505,24 +511,25 @@ end
 
 -- Kualitas roll (Bab 5.4 v7.3, Config/Kualitas). Server only.
 --   timely: panen <=5 menit setelah matang. wet: petak Basah. Mutasi DIHAPUS total (Bab 29).
-local function rollQuality(tile: Types.FarmTile, now: number): string?
+local function rollQuality(tile: Types.FarmTile, now: number, mataLv: number): string?
 	local readyAt = tile.readyAt
 	local timely = readyAt ~= nil and now - readyAt <= Kualitas.TIMELY_WINDOW_SECONDS
 	local wet = tile.watered == true
-	return Kualitas.pick(timely, wet, random:NextNumber())
+	-- Skill Mata Kualitas (Bab 4.5, P2-4): Bagus +2%/lv, Prima +0,5%/lv, additive.
+	return Kualitas.pick(timely, wet, random:NextNumber(), 0.02 * mataLv, 0.005 * mataLv)
 end
 
 -- Harvest roll (Bab 5.3 Super, Bab 5.4 Kualitas). Server only.
 --   Super: base 5%, +5% if the tile is Basah. Fase 1 forces it for the FTUE first harvest (forceSuper).
 --   Buff Tani (Bab 9.4): +10% peluang Super (superBonus). Tidak ngaruh ke waktu tumbuh.
 --   Kualitas: timing + Basah roll (rollQuality). Returns (super, qualityId?).
-local function rollHarvest(tile: Types.FarmTile, now: number, forceSuper: boolean, superBonus: number): (boolean, string?)
+local function rollHarvest(tile: Types.FarmTile, now: number, forceSuper: boolean, superBonus: number, mataLv: number): (boolean, string?)
 	local super = forceSuper
 	if not super then
 		local chance = Farm.SUPER_CHANCE + (if tile.watered == true then Farm.SUPER_WET_BONUS else 0) + superBonus
 		super = random:NextNumber() < chance
 	end
-	return super, rollQuality(tile, now)
+	return super, rollQuality(tile, now, mataLv)
 end
 
 -- The FTUE first harvest of a new save is always Super (Bab 16.3 0:50). Once per save:
@@ -550,7 +557,7 @@ local function onHarvest(player: Player, uid: any)
 	end
 	local guaranteed = takeFirstHarvestGuarantee(data)
 	local taniBonus = if Buffs.active(data.buff, "tani", now) then Dapur.BUFF_TANI_SUPER else 0
-	local super, quality = rollHarvest(tile, now, guaranteed, taniBonus)
+	local super, quality = rollHarvest(tile, now, guaranteed, taniBonus, data.skill.mata_kualitas or 0)
 	local itemId = Items.cropItemId(crop.id, super, quality)
 	if not InventoryService.Add(player, itemId, crop.yield) then
 		return
@@ -558,6 +565,11 @@ local function onHarvest(player: Player, uid: any)
 	-- Byproduct panen (Bab 5.3 v7.3): Padi -> 2 Jerami, Pisang -> 2 Daun Pisang. Tidak blokir panen kalau gagal.
 	if crop.byproduct then
 		InventoryService.Add(player, crop.byproduct.id, crop.byproduct.count)
+	end
+	-- Skill Bibit Hemat (Bab 4.5, P2-4): 4%/lv, 1 bibit kembali saat panen.
+	if random:NextNumber() < 0.04 * (data.skill.bibit_hemat or 0) then
+		InventoryService.Add(player, `seed_{crop.id}`, 1)
+		Net.Fire("Notify", player, "farm.seed_back", { crop = `crop.{crop.id}` })
 	end
 	if guaranteed then
 		data.guide.done.ftue_super = true -- marked only after the item is in the bag (a full bag must not waste it)
@@ -568,7 +580,7 @@ local function onHarvest(player: Player, uid: any)
 	if harvestsLeft > 0 then
 		tile.harvestsLeft = harvestsLeft - 1
 		tile.plantedAt = now
-		tile.readyAt = now + crop.growSeconds
+		tile.readyAt = now + growSeconds(data, crop)
 		tile.watered = false
 	else
 		clearCrop(tile) -- the tile itself (uid, cell) stays: the soil stays tilled

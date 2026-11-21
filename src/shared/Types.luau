@@ -108,7 +108,7 @@ export type PlayerData = {
 	xp: number,
 	level: number,
 	sp: number,
-	cabang: { [string]: { lv: number, xp: number } },
+	-- CABANG DIHAPUS total (P2-4, Bab 4.5). Jangan tambah kembali.
 	skill: { [string]: number },
 	stats: {
 		firstJoin: number,
@@ -124,6 +124,7 @@ export type PlayerData = {
 	fishing: {
 		rod: string,
 		ownedRods: { [string]: boolean },
+		pity: { [string]: number }, -- counter per spesies Legenda (Bab 6.5, P2-4)
 	},
 	quests: {
 		active: { [string]: { step: number, count: number } },

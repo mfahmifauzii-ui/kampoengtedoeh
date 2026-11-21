@@ -1,6 +1,6 @@
 --!strict
 -- Unlock table per Level Player (docs/Kampoeng_Tedoeh_Gameplay_Lengkap_v6.2.md Bab 4.4). Aturan: "Konten baru = Level
--- Player. Alat baru = Level Cabang." The lists here are the reference for the content Levels; the per-content configs
+-- Player. Alat baru = Level Player" (CABANG DIHAPUS, P2-4: "Level Cabang" lama diganti 16 skill). The lists here are the reference for the content Levels; the per-content configs
 -- (Config/Crops, Fish, Npcs, Shop, ...) carry the same numbers in their unlockLevel fields until their phase moves them here.
 -- Levels 61-100 are filled by Update 1 and 2 (Bab 26) and are not listed.
 

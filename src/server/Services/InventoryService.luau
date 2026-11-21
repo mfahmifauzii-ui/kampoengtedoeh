@@ -89,6 +89,7 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 			freeRerolls = OrdersConfig.FREE_REROLLS,
 			rerolled = data.orders.rerolled,
 		},
+		skills = data.skill, -- level skill per id untuk panel + efek (P2-4)
 		book = data.book,
 		playtime = table.clone(data.playtime),
 		titles = data.titles,

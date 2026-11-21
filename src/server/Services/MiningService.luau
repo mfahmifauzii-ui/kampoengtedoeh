@@ -140,6 +140,10 @@ local function onHit(player: Player, nodeId: any, crit: any)
 			gained += 1
 		end
 	end
+	-- Skill Kayu Kuat (Bab 4.5, P2-4): +2% bahan per pukulan (nilai harapan, roll per pukulan).
+	if math.random() < 0.02 * (data.skill.kayu_kuat or 0) then
+		gained += 1
+	end
 	if not InventoryService.Add(player, node.itemId, gained) then
 		return -- item tak dikenal: pukulan tidak dihitung (server tetap sumber kebenaran)
 	end
@@ -147,6 +151,9 @@ local function onHit(player: Player, nodeId: any, crit: any)
 	if entry.hits <= 0 then
 		entry.readyAt = os.time() + Mining.RESPAWN_SECONDS
 		local bonus = axeBonus(data)
+		-- Skill Tukang Cepat (Bab 4.5, P2-4): +1 bahan per node di Lv 3, +2 di Lv 5 (tumpuk kapak).
+		local tc = data.skill.tukang_cepat or 0
+		bonus += if tc >= 5 then 2 elseif tc >= 3 then 1 else 0
 		if bonus > 0 then
 			if InventoryService.Add(player, node.itemId, bonus) then
 				gained += bonus

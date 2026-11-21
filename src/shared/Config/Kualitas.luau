@@ -38,13 +38,16 @@ for _, quality in list do
 end
 
 -- roll: hasil random:NextNumber() dari pemanggil (FarmService). Returns quality id atau nil (Biasa).
-local function pick(timely: boolean, wet: boolean, roll: number): string?
+-- bonusBagus/bonusPrima: Skill Mata Kualitas (Bab 4.5, P2-4) — additive di atas tabel Bab 5.4.
+local function pick(timely: boolean, wet: boolean, roll: number, bonusBagus: number?, bonusPrima: number?): string?
 	local dist = if timely and wet then DISTRIBUTION.timelyWet
 		elseif timely or wet then DISTRIBUTION.oneOf
 		else DISTRIBUTION.lateDry
-	if roll < dist.bagus then
+	local bagus = dist.bagus + (bonusBagus or 0)
+	local prima = dist.prima + (bonusPrima or 0)
+	if roll < bagus then
 		return "bagus"
-	elseif roll < dist.bagus + dist.prima then
+	elseif roll < bagus + prima then
 		return "prima"
 	end
 	return nil -- Biasa

@@ -1,5 +1,6 @@
 --!strict
--- Levels (cap 60, docs/Kampoeng_Tedoeh_Gameplay_Lengkap_v6.2.md Bab 4), Level Cabang, XP sources, playtime chests, time zone.
+-- Levels (cap 60, docs/Kampoeng_Tedoeh_Gameplay_Lengkap_v6.2.md Bab 4), XP sources, playtime chests, time zone.
+-- CABANG DIHAPUS total (P2-4, Bab 4.5): diganti 16 skill. Jangan tambah kembali.
 -- Reward tables everywhere use the same shape:
 --   { koin = n?, bunga = n?, xp = n?, items = {[itemId] = n}?, decor = {[decorId] = n}?, title = id? }
 -- Bunga is only given by the sources in Bab 4.1 (never by level-up, likes or visits; v6.2 changelog 13-16 & 18).
@@ -24,13 +25,6 @@ return {
 
 	UTC_OFFSET = 7 * 3600, -- WIB
 	RESET_HOUR = 5, -- daily and weekly resets at 05:00 WIB (Bab 3.2, 15.1): Agenda, Login, Bantu, Kerja Bakti, Playtime
-
-	-- Level Cabang (Bab 4.2): Bertani, Mancing, Beternak, Tukang. Lv 0 -> 10. Each step is the XP for that level,
-	-- in order (Bab 4.3: 300, 600, 900, 1.200, then 1.500 x 6; total 12.000). Max Lv 10.
-	CABANG = {
-		MAX_LEVEL = 10,
-		XP = { 300, 600, 900, 1200, 1500, 1500, 1500, 1500, 1500, 1500 },
-	},
 
 	-- Hadiah Waktu Bermain (Bab 15.2 v7.3, LOCKED): 5 peti, active minutes per WIB day, Koin only.
 	-- A tick counts only while the character moved MOVE_STUDS in TICK seconds, so standing AFK earns nothing.

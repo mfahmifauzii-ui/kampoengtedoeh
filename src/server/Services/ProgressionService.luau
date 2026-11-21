@@ -87,22 +87,8 @@ function ProgressionService.Grant(player: Player, reward: Reward, reason: string
 	InventoryService.Sync(player)
 end
 
--- Level Cabang XP (Bab 4.2): the same amount as the action's Player XP. branch = bertani | mancing | beternak | tukang.
-function ProgressionService.AddCabangXp(player: Player, branch: string, amount: number)
-	local data = DataService.Get(player)
-	local cabang = data and data.cabang[branch]
-	if not cabang or typeof(amount) ~= "number" or amount <= 0 or cabang.lv >= Progression.CABANG.MAX_LEVEL then
-		return
-	end
-	cabang.xp += math.floor(amount)
-	while cabang.lv < Progression.CABANG.MAX_LEVEL and cabang.xp >= Progression.CABANG.XP[cabang.lv + 1] do
-		cabang.xp -= Progression.CABANG.XP[cabang.lv + 1]
-		cabang.lv += 1
-	end
-	if cabang.lv >= Progression.CABANG.MAX_LEVEL then
-		cabang.xp = 0
-	end
-end
+-- CABANG DIHAPUS total (P2-4, Bab 4.5): diganti 16 skill (Config/Skills + SkillService).
+-- Jangan tambah kembali.
 
 function ProgressionService.AddXp(player: Player, amount: number, _reason: string)
 	local data = DataService.Get(player)

@@ -7,6 +7,7 @@ local Progression = require(script.Parent.Progression)
 return {
 	VISIT_OFFSET = Vector3.new(0, 4, 40), -- relative to a plot's Origin: by the sign, facing the road
 	VISIT_COOLDOWN = 3, -- seconds between teleports
+	BANTU_MAX_DAY = 5, -- max lahan dibantu per hari (Bab 12, P2-5 Bantu; +1 via skill Tetangga Baik)
 	LIKE_MARGIN = 6, -- studs outside the plot edge that still count as "on the plot"
 
 	-- T-27 (owner, 20 Nov): Bunga removed here. Koin = 100 per old Bunga (3/10/25 -> 300/1.000/2.500), about one

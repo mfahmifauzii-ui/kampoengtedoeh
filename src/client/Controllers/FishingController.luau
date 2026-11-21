@@ -279,6 +279,9 @@ local function zoneWidth(): number
 	if typeof(endsAt) == "number" and endsAt > Workspace:GetServerTimeNow() then
 		width *= Dapur.BUFF_PANCING_BOX
 	end
+	-- Skill Joran Kuat (Bab 4.5, P2-4): Kotak tarik +2%/lv.
+	local snapSkills = snap and snap.skills
+	width *= 1 + 0.02 * (if snapSkills then snapSkills.joran_kuat or 0 else 0)
 	return width
 end
 

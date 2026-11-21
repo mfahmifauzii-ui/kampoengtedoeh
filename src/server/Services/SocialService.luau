@@ -10,6 +10,7 @@ local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Social = require(ReplicatedStorage.Shared.Config.Social)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
+local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
 local InventoryService = require(script.Parent.InventoryService)
 local PlotService = require(script.Parent.PlotService)
@@ -116,6 +117,13 @@ local function onLike(player: Player, ownerUserId: any)
 	grantMilestones(owner)
 	InventoryService.Sync(player)
 	InventoryService.Sync(owner)
+end
+
+-- Batas bantu harian (Bab 4.5/12, P2-4 + P2-5): 5 lahan/hari, +1 saat skill Tetangga Baik Lv 3+.
+-- P2-5 (Bantu/Sosial) memanggil ini saat reset 05:00; skill dibeli di P2-4.
+function SocialService.MaxBantu(data: Types.PlayerData): number
+	local bonus = if (data.skill.tetangga_baik or 0) >= 3 then 1 else 0
+	return Social.BANTU_MAX_DAY + bonus
 end
 
 function SocialService.Init()

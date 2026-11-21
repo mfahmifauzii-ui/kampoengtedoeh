@@ -16,6 +16,7 @@ local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local DecorGrid = require(ReplicatedStorage.Shared.Modules.DecorGrid)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Types = require(ReplicatedStorage.Shared.Types)
+local random = Random.new()
 local DataService = require(script.Parent.DataService)
 local InventoryService = require(script.Parent.InventoryService)
 local PlotService = require(script.Parent.PlotService)
@@ -432,12 +433,18 @@ local function onCook(player: Player, slot: any, recipeId: any)
 		Net.Fire("Notify", player, "dapur.no_mats")
 		return
 	end
-	local dur = math.floor(recipe.minutes * 60 * Dapur.TIERS[data.dapur.tier].timeMult + 0.5)
+	-- Skill Koki Cepat (Bab 4.5, P2-4): waktu olah -3%/lv.
+	local cookMult = Dapur.TIERS[data.dapur.tier].timeMult * (1 - 0.03 * (data.skill.koki_cepat or 0))
+	local dur = math.floor(recipe.minutes * 60 * cookMult + 0.5)
 	local now = os.time()
 	-- Resep 1.6x: base dihitung dari bahan YANG DIPAKAI (contoh Wader 70x1.6=112->110).
 	local base = 0
 	if recipe.mult then
 		base = math.floor(value * recipe.mult / 10 + 0.5) * 10
+	end
+	-- Skill Rasa Prima (Bab 4.5, P2-4): peluang Olahan Prima +1%/lv (dari bahan tertinggi).
+	if quality ~= "prima" and random:NextNumber() < 0.01 * (data.skill.rasa_prima or 0) then
+		quality = "prima"
 	end
 	data.dapur.slots[slot :: number] = { recipe = recipe.id, startedAt = now, endsAt = now + dur, quality = quality, base = base }
 	InventoryService.Sync(player)

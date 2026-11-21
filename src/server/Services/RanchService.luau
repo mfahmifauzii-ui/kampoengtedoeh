@@ -3,7 +3,7 @@
 -- isi pakan, produksi jalan walau offline (timestamp), ambil semua, Mood Hujan.
 -- Hewan tidak mati/sakit/kabur. Tidak ada daging, tidak ada kasih minum/bar haus.
 -- Pakan Jagung (5 Jagung -> 6 jatah, kandang ayam) jalan di sini; resep Dapur penuhnya P2-3.
--- Skill Tempat Pakan Besar (max 5) = P2-4 Skill-16; sekarang max 3 (Ranch.FEED_MAX).
+-- Skill Tempat Pakan Besar (Bab 4.5, P2-4): max jatah = Ranch.FeedMax (3, atau 5 saat skill ada).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -38,8 +38,8 @@ end
 
 -- Majukan produksi 1 ekor sampai `now`. Tiap siklus: 1 jatah -> 1 produk (buffer max).
 -- 3 siklus cukup untuk konvergen (feed max 3 habis / prod max 3 penuh).
-local function advance(hewan: Ranch.Hewan, animal: Types.RanchAnimal, now: number)
-	local cooldown = hewan.product.minutes * 60
+local function advance(hewan: Ranch.Hewan, animal: Types.RanchAnimal, now: number, cdMult: number)
+	local cooldown = hewan.product.minutes * 60 * cdMult
 	if cooldown <= 0 or now <= animal.last then
 		return
 	end
@@ -57,11 +57,13 @@ local function advance(hewan: Ranch.Hewan, animal: Types.RanchAnimal, now: numbe
 end
 
 function RanchService.AdvanceAll(data: Types.PlayerData, now: number)
+	-- Skill Telur Cepat (Bab 4.5, P2-4): Cooldown -2%/lv (waktu x (1 - 0,02 x lv)).
+	local cdMult = 1 - 0.02 * (data.skill.telur_cepat or 0)
 	for id, entry in data.ranch.kandang do
 		local hewan = Ranch.byHewan[id]
 		if hewan then
 			for _, animal in entry.animals do
-				advance(hewan, animal, now)
+				advance(hewan, animal, now, cdMult)
 			end
 		end
 	end
@@ -372,13 +374,18 @@ end
 -- Isi pakan penuh 1 kandang: "koin" (semua ekor, bayar per jatah), "jagung" (ayam saja,
 -- 5 Jagung -> 6 jatah, yang paling lapar dulu) atau "pakan" (pakai item Pakan Jagung dari Dapur).
 -- Penuh = BLOCK + toast, tanpa potong apa pun (tanpa hangus).
-local function fillHungriest(entry: Types.RanchKandang, n: number): number
+-- Skill Tempat Pakan Besar (Bab 4.5, P2-4): max jatah FeedMax (3 -> 5).
+local function feedMax(data: Types.PlayerData): number
+	return Ranch.FeedMax(data.skill.tempat_pakan_besar or 0)
+end
+
+local function fillHungriest(entry: Types.RanchKandang, n: number, maxFeed: number): number
 	local added = 0
 	local left = n
 	while left > 0 do
 		local hungriest: Types.RanchAnimal? = nil
 		for _, animal in entry.animals do
-			if animal.feed < Ranch.FEED_MAX and (not hungriest or animal.feed < (hungriest :: Types.RanchAnimal).feed) then
+			if animal.feed < maxFeed and (not hungriest or animal.feed < (hungriest :: Types.RanchAnimal).feed) then
 				hungriest = animal
 			end
 		end
@@ -415,9 +422,10 @@ local function onPakan(player: Player, hewanId: any, kind: any)
 			return -- Pakan Jagung hanya untuk Pakan Ayam (Bab 7.1)
 		end
 		-- Penuh (tidak muat 6 jatah) = BLOCK + toast, Jagung tidak dipotong. Tanpa hangus.
+		local maxFeed = feedMax(data)
 		local space = 0
 		for _, animal in entry.animals do
-			space += math.max(Ranch.FEED_MAX - animal.feed, 0)
+			space += math.max(maxFeed - animal.feed, 0)
 		end
 		if space < Ranch.PAKAN_JAGUNG.jatah then
 			Net.Fire("Notify", player, "ranch.feed_full")
@@ -428,7 +436,7 @@ local function onPakan(player: Player, hewanId: any, kind: any)
 			return
 		end
 		InventoryService.Remove(player, "jagung", Ranch.PAKAN_JAGUNG.jagung)
-		local added = fillHungriest(entry, Ranch.PAKAN_JAGUNG.jatah)
+		local added = fillHungriest(entry, Ranch.PAKAN_JAGUNG.jatah, maxFeed)
 		InventoryService.Sync(player)
 		Net.Fire("Notify", player, "ranch.jagung", { n = added })
 		return
@@ -437,9 +445,10 @@ local function onPakan(player: Player, hewanId: any, kind: any)
 		if hewanId ~= "ayam" then
 			return -- Pakan Jagung hanya untuk Pakan Ayam (Bab 9.2)
 		end
+		local maxFeed = feedMax(data)
 		local space = 0
 		for _, animal in entry.animals do
-			space += math.max(Ranch.FEED_MAX - animal.feed, 0)
+			space += math.max(maxFeed - animal.feed, 0)
 		end
 		if space <= 0 then
 			Net.Fire("Notify", player, "ranch.feed_full")
@@ -452,14 +461,15 @@ local function onPakan(player: Player, hewanId: any, kind: any)
 		end
 		local take = math.min(have, 6, space)
 		InventoryService.Remove(player, "pakan_jagung", take)
-		local added = fillHungriest(entry, take)
+		local added = fillHungriest(entry, take, maxFeed)
 		InventoryService.Sync(player)
 		Net.Fire("Notify", player, "ranch.pakan", { n = added })
 		return
 	end
+	local maxFeed = feedMax(data)
 	local missing = 0
 	for _, animal in entry.animals do
-		missing += math.max(Ranch.FEED_MAX - animal.feed, 0)
+		missing += math.max(maxFeed - animal.feed, 0)
 	end
 	if missing <= 0 then
 		Net.Fire("Notify", player, "ranch.feed_full")
@@ -471,13 +481,13 @@ local function onPakan(player: Player, hewanId: any, kind: any)
 		return
 	end
 	for _, animal in entry.animals do
-		animal.feed = Ranch.FEED_MAX
+		animal.feed = maxFeed
 	end
 	InventoryService.Sync(player)
 	Net.Fire("Notify", player, "ranch.fed", { n = missing })
 end
 
--- Ambil semua produk 1 kandang (1 tombol di depan kandang / panel). XP + cabang Beternak per produk.
+-- Ambil semua produk 1 kandang (1 tombol di depan kandang / panel). XP per produk (CABANG DIHAPUS, P2-4).
 function RanchService.Collect(player: Player, hewanId: string)
 	local hewan = Ranch.byHewan[hewanId]
 	local data = DataService.Get(player)
@@ -510,7 +520,6 @@ function RanchService.Collect(player: Player, hewanId: string)
 	end
 	if xp > 0 then
 		ProgressionService.AddXp(player, xp, `ranch:{hewanId}`)
-		ProgressionService.AddCabangXp(player, "beternak", xp)
 	end
 	Net.Fire("Notify", player, "ranch.collected", { n = count, item = `item.{hewan.product.item}` })
 	-- Mood Hujan: produk yang diambil di window +10% Koin (Bab 7.1, LOCKED).

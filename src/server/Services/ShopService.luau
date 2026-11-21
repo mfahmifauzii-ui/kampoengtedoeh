@@ -99,6 +99,10 @@ local function onSell(player: Player, npcId: any, target: any, amount: any)
 		table.insert(toSell, target)
 	end
 
+	-- Skill Panen Raya / Susu Melimpah (Bab 4.5, P2-4): +2%/lv di luar cap Dekor (Bab 17.6).
+	-- Tidak ada sistem stat Dekor di src/ (P2-9), jadi skill langsung menambah harga jual.
+	local cropMult = 1 + 0.02 * (data.skill.panen_raya or 0)
+	local ternakMult = 1 + 0.02 * (data.skill.susu_melimpah or 0)
 	local total = 0
 	for _, itemId in toSell do
 		local price = unitPrice(itemId) :: number
@@ -107,9 +111,12 @@ local function onSell(player: Player, npcId: any, target: any, amount: any)
 			count = math.min(count, wanted)
 		end
 		if count and count > 0 and InventoryService.Remove(player, itemId, count) then
-			total += price * count
+			local info = Items.info(itemId)
+			local mult = if info and info.kind == "crop" then cropMult elseif info and info.kind == "ternak" then ternakMult else 1
+			total += price * count * mult
 		end
 	end
+	total = math.floor(total + 0.5)
 
 	if total > 0 then
 		-- The first-sale cutscene follows the tutorial's state: T1 not finished (or reset with !tut reset) and the cutscene not played yet.

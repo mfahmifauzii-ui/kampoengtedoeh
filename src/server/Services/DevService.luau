@@ -22,7 +22,7 @@ local WorldService = require(script.Parent.WorldService)
 local MonetizationService = require(script.Parent.MonetizationService)
 local EventService = require(script.Parent.EventService)
 
-local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !orders, !grow, !time malam, !rain, !cuaca terik|gerimis|deres|petir, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 2: !level 2),!inv, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !buff tani 60 (UI test only: no effect yet), !give kangkung 30, !tut [reset|fast], !kakek (unlock Kolam Kakek: MQ4/Bundel placeholder)"
+local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !sp 2, !orders, !grow, !time malam, !rain, !cuaca terik|gerimis|deres|petir, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 2: !level 2),!inv, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !buff tani 60 (UI test only: no effect yet), !give kangkung 30, !tut [reset|fast], !kakek (unlock Kolam Kakek: MQ4/Bundel placeholder)"
 
 local DevService = {}
 
@@ -100,6 +100,14 @@ local function onChatted(player: Player, message: string)
 		ProgressionService.DevSetLevel(player, amount)
 	elseif command == "xp" and amount and amount > 0 then
 		ProgressionService.AddXp(player, amount, "dev")
+	elseif command == "sp" and amount and amount > 0 then
+		-- DEV ONLY (playtest skill P2-4): tambah SP langsung.
+		local data = DataService.Get(player)
+		if data then
+			data.sp += math.floor(amount)
+			InventoryService.Sync(player)
+			print(`[DevService] sp = {data.sp}`)
+		end
 	elseif command == "pass" then
 		MonetizationService.DevTogglePass(player, arg)
 	elseif command == "receipt" then

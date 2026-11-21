@@ -90,9 +90,11 @@ local function rebuild()
 				Net.Send("RanchAmbil", hewan.id)
 			end)
 			order += 1
+			local tpb = (snap and snap.skills and snap.skills.tempat_pakan_besar) or 0
+			local maxFeed = if tpb >= 1 then 5 else Ranch.FEED_MAX
 			local missing = 0
 			for _, animal in entry.animals or {} do
-				missing += math.max(Ranch.FEED_MAX - (animal.feed or 0), 0)
+				missing += math.max(maxFeed - (animal.feed or 0), 0)
 			end
 			local feedCost = `{missing * hewan.feedPrice} Koin`
 			UiKit.row(list, order, Locale.t("ranch.feed"), feedCost, Locale.t("ranch.feed"), missing > 0, function()
