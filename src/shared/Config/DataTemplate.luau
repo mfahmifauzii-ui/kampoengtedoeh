@@ -50,6 +50,10 @@ local template: Types.PlayerData = {
 		nextUid = 1,
 	},
 
+	mining = {
+		nodes = {}, -- [nodeId] = { hits, readyAt }: sisa pukulan + waktu respawn per-player (Config/Mining)
+	},
+
 	decor = {
 		placed = {}, -- { {uid, id, x, z, r} } grid cells on the owner's plot
 		stock = {}, -- [itemId] = count owned but not placed

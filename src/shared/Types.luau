@@ -34,6 +34,12 @@ export type PondEntry = {
 	lastCollect: number, -- os.time of the last collect (fish accrue from here)
 }
 
+-- Per-player mining node: sisa pukulan + kapan respawn (os.time, 0 = siap). Node habis = hits 0.
+export type MiningNodeState = {
+	hits: number,
+	readyAt: number,
+}
+
 -- items[i].item is a crop id or a fish id (any size counts for fish).
 export type OrderEntry = {
 	uid: number,
@@ -77,6 +83,9 @@ export type PlayerData = {
 	pond: {
 		list: { PondEntry },
 		nextUid: number,
+	},
+	mining: {
+		nodes: { [string]: MiningNodeState },
 	},
 	decor: {
 		placed: { DecorEntry },

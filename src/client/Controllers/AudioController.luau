@@ -33,6 +33,7 @@ local NOTIFY_ROLE: { [string]: string } = {
 	["quest.new"] = "notify_ding",
 	["order.new_day"] = "notify_ding",
 	["pond.built"] = "place_item",
+	["mine.crafted"] = "place_item",
 	["decor.stored"] = "place_item",
 }
 

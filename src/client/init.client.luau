@@ -16,6 +16,7 @@ local ORDER = {
 	"CoachmarkController", -- before GuideController: the tutorial's overlay / ring / bubble (GuideController drives it)
 	"GuideController", -- after Garap: stays quiet while Garap mode shows its own hint
 	"FishingController",
+	"MiningController", -- after FishingController: tombol Pukul + ritme + panel craft
 	"InventoryController",
 	"ShopController",
 	"DialogueController",

@@ -55,6 +55,11 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	SocialVisit = "Event", -- C->S (ownerUserId: number) teleport to that plot; your own id = go home
 	SocialLike = "Event", -- C->S (ownerUserId: number) like the plot you're standing on
 
+	MineHit = "Event", -- C->S (nodeId: string, crit: boolean) pukul node (ritme di client, server validasi)
+	MineCraft = "Event", -- C->S (recipeId: string, times: 1|10) craft olahan instan
+	MineState = "Event", -- S->C ({ nodes: { [nodeId]: { hits, readyAt } } }) sisa pukulan per-player
+	MineFx = "Event", -- S->C (nodeId: string, crit: boolean) efek pukul (suara + partikel)
+
 	PlaytimeClaim = "Event", -- C->S (index: number) open playtime peti number index (in order, Config/Progression PLAYTIME)
 	BookClaim = "Event", -- C->S (key: string) claim a Book reward: "cat:<category>" or a milestone id (Config/Book)
 

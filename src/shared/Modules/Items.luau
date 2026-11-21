@@ -24,11 +24,25 @@ local Items = {}
 
 local KIND_ORDER: { [ItemKind]: number } = { crop = 1, fish = 2, bait = 3, seed = 4, bahan = 5 }
 
--- Bahan (Bab 10.3 v7.3): Jerami (bonus panen Padi) dan Daun Pisang (bonus panen Pisang, hanya untuk Pepes).
--- Tidak bisa dijual di toko mana pun (sellPrice nil). Dipakai di Craft / Dapur (P2).
+-- Bahan (Bab 8.2 / 10.3 v7.3): 7 mentah (6 dari Nambang + Jerami bonus panen Padi; Daun Pisang
+-- bonus panen Pisang hanya untuk Pepes, bukan bahan craft) + 7 olahan (craft Nambang). Tidak bisa dijual di toko
+-- mana pun (sellPrice nil). Dipakai di Craft / alat / Dapur.
 local BAHAN: { [string]: string } = {
 	jerami = "item.jerami",
 	daun_pisang = "item.daun_pisang",
+	kayu = "item.kayu",
+	bambu = "item.bambu",
+	batu = "item.batu",
+	tanah_liat = "item.tanah_liat",
+	pasir = "item.pasir",
+	ijuk = "item.ijuk",
+	papan = "item.papan",
+	bata = "item.bata",
+	semen = "item.semen",
+	anyaman = "item.anyaman",
+	atap_ijuk = "item.atap_ijuk",
+	genteng = "item.genteng",
+	kaca = "item.kaca",
 }
 
 function Items.info(itemId: string): ItemInfo?
@@ -76,7 +90,7 @@ function Items.info(itemId: string): ItemInfo?
 		return { id = itemId, kind = "bahan", nameKey = bahanKey }
 	end
 
-	local fishId, size = itemId:match("^(.+)@(%a)$")
+	local fishId, size = itemId:match("^(.+)@([%a]+)$")
 	local fish = fishId and FishConfig.byId[fishId]
 	if fish and size then
 		for _, entry in FishConfig.SIZES do
