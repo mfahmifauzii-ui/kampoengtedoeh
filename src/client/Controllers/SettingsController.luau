@@ -82,7 +82,15 @@ local function render()
 			Net.Send("SettingsSet", key, value)
 		end)
 	end
-	local guide = card(#KEYS + 1, Locale.t("settings.guide"), UiKit.CAT.tool)
+	-- Toast Gerobak Kaget bisa dimatikan (Bab 13.1, P2-6).
+	do
+		local on = settings.gerobak ~= false
+		local cell = card(#KEYS + 1, Locale.t("settings.gerobak"), UiKit.CAT.tool)
+		UiKit.switch(cell, on, function(value)
+			Net.Send("SettingsSet", "gerobak", value)
+		end)
+	end
+	local guide = card(#KEYS + 2, Locale.t("settings.guide"), UiKit.CAT.tool)
 	local open = UiKit.button(guide, "Open", Locale.t("settings.guide_open"), UiKit.BUTTON)
 	open.AnchorPoint = Vector2.new(1, 0.5)
 	open.Position = UDim2.new(1, -8, 0.5, 0)
@@ -95,7 +103,7 @@ local function render()
 
 	-- Shrink the panel to its content (AutomaticSize behaviour for Atur only): 2 columns of cards, 58 px per row. The frame
 	-- keeps the title ribbon above and a small margin below; it never grows past the screen (UISizeConstraint in UiKit).
-	local rows = #KEYS + 1 -- 1 x 4 rows
+	local rows = #KEYS + 2 -- 3 toggles + gerobak + panduan
 	local body = rows * 58
 	panel.list.Size = UDim2.new(1, -52, 0, body)
 	panel.list.ScrollBarThickness = 0 -- the content fits: no scrollbar

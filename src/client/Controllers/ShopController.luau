@@ -148,6 +148,9 @@ local function renderBuy(npc: Npcs.Npc, snapshot: any, nextOrder: () -> number)
 	local function seedSection(headerKey: string, itemPrefix: string, kind: string)
 		UiKit.header(list, Locale.t(headerKey), nextOrder())
 		for _, crop in Crops.list do
+			if crop.varian then
+				continue -- Bibit Varian HANYA di Gerobak Kaget (Bab 13.1), bukan Pak Udin
+			end
 			if crop.unlockLevel <= playerLevel + 5 then -- show only the next few locked crops
 				anything = true
 				local unlocked = playerLevel >= crop.unlockLevel

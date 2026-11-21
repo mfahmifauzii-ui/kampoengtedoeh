@@ -150,6 +150,27 @@ export type PlayerData = {
 		nextVisit: number, -- os.time kunjungan NPC berikutnya
 		soldLogin: number, -- penjualan offline login ini (max 5)
 	},
+	gerobak: {
+		restock: number, -- restockId terakhir dilihat (floor(os.time()/900))
+		bought: { [number]: number }, -- [slot] = unit terbeli restock ini (max 3/slot)
+	},
+	pasar: {
+		night: number, -- id malam game terakhir (counter server; reset tiap restart)
+		item: string, -- itemId yang dibeli pedagang malam ini
+		trader: string, -- id pedagang malam ini
+		sold: number, -- terjual malam ini (max 10)
+		throws: number, -- lemparan gelang dipakai malam ini (max 3)
+	},
+	tamu: {
+		event: string, -- id event kalender saat order dibuat ("" = tidak ada)
+		items: { [string]: number }, -- [itemId] = butuh; kosong = selesai/belum ada
+		done: boolean,
+	},
+	kb: {
+		day: string, -- WIB day: reset max 4/hari
+		count: number, -- Kerja Bakti berhadiah hari ini
+	},
+	discountUntil: number, -- os.time akhir Diskon Warga (0 = tidak aktif)
 	buff: ActiveBuff,
 	mining: {
 		nodes: { [string]: MiningNodeState },

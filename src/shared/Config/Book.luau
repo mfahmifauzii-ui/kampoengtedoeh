@@ -44,7 +44,9 @@ local function ids(list: { any }, filter: ((any) -> boolean)?): { string }
 end
 
 local ladang = {}
-for _, cropId in ids(Crops.list) do
+for _, cropId in ids(Crops.list, function(crop: any)
+	return crop.varian ~= true -- Bibit Varian punya tab sendiri ("varian", Bab 13.1 P2-6)
+end) do
 	for _, quality in QUALITIES do
 		table.insert(ladang, `{cropId}:{quality}`)
 	end

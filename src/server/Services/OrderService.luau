@@ -33,7 +33,7 @@ local OrderService = {}
 local function candidates(level: number): { Candidate }
 	local pool = {}
 	for _, crop in Crops.list do
-		if crop.unlockLevel <= level then
+		if crop.unlockLevel <= level and crop.varian ~= true then -- Bibit Varian khusus Gerobak (Bab 13.1), bukan Order
 			table.insert(pool, { id = crop.id, price = crop.sellPrice, maxCount = Orders.MAX_CROP_COUNT })
 		end
 	end

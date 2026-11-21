@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local DecorConfig = require(ReplicatedStorage.Shared.Config.Decor)
 local FarmConfig = require(ReplicatedStorage.Shared.Config.Farm)
+local RepeatConfig = require(ReplicatedStorage.Shared.Config.Repeat)
 local Monetization = require(ReplicatedStorage.Shared.Config.Monetization)
 local OrdersConfig = require(ReplicatedStorage.Shared.Config.Orders)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
@@ -69,6 +70,10 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		dapur = { tier = data.dapur.tier, slots = table.clone(data.dapur.slots) },
 		warung = data.warung, -- pajangan + nextVisit untuk panel Warung
 		buff = data.buff, -- buff aktif untuk panel (HUD baca atribut)
+		gerobak = { restock = RepeatConfig.currentRestock(), slots = RepeatConfig.gerobakOffer(RepeatConfig.currentRestock()), bought = data.gerobak.bought },
+		pasar = data.pasar,
+		tamu = data.tamu,
+		discountUntil = data.discountUntil, -- Diskon Warga (P2-6) untuk tab Acara
 		quests = { active = table.clone(data.quests.active), done = table.clone(data.quests.done), daily = table.clone(data.quests.daily) },
 		farm = { tiles = farmTiles(data), cap = FarmConfig.tileCap(data.level) },
 		landChunks = table.clone(data.land.chunks),

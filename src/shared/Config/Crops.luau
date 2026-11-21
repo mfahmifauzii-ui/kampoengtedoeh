@@ -20,6 +20,7 @@ export type Crop = {
 	regrows: number,
 	byproduct: Byproduct?,
 	color: Color3,
+	varian: boolean?, -- Bibit Varian Gerobak Kaget (Bab 13.1, P2-6): jual +50%, Kualitas tetap
 }
 
 local list: { Crop } = {
@@ -41,6 +42,14 @@ local list: { Crop } = {
 	{ id = "melati", unlockLevel = 30, seedPrice = 40, growSeconds = 1800, sellPrice = 130, xp = 50, yield = 1, regrows = 0, color = Color3.fromRGB(235, 235, 225) },
 	{ id = "mangga", unlockLevel = 35, seedPrice = 320, growSeconds = 28800, sellPrice = 1100, xp = 360, yield = 1, regrows = 0, color = Color3.fromRGB(230, 150, 60) },
 	{ id = "durian", unlockLevel = 45, seedPrice = 380, growSeconds = 28800, sellPrice = 1300, xp = 400, yield = 1, regrows = 0, color = Color3.fromRGB(110, 140, 70) },
+	-- Bibit Varian Gerobak Kaget (Bab 13.1, P2-6): tumbuh seperti base, jual +50% (dibulatkan),
+	-- Kualitas tetap Biasa/Bagus/Prima. Harga bibit Gerobak = 2x seedPrice (USULAN, v7.3 tak memberi harga).
+	{ id = "jagung_ungu", unlockLevel = 3, seedPrice = 70, growSeconds = 1800, sellPrice = 165, xp = 45, yield = 1, regrows = 0, color = Color3.fromRGB(150, 80, 180), varian = true },
+	{ id = "tomat_kuning", unlockLevel = 2, seedPrice = 24, growSeconds = 360, sellPrice = 54, xp = 16, yield = 1, regrows = 0, color = Color3.fromRGB(230, 200, 80), varian = true },
+	{ id = "semangka_kotak", unlockLevel = 20, seedPrice = 200, growSeconds = 10800, sellPrice = 450, xp = 120, yield = 1, regrows = 0, color = Color3.fromRGB(80, 160, 90), varian = true },
+	{ id = "cabai_pelangi", unlockLevel = 8, seedPrice = 80, growSeconds = 1800, sellPrice = 188, xp = 50, yield = 1, regrows = 0, color = Color3.fromRGB(200, 80, 200), varian = true },
+	{ id = "stroberi_putih", unlockLevel = 12, seedPrice = 260, growSeconds = 7200, sellPrice = 630, xp = 300, yield = 1, regrows = 0, color = Color3.fromRGB(240, 240, 240), varian = true },
+	{ id = "pisang_merah", unlockLevel = 15, seedPrice = 320, growSeconds = 10800, sellPrice = 780, xp = 180, yield = 1, regrows = 0, color = Color3.fromRGB(180, 60, 60), varian = true },
 }
 
 local byId: { [string]: Crop } = {}

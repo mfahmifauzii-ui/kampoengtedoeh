@@ -476,6 +476,9 @@ local function onPakan(player: Player, hewanId: any, kind: any)
 		return
 	end
 	local cost = missing * hewan.feedPrice
+	if (data.discountUntil or 0) > os.time() then
+		cost = math.floor(cost * 0.9) -- Diskon Warga (Bab 13.3): pakan -10%.
+	end
 	if not EconomyService.TrySpend(player, "koin", cost, `ranch:{hewanId}:feed`) then
 		Net.Fire("Notify", player, "notify.not_enough", { currency = "currency.koin" })
 		return

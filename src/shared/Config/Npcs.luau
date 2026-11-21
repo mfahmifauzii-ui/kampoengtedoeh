@@ -104,8 +104,64 @@ local list: { Npc } = {
 		sells = {},
 		hidden = true,
 	},
+	-- Pedagang Pasar Malam rotasi 6 (Bab 13.2, P2-6): "Pak Kumis Jamu" dari v7.3, 5 nama lain USULAN.
+	-- Satu tampil per malam game (bergantian). Semua hidden sampai RepeatService memanggil.
 	{
-		-- Tamu Event: guest at the banyan's pelataran during an event (Fase 7). Not spawned yet.
+		id = "pak_kumis",
+		meet = "npc.pak_kumis.meet",
+		stand = atShop(6),
+		look = { skin = Color3.fromRGB(190, 140, 98), shirt = Color3.fromRGB(80, 100, 160), pants = Color3.fromRGB(60, 55, 50) },
+		buys = {},
+		sells = {},
+		hidden = true,
+	},
+	{
+		id = "nek_esih",
+		meet = "npc.nek_esih.meet",
+		stand = atShop(6),
+		look = { skin = Color3.fromRGB(200, 150, 110), shirt = Color3.fromRGB(160, 60, 120), pants = Color3.fromRGB(70, 60, 55) },
+		buys = {},
+		sells = {},
+		hidden = true,
+	},
+	{
+		id = "bang_dodo",
+		meet = "npc.bang_dodo.meet",
+		stand = atShop(6),
+		look = { skin = Color3.fromRGB(170, 120, 85), shirt = Color3.fromRGB(60, 140, 90), pants = Color3.fromRGB(65, 60, 55) },
+		buys = {},
+		sells = {},
+		hidden = true,
+	},
+	{
+		id = "mpok_riah",
+		meet = "npc.mpok_riah.meet",
+		stand = atShop(6),
+		look = { skin = Color3.fromRGB(195, 145, 100), shirt = Color3.fromRGB(200, 120, 40), pants = Color3.fromRGB(60, 55, 50) },
+		buys = {},
+		sells = {},
+		hidden = true,
+	},
+	{
+		id = "kang_asep",
+		meet = "npc.kang_asep.meet",
+		stand = atShop(6),
+		look = { skin = Color3.fromRGB(185, 135, 95), shirt = Color3.fromRGB(90, 90, 180), pants = Color3.fromRGB(55, 55, 60) },
+		buys = {},
+		sells = {},
+		hidden = true,
+	},
+	{
+		id = "yu_tum",
+		meet = "npc.yu_tum.meet",
+		stand = atShop(6),
+		look = { skin = Color3.fromRGB(205, 155, 115), shirt = Color3.fromRGB(140, 180, 70), pants = Color3.fromRGB(65, 60, 55) },
+		buys = {},
+		sells = {},
+		hidden = true,
+	},
+	-- Tamu Event: guest at the banyan's pelataran during an event (Fase 7). Not spawned yet.
+	{
 		id = "tamu_event",
 		meet = "npc.tamu_event.meet",
 		stand = atShop(6), -- placeholder spot, unused while hidden

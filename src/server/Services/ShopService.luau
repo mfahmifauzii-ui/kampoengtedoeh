@@ -28,6 +28,15 @@ local UpgradeService = require(script.Parent.UpgradeService)
 
 local RATE = { rate = 4, burst = 8 }
 
+-- Diskon Warga (Bab 13.3, bonus Kerja Bakti 100%): -10% untuk bibit, umpan, pakan
+-- di Toko Pak Udin selama 1 hari game (data.discountUntil, detik unix).
+local function disc(data: Types.PlayerData, cost: number): number
+	if (data.discountUntil or 0) > os.time() then
+		return math.floor(cost * 0.9)
+	end
+	return cost
+end
+
 local ShopService = {}
 
 function ShopService.Init()
@@ -213,7 +222,7 @@ local function buyBait(player: Player, data: Types.PlayerData, baitId: string, a
 	if not InventoryService.CanAdd(player, baitId, amount) then
 		return false
 	end
-	if not EconomyService.TrySpend(player, "koin", bait.price * amount, `bait:{baitId}`) then
+	if not EconomyService.TrySpend(player, "koin", disc(data, bait.price * amount), `bait:{baitId}`) then
 		notEnough(player)
 		return false
 	end
@@ -223,7 +232,7 @@ local function buyBait(player: Player, data: Types.PlayerData, baitId: string, a
 end
 
 -- Bahan masak (Garam, Config/Shop SUPPLIES): pola buyBait, tanpa level gate (v7.3 tak memberi gate).
-local function buySupply(player: Player, supplyId: string, amount: any): boolean
+local function buySupply(player: Player, data: Types.PlayerData, supplyId: string, amount: any): boolean
 	local supply = Shop.SUPPLIES[supplyId]
 	if not supply or not validPack(amount) then
 		return false
@@ -231,7 +240,7 @@ local function buySupply(player: Player, supplyId: string, amount: any): boolean
 	if not InventoryService.CanAdd(player, supplyId, amount) then
 		return false
 	end
-	if not EconomyService.TrySpend(player, "koin", supply.price * amount, `supply:{supplyId}`) then
+	if not EconomyService.TrySpend(player, "koin", disc(data, supply.price * amount), `supply:{supplyId}`) then
 		notEnough(player)
 		return false
 	end
@@ -261,7 +270,7 @@ local function buySeed(player: Player, data: Types.PlayerData, cropId: string, a
 	if not InventoryService.CanAdd(player, itemId, amount) then
 		return false
 	end
-	local cost = Trade.seedPrice(crop) * amount
+	local cost = disc(data, Trade.seedPrice(crop) * amount)
 	if not EconomyService.TrySpend(player, "koin", cost, `seed:{crop.id}`) then
 		notEnough(player)
 		return false
@@ -305,7 +314,7 @@ local function onBuy(player: Player, npcId: any, kind: any, id: any, amount: any
 	elseif kind == "bait" and npc.sells.bait then
 		buyBait(player, data, id, amount)
 	elseif kind == "supply" and npc.sells.supplies then
-		buySupply(player, id, amount)
+		buySupply(player, data, id, amount)
 	elseif kind == "upgrade" and npc.sells.upgrades then
 		buyUpgrade(player, data, id)
 	elseif kind == "seed" and npc.sells.seeds then

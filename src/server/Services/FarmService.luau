@@ -606,7 +606,11 @@ function FarmService.HarvestFor(owner: Player, data: Types.PlayerData, tile: Typ
 	local xp = math.floor(crop.xp * (if super then Farm.SUPER_XP_MULT else 1) + 0.5)
 	ProgressionService.AddXp(owner, xp, `harvest:{crop.id}`)
 	AnalyticsHooks.Step(owner, "first_harvest")
-	BookService.RecordCrop(owner, crop.id, quality) -- Album Ladang: entri per Kualitas (Bab 11)
+	if crop.varian then
+		BookService.RecordVarian(owner, crop.id) -- Album Varian: id polos (Bab 11/13.1)
+	else
+		BookService.RecordCrop(owner, crop.id, quality) -- Album Ladang: entri per Kualitas (Bab 11)
+	end
 	QuestService.Report(owner, "harvest")
 	return true
 end

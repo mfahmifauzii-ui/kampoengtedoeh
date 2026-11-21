@@ -64,6 +64,28 @@ local template: Types.PlayerData = {
 		soldLogin = 0, -- penjualan offline login ini (max 5)
 	},
 
+	gerobak = {
+		restock = 0,
+		bought = {}, -- [slot] = unit terbeli restock ini (max 3/slot)
+	},
+	pasar = {
+		night = 0,
+		item = "",
+		trader = "",
+		sold = 0,
+		throws = 0,
+	},
+	tamu = {
+		event = "",
+		items = {},
+		done = false,
+	},
+	kb = {
+		day = "",
+		count = 0, -- Kerja Bakti berhadiah hari ini (max 4)
+	},
+	discountUntil = 0, -- os.time akhir Diskon Warga (P2-6); 0 = tidak aktif
+
 	buff = { id = nil, endsAt = 0 }, -- 1 buff aktif (makan olahan; timer real-time)
 
 	mining = {
@@ -122,7 +144,7 @@ local template: Types.PlayerData = {
 		gifts = { day = "", sent = 0 }, -- kirim hadiah max 3/hari
 	},
 
-	settings = { music = true, ambient = true, sfx = true, musicVol = 1, sfxVol = 1, quality = 2 }, -- volumes are a share (0..1) of Audio.VOLUME; quality 1 Rendah, 2 Sedang, 3 Tinggi
+	settings = { music = true, ambient = true, sfx = true, gerobak = true, musicVol = 1, sfxVol = 1, quality = 2 }, -- volumes are a share (0..1) of Audio.VOLUME; quality 1 Rendah, 2 Sedang, 3 Tinggi; gerobak = toast Gerobak Kaget (P2-6)
 
 	passes = {}, -- [passKey] = true; cache of confirmed game pass ownership (fallback if API is down)
 	onboarding = {}, -- [stepNumber] = true (analytics funnel, logged once)

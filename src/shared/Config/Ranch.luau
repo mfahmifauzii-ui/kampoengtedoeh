@@ -98,6 +98,14 @@ for _, hewan in HEWAN do
 	byHewan[hewan.id] = hewan
 end
 
+-- Hewan Varian Gerobak Kaget (Bab 13.1, P2-6): tinggal di kandang grupnya, produksi = base.
+-- Harga Gerobak = 2x base (USULAN, v7.3 tak memberi harga). Kosmetik = data tercatat;
+-- model 3D varian belum ada, pakai model base.
+local VARIAN: { [string]: { kandang: string, price: number } } = {
+	ayam_cemani = { kandang = "ayam", price = 600 },
+	bebek_belang = { kandang = "bebek", price = 1200 },
+}
+
 local byTier: { [string]: KolamTier } = {}
 for _, tier in KOLAM_TIERS do
 	byTier[tier.id] = tier
@@ -112,6 +120,7 @@ end
 return {
 	HEWAN = HEWAN,
 	byHewan = byHewan,
+	VARIAN = VARIAN,
 	KANDANG = KANDANG,
 	KOLAM_TIERS = KOLAM_TIERS,
 	byTier = byTier,

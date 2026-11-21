@@ -7,6 +7,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Book = require(ReplicatedStorage.Shared.Config.Book)
+local Crops = require(ReplicatedStorage.Shared.Config.Crops)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
@@ -132,6 +133,13 @@ end
 -- Album Dapur: 24 resep x 3 Kualitas (Bab 11). Direkam saat Olahan diambil (P2-3 Dapur).
 function BookService.RecordDapur(player: Player, recipeId: string, quality: string)
 	record(player, "dapur", `{recipeId}:{quality}`, true, `olahan.{recipeId}`)
+end
+
+-- Album Varian: 6 Bibit + 2 Hewan Varian (Bab 11/13.1, Gerobak Kaget P2-6).
+-- id polos (tanpa Kualitas): varian dicatat sekali saat pertama didapat.
+function BookService.RecordVarian(player: Player, id: string)
+	local nameKey = if Crops.byId[id] then `crop.{id}` else `hewan.{id}`
+	record(player, "varian", id, true, nameKey)
 end
 
 function BookService.RecordDecor(player: Player, decorId: string)

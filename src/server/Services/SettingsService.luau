@@ -7,7 +7,7 @@ local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local DataService = require(script.Parent.DataService)
 local InventoryService = require(script.Parent.InventoryService)
 
-local SWITCH_KEYS = { music = true, ambient = true, sfx = true } -- booleans
+local SWITCH_KEYS = { music = true, ambient = true, sfx = true, gerobak = true } -- booleans (gerobak: toast restock P2-6)
 local VOLUME_KEYS = { musicVol = true, sfxVol = true } -- 0..1
 local QUALITY_KEY = "quality" -- 1, 2 or 3
 

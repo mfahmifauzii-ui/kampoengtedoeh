@@ -34,6 +34,7 @@ local ORDER = {
 	"SettingsController",
 	"StoreController",
 	"SocialController",
+	"RepeatController", -- Acara: Gerobak Kaget + Pasar Malam + Tamu + Kerja Bakti (Bab 13)
 }
 
 local loaded = {}

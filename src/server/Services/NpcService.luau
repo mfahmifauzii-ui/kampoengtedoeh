@@ -214,6 +214,38 @@ local function build(npc: Npcs.Npc)
 	end)
 end
 
+-- Rig yang dipasang lewat Show() (Hide hanya menghapus ini; rig Studio dibiarkan).
+local shownByUs: { [string]: boolean } = {}
+
+-- Tampilkan NPC tersembunyi (Pedagang Pasar Malam, Tamu Event - Bab 13, P2-6).
+-- build() memakai rig Studio bila ada, generik bila tidak; aman dipanggil ulang.
+function NpcService.Show(npcId: string): boolean
+	if models[npcId] then
+		return true
+	end
+	for _, npc in Npcs.list do
+		if npc.id == npcId then
+			shownByUs[npcId] = true
+			task.spawn(build, npc)
+			return true
+		end
+	end
+	return false
+end
+
+-- Sembunyikan NPC lagi. Hanya rig yang dipasang lewat Show() yang dihapus; rig Studio dibiarkan.
+function NpcService.Hide(npcId: string)
+	if not shownByUs[npcId] then
+		return
+	end
+	shownByUs[npcId] = nil
+	local model = models[npcId]
+	models[npcId] = nil
+	if model then
+		model:Destroy()
+	end
+end
+
 -- Bab 22.3 walk-up: an NPC walks to `target` at `speed` studs/s (Mak Sari: 50% of the player's speed, Npcs.WALK_SPEED).
 -- Visual only: the rig stays anchored and is moved by CFrame, so there is no pathing and no physics, and it stops at the
 -- target. A newer walk for the same NPC cancels the older one. Triggers come later: Mak Sari at MQ4/MQ7 (Fase 5), Pak Amran

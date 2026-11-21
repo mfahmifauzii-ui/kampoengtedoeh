@@ -78,6 +78,10 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	PondTier = "Event", -- C->S (pondUid: number, tier: string) upgrade tier kolam (semen/keramik)
 
 	SkillBuy = "Event", -- C->S (skillId: string) beli 1 level skill pakai SP (max Lv 5)
+	GerobakBuy = "Event", -- C->S (slot: number) beli 1 unit slot Gerobak Kaget (max 3/slot/restock)
+	PasarJual = "Event", -- C->S (count: number) jual barang malam ini ke Pedagang Tamu (+50%, max 10/malam)
+	GelangThrow = "Event", -- C->S () lempar gelang (max 3/malam)
+	TamuDeliver = "Event", -- C->S () serahkan semua barang Pesanan Tamu
 	DapurBuild = "Event", -- C->S () bangun Inti Tier 1
 	DapurUpgrade = "Event", -- C->S () upgrade ke tier berikut (refund 100% Inti lama)
 	DapurCook = "Event", -- C->S (slot: number, recipeId: string) mulai masak (slot 0 = otomatis)
