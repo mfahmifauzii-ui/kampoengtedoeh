@@ -96,7 +96,7 @@ local INTRO = {
 -- T1b, the first beat (Pak Udin, at the warung, right after the sale): Next after every line.
 local WARUNG = {
 	"Wah, hasil panenmu bagus ya, kalau ada lagi nanti jangan lupa mampir kesini ya!",
-	"Sekarang temui Kak Fajar di Toko Pancing. Dia punya joran dan umpan buat kamu. Ikuti panah di tanah ya.",
+	"Kak Fajar lagi mancing di sungai dekat lahanmu. Dia punya joran dan umpan buat kamu. Ikuti panah di tanah ya.",
 }
 
 -- What is said for each tutorial step (key = GuideController's step key; "<key>_ground" while Garap mode is open, "<key>_stuck"
@@ -118,7 +118,7 @@ local STEP_LINES: { [string]: Line } = {
 	-- T1b
 	kak_fajar = {
 		who = "pak_udin",
-		text = "Ikuti panah ke Toko Pancing. Kak Fajar punya joran dan umpan buat kamu.",
+		text = "Ikuti panah ke sungai dekat lahanmu. Kak Fajar punya joran dan umpan buat kamu.",
 	},
 	mancing = {
 		who = "kak_fajar",

@@ -28,7 +28,11 @@ local copy: Model? = nil
 local hiddenServerParts: { BasePart } = {}
 local hiddenPrompt: ProximityPrompt? = nil
 
--- True while the tutorial step "jual_ikan" is the one the player must finish (from the guide snapshot).
+-- Steps of the fishing segment that Kak Fajar is part of (Update owner playtest, item 3): from the step right after the Pak Udin
+-- sale (receiving the rod) through the fish sale. The copy exists for the WHOLE segment.
+local FAJAR_STEPS = { kak_fajar = true, mancing = true, jual_ikan = true }
+
+-- True while the tutorial is on one of those steps (from the guide snapshot).
 local function fishSaleStepLive(): boolean
 	local snapshot = State.current :: any
 	local guide = snapshot and snapshot.guide
@@ -38,7 +42,7 @@ local function fishSaleStepLive(): boolean
 	for _, tutorial in Onboarding.TUTORIALS do
 		if tutorial.id == guide.step.id then
 			local def = tutorial.steps[guide.step.n + 1]
-			return def ~= nil and def.id == "jual_ikan"
+			return def ~= nil and FAJAR_STEPS[def.id] == true
 		end
 	end
 	return false

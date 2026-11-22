@@ -616,7 +616,7 @@ return {
 	["tut.t1b.title"] = "Joran dan Mancing",
 	["tut.t1b.warung"] = "Dengarkan Pak Udin",
 	["tut.t1b.kolam_demo"] = "Buka Kolam di dock",
-	["tut.t1b.kak_fajar"] = "Temui Kak Fajar di Toko Pancing",
+	["tut.t1b.kak_fajar"] = "Temui Kak Fajar di sungai dekat lahanmu",
 	["tut.t1b.jual_ikan"] = "Jual ikanmu ke Kak Fajar",
 	["tut.t1b.jual_ask"] = "Hebat juga kamu langsung dapat ikan, sini Kak Fajar beli!",
 	["tut.t1b.jual_done"] = "Kamu juga bisa mancing di sungai sebelah lahanmu, biar tidak perlu jauh jalan ke alun-alun.",

@@ -168,7 +168,20 @@ local function computeStep(): string
 	return "none"
 end
 
+-- Kak Fajar (Update owner playtest, item 3): every target of his in the fishing segment is the client copy (or, until the copy
+-- is built, the player's own river spot), never the server NPC at the shop.
 local function npcRootOf(npcId: string): BasePart?
+	if npcId == "kak_fajar" then
+		local copy = Workspace:FindFirstChild("KakFajar_Tutorial_Local")
+		local copyRoot = copy and copy:FindFirstChild("HumanoidRootPart")
+		if copyRoot and copyRoot:IsA("BasePart") then
+			return copyRoot
+		end
+		local spotName = player:GetAttribute("RiverSpot")
+		local fishing = Workspace:FindFirstChild("Fishing")
+		local spot = if typeof(spotName) == "string" and fishing then fishing:FindFirstChild(spotName) else nil
+		return if spot and spot:IsA("BasePart") then spot else nil
+	end
 	local folder = Workspace:FindFirstChild("Npcs")
 	local model = folder and folder:FindFirstChild(npcId)
 	local root = model and model:FindFirstChild("HumanoidRootPart")
