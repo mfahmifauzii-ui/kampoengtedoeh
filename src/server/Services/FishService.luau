@@ -432,8 +432,22 @@ local function beginCast(player: Player, session: Session, data: Types.PlayerDat
 	end)
 end
 
+-- D-38 (Joran Kuat dipindah ke server): kotak tarik dihitung di server. Kotak menentukan skor reel dan jadi ukuran ikan,
+-- jadi server yang memutuskan dan mengirimnya bersama gigitan. Rumus: lebar joran (rod.box / 100; default ZONE_WIDTH_DEFAULT
+-- bila joran tak dikenal), +10 % saat buff Pancing (Dapur.BUFF_PANCING_BOX), +2 % per level Joran Kuat.
+local function zoneWidthFor(data: Types.PlayerData): number
+	local rod = Fishing.rods[data.fishing.rod]
+	local width = if rod and typeof(rod.box) == "number" then rod.box / 100 else Fishing.ZONE_WIDTH_DEFAULT
+	if Buffs.active(data.buff, "pancing", os.time()) then
+		width *= Dapur.BUFF_PANCING_BOX
+	end
+	return width * (1 + 0.02 * (data.skill.joran_kuat or 0))
+end
+
 -- Riak + animasi reel saat gigitan (visual hanya ada bila bukan pancing tutorial).
 local function scheduleBite(player: Player, session: Session, biteDelay: number)
+	local data = DataService.Get(player)
+	local zoneWidth = if data then zoneWidthFor(data) else Fishing.ZONE_WIDTH_DEFAULT
 	task.delay(biteDelay, function()
 		if sessions[player] == session then
 			player:SetAttribute("Fishing", "Bite")
@@ -442,7 +456,7 @@ local function scheduleBite(player: Player, session: Session, biteDelay: number)
 				splash(record.bobber.Position, record.model)
 				playAnim(player, "FishingReel")
 			end
-			Net.Fire("FishState", player, "bite")
+			Net.Fire("FishState", player, "bite", zoneWidth) -- the server's catch box width (D-38)
 		end
 	end)
 end

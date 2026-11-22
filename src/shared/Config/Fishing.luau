@@ -50,6 +50,7 @@ return {
 	REEL_MIN_SECONDS = 2.5, -- server: earliest accepted reel after the bite
 	-- REEL_WINDOW removed (user, 16 Nov): NO TIMEOUT. The fish waits on the line until it is reeled in.
 	CAST_DISTANCE = 18, -- studs, server-checked
+	ZONE_WIDTH_DEFAULT = 0.3, -- D-38: kotak tarik (fraksi bilah) saat joran tidak dikenal; server yang menghitung kotak (FishService)
 	LEAVE_DISTANCE = 24, -- studs: pemain yang lebih jauh dari spot dianggap menjauh = batal (watchdog server, B-5)
 
 	-- Animasi joran (B-5, Roadmap §12.4): ID Animation PERMANEN (Publish to Roblox), BUKAN hash sementara Studio.

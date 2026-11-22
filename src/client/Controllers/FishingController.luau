@@ -16,8 +16,6 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
-local Dapur = require(ReplicatedStorage.Shared.Config.Dapur)
-local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
 local FishingTutorial = require(ReplicatedStorage.Shared.Modules.FishingTutorial)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
@@ -40,7 +38,8 @@ end
 local FeatureClient = require(script.Parent.Parent.FeatureClient)
 
 local REEL_ACTION = "FishingReel"
-local ZONE_WIDTH = 0.3
+local ZONE_WIDTH = 0.3 -- fallback only; the server's width (FishState "bite") is used
+local serverZoneWidth: number? = nil
 local ZONE_SPEED = 0.9 -- bar widths per second, moving RIGHT (holding): owner says this speed is right
 local ZONE_SPEED_LEFT = 0.55 -- moving LEFT (released): slower, owner 2026-11-22
 local FILL_GAIN = 0.28 -- progress per second inside the box (was 0.15): the catch fills faster
@@ -337,23 +336,6 @@ local function showIdle()
 	removeBobber()
 end
 
--- Kotak tarik dari joran (Bab 6.3): Bambu 30% s/d Pusaka 45%. Default = ZONE_WIDTH saat joran tak dikenal.
--- Buff Pancing (Bab 9.4): kotak +10% lebih lebar (baca atribut server, real-time).
-local function zoneWidth(): number
-	local snap = State.current :: any
-	local rodId = snap and snap.rod
-	local rod = if typeof(rodId) == "string" then Fishing.rods[rodId] else nil
-	local width = if rod and typeof(rod.box) == "number" then rod.box / 100 else ZONE_WIDTH
-	local endsAt = player:GetAttribute("Buff_pancing_End")
-	if typeof(endsAt) == "number" and endsAt > Workspace:GetServerTimeNow() then
-		width *= Dapur.BUFF_PANCING_BOX
-	end
-	-- Skill Joran Kuat (Bab 4.5, P2-4): Kotak tarik +2%/lv.
-	local snapSkills = snap and snap.skills
-	width *= 1 + 0.02 * (if snapSkills then snapSkills.joran_kuat or 0 else 0)
-	return width
-end
-
 local function runReel()
 	reeling = true
 	statusFrame.Visible = false
@@ -362,7 +344,7 @@ local function runReel()
 		bobber.Position -= Vector3.new(0, 0.4, 0) -- dip
 	end
 
-	local zoneW = zoneWidth()
+	local zoneW = serverZoneWidth or ZONE_WIDTH -- D-38: the server sends the box width with the bite
 	zone.Size = UDim2.fromScale(zoneW, 1)
 	-- Mini-game Tarik (Bab 6.2, P2-5-fix): progress mulai 30%. Ikan di kotak +15%/detik,
 	-- di luar -10%/detik. 100% = dapat (skor = porsi waktu di kotak, untuk ukuran).
@@ -623,6 +605,7 @@ function FishingController.Start()
 				placeBobber(spot)
 			end
 		elseif state == "bite" then
+			serverZoneWidth = if typeof(spot) == "number" then spot else nil
 			statusLabel.Text = Locale.t("fish.bite")
 			task.delay(0.4, runReel)
 		elseif state == "idle" then
