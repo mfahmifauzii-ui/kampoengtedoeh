@@ -24,6 +24,7 @@ local Trade = require(ReplicatedStorage.Shared.Modules.Trade)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local State = require(script.Parent.Parent.State)
+local FeatureClient = require(script.Parent.Parent.FeatureClient)
 local UiKit = require(script.Parent.Parent.UiKit)
 
 local player = Players.LocalPlayer
@@ -544,7 +545,15 @@ local function onSellAll()
 end
 
 -- wantTab: forced tab ("sell" for the Jual Pertama beat, Bab 16.4). Otherwise the tab is picked from what is sellable here.
+-- Bug 4: true while this NPC's shop is closed (Bang Jali, bang_jali_1..N, until jual_bang_jali is open). The server checks the same gate.
+function ShopController.Gated(npcId: string): boolean
+	return typeof(npcId) == "string" and string.sub(npcId, 1, 9) == "bang_jali" and not FeatureClient.IsOpen("jual_bang_jali")
+end
+
 function ShopController.Open(npcId: string, wantTab: string?)
+	if ShopController.Gated(npcId) then
+		return
+	end
 	currentNpc = npcId
 	table.clear(qtyBuy)
 	table.clear(qtySell)

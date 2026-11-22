@@ -258,7 +258,7 @@ local function refresh(npcId: string)
 				end)
 			end,
 		})
-	elseif not locked then
+	elseif not locked and not ShopController.Gated(npcId) then
 		table.insert(choices, {
 			text = Locale.t("dialog.trade"),
 			onChoose = function()
