@@ -1,13 +1,16 @@
 --!strict
--- Takes the player's movement away for a moment (a fade, a cutscene) and gives it back. Client only.
+-- Takes the player's movement away for a moment (a fade, a cutscene, fishing) and gives it back. Client only.
 --
--- Set(true): the player's controls off. Set(false): on again. Calls are idempotent: a second Set(true) changes nothing, and
--- Set(false) with nothing locked does nothing.
+-- B-4: counter, not a flag. Every system takes its own hold and releases its own hold:
+--   local release = PlayerLock.Acquire("fishing")            -- or Acquire("fishing", true) = humanoid-only (camera stays free)
+--   ...
+--   release()                                                -- idempotent; the player is free again only when EVERY hold is released
+-- Set(true) / Set(false) keep the old API for Cutscene, BannerController and FadeManager: they are one hold named "legacy".
 --
--- Two ways, the first that works:
+-- Two ways, the first that works (only when no hold asks for humanoid-only):
 --   1. PlayerModule (PlayerScripts): GetControls():Disable() / Enable(). This is the normal way.
---   2. Humanoid fallback: when the place has no PlayerModule (this happened in Studio: StarterPlayerScripts had none), the
---      humanoid's WalkSpeed and JumpPower go to 0 and AutoRotate off, and are put back as they were.
+--   2. Humanoid: WalkSpeed and JumpPower go to 0 and AutoRotate off, and are put back as they were when the last hold
+--      is released. The values are captured per character, so a respawn while held is handled (CharacterAdded).
 -- The module is looked up once; a missing module is logged once.
 
 local Players = game:GetService("Players")
@@ -16,11 +19,13 @@ local PlayerLock = {}
 
 local player = Players.LocalPlayer
 local controls: any = nil -- found in the background at load (see below); nil = use the humanoid
-local locked = false
-local lockedVia: string = "" -- "controls" | "humanoid": the way the current lock was taken (the release uses the same)
+local holds: { [string]: boolean } = {} -- reason -> humanoidOnly; the set of current holds
+local holdCount = 0
+local lockedVia: string = "" -- "controls" | "humanoid" | "": how the current lock is applied
 local saved: { humanoid: Humanoid, walk: number, jump: number, rotate: boolean }? = nil
 local DEFAULT_WALK_SPEED = 16 -- Roblox default, used when the humanoid is already at 0 (see lockHumanoid)
 local DEFAULT_JUMP_POWER = 50
+local nextToken = 0
 
 -- Looked up in its own thread, so requiring this module never yields. Until it is found, locks use the humanoid.
 task.spawn(function()
@@ -71,35 +76,89 @@ local function unlockHumanoid()
 	end
 end
 
-function PlayerLock.Set(on: boolean)
-	if on == locked then
+-- Applies the lock that the current holds ask for. Called on every change and on every new character.
+local function apply()
+	local wantHumanoidOnly = true
+	local wanted = holdCount > 0
+	for _, humanoidOnly in holds do
+		if not humanoidOnly then
+			wantHumanoidOnly = false
+		end
+	end
+	local via = if not wanted then "" elseif controls and not wantHumanoidOnly then "controls" else "humanoid"
+	if via == lockedVia then
+		if via == "humanoid" and wanted then
+			lockHumanoid() -- still locked, but a new character may have arrived: lockHumanoid does nothing if saved is current
+		end
 		return
 	end
-	locked = on
-	if on then
-		if controls then
-			lockedVia = "controls"
-			pcall(function()
-				controls:Disable()
-			end)
-		else
-			lockedVia = "humanoid"
-			lockHumanoid()
-		end
-	elseif lockedVia == "controls" then
-		lockedVia = ""
+	-- Release the old way first.
+	if lockedVia == "controls" then
 		pcall(function()
 			controls:Enable()
 		end)
-	else
-		lockedVia = ""
+	elseif lockedVia == "humanoid" then
 		unlockHumanoid()
+	end
+	lockedVia = via
+	-- Take the new way.
+	if via == "controls" then
+		pcall(function()
+			controls:Disable()
+		end)
+	elseif via == "humanoid" then
+		lockHumanoid()
 	end
 end
 
--- True while the player is held still by Set(true).
-function PlayerLock.IsLocked(): boolean
-	return locked
+-- One hold. The returned function releases exactly this hold (a second call does nothing).
+function PlayerLock.Acquire(reason: string, humanoidOnly: boolean?): () -> ()
+	nextToken += 1
+	local key = `{reason}#{nextToken}`
+	holds[key] = humanoidOnly == true
+	holdCount += 1
+	apply()
+	local released = false
+	return function()
+		if released then
+			return
+		end
+		released = true
+		holds[key] = nil
+		holdCount -= 1
+		apply()
+	end
 end
+
+-- Old API: one hold named "legacy". Set(true) twice takes it once; Set(false) with nothing held does nothing.
+local legacyRelease: (() -> ())? = nil
+function PlayerLock.Set(on: boolean)
+	if on then
+		if not legacyRelease then
+			legacyRelease = PlayerLock.Acquire("legacy")
+		end
+	elseif legacyRelease then
+		local release = legacyRelease
+		legacyRelease = nil
+		release()
+	end
+end
+
+-- True while at least one hold is active.
+function PlayerLock.IsLocked(): boolean
+	return holdCount > 0
+end
+
+-- A new character while held: the humanoid is new, so the lock is taken again on it (B-4: respawn while fishing).
+player.CharacterAdded:Connect(function()
+	saved = nil
+	if holdCount > 0 and lockedVia == "humanoid" then
+		task.defer(function()
+			if holdCount > 0 and lockedVia == "humanoid" then
+				lockHumanoid()
+			end
+		end)
+	end
+end)
 
 return PlayerLock

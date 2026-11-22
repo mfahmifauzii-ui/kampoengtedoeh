@@ -22,6 +22,7 @@ local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local UiAssets = require(ReplicatedStorage.Shared.Config.UiAssets)
 local UiKit = require(script.Parent.Parent.UiKit)
+local PlayerLock = require(script.Parent.Parent.PlayerLock)
 local State = require(script.Parent.Parent.State)
 
 local REEL_ACTION = "FishingReel"
@@ -95,14 +96,15 @@ local function buildUi()
 	end
 	statusLabel = label(statusFrame, "", 13, Color3.fromRGB(255, 226, 120))
 	statusLabel.Position = UDim2.fromOffset(38, 4)
-	statusLabel.Size = UDim2.new(1, -46, 0, 22)
+	statusLabel.Size = UDim2.new(1, -72, 0, 22) -- B-4: room for the X button at the right
 	statusLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-	local cancel = UiKit.button(statusFrame, "Cancel", Locale.t("fish.cancel"), UiKit.BUTTON_MUTED)
-	cancel.AnchorPoint = Vector2.new(0.5, 1)
-	cancel.Position = UDim2.new(0.5, 0, 1, -5)
-	cancel.Size = UDim2.new(1, -20, 0, 20)
-	cancel.TextSize = 11
+	-- B-4: X button, top right of the fishing status (cancels the fishing; the server then sends the idle state).
+	local cancel = UiKit.button(statusFrame, "Cancel", "✕", UiKit.BUTTON_MUTED)
+	cancel.AnchorPoint = Vector2.new(1, 0)
+	cancel.Position = UDim2.new(1, -4, 0, 4)
+	cancel.Size = UDim2.fromOffset(26, 26)
+	cancel.TextSize = 14
 	cancel.Activated:Connect(function()
 		Net.Send("FishCancel")
 	end)
@@ -285,8 +287,24 @@ end
 
 -- States --------------------------------------------------------------------------
 
+-- B-4: from the bite-wait until the fishing ends, the player cannot walk or jump (humanoid-only lock: camera stays free).
+-- Every end path calls holdForFishing(false): idle (caught, escaped, cancelled), the X button, a panel opening, death.
+local releaseFishingHold: (() -> ())? = nil
+local function holdForFishing(on: boolean)
+	if on then
+		if not releaseFishingHold then
+			releaseFishingHold = PlayerLock.Acquire("fishing", true)
+		end
+	elseif releaseFishingHold then
+		local release = releaseFishingHold
+		releaseFishingHold = nil
+		release()
+	end
+end
+
 local function showIdle()
 	player:SetAttribute("FishingActive", nil) -- Plan 3.6: dialog and coachmark come back
+	holdForFishing(false)
 	reeling = false
 	holding = false
 	statusFrame.Visible = false
@@ -470,6 +488,7 @@ function FishingController.Start()
 			statusLabel.Text = Locale.t("fish.waiting")
 			statusFrame.Visible = true
 			player:SetAttribute("FishingActive", true) -- Plan 3.6: the fishing GUI is on top, the dialog steps aside
+			holdForFishing(true) -- B-4: movement off until the fishing ends
 			placeBobber(spot)
 		elseif state == "bite" then
 			statusLabel.Text = Locale.t("fish.bite")
@@ -494,9 +513,21 @@ function FishingController.Start()
 		end
 	end)
 
+	-- B-4: a panel opening ends the fishing (its lock goes with it); death and removal end it too.
+	player.CharacterRemoving:Connect(function()
+		if player:GetAttribute("FishingActive") == true then
+			Net.Send("FishCancel")
+		end
+		holdForFishing(false)
+	end)
+
 	task.spawn(function()
 		while true do
 			refreshAksi()
+			if player:GetAttribute("FishingActive") == true and UiKit.anyPanelOpen() then
+				Net.Send("FishCancel")
+				holdForFishing(false)
+			end
 			task.wait(0.25)
 		end
 	end)
