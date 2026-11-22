@@ -15,6 +15,7 @@ local Workspace = game:GetService("Workspace")
 
 local Npcs = require(ReplicatedStorage.Shared.Config.Npcs)
 local Onboarding = require(ReplicatedStorage.Shared.Config.Onboarding)
+local NpcPose = require(script.Parent.NpcPose)
 local State = require(script.Parent.State)
 
 local player = Players.LocalPlayer
@@ -22,6 +23,7 @@ local player = Players.LocalPlayer
 local NPC_ID = "kak_fajar"
 local COPY_NAME = "KakFajar_Tutorial_Local" -- T1Dialog.NpcModel looks this name up for "kak_fajar"
 local STAND_OFFSET = 3 -- studs from the spot onto the bank (away from the water)
+local IDLE_ANIMATION = "rbxassetid://507766666" -- same idle as NpcService (town NPCs)
 local CHECK_SECONDS = 0.25
 
 local copy: Model? = nil
@@ -59,14 +61,18 @@ local function assignedSpot(): BasePart?
 	return if spot and spot:IsA("BasePart") then spot else nil
 end
 
--- Ground height under a point (a ray from high above; falls back to the spot's own height).
-local function groundY(x: number, z: number, refY: number): number
+-- Ground height under a point (a ray from high above; falls back to the spot's own height). Water is ignored (the
+-- river is not the floor), and so are the player's character and the copy itself.
+local function groundY(x: number, z: number, refY: number, ownRig: Model?): number
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude
-	local ignore: { Instance } = { player.Character or Workspace }
-	local copyModel = Workspace:FindFirstChild(COPY_NAME)
-	if copyModel then
-		table.insert(ignore, copyModel)
+	params.IgnoreWater = true
+	local ignore: { Instance } = {}
+	if player.Character then
+		table.insert(ignore, player.Character)
+	end
+	if ownRig then
+		table.insert(ignore, ownRig)
 	end
 	params.FilterDescendantsInstances = ignore
 	local hit = Workspace:Raycast(Vector3.new(x, refY + 40, z), Vector3.new(0, -80, 0), params)
@@ -121,7 +127,28 @@ local function buildCopy(): Model?
 	return rig
 end
 
+-- The same relaxed idle the town NPCs get (NpcService IDLE_ANIMATION), so the copy is never in a T-pose.
+local function startIdle(rig: Model)
+	local humanoid = rig:FindFirstChildOfClass("Humanoid")
+	if not humanoid then
+		return
+	end
+	local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new("Animator")
+	animator.Parent = humanoid
+	local idle = Instance.new("Animation")
+	idle.AnimationId = IDLE_ANIMATION
+	local ok, track = pcall(function()
+		return animator:LoadAnimation(idle)
+	end)
+	if ok and track then
+		track.Looped = true
+		track:Play()
+	end
+end
+
 -- Stand on the bank of the spot, facing back toward the bank side (the spot's "Dir" attribute points out over the water).
+-- The rig is set on the ground like a player: the ray hits the floor under the bank, and the rig is lowered until its lowest
+-- point (the feet, whatever the rig's height or HipHeight) sits on that hit point. The root is then anchored, so it stays put.
 local function placeCopy(rig: Model, spot: BasePart)
 	local dir = spot:GetAttribute("Dir")
 	local outward = if typeof(dir) == "Vector3" then Vector3.new(dir.X, 0, dir.Z) else Vector3.new(0, 0, 1)
@@ -130,9 +157,16 @@ local function placeCopy(rig: Model, spot: BasePart)
 	end
 	outward = outward.Unit
 	local bank = spot.Position - outward * STAND_OFFSET
-	local y = groundY(bank.X, bank.Z, spot.Position.Y) + 3
-	local at = Vector3.new(bank.X, y, bank.Z)
+	local at = Vector3.new(bank.X, spot.Position.Y, bank.Z)
 	rig:PivotTo(CFrame.lookAt(at, at + outward)) -- faces the water, so the player coming from the bank sees his face
+	local floorY = groundY(bank.X, bank.Z, spot.Position.Y, rig)
+	local boxCFrame, boxSize = rig:GetBoundingBox()
+	local feetY = boxCFrame.Position.Y - boxSize.Y / 2
+	rig:PivotTo(rig:GetPivot() + Vector3.new(0, floorY - feetY, 0))
+	local root = rig:FindFirstChild("HumanoidRootPart")
+	if root and root:IsA("BasePart") then
+		root.Anchored = true
+	end
 end
 
 -- Hiding the server Kak Fajar FOR THIS PLAYER (playtest item 5): every part and decal is made invisible locally, the name
@@ -215,6 +249,8 @@ local function sync()
 	if not copy then
 		copy = buildCopy()
 		if copy and spot then
+			NpcPose.Manage(copy) -- relaxed pose, as on the town NPCs (client only)
+			startIdle(copy)
 			placeCopy(copy, spot)
 		end
 	end
