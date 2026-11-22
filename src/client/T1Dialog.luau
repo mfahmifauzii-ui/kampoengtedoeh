@@ -119,7 +119,7 @@ local function ensure()
 	screen.Name = "T1Dialog"
 	screen.ResetOnSpawn = false
 	screen.IgnoreGuiInset = true
-	screen.DisplayOrder = 120 -- above the cinematic bars and the cover (T1Cutscene 110), the coachmark (60) and the HUD
+	screen.DisplayOrder = UiKit.LAYER.DIALOG -- 120: above the cinematic bars and the cover (T1Cutscene 110), the HUD and panels
 	screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	screen.Enabled = false
 

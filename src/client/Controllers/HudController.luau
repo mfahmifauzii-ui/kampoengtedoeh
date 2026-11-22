@@ -496,7 +496,7 @@ local function showLevelUp(level: number)
 	local screen = Instance.new("ScreenGui")
 	screen.Name = "LevelUpUI"
 	screen.ResetOnSpawn = false
-	screen.DisplayOrder = 20
+	screen.DisplayOrder = UiKit.LAYER.HUD
 	screen.IgnoreGuiInset = true
 	local box = Instance.new("Frame")
 	box.AnchorPoint = Vector2.new(0.5, 0.5)

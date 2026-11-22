@@ -11,6 +11,7 @@
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local PlayerLock = require(script.Parent.PlayerLock)
+local UiKit = require(script.Parent.UiKit)
 
 local FadeManager = {}
 
@@ -31,7 +32,7 @@ local function ensure(): Frame
 	screen.Name = "FadeManager"
 	screen.ResetOnSpawn = false
 	screen.IgnoreGuiInset = true
-	screen.DisplayOrder = 150 -- above the dialogue box (120) and the cutscene bars, below nothing that the player should see
+	screen.DisplayOrder = UiKit.LAYER.FADE -- 150: above the dialogue box (120) and the cutscene bars
 	screen.Enabled = true
 	local frame = Instance.new("Frame")
 	frame.Name = "Black"

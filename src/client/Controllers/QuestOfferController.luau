@@ -107,6 +107,11 @@ local function refreshMarkers()
 	end
 end
 
+-- Quest ids the server offers right now (the Quest Log's "Tersedia" list).
+function QuestOfferController.Offers(): { string }
+	return table.clone(offers)
+end
+
 -- The quest to offer this giver now, nil when none (or a start dialog is already running / the quest was accepted here).
 function QuestOfferController.ForGiver(npcId: string): string?
 	if playing then

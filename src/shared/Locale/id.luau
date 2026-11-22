@@ -99,6 +99,13 @@ return {
 	["quest.done"] = "Misi selesai: {title}!",
 	["quest.more"] = "+{n} lainnya",
 	["quest.point"] = "Tunjukkan",
+	-- Quest Log (Q-4, GUI doc 6.8). "Tersedia" is not in the docs: label to confirm (Lampiran D #28).
+	["quest.log.title"] = "Quest Log",
+	["quest.log.tab_main"] = "Main",
+	["quest.log.tab_side"] = "Side",
+	["quest.log.active"] = "Aktif",
+	["quest.log.offered"] = "Tersedia",
+	["quest.log.next"] = "Berikutnya",
 	["quest.misi_utama.title"] = "Misi Utama",
 	["quest.misi_utama.s1"] = "Tanam 3 Kangkung di lahanmu",
 	["quest.misi_utama.s2"] = "Mancing 1 ikan",

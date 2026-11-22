@@ -42,7 +42,7 @@ local function build(): (ScreenGui, Frame, Frame, TextLabel, TextLabel)
 	gui.Name = "ChapterBanner"
 	gui.IgnoreGuiInset = true
 	gui.ResetOnSpawn = false
-	gui.DisplayOrder = 50
+	gui.DisplayOrder = UiKit.LAYER.BANNER -- 80: above the panels (40) and the HUD (20), GUI doc 4.5
 	gui.Enabled = false
 	gui.Parent = player:WaitForChild("PlayerGui")
 

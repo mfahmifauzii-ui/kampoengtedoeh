@@ -70,6 +70,8 @@ UiKit.FONT = Enum.Font.FredokaOne -- headings, buttons, numbers
 UiKit.FONT_BODY = Enum.Font.FredokaOne
 
 UiKit.TOUCH = 50 -- minimum touch target, px (thumb-sized)
+UiKit.TOUCH_MIN = 24 -- GUI doc 4.4: smallest tap target (close icon, link "Tunjukkan"); never below this
+UiKit.TOUCH_ROW = 32 -- GUI doc 4.4: one row of a list or the quest tracker (tap area of a row)
 UiKit.ROW_HEIGHT = 54
 UiKit.ROW_ALT = Color3.fromRGB(246, 236, 210) -- the second cream of the zebra (rows alternate ROW / ROW_ALT)
 -- Category colours (docs/UIUX_Spec.md): each kind of thing has ONE colour, used as the card's left stripe and badges.
@@ -339,11 +341,23 @@ export type Panel = {
 	footerLabel: TextLabel,
 }
 
+-- Removes a panel that is no longer needed (Quest Log closes this way): it is not kept as an invisible instance.
+function UiKit.closePanel(gui: ScreenGui)
+	for index, other in panelGuis do
+		if other == gui then
+			table.remove(panelGuis, index)
+			break
+		end
+	end
+	gui:Destroy()
+end
+
 function UiKit.panel(name: string, titleText: string, onClose: () -> ()): Panel
 	local gui = Instance.new("ScreenGui")
 	table.insert(panelGuis, gui)
 	gui.Name = name
 	gui.ResetOnSpawn = false
+	gui.DisplayOrder = UiKit.LAYER.PANEL -- above the HUD (20), below the coachmark, banner and dialog
 	gui.Enabled = false
 	gui.IgnoreGuiInset = true
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -1137,7 +1151,7 @@ local function buildConfirm()
 	gui.ResetOnSpawn = false
 	gui.Enabled = false
 	gui.IgnoreGuiInset = true
-	gui.DisplayOrder = 100 -- above every panel
+	gui.DisplayOrder = UiKit.LAYER.MODAL -- above every panel
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 	local function cancel()
@@ -1975,7 +1989,7 @@ function UiKit.rewardPopup(text: string)
 		gui.Name = "RewardPopups"
 		gui.ResetOnSpawn = false
 		gui.IgnoreGuiInset = true
-		gui.DisplayOrder = 40 -- above the HUD and the panels
+		gui.DisplayOrder = UiKit.LAYER.TOAST -- reward popups (GUI doc 4.5: Toast & hadiah)
 		gui.Parent = playerGui
 	end
 	local chip = UiKit.pill(gui :: ScreenGui, "Reward", 260, 56)

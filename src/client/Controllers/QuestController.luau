@@ -1,8 +1,13 @@
 --!strict
--- Quest tracker: a small card under the HUD level bar listing every active quest with its current step.
--- UI contract (replace with your designed UI, keep the names):
---   ScreenGui "QuestUI" > Frame "Tracker" (rows are rebuilt from State; each row has TextLabel "Title" and "Step").
--- The server owns quest state (QuestService); this only displays State.current.quests.
+-- Quest tracker and Quest Log (Q-4, GUI doc v0.1 Bab 4.5 / 6.8).
+--   Tracker: a small card under the HUD level bar. Main quests on top, then Side, then Harian / Mingguan / surat.
+--            A row is 32 px (UiKit.TOUCH_ROW) and a tap on it opens the Quest Log on that quest's tab.
+--            "Tunjukkan" is a 24 px link (UiKit.TOUCH_MIN) on the top row. At most 3 rows, the rest is "+N lainnya".
+--   Quest Log: UiKit.panel with tabs Main / Side. A tab with no quest is not drawn. Built when opened and destroyed when
+--            closed (no invisible instance is kept). Sections: Aktif, Tersedia (server offers), Selesai, Berikutnya (??? until level).
+-- UI contract (keep the names): ScreenGui "QuestUI" (DisplayOrder = UiKit.LAYER.HUD) > Frame "Tracker"; rows have
+-- TextLabel "Title" and "Step".
+-- The server owns quest state (QuestService); this only displays State.current.quests and the QuestOffers list.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -13,12 +18,17 @@ local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local State = require(script.Parent.Parent.State)
 local FeatureClient = require(script.Parent.Parent.FeatureClient)
 local UiKit = require(script.Parent.Parent.UiKit)
+local QuestOfferController = require(script.Parent.QuestOfferController)
 
 local player = Players.LocalPlayer
 
 local QuestController = {}
 
 local tracker: Frame
+local refresh: () -> ()
+local logPanel: any = nil -- the open Quest Log (UiKit.panel), nil while closed
+local logTab: string = "main"
+local pointedQuest: string? = nil -- the quest whose step is pointed at ("Tunjukkan"), until its timer ends
 
 -- Baris slot (Quest Harian / Mingguan): 1 baris per slot yang belum selesai.
 local function addSlotRows(order: number, slots: { any }?, pool: { any }, label: string, current: string, saved: string): number
@@ -40,13 +50,13 @@ local function addSlotRows(order: number, slots: { any }?, pool: { any }, label:
 				row.Name = `{label}_{def.id}`
 				row.LayoutOrder = order
 				row.BackgroundTransparency = 1
-				row.Size = UDim2.new(1, 0, 0, 38)
+				row.Size = UDim2.new(1, 0, 0, UiKit.TOUCH_ROW)
 				row.Parent = tracker
 
 				local title = Instance.new("TextLabel")
 				title.Name = "Title"
 				title.BackgroundTransparency = 1
-				title.Size = UDim2.new(1, 0, 0, 18)
+				title.Size = UDim2.new(1, 0, 0, 16)
 				title.Font = UiKit.FONT
 				title.TextSize = 13
 				title.TextColor3 = UiKit.TEXT
@@ -57,8 +67,8 @@ local function addSlotRows(order: number, slots: { any }?, pool: { any }, label:
 				local step = Instance.new("TextLabel")
 				step.Name = "Step"
 				step.BackgroundTransparency = 1
-				step.Position = UDim2.fromOffset(0, 18)
-				step.Size = UDim2.new(1, 0, 0, 18)
+				step.Position = UDim2.fromOffset(0, 16)
+				step.Size = UDim2.new(1, 0, 0, 16)
 				step.Font = UiKit.FONT
 				step.TextSize = 12
 				step.TextColor3 = UiKit.TEXT
@@ -95,13 +105,13 @@ local function addDailyRow(order: number)
 	row.Name = "daily"
 	row.LayoutOrder = order
 	row.BackgroundTransparency = 1
-	row.Size = UDim2.new(1, 0, 0, 38)
+	row.Size = UDim2.new(1, 0, 0, UiKit.TOUCH_ROW)
 	row.Parent = tracker
 
 	local title = Instance.new("TextLabel")
 	title.Name = "Title"
 	title.BackgroundTransparency = 1
-	title.Size = UDim2.new(1, 0, 0, 18)
+	title.Size = UDim2.new(1, 0, 0, 16)
 	title.Font = UiKit.FONT
 	title.TextSize = 13
 	title.TextColor3 = UiKit.TEXT
@@ -112,8 +122,8 @@ local function addDailyRow(order: number)
 	local step = Instance.new("TextLabel")
 	step.Name = "Step"
 	step.BackgroundTransparency = 1
-	step.Position = UDim2.new(0, 0, 0, 18)
-	step.Size = UDim2.new(1, 0, 0, 18)
+	step.Position = UDim2.new(0, 0, 0, 16)
+	step.Size = UDim2.new(1, 0, 0, 16)
 	step.Font = UiKit.FONT
 	step.TextSize = 12
 	step.TextColor3 = UiKit.TEXT
@@ -121,8 +131,6 @@ local function addDailyRow(order: number)
 	step.Text = `{Locale.t("daily." .. def.id)}  {daily.progress}/{def.count}`
 	step.Parent = row
 end
-
-local pointedQuest: string? = nil -- the quest whose step is pointed at ("Tunjukkan"), until its timer ends
 
 local function addRow(order: number, questId: string, progress: { step: number, count: number })
 	local quest = Quests.byId[questId]
@@ -135,13 +143,13 @@ local function addRow(order: number, questId: string, progress: { step: number, 
 	row.Name = questId
 	row.LayoutOrder = order
 	row.BackgroundTransparency = 1
-	row.Size = UDim2.new(1, 0, 0, 38)
+	row.Size = UDim2.new(1, 0, 0, UiKit.TOUCH_ROW)
 	row.Parent = tracker
 
 	local title = Instance.new("TextLabel")
 	title.Name = "Title"
 	title.BackgroundTransparency = 1
-	title.Size = UDim2.new(1, 0, 0, 18)
+	title.Size = UDim2.new(1, 0, 0, 16)
 	title.TextXAlignment = Enum.TextXAlignment.Left
 	title.TextColor3 = UiKit.TEXT
 	title.Font = Enum.Font.FredokaOne
@@ -152,8 +160,8 @@ local function addRow(order: number, questId: string, progress: { step: number, 
 	local text = Instance.new("TextLabel")
 	text.Name = "Step"
 	text.BackgroundTransparency = 1
-	text.Position = UDim2.fromOffset(0, 18)
-	text.Size = UDim2.new(1, 0, 0, 24)
+	text.Position = UDim2.fromOffset(0, 16)
+	text.Size = UDim2.new(1, 0, 0, 16)
 	text.TextXAlignment = Enum.TextXAlignment.Left
 	text.TextYAlignment = Enum.TextYAlignment.Top
 	text.TextWrapped = true
@@ -192,6 +200,7 @@ local function maxHeight(): number
 	local viewport = if camera then camera.ViewportSize.Y else MAX_HEIGHT_PX / MAX_HEIGHT_SCREEN
 	return math.min(MAX_HEIGHT_PX, MAX_HEIGHT_SCREEN * viewport)
 end
+
 local function fitTracker()
 	if tracker then
 		local content = tracker:FindFirstChildOfClass("UIListLayout")
@@ -200,17 +209,174 @@ local function fitTracker()
 	end
 end
 
-local function refresh()
-	for _, child in tracker:GetChildren() do
-		if child:IsA("Frame") then
-			child:Destroy()
+-- ---------------------------------------------------------------------------------------------------------------------
+-- Quest Log
+-- ---------------------------------------------------------------------------------------------------------------------
+
+type LogRow = { title: string, sub: string, pointable: boolean, questId: string? }
+type LogSection = { heading: string, rows: { LogRow } }
+
+-- The sections of one kind ("main" / "side"): Aktif, Tersedia, Selesai, Berikutnya. Empty sections are left out.
+local function logSections(kind: string, snapshot: any): { LogSection }
+	local quests = snapshot and snapshot.quests
+	local levelValue = player:GetAttribute("Level")
+	local level = if typeof(levelValue) == "number" then levelValue else 1
+	local offerSet: { [string]: boolean } = {}
+	for _, id in QuestOfferController.Offers() do
+		offerSet[id] = true
+	end
+	local active: { LogRow } = {}
+	local offered: { LogRow } = {}
+	local done: { LogRow } = {}
+	local later: { LogRow } = {}
+	for _, quest in Quests.list do
+		if quest.kind == kind and quest.blocked == nil then
+			local progress = if quests and quests.active then quests.active[quest.id] else nil
+			if progress then
+				local step = quest.steps[progress.step]
+				local sub = ""
+				if step then
+					sub = Locale.t(`quest.{quest.id}.s{progress.step}`, { n = step.count })
+						.. (if step.count > 1 then ` ({progress.count}/{step.count})` else "")
+				end
+				table.insert(active, { title = Locale.t(`quest.{quest.id}.title`), sub = sub, pointable = true, questId = quest.id })
+			elseif quests and quests.done and quests.done[quest.id] == true then
+				table.insert(done, { title = Locale.t(`quest.{quest.id}.title`), sub = Locale.t("banner.done"), pointable = false, questId = nil })
+			elseif offerSet[quest.id] then
+				table.insert(offered, { title = Locale.t(`quest.{quest.id}.title`), sub = Locale.t(`npc.{quest.giver}`), pointable = false, questId = nil })
+			elseif kind == "main" and quest.auto ~= true and level < quest.unlockLevel then
+				-- GUI doc 6.8: the next Main quest is shown as ??? until the level reaches it.
+				table.insert(later, { title = "???", sub = `Lv {quest.unlockLevel}`, pointable = false, questId = nil })
+			end
 		end
 	end
-	local snapshot = State.current :: any
-	if not tutorialDone(snapshot) then
-		tracker.Visible = false
+	local sections: { LogSection } = {}
+	if #active > 0 then
+		table.insert(sections, { heading = Locale.t("quest.log.active"), rows = active })
+	end
+	if #offered > 0 then
+		table.insert(sections, { heading = Locale.t("quest.log.offered"), rows = offered })
+	end
+	if #done > 0 then
+		table.insert(sections, { heading = Locale.t("banner.done"), rows = done })
+	end
+	if kind == "main" and #later > 0 then
+		table.insert(sections, { heading = Locale.t("quest.log.next"), rows = later })
+	end
+	return sections
+end
+
+local function closeLog()
+	if logPanel then
+		local gui = logPanel.gui
+		logPanel = nil
+		UiKit.closePanel(gui)
+	end
+end
+
+-- "Tunjukkan" from the Quest Log: close the log and point at the quest's step on the tracker.
+local function pointAt(questId: string)
+	closeLog()
+	pointedQuest = questId
+	refresh()
+	task.delay(4, function()
+		pointedQuest = nil
+		refresh()
+	end)
+end
+
+local function renderLog()
+	if not logPanel then
 		return
 	end
+	UiKit.clear(logPanel.list)
+	local snapshot = State.current :: any
+	local mainSections = logSections("main", snapshot)
+	local sideSections = logSections("side", snapshot)
+	local defs = {}
+	if #mainSections > 0 then
+		table.insert(defs, { id = "main", text = Locale.t("quest.log.tab_main") })
+	end
+	if #sideSections > 0 then
+		table.insert(defs, { id = "side", text = Locale.t("quest.log.tab_side") })
+	end
+	if #defs == 0 then
+		UiKit.header(logPanel.list, "—", 1)
+		return
+	end
+	-- Only tabs with quests are drawn; the open tab falls back to the first one that has any.
+	local hasTab = false
+	for _, def in defs do
+		if def.id == logTab then
+			hasTab = true
+		end
+	end
+	if not hasTab then
+		logTab = defs[1].id
+	end
+	local order = 1
+	if #defs > 1 then
+		local bar = UiKit.tabs(logPanel.list, defs, logTab, function(id: string)
+			logTab = id
+			renderLog()
+		end)
+		bar.frame.LayoutOrder = order
+		order += 1
+	end
+	for _, section in (if logTab == "side" then sideSections else mainSections) do
+		UiKit.header(logPanel.list, section.heading, order)
+		order += 1
+		for _, row in section.rows do
+			local questId = row.questId
+			local point = if row.pointable and questId then function()
+				pointAt(questId)
+			end else nil
+			UiKit.row(logPanel.list, order, row.title, row.sub, if point then Locale.t("quest.point") else nil, true, point)
+			order += 1
+		end
+	end
+end
+
+local function openLog(kind: string)
+	logTab = kind
+	if not logPanel then
+		logPanel = UiKit.panel("QuestLog", Locale.t("quest.log.title"), closeLog)
+		logPanel.gui.Enabled = true
+	end
+	renderLog()
+end
+
+-- ---------------------------------------------------------------------------------------------------------------------
+-- Tracker
+-- ---------------------------------------------------------------------------------------------------------------------
+
+-- The tracker shows when it has at least one row (a quest, a slot row, the daily or surat row).
+local function hasRows(): boolean
+	for _, child in tracker:GetChildren() do
+		if child:IsA("Frame") then
+			return true
+		end
+	end
+	return false
+end
+
+-- A tap on a quest row opens the Quest Log on that quest's tab. The row's text stays on top (drawn after the tap area).
+local function addTapArea(row: Frame, kind: string)
+	local tap = Instance.new("TextButton")
+	tap.Name = "Tap"
+	tap.Text = ""
+	tap.AutoButtonColor = false
+	tap.BackgroundTransparency = 1
+	tap.Size = UDim2.fromScale(1, 1)
+	tap.ZIndex = 1
+	tap.Parent = row
+	tap.Activated:Connect(function()
+		openLog(kind)
+	end)
+end
+
+local function buildRows()
+	local snapshot = State.current :: any
 	local active = snapshot and snapshot.quests and snapshot.quests.active
 	local order = 0
 	-- Stable order: follow the definition list, not pairs() order.
@@ -251,12 +417,12 @@ local function refresh()
 			row.Name = "surat"
 			row.LayoutOrder = order
 			row.BackgroundTransparency = 1
-			row.Size = UDim2.new(1, 0, 0, 38)
+			row.Size = UDim2.new(1, 0, 0, UiKit.TOUCH_ROW)
 			row.Parent = tracker
 			local title = Instance.new("TextLabel")
 			title.Name = "Title"
 			title.BackgroundTransparency = 1
-			title.Size = UDim2.new(1, 0, 0, 18)
+			title.Size = UDim2.new(1, 0, 0, 16)
 			title.Font = UiKit.FONT
 			title.TextSize = 13
 			title.TextColor3 = UiKit.TEXT
@@ -266,8 +432,8 @@ local function refresh()
 			local step = Instance.new("TextLabel")
 			step.Name = "Step"
 			step.BackgroundTransparency = 1
-			step.Position = UDim2.fromOffset(0, 18)
-			step.Size = UDim2.new(1, 0, 0, 18)
+			step.Position = UDim2.fromOffset(0, 16)
+			step.Size = UDim2.new(1, 0, 0, 16)
 			step.Font = UiKit.FONT
 			step.TextSize = 12
 			step.TextColor3 = UiKit.TEXT
@@ -276,6 +442,23 @@ local function refresh()
 			step.Parent = row
 		end
 	end
+end
+
+function refresh()
+	for _, child in tracker:GetChildren() do
+		if child:IsA("Frame") then
+			child:Destroy()
+		end
+	end
+	local snapshot = State.current :: any
+	if not tutorialDone(snapshot) then
+		tracker.Visible = false
+		if logPanel then
+			closeLog() -- no quest UI during the tutorial
+		end
+		return
+	end
+	buildRows()
 	-- Show at most MAX_ROWS rows; the rest collapse into one "+N lainnya" row.
 	local rows = {} :: { Instance }
 	for _, child in tracker:GetChildren() do
@@ -294,7 +477,7 @@ local function refresh()
 		more.Name = "more"
 		more.LayoutOrder = MAX_ROWS + 1
 		more.BackgroundTransparency = 1
-		more.Size = UDim2.new(1, 0, 0, 18)
+		more.Size = UDim2.new(1, 0, 0, UiKit.TOUCH_ROW)
 		more.Parent = tracker
 		local text = Instance.new("TextLabel")
 		text.Name = "Title"
@@ -306,6 +489,15 @@ local function refresh()
 		text.TextXAlignment = Enum.TextXAlignment.Left
 		text.Text = Locale.t("quest.more", { n = #rows - MAX_ROWS })
 		text.Parent = more
+	end
+	-- Tap area on every quest row (not on Harian / Mingguan / surat rows).
+	for _, child in tracker:GetChildren() do
+		if child:IsA("Frame") then
+			local quest = Quests.byId[child.Name]
+			if quest and not child:FindFirstChild("Tap") then
+				addTapArea(child, quest.kind)
+			end
+		end
 	end
 	-- The top row gets the "Tunjukkan" button (once; rebuilt with the rows).
 	local topRow = nil
@@ -319,7 +511,7 @@ local function refresh()
 		point.Name = "PointButton"
 		point.AnchorPoint = Vector2.new(1, 0)
 		point.Position = UDim2.new(1, 0, 0, 0)
-		point.Size = UDim2.fromOffset(74, 18)
+		point.Size = UDim2.fromOffset(74, UiKit.TOUCH_MIN)
 		point.BackgroundTransparency = 0.25
 		point.BackgroundColor3 = UiKit.DARK
 		point.Font = UiKit.FONT
@@ -328,13 +520,9 @@ local function refresh()
 		point.Text = Locale.t("quest.point")
 		point.ZIndex = 3
 		point.Parent = topRow
+		local topName: string = topRow.Name
 		point.Activated:Connect(function()
-			pointedQuest = topRow.Name
-			refresh()
-			task.delay(4, function()
-				pointedQuest = nil
-				refresh()
-			end)
+			pointAt(topName)
 		end)
 	end
 	-- Readable without a panel: cream text with a dark outline on every label of the tracker.
@@ -353,13 +541,17 @@ local function refresh()
 			stepLabel.TextColor3 = Color3.fromRGB(255, 226, 120)
 		end
 	end
-	tracker.Visible = order > 0 or tracker:FindFirstChild("daily") ~= nil
+	tracker.Visible = hasRows()
+	if logPanel then
+		renderLog()
+	end
 end
 
 function QuestController.Init()
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "QuestUI"
 	gui.ResetOnSpawn = false
+	gui.DisplayOrder = UiKit.LAYER.HUD -- GUI doc 4.5: quest tracker is a HUD layer (20)
 
 	tracker = Instance.new("Frame")
 	tracker.Name = "Tracker"

@@ -223,7 +223,7 @@ function FeedbackController.Init()
 	fxGui.Name = "FeedbackFx"
 	fxGui.ResetOnSpawn = false
 	fxGui.IgnoreGuiInset = true
-	fxGui.DisplayOrder = 70 -- above the HUD, below the confirm modal
+	fxGui.DisplayOrder = UiKit.LAYER.TOAST -- 60 (GUI doc 4.5, Toast & hadiah): above the panels, below the banner
 	fxGui:SetAttribute("NoScale", true)
 	fxGui.Parent = player:WaitForChild("PlayerGui")
 
