@@ -153,6 +153,93 @@ local function refreshButton()
 	breedButton.Visible = ownPondNear() ~= nil
 end
 
+-- Sheet Kolam (B-3, 2026-11-22): Tas (ikan saja, Taruh / Taruh semua) dan Isi kolam (Ambil). Header "x/cap ikan".
+-- Dibuka lewat tombol "Kolam" di kolam sendiri (server kirim PondOpen). Server memeriksa jarak, kapasitas, dan isi tas.
+local kolamPanel: UiKit.Panel? = nil
+local kolamUid: number? = nil
+
+local function kolamPond(): any
+	local snap = State.current :: any
+	for _, pond in (snap and snap.pondState) or {} do
+		if pond.uid == kolamUid then
+			return pond
+		end
+	end
+	return nil
+end
+
+local function rebuildKolam()
+	local list = kolamPanel and kolamPanel.list
+	if not list or kolamUid == nil then
+		return
+	end
+	UiKit.clear(list)
+	local snap = State.current :: any
+	local items = (snap and snap.items) or {}
+	local pond = kolamPond()
+	local stock: { string } = (pond and pond.stock) or {}
+	local tierId = if pond and typeof(pond.tier) == "string" then pond.tier else "tanah"
+	local tierDef = Ranch.byTier[tierId] or Ranch.byTier.tanah
+	local cap = tierDef.cap
+	local uid = kolamUid
+	local order = 0
+
+	order += 1
+	UiKit.header(list, Locale.t("pond.count", { n = #stock, cap = cap }), order)
+
+	-- Tas: hanya ikan (item id "fishId@size").
+	order += 1
+	UiKit.header(list, Locale.t("pond.bag_fish"), order)
+	local bagIds: { string } = {}
+	for itemId, count in items do
+		if typeof(count) == "number" and count > 0 and string.find(itemId, "@", 1, true) then
+			table.insert(bagIds, itemId)
+		end
+	end
+	table.sort(bagIds)
+	if #bagIds == 0 then
+		order += 1
+		UiKit.row(list, order, Locale.t("pond.bag_none"))
+	end
+	for _, itemId in bagIds do
+		order += 1
+		local fishId, size = itemId:match("^(.+)@(.+)$")
+		UiKit.row(list, order, Locale.t(`fish.{fishId or itemId}`), `{Locale.t(`size.{size or "S"}`)} x{items[itemId]}`, Locale.t("pond.put"), true, function()
+			Net.Send("PondDeposit", uid, itemId)
+		end)
+	end
+	if #bagIds > 0 then
+		order += 1
+		UiKit.row(list, order, Locale.t("pond.put_all"), nil, Locale.t("pond.put_all"), true, function()
+			task.spawn(function()
+				local now = State.current :: any
+				for _, itemId in bagIds do
+					local count = (now and now.items and now.items[itemId]) or 0
+					for _ = 1, count do
+						Net.Send("PondDeposit", uid, itemId)
+						task.wait(0.2) -- jeda antar kiriman: rate limit server (burst 6)
+					end
+				end
+			end)
+		end)
+	end
+
+	-- Isi kolam: Ambil satu per satu.
+	order += 1
+	UiKit.header(list, Locale.t("pond.stock"), order)
+	if #stock == 0 then
+		order += 1
+		UiKit.row(list, order, Locale.t("pond.empty"))
+	end
+	for index, itemId in stock do
+		order += 1
+		local fishId, size = itemId:match("^(.+)@(.+)$")
+		UiKit.row(list, order, Locale.t(`fish.{fishId or itemId}`), Locale.t(`size.{size or "S"}`), Locale.t("pond.take"), true, function()
+			Net.Send("PondWithdraw", uid, index)
+		end)
+	end
+end
+
 function PondController.Init()
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "PondUI"
@@ -183,6 +270,23 @@ function PondController.Init()
 end
 
 function PondController.Start()
+	kolamPanel = UiKit.panel("KolamPanel", Locale.t("pond.sheet_title"), function()
+		if kolamPanel then
+			kolamPanel.gui.Enabled = false
+		end
+	end)
+	Net.Listen("PondOpen", function(uid: any)
+		if typeof(uid) == "number" and kolamPanel then
+			kolamUid = uid
+			kolamPanel.gui.Enabled = true
+			rebuildKolam()
+		end
+	end)
+	State.Changed:Connect(function()
+		if kolamPanel and kolamPanel.gui.Enabled then
+			rebuildKolam()
+		end
+	end)
 	State.Changed:Connect(function()
 		if panel and panel.gui.Enabled then
 			rebuild()

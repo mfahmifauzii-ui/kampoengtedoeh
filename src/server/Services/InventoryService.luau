@@ -68,7 +68,7 @@ local function pondStateFor(data: Types.PlayerData)
 		return out
 	end
 	for _, pond in data.pond.list do
-		table.insert(out, { uid = pond.uid, tier = pond.tier, kakek = pond.kakek, breed = pond.breed })
+		table.insert(out, { uid = pond.uid, tier = pond.tier, kakek = pond.kakek, breed = pond.breed, stock = table.clone(pond.stock or {}) })
 	end
 	return out
 end

@@ -393,17 +393,6 @@ end
 
 -- Pond counter (your own kolam) ---------------------------------------------------------
 
-local function updatePond(pond: BasePart)
-	local collect = pond:FindFirstChild("CollectPrompt")
-	local lastCollect = pond:GetAttribute("LastCollect")
-	local cap = pond:GetAttribute("Cap")
-	if not collect or not collect:IsA("ProximityPrompt") or typeof(lastCollect) ~= "number" or typeof(cap) ~= "number" then
-		return
-	end
-	local count = math.min(cap, (Workspace:GetServerTimeNow() - lastCollect) // Fishing.POND.INTERVAL)
-	collect.ObjectText = Locale.t("pond.count", { n = math.max(count, 0), cap = cap })
-end
-
 local function onPondAdded(instance: Instance)
 	if not instance:IsA("BasePart") then
 		return
@@ -535,15 +524,6 @@ function FishingController.Start()
 	CollectionService:GetInstanceAddedSignal("Pond"):Connect(onPondAdded)
 	for _, pond in CollectionService:GetTagged("Pond") do
 		onPondAdded(pond)
-	end
-
-	while true do
-		task.wait(1)
-		for _, pond in CollectionService:GetTagged("Pond") do
-			if pond:IsA("BasePart") and pond:GetAttribute("Owner") == player.UserId then
-				updatePond(pond)
-			end
-		end
 	end
 end
 

@@ -204,6 +204,13 @@ return {
 	["pond.far"] = "Terlalu jauh dari kolam",
 	["pond.not_fish"] = "Hanya ikan yang bisa disetor ke kolam",
 	["pond.bag_full"] = "Tas penuh, ikan tetap di kolam",
+	["pond.sheet_title"] = "Kolam",
+	["pond.bag_fish"] = "Tas · ikan",
+	["pond.bag_none"] = "Tidak ada ikan di tas",
+	["pond.put"] = "Taruh",
+	["pond.put_all"] = "Taruh semua",
+	["pond.take"] = "Ambil",
+	["pond.stock"] = "Isi kolam",
 	["pond.collected"] = "+{n} ikan dari kolam",
 
 	-- Nambang + Crafting (Bab 8.1 / 8.2)
