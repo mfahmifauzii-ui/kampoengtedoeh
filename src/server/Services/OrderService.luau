@@ -10,6 +10,7 @@ local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
 local Orders = require(ReplicatedStorage.Shared.Config.Orders)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
+local TutorialService = require(script.Parent.TutorialService)
 local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
@@ -155,6 +156,10 @@ end
 -- Requests -------------------------------------------------------------------------------
 
 local function onDeliver(player: Player, uid: any)
+	if TutorialService.NpcBlocked(player, nil) then
+		Net.Fire("Notify", player, "npc.tut_block") -- Bab 16.3: no order/event/social while Tutorial 1 runs
+		return
+	end
 	local data = DataService.Get(player)
 	if not data then
 		return
@@ -192,6 +197,10 @@ end
 -- Reroll (Bab 14.7): 2 Bunga per Order, max 1x per Order per hari. Order baru = Daily baru
 -- (tier sama). Order yang hilang saat reset tidak ada hukuman (refresh ganti semua).
 local function onReroll(player: Player, uid: any)
+	if TutorialService.NpcBlocked(player, nil) then
+		Net.Fire("Notify", player, "npc.tut_block") -- Bab 16.3: no order/event/social while Tutorial 1 runs
+		return
+	end
 	local data = DataService.Get(player)
 	if not data then
 		return

@@ -174,6 +174,8 @@ local function applySign(s: Spot)
 	s.sub.TextColor3 = if locked then LOCKED else OPEN
 	s.lock.Visible = locked
 	s.sub.Position = if locked then UDim2.new(0, 26, 0.52, 0) else UDim2.new(0, 5, 0.52, 0)
+	-- Owner (2026-11-22): an open spot shows no floating sign at all; only a locked one says what it needs.
+	s.sign.Enabled = locked
 	s.sub.Size = if locked then UDim2.new(1, -30, 0.45, 0) else UDim2.new(1, -10, 0.45, 0)
 end
 

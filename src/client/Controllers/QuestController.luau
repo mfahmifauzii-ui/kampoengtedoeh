@@ -163,36 +163,24 @@ local function addRow(order: number, questId: string, progress: { step: number, 
 	text.Parent = row
 end
 
--- The kolam quest card (kolam_pertama) is part of the t1b land step: it shows only once the player stands on his land
--- (bangun_kolam, 60 studs from the plot centre), together with Mak Sari's line. Before that there is no card at all.
+-- The kolam quest card (kolam_pertama) is hidden for the whole of T1b (v7.4 Bab 16.5: the pond left Tutorial 1, so
+-- nothing in the tutorial tells the player to dig one). It comes back the moment T1b is over, when MQ4 / Bundel opens
+-- the pond for real.
 local KOLAM_QUEST = "kolam_pertama"
-local function inOwnLand(): boolean
-	local character = Players.LocalPlayer.Character
-	local root = character and character:FindFirstChild("HumanoidRootPart")
-	if not root or not root:IsA("BasePart") then
-		return false
-	end
-	for _, plot in workspace.Plots:GetChildren() do
-		if plot:GetAttribute("OwnerUserId") == Players.LocalPlayer.UserId then
-			local center = plot:GetPivot().Position
-			return (Vector3.new(root.Position.X, 0, root.Position.Z) - Vector3.new(center.X, 0, center.Z)).Magnitude <= 60
-		end
-	end
-	return false
-end
 
 local function kolamCardWanted(snapshot: any): boolean
 	local step = snapshot and snapshot.guide and snapshot.guide.step
-	if not step or step.id ~= "t1b_kolam" then
-		return true
+	return not (step and step.id == "t1b_kolam")
+end
+
+local TRACKER_MAX = 200 -- stops above the Craft button (its top sits ~200 px up from the bottom edge)
+-- The tracker is as tall as its rows (plus padding), never more than TRACKER_MAX.
+local function fitTracker()
+	if tracker then
+		local content = tracker:FindFirstChildOfClass("UIListLayout")
+		local height = if content then content.AbsoluteContentSize.Y + 16 else 0
+		tracker.Size = UDim2.fromOffset(220, math.min(TRACKER_MAX, math.max(height, 0)))
 	end
-	if (step.n or 0) < 4 then
-		return false -- before bangun_kolam (warung, Kak Fajar, mancing, after_catch)
-	end
-	if (step.n or 0) == 4 then
-		return inOwnLand() -- bangun_kolam is the current step: only on the land
-	end
-	return true -- bangun_kolam done: the card stays
 end
 
 local function refresh()
@@ -263,7 +251,11 @@ function QuestController.Init()
 	tracker.Name = "Tracker"
 	tracker.Position = UDim2.fromOffset(12, 118) -- under the status row and the goal chip
 	tracker.Size = UDim2.fromOffset(220, 0)
-	tracker.AutomaticSize = Enum.AutomaticSize.Y
+	-- Owner (2026-11-22): the list ran over the Craft button and the XP card. Its height follows the rows (see
+	-- fitTracker) but never goes past TRACKER_MAX, which stops above Craft (Craft sits 200 px up from the bottom); the rest
+	-- is clipped, so nothing draws over the buttons.
+	tracker.AutomaticSize = Enum.AutomaticSize.None
+	tracker.ClipsDescendants = true
 	tracker.BackgroundColor3 = UiKit.BG
 	tracker.BackgroundTransparency = 0.25
 	tracker.Visible = false
@@ -281,6 +273,7 @@ function QuestController.Init()
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	layout.Padding = UDim.new(0, 6)
 	layout.Parent = tracker
+	layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(fitTracker)
 
 	gui.Parent = player:WaitForChild("PlayerGui")
 end

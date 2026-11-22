@@ -21,6 +21,7 @@ local NpcCamera = require(script.Parent.Parent.NpcCamera)
 local ShopController = require(script.Parent.ShopController)
 local State = require(script.Parent.Parent.State)
 local T1Dialog = require(script.Parent.Parent.T1Dialog)
+local FadeManager = require(script.Parent.Parent.FadeManager)
 local PromptGate = require(script.Parent.Parent.PromptGate) -- Plan v3 3.2: no proximity prompts while talking
 
 local CHECK_SECONDS = 0.5
@@ -237,11 +238,12 @@ local function refresh(npcId: string)
 			text = Locale.t("dialog.receive_gift"),
 			onChoose = function()
 				-- Terima Hadiah: the server gives the Joran Bambu and the pelet once (TutorialService).
+				-- Then the talk ends with a fade (owner, P2-8): the player follows the arrow to the fishing spot.
 				task.spawn(function()
 					pcall(Net.Invoke, "MeetFajar")
-					if currentNpc == npcId then
-						refresh(npcId)
-					end
+					FadeManager.Play(function()
+						close(true)
+					end)
 				end)
 			end,
 		})

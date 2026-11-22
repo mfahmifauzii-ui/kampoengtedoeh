@@ -9,7 +9,7 @@
 |-------|--------|------|
 | P0 | Done | Bab 29 kelar + Upgrade Tas Koin dihapus (`ce0a7f4`). |
 | P1 | Done | 10/10 angka persis v7.3 (`c452303` … `3d1fc7b`). |
-| P2 | Jalan | P2-1 s/d P2-7 + fix DONE. **Berikutnya: P2-8 (FTUE v7.4).** Lalu P2-9 Login/Season, P2-10 Blueprint/Akuarium/FX/KPI. |
+| P2 | Jalan | P2-1 s/d P2-7 + fix DONE. P2-8 (FTUE v7.4) kode selesai (a-e), **menunggu playtest kamu** (§4). Lalu P2-9 Login/Season, P2-10 Blueprint/Akuarium/FX/KPI. |
 | Studio | Belum | §6, tidak ada di `src/`. |
 
 ### 1.1 Delta v7.3 → v7.4 (hasil review 2026-11-22)
@@ -18,13 +18,13 @@ Angka ekonomi/sistem **tidak ada yang berubah**. v7.4 = v7.3 + doc fix P2-8 untu
 
 | Bab | Perubahan v7.4 | Dampak ke kode |
 |-----|----------------|----------------|
-| 16.1 | **No-skip LOCKED**: tidak ada `Lewati` / `Lewati langkah` / `Lewati panduan` / skip cutscene / coachmark / dialog. (v7.3 masih punya Lewati.) | Ada 4 tombol skip di kode → hapus (P2-8a). |
+| 16.1 | **No-skip LOCKED**: tidak ada `Lewati` / `Lewati langkah` / `Lewati panduan` / skip cutscene / coachmark / dialog. (v7.3 masih punya Lewati.) | Tombol skip sudah dihapus (P2-8a, kode selesai). |
 | 16.2 | Tabel FTUE + kolom "Catatan P2-8". FTUE lama dipertahankan, tidak ada FTUE/naskah baru. Mancing FTUE hanya di dermaga Kanal. | Lihat catatan gap di P2-8. |
-| 16.3 (baru) | **Blok NPC selama Tutorial 1**: semua NPC di luar target langkah aktif jawab satu kalimat `Selesaikan tutorial dulu`, tanpa toko/dialog/quest/order/hadiah/bantu. | Belum ada di kode (P2-8b). |
-| 16.4 (baru) | **Cutscene Jual Pertama proximity**: dekati Pak Udin → cutscene → GUI Jual yang sama dibuka → jual → tutup GUI → cutscene selesai → 20 XP. | Kode sekarang kebalikannya: cutscene main SETELAH jual dan menutup toko (P2-8c). |
-| 16.5 (baru) | **Kolam keluar dari Tutorial 1.** Kolam pertama hanya lewat MQ4 / Bundel Kakek Lv 3. | T1b masih punya langkah `bangun_kolam` + `mancing_kolam`, dan `kolamUnlocked` diset tutorial (P2-8d). |
+| 16.3 (baru) | **Blok NPC selama Tutorial 1**: semua NPC di luar target langkah aktif jawab satu kalimat `Selesaikan tutorial dulu`, tanpa toko/dialog/quest/order/hadiah/bantu. | Sudah di kode (P2-8b, kode selesai). |
+| 16.4 (baru) | **Cutscene Jual Pertama proximity**: dekati Pak Udin → cutscene → GUI Jual yang sama dibuka → jual → tutup GUI → cutscene selesai → 20 XP. | Sudah di kode (P2-8c, kode selesai). |
+| 16.5 (baru) | **Kolam keluar dari Tutorial 1.** Kolam pertama hanya lewat MQ4 / Bundel Kakek Lv 3. | Sudah di kode (P2-8d, kode selesai). |
 | 9.4 | Buff ditulis ulang (isi sama) + baris baru: "Buff + Skill stack, peluang Super tetap dibatasi cap Bab 17.6 / 5.4". | Bab 17.6/5.4 tidak punya angka cap peluang Super → BUTUH KEPUTUSAN OWNER (§5). |
-| 9.2, 10.1, 14.7, 0.3, 5, 8.3, 29, 31 | Perapihan teks / pindah paragraf. Order Villager tambah "reroll = tier sama". | Cek reroll tier sama di P2-8e (verifikasi saja). |
+| 9.2, 10.1, 14.7, 0.3, 5, 8.3, 29, 31 | Perapihan teks / pindah paragraf. Order Villager tambah "reroll = tier sama". | Reroll tier sama sudah dicek dari kode (P2-8e). |
 
 ## 2. Aturan Kerja (LOCKED)
 
@@ -32,6 +32,9 @@ Angka ekonomi/sistem **tidak ada yang berubah**. v7.4 = v7.3 + doc fix P2-8 untu
 - Setiap tugas harus ada "Cara Cek" (grep / file:baris / nilai). Jangan tulis "sudah bener" tanpa cara cek.
 - Jangan ubah v7.4.md. Jangan ubah map. Jangan ngarang angka. Angka tidak ada di v7.4 → STOP, tulis di §5 "BUTUH KEPUTUSAN OWNER".
 - Selesai 1 tugas: ganti `[ ]` → `[x]`, tulis tanggal + commit + hasil verifikasi (selene / rojo build / grep).
+- **Pembagian verifikasi (ditambah 2026-11-22):** tiap item punya dua baris:
+  - `Cek AI` = yang aku bisa buktikan dari kode (selene, rojo build, grep, baca file:baris). Aku TIDAK bisa menjalankan Roblox Studio dari sesi ini (tool Studio tidak tersedia), jadi aku tidak mengklaim "sudah dites di Studio".
+  - `Playtest USER` = yang hanya bisa dilihat di Studio (alur, tampilan, timing, multiplayer). Ditandai `[ ]` sampai kamu konfirmasi.
 
 ## 3. Yang Sudah DONE (ringkas)
 
@@ -58,26 +61,42 @@ Angka ekonomi/sistem **tidak ada yang berubah**. v7.4 = v7.3 + doc fix P2-8 untu
 
 Prinsip v7.4: FTUE lama (`Config/Onboarding.luau` T1 `t1_awal` + T1b `t1b_kolam`, `T1Ghost.client.luau`, `GuideController.luau`) dipertahankan. Hanya 4 hal di bawah.
 
-- [ ] **P2-8a No-skip (Bab 16.1).** Hapus semua tombol skip tutorial:
-    - `src/client/BeatSkip.luau` (tombol `Lewati` beat intro + warung) → hapus modul + 6 pemakaian di `T1Ghost.client.luau` (`BeatSkip.Begin/End/Requested`).
-    - `GuideController.luau:1094-1135` (`SkipStepButton` "Lewati langkah" + `SkipAllButton` "Lewati panduan" + konfirmasi).
-    - `FishingController.luau:138-142` (`PullCoachSkip` di coachmark tarik) + `coachHidden`.
-    - Server `TutorialService.luau:105` (`beatskip`) + `:168` (`skipstep`/`skipall`) → tolak (jangan proses). `guide.skipped` tetap dibaca untuk save lama (jangan hapus field).
-    - Locale `tut.skip*` (`id.luau:549-555`) dihapus.
-    - Cara Cek: `grep -rn "BeatSkip\|tut.skip\|SkipStep\|SkipAll\|PullCoachSkip\|skipall\|skipstep" src/` = 0 (kecuali komentar baca save lama).
-- [ ] **P2-8b Blok NPC selama Tutorial 1 (Bab 16.3).** Selama T1 belum selesai (0:00-10:00): semua NPC kecuali target langkah aktif (Mak Sari `sapa`, Kak Fajar `kak_fajar`/`mancing`, Pak Udin `panen_jual`) → prompt nonaktif + bubble `Selesaikan tutorial dulu`, tanpa toko/dialog/quest/order/hadiah/bantu. Termasuk Nek Ani, Pak Amran, Bang Jali, pedagang Gerobak/Pasar, Tamu.
-    - File: `DialogueController.luau` + `NpcService.luau` (prompt), server guard di `ShopService` / `OrderService` / `QuestService` / `SocialService` / `RepeatService` (tolak bila tutorial jalan dan NPC bukan target), Locale 1 key baru.
-    - Cara Cek: akun baru → dekati Nek Ani saat langkah Tanam → hanya bubble, tidak ada GUI; Remote `Buy`/`Sell` ke NPC non-target ditolak server.
-- [ ] **P2-8c Cutscene Jual Pertama proximity (Bab 16.4).** Sekarang: jual dulu → `OnFirstSellSuccess` (`ShopService.luau:132-139`) → `runWarung` (`T1Ghost.client.luau:1020`) menutup toko lalu cutscene. Ganti jadi: langkah `panen_jual` aktif + dekat Pak Udin (jarak interaksi normal, tanpa klik) → `Cutscene.Begin` + dialog jual Pak Udin yang SUDAH ADA → buka `ShopController` tab Jual yang sama → player jual → GUI ditutup → cutscene selesai → 20 XP → lanjut langkah berikut. Tidak ada jual otomatis, harga tetap 100%, tidak bisa di-skip. Menjauh sebelum trigger = tidak terjadi apa-apa.
-    - Catatan: v7.4 tabel 16.2 kasih 20 XP di langkah Jual; kode sekarang `panen_jual` tanpa reward + 20 XP di `t1b.warung`. Pindahkan 20 XP, total XP FTUE jangan berubah.
-    - Cara Cek: akun baru → panen → jalan ke Pak Udin → cutscene + GUI Jual terbuka sendiri → jual 1 → tutup → kontrol balik + XP +20.
-- [ ] **P2-8d Kolam keluar dari Tutorial 1 (Bab 16.5).**
-    - `Onboarding.luau` T1b: hapus langkah `bangun_kolam` + `mancing_kolam` (T1b selesai di `after_catch`). Ganti id `t1b_kolam` → tetap pakai id lama (save lama), judul locale tanpa kata Kolam.
-    - `T1Ghost.client.luau:125-132, 536, 592`: hapus baris Mak Sari soal kolam.
-    - `TutorialService.luau:151` + `:255`: `kolamUnlocked` TIDAK lagi diset tutorial. Gate kolam = `pond.kakekUnlocked` (MQ4/Bundel) saja → hapus cek `guide.kolamUnlocked` di `PondService.luau:431` (field tetap ada untuk save lama).
-    - Tombol Mancing di kolam/`KolamButton` tidak muncul selama T1.
-    - Cara Cek: `grep -n "bangun_kolam\|mancing_kolam" src/` = 0; akun baru selesai FTUE → kolam masih terkunci sampai MQ4 Lv 3.
-- [ ] **P2-8e Verifikasi saja (tanpa ubah angka):** Order reroll = tier sama (Bab 14.7 v7.4); buff tidak kena kegiatan pasif (Bab 9.4 daftar haram).
+**Pembagian verifikasi (per 2026-11-22):** `Cek AI` = dibuktikan dari kode (selene, rojo build, grep). `Tes AI` = sudah saya jalankan di Studio (Play, lewat tool Studio). `Playtest USER` = yang masih perlu kamu lihat langsung (tampilan, rasa, timing). Semua perubahan **belum di-commit**.
+
+- [x] **P2-8a No-skip (Bab 16.1).** Cek AI: selene 0 error di file yang disentuh, rojo build ok, `grep BeatSkip|tut.skip|SkipStep|SkipAll|PullCoachSkip` = 0 (kecuali komentar). Tes AI: Play → scan seluruh PlayerGui, 0 tombol bertulisan Lewati/Skip. Playtest USER: 1 kali jalan akun baru, cek dialog intro, warung, coachmark tarik, dan panel Tutorial tidak punya tombol skip.
+- [x] **P2-8b Blok NPC selama Tutorial 1 (Bab 16.3).** Cek AI: `TutorialService.NpcBlocked` + pemanggilnya di NpcService (prompt), ShopService (Buy/Sell), OrderService (Deliver/Reroll), RepeatService (Gerobak/Pasar/Gelang/Tamu), SocialService (Bantu/Hadiah). Locale `npc.tut_block` = "Selesaikan tutorial dulu". Tes AI: remote `ShopBuy` ke Nek Ani saat step `sapa` → menerima `npc.tut_block` (bukan `shop.too_far`), helper membaca target `mak_sari`. **Catatan jujur:** prompt di dunia masih terlihat; yang diblok adalah interaksinya (server menolak dan menampilkan satu baris). Membuat prompt hilang per pemain perlu kode klien tambahan, belum saya kerjakan. Playtest USER: dekati Nek Ani/Pak Amran saat step Tanam → hanya muncul "Selesaikan tutorial dulu", tidak ada toko/dialog. Dan dekati Mak Sari saat step sapa → dialog tetap jalan.
+- [x] **P2-8c Cutscene Jual Pertama proximity (Bab 16.4).** Cek AI: `T1Ghost.runSaleBeat` + `saleBeatDue`, `ShopController.Open(npc, "sell")`, 20 XP pindah dari `t1b.warung` ke `panen_jual` (`Onboarding.luau`), `Cutscene.Begin(..., interactive=true)` tidak kena cek 6 detik. Tes AI (Play): step `panen_jual` + jalan ke Pak Udin → fade, kamera ke Pak Udin, sapaan "Halo, Piko!", lalu GUI Jual terbuka sendiri di tab Jual; jual 1 kangkung → Pak Udin bilang "naik ke Lv 2", kamera kembali. Koin 200 → 255 dan Lv 2. **Belum saya cek angka XP tepat 20** karena XP awal tidak dicatat sebelum jual. Playtest USER: rasa dan tempo cutscene, jarak trigger (18 stud), dan apakah player berhasil menutup GUI Jual setelah jual.
+- [x] **P2-8d Kolam keluar dari Tutorial 1 (Bab 16.5).** Cek AI: `Onboarding` T1b hanya 4 langkah (tanpa `bangun_kolam`/`mancing_kolam`), `kolamUnlocked` tidak lagi di-set tutorial, `PondService` gate = `pond.kakekUnlocked` saja, tombol `KolamButton` di dock hanya muncul kalau `pondKakek` true, quest kartu `kolam_pertama` disembunyikan selama T1b. Tes AI (Play): akun baru → `KolamButton` `Visible=false`; `!kakek` → `Visible=true`; `!tut reset` lalu kembali. Playtest USER: selesaikan T1b di akun baru, pastikan tidak ada prompt/tombol kolam, dan kolam baru terbuka di MQ4 Lv 3.
+- [x] **P2-8e Verifikasi saja (tanpa ubah angka).** Cek AI (baca kode): reroll Order memakai `newOrder(data)` dengan `data.level`, jadi tier tetap sama. Buff `Buffs.active` hanya dipanggil di FarmService (tani) dan FishService (pancing), tidak di kegiatan pasif. Playtest USER: tidak perlu.
+
+### Revisi dari playtest kamu (2026-11-22, sesi 2)
+
+Sudah dikerjakan (kode + tes AI di Studio, belum di-commit):
+- **Siram/tanam tidak bisa di-skip lagi**: step `tanam` hanya selesai dari tanam, `siram` hanya dari menyiram (sebelumnya panen juga menyelesaikannya).
+- **Cutscene Pak Udin**: kamera dua-shot memperlihatkan pemain berjalan ke Pak Udin, Pak Udin menoleh, hanya bubble dialog yang tampil, lalu fade. Dites AI: alur berjalan sampai fade dan GUI kembali.
+- **Jual lewat bubble**: pilihan "1. Jual semua" di bubble, tanpa GUI jual dan tanpa modal. Dites AI: penjualan terjadi, GUI Jual tidak terbuka.
+- **Teks Pak Udin**: "Wah, hasil panenmu bagus ya, kalau ada lagi nanti jangan lupa mampir kesini ya!" (tanpa Lv 2). Dites AI: level tetap 1.
+- **Fade setelah Terima Hadiah Kak Fajar** sebelum panah ke spot.
+- **Foto Kak Fajar** di bubble setelah tangkapan; teks diganti (tidak lagi menyuruh bikin kolam). Dites AI: foto tampil.
+- **Label "Basic Mancing · Terbuka"** disembunyikan; hanya spot terkunci yang punya label. Dites AI.
+- **Tombol Mancing** jadi bulat dengan ikon joran di posisi yang kamu tandai (84 px). Dites AI: muncul dan posisinya sesuai.
+- **Balancing mini-game**: kiri lebih lambat (0,55 vs 0,9), isi lebih cepat (0,28 vs 0,15), kehilangan lebih kecil (0,06 vs 0,10). **Belum dites main**: nilainya masih tebakan, perlu kamu rasakan.
+- **Panel "Menunggu ikan menggigit"** dikecilkan (196x54). Belum dicek visual.
+- **Banner Selesai / Dimulai** (Genshin-style): bar hitam masuk, judul emas, pemain dikunci ±3 detik. Dibuat di `BannerController`, **belum dites** di Studio.
+- **GUI**: tombol Acara/Skill/Dapur tidak lagi terpotong; tinggi tracker quest dibatasi (200 px) supaya tidak menimpa Craft. Tracker yang dibatasi bisa memotong daftar quest panjang; perlu kamu lihat.
+
+Belum dikerjakan: sisa tumpang tindih GUI di sudut kiri bawah (kartu XP) perlu dicek ulang setelah restart Play.
+
+### Ringkasan playtest untuk kamu (P2-8)
+
+| Bagian | Sudah dites AI di Studio | Perlu kamu playtest |
+|---|---|---|
+| 8a tombol skip hilang | Ya (scan GUI) | Dialog intro + coachmark, sekali jalan penuh |
+| 8b NPC diblok | Ya (remote ditolak + pesan) | Rasa pesan & apakah prompt terasa "mati" |
+| 8c Jual Pertama | Ya (alur sampai Lv 2) | Cutscene, tempo, jarak trigger, XP 20 tepat |
+| 8d kolam keluar T1 | Ya (tombol dok) | Akun baru sampai akhir T1b + MQ4 |
+| 8e verifikasi | Kode | tidak perlu |
+
 - Gap FTUE yang TIDAK dikerjakan (v7.4 bilang "FTUE lama dipertahankan, tidak ada naskah baru"): tabel 16.2 menyebut langkah Beli Bibit Bayam, Nambang 1 node Kayu, Hias Pagar Bambu, Surat #1, Agenda + Gerobak di akhir — FTUE lama di kode tidak punya langkah itu. Lihat §5 #1.
 
 ### P2-9. Login Mingguan + Peti Bunga + Title (Bab 15) + Season (Bab 19)
@@ -133,7 +152,14 @@ Semua di bawah sudah jalan di kode sebagai USULAN interim; final ikut playtest B
 - [ ] FPS ≥ 30 di HP 4GB, 8 player, hujan + Kerja Bakti (Bab 24/30.6).
 - [ ] Playtest ulang P2-6 (Gerobak restock 15 mnt, Pasar +50% max 10, KB abis Deres) + Order reroll/reset 05:00.
 
-## 7. Cara Verifikasi Tiap Tahap
+## 7. Orchestrator (skill `roblox-build-orchestrator`)
+
+- Ledger: `build-runs/kt-v7-sisa/` (run dari root project). Setiap tahap: `run_log.py start --stage <s>` → kerja → `run_log.py end --stage <s> --status ok|fell-back`. Stall 30 menit → fallback + `event --kind fallback`.
+- **Spine (satu thread, semua tulis Studio/`src/` di sini):** `p2-8-ftue` → `p2-9-login-season` → `p2-10-code` → `assembly-playtest` → `publish`.
+- **Fan-out (worker, tulis file ke disk saja, tanpa Studio):** `ui` (panel Login/Season/Blueprint/Akuarium) · `3d-meshes` (Akuarium, Bingkai, Dapur, Warung, decor event) · `animation` (Bab 22 + emote Jempol) · `vfx` (Bab 21/23) · `sfx` (Critical crunchy + ambience Bab 20). Jalan setelah spec P2-9/P2-10 ada. **Tidak ada worker map** (map JANGAN diubah).
+- Run selesai hanya bila `run_log.py debts` bersih. 9 debt lama (fallback P2-1..P2-7 + repo) sudah tercatat di ledger.
+
+## 8. Cara Verifikasi Tiap Tahap
 
 - `selene src/` — 0 error di file yang disentuh.
 - `rojo build default.project.json` — sukses, tidak ada require hilang.

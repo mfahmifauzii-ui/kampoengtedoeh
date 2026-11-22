@@ -802,8 +802,8 @@ function refreshTutorial()
 	end
 	local steps = current.def.steps
 	local stepDef = steps[math.min(current.n + 1, #steps)]
-	-- The land step (bangun_kolam): nothing at all until the player is in the land zone. No coachmark, no Kolam glow,
-	-- no hint line. Only the trail (placeTrail) leads the way; the land dialog and the coachmark come with the zone.
+	-- A step with target.land: nothing at all until the player is in the land zone. No coachmark, no glow, no hint
+	-- line; only the trail (placeTrail) leads the way. No tutorial step uses it since v7.4 Bab 16.5 (the pond left T1).
 	if stepDef.target and stepDef.target.land and not inLandZone(stepDef.arrive or 60) then
 		CoachmarkController.Hide()
 		clearRing()
@@ -1091,97 +1091,6 @@ local function showWelcome()
 	})
 end
 
--- A2 (v6.2.3): skip buttons for a running tutorial, top right under Settings (Bab 16.2: 16 px below Settings). 52 px tall
--- (above the 48 dp minimum). "Lewati langkah" skips the current step with no confirm. "Lewati panduan" asks ONCE, then the
--- rest of the tutorial is done. Both are server-validated (TutorialService "skipstep" / "skipall") and grant the rewards.
--- The welcome modal (step "sapa") keeps its own Lewati, and cutscenes / dialogue skip is a separate, later item (TODO).
-local skipGui: ScreenGui? = nil
-local skipStepButton: TextButton? = nil
-local skipAllButton: TextButton? = nil
-local skipStepNow: () -> () -- defined below (the buttons call it)
-local skipAllNow: () -> ()
-
-local function buildSkip()
-	skipGui = Instance.new("ScreenGui")
-	skipGui.Name = "GuideSkip"
-	skipGui.ResetOnSpawn = false
-	skipGui.DisplayOrder = 7
-	skipGui.Enabled = false
-	skipGui.Parent = player:WaitForChild("PlayerGui")
-
-	local stepButton = UiKit.button(skipGui, "SkipStepButton", Locale.t("tut.skip_step"), UiKit.BUTTON_MUTED)
-	stepButton.AnchorPoint = Vector2.new(1, 0)
-	stepButton.Position = UDim2.new(1, -16, 0, 144) -- row 2: row 1 (y 84) is the beat Lewati (BeatSkip)
-	stepButton.Size = UDim2.fromOffset(150, 52)
-	stepButton.Activated:Connect(function()
-		skipStepNow()
-	end)
-	skipStepButton = stepButton
-
-	local allButton = UiKit.button(skipGui, "SkipAllButton", Locale.t("tut.skip_all"), UiKit.BUTTON_MUTED)
-	allButton.AnchorPoint = Vector2.new(1, 0)
-	allButton.Position = UDim2.new(1, -16, 0, 204)
-	allButton.Size = UDim2.fromOffset(150, 52)
-	allButton.Activated:Connect(function()
-		UiKit.confirm({
-			title = Locale.t("tut.skip_all_title"),
-			body = Locale.t("tut.skip_all_body"),
-			confirmText = Locale.t("tut.skip_all_yes"),
-			cancelText = Locale.t("tut.skip_all_no"),
-			onConfirm = function()
-				skipAllNow()
-			end,
-		} :: any)
-	end)
-	skipAllButton = allButton
-end
-
--- Skips the current step (client copy of the server rule: the server records it and pays its reward).
-skipStepNow = function()
-	local current = running
-	if not current or current.n >= #current.def.steps then
-		return
-	end
-	local id = current.def.id
-	if current.replay then
-		endTutorial() -- replays have no state and no reward: just stop
-		return
-	end
-	Net.Send("GuideEvent", "skipstep", id)
-	current.n += 1
-	current.stepAt, current.progressAt = os.clock(), os.clock()
-	if current.n >= #current.def.steps then
-		closed[id] = "done"
-		endTutorial()
-	else
-		refresh()
-	end
-end
-
-skipAllNow = function()
-	local current = running
-	if not current then
-		return
-	end
-	local id = current.def.id
-	if not current.replay then
-		Net.Send("GuideEvent", "skipall", id)
-		closed[id] = "skipped"
-	end
-	endTutorial()
-end
-
-local function refreshSkip()
-	if not skipGui then
-		return
-	end
-	local current = running
-	local stepDef = if current then current.def.steps[current.n + 1] else nil
-	-- Not on the welcome modal (it has its own Lewati) and not in the middle of a land-zone wait.
-	local show = current ~= nil and stepDef ~= nil and stepDef.done.kind ~= "ack"
-	skipGui.Enabled = show
-end
-
 local function tutorialTick()
 	local snap = snapshot()
 	if not snap or not snap.guide then
@@ -1190,7 +1099,6 @@ local function tutorialTick()
 	autoStart(snap)
 	advance()
 	showWelcome()
-	refreshSkip()
 end
 
 -- For Atur > Panduan.
@@ -1229,7 +1137,6 @@ function GuideController.Replay(id: string): boolean
 end
 
 function GuideController.Init()
-	buildSkip()
 	-- (The Studio-only test tutorial is not listed any more: the playtest build shows T1 only.)
 	for _, def in Onboarding.TUTORIALS do
 		table.insert(defs, def)

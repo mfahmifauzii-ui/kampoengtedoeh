@@ -428,10 +428,6 @@ local function onBuild(player: Player, cx: any, cz: any)
 	if not data or not plot or not origin then
 		return
 	end
-	if data.guide.kolamUnlocked ~= true then
-		Net.Fire("Notify", player, "pond.tut_locked")
-		return
-	end
 	-- Kolam Kakek keluar dari tutorial (P2-2, Bab 7.2/14.2/14.6): bangun kolam apa pun butuh
 	-- Kolam Kakek pulih (MQ4/Bundel P2-7 set kakekUnlocked; Studio: !kakek). Kolam 2-4 otomatis
 	-- ikut kegate karena kolam pertama = Kolam Kakek.
@@ -459,7 +455,7 @@ local function onBuild(player: Player, cx: any, cz: any)
 	end
 
 	-- Kolam pertama setelah unlock = gratis + Kolam Kakek (P2-7 memberi unlock-nya). Kolam 2-4
-	-- = harga tier Tanah (Bab 7.2: Lv 3, 1000 Koin + 20 Batu). Gate tutorial (kolamUnlocked) tidak berubah.
+	-- = harga tier Tanah (Bab 7.2: Lv 3, 1000 Koin + 20 Batu). Gate tutorial (kolamUnlocked) sudah DIHAPUS (v7.4 Bab 16.5).
 	-- Token gratis Bundel Empang (Bab 14.6): "spot mancing pribadi" = 1 kolam gratis.
 	local first = #data.pond.list == 0
 	local price, mats = 0, {}

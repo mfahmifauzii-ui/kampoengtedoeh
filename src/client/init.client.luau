@@ -27,6 +27,7 @@ local ORDER = {
 	"DecorController",
 	"OrdersController",
 	"QuestController",
+	"BannerController", -- "Selesai" / "Dimulai" banner (owner 2026-11-22): after the quest list it reads
 	"BookController",
 	"RewardsController", -- Hadiah: kalender harian + peti main
 	"WorldController",

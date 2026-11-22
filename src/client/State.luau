@@ -10,6 +10,7 @@ export type Snapshot = {
 	items: { [string]: number },
 	playtime: { day: string, seconds: number, claimed: number }, -- Hadiah playtime (seconds is live via the "PlaytimeSec" attribute)
 	pondTier: number,
+	pondKakek: boolean?, -- Kolam Kakek pulih (MQ4 / Bundel, v7.4 Bab 16.5): satu-satunya gate kolam
 	ponds: { { uid: number, cx: number, cz: number } },
 	quests: { active: { [string]: { step: number, count: number } }, done: { [string]: boolean }, daily: { day: string, kind: string, progress: number, claimed: boolean } },
 	landChunks: { [string]: boolean }, -- bought chunks of your plot ("ix,iz" keys, Modules/Land)

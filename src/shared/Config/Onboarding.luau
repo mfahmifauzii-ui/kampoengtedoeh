@@ -34,7 +34,7 @@ export type Step = {
 	target: { npc: string?, pos: Vector3?, spot: string?, land: boolean? }?, -- the ground arrow points here until the player is within `arrive` studs (spot = the nearest fishing spot of that Location, e.g. "sungai")
 	arrive: number?, -- studs (default 25)
 	reward: Reward?, -- paid once when the step completes (never on replay)
-	modal: { title: string, body: string }?, -- kind "ack" only: the welcome modal (Locale keys); Mulai acks it, Lewati skips T1
+	modal: { title: string, body: string }?, -- kind "ack" only: the welcome modal (Locale keys); Mulai acks it, no skip
 	coach: string?, -- Locale key of the coachmark bubble (defaults to text)
 	block: boolean?, -- coachmark overlay blocks every other tap (default true); false = ring + bubble only
 	greet: string?, -- Locale key: a sapaan said first in the cutscene of this step (Fase 2; {name} = the player). Used by panen_jual
@@ -86,7 +86,7 @@ export type Tutorial = {
 --   "manual"      never auto-starts (replay only)
 
 local TUTORIALS: { Tutorial } = {
-	-- T1: the first loop. Skippable, replayable from Atur > Panduan (no reward on replay).
+	-- T1: the first loop. NO skip (v7.4 Bab 16.1); replayable from Atur > Panduan (no reward on replay).
 	{
 		id = "t1_awal",
 		title = "tut.t1.title",
@@ -95,7 +95,7 @@ local TUTORIALS: { Tutorial } = {
 		auto = true,
 		steps = {
 			{
-				-- Sapaan: a welcome modal (Lewati / Mulai). It completes only when the player taps Mulai (kind "ack").
+				-- Sapaan: a welcome modal (Mulai only, no skip). It completes only when the player taps Mulai (kind "ack").
 				id = "sapa",
 				text = "tut.t1.intro",
 				done = { kind = "ack", id = "sapa" },
@@ -114,7 +114,7 @@ local TUTORIALS: { Tutorial } = {
 				text = "tut.t1.s2",
 				coach = "tut.coach.tanam",
 				textStuck = "tut.t1.s2_stuck",
-				done = { kind = "any", any = { { kind = "planted", n = 1 }, { kind = "harvested" } } },
+				done = { kind = "planted", n = 1 }, -- only planting completes it (a harvest must not skip the step)
 				highlight = "TanamButton",
 				reward = { xp = 1 },
 			},
@@ -122,7 +122,7 @@ local TUTORIALS: { Tutorial } = {
 				id = "siram",
 				text = "tut.t1.s3",
 				coach = "tut.coach.siram", -- optional (v6.2.3 A1): watering OR a harvest completes it; Gerimis waters too
-				done = { kind = "any", any = { { kind = "watered", n = 1 }, { kind = "harvested" } } },
+				done = { kind = "watered", n = 1 }, -- only watering completes it: Mak Sari says "siram", the player must do it
 				highlight = "SiramButton",
 				reward = { xp = 1 },
 			},
@@ -135,15 +135,16 @@ local TUTORIALS: { Tutorial } = {
 				done = { kind = "sells", n = 1 },
 				target = { npc = "pak_udin" },
 				highlight = "PanenButton",
+				reward = { xp = 20 }, -- v7.4 tabel 16.2: the Jual step pays the 20 XP (it used to be paid by t1b "warung")
 			},
 		},
 		reward = { koin = 30 },
 	},
 
-	-- T1b: right after the first sale to Pak Udin (T1Ghost.client starts it): the warung, the pond tool, the first fish and
-	-- the first pond. Not auto-started (manual trigger), so a save that finished T1 long ago never gets it. Progress is saved
+	-- T1b: right after the first sale to Pak Udin (T1Ghost.client starts it): the warung, the rod gift and the first fish.
+	-- The pond is NOT part of it (v7.4 Bab 16.5: the first pond only comes from MQ4 / Bundel Kakek Lv 3). Not auto-started (manual trigger), so a save that finished T1 long ago never gets it. Progress is saved
 	-- like any tutorial, so a rejoin resumes it. The dialogs are Mak Sari's / Pak Udin's / Kak Fajar's (T1Dialog); the
-	-- coachmark only highlights. NO skip: the pond and the first fish are the point of this tutorial.
+	-- coachmark only highlights. NO skip (v7.4 Bab 16.1): the first fish is the point of this tutorial.
 	{
 		id = "t1b_kolam",
 		title = "tut.t1b.title",
@@ -156,7 +157,7 @@ local TUTORIALS: { Tutorial } = {
 				id = "warung",
 				text = "tut.t1b.warung",
 				done = { kind = "ack", id = "warung" },
-				reward = { xp = 20 },
+				-- No reward: the 20 XP moved to the T1 "panen_jual" step (v7.4 tabel 16.2). Total FTUE XP is unchanged.
 			},
 			{
 				-- The fishing shop: Kak Fajar (Toko Pancing). Done only when Terima Hadiah was taken (rodGift), never by walking near.
@@ -178,26 +179,11 @@ local TUTORIALS: { Tutorial } = {
 				reward = { xp = 20 }, -- the same 20 XP as the warung step (paid once on the first fish)
 			},
 			{
-				-- Kak Fajar's dialog after the first fish: "Mengerti" finishes it. Opens the pond (kolamUnlocked, server).
+				-- Kak Fajar's dialog after the first fish: "Mengerti" finishes it (last step of T1b). It opens NOTHING:
+				-- the pond is gated by pond.kakekUnlocked (MQ4 / Bundel) alone since v7.4 Bab 16.5.
 				id = "after_catch",
 				text = "npc.kak_fajar.after_catch",
 				done = { kind = "ack", id = "after_catch" },
-			},
-			{
-				-- Back on the land: Mak Sari teaches the first pond (it is free).
-				id = "bangun_kolam",
-				text = "tut.t1b.bangun_kolam",
-				done = { kind = "ponds" },
-				highlight = "KolamButton",
-				-- Walk back to the land: the trail leads there (route, stops at the land). Mak Sari talks only once the player is in the land zone.
-				target = { land = true },
-				arrive = 60,
-			},
-			{
-				-- Fish once in your own pond: it finishes the "kolam_pertama" quest (pond_built + catch_pond).
-				id = "mancing_kolam",
-				text = "tut.t1b.mancing_kolam",
-				done = { kind = "quest", id = "kolam_pertama" },
 			},
 		},
 	},

@@ -28,6 +28,9 @@ local camConn: RBXScriptConnection? = nil
 local cameraTaken = false
 local savedFov = 70
 local beatStartedAt: number? = nil -- os.clock() at Begin: the Bab 16.2 length check (<= Onboarding.CUTSCENE_MAX_SECONDS)
+-- Bab 16.4 (v7.4): the Jual Pertama beat waits for the player (he reads the lines and sells at his own pace), so its
+-- length is not a cutscene length in the sense of Bab 16.2 and is not checked. Every timed beat still is.
+local untimed = false
 
 -- Keeps the player held (used after a fade, which releases it). Does nothing outside a beat.
 function Cutscene.Relock()
@@ -37,10 +40,12 @@ function Cutscene.Relock()
 end
 
 -- Holds the player and takes the camera for the beat. head: the NPC's head part (the shot is aimed at it).
-function Cutscene.Begin(npc: Model, head: BasePart): () -> ()
+-- interactive: this beat waits for the player, so the Bab 16.2 length check does not apply to it (see `untimed`).
+function Cutscene.Begin(npc: Model, head: BasePart, interactive: boolean?): () -> ()
 	local camera = Workspace.CurrentCamera :: Camera
 	local character = player.Character
 	held = true
+	untimed = interactive == true
 	beatStartedAt = os.clock()
 	PlayerLock.Set(true)
 
@@ -61,7 +66,10 @@ function Cutscene.Begin(npc: Model, head: BasePart): () -> ()
 end
 
 function Cutscene.End()
-	if beatStartedAt then
+	if beatStartedAt and untimed then
+		beatStartedAt = nil
+		untimed = false
+	elseif beatStartedAt then
 		-- Bab 16.2: a cutscene is at most 6 s. Log only (no UI): a beat that runs long shows up in the output.
 		local took = os.clock() - beatStartedAt
 		beatStartedAt = nil

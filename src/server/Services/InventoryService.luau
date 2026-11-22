@@ -81,6 +81,7 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		pondTier = Upgrades.tier(data, "pond"),
 		ponds = pondCells(data),
 		pondState = pondStateFor(data), -- breeding per kolam (uid, tier, kakek, breed) untuk UI
+		pondKakek = data.pond.kakekUnlocked == true, -- gate kolam v7.4 Bab 16.5: MQ4/Bundel. Tombol Kolam ikut ini.
 		ranch = data.ranch, -- kandang + hewan + mood untuk panel Ternak
 		bundel = data.bundel, -- Bundel Kakek (Bab 14.6): [id] = { given, done } + sumur_day (UI mendatang)
 		dapur = { tier = data.dapur.tier, slots = table.clone(data.dapur.slots) },
@@ -128,6 +129,7 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 			skipped = table.clone(data.guide.skipped),
 			fastLeft = data.guide.fastLeft,
 			rodGift = data.guide.rodGift, -- Kak Fajar's Terima Hadiah was taken (the dialog shows it until then)
+			saleCutscene = data.guide.saleCutscene, -- the Jual Pertama beat already played (Bab 16.4): never again
 			-- a save that has not started playing: the "newPlayer" tutorial trigger
 			fresh = #data.farm.tiles == 0 and data.onboarding.first_plant ~= true and data.guide.sells == 0,
 		},

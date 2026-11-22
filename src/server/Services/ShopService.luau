@@ -90,6 +90,10 @@ local function onSell(player: Player, npcId: any, target: any, amount: any)
 	if not npc or not data or next(npc.buys) == nil then
 		return
 	end
+	if TutorialService.NpcBlocked(player, npc.id) then
+		Net.Fire("Notify", player, "npc.tut_block")
+		return
+	end
 
 	-- Unit price this NPC pays for an item, nil if it doesn't buy it.
 	local function unitPrice(itemId: string): number?
@@ -307,6 +311,10 @@ local function onBuy(player: Player, npcId: any, kind: any, id: any, amount: any
 	local npc = npcNear(player, npcId)
 	local data = DataService.Get(player)
 	if not npc or not data then
+		return
+	end
+	if TutorialService.NpcBlocked(player, npc.id) then
+		Net.Fire("Notify", player, "npc.tut_block")
 		return
 	end
 	if kind == "rod" and npc.sells.rods then

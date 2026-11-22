@@ -102,11 +102,6 @@ local function onGuideEvent(player: Player, action: any, tutorialId: any, n: any
 	if typeof(action) ~= "string" or typeof(tutorialId) ~= "string" then
 		return
 	end
-	if action == "beatskip" then
-		-- T-45: Lewati on a scripted beat. Analytics only: the step's own condition still decides progress.
-		logEvent(player, "beat_skip", tutorialId)
-		return
-	end
 	local tutorial = byId[tutorialId]
 	local data = DataService.Get(player)
 	if not tutorial or not data then
@@ -147,9 +142,6 @@ local function onGuideEvent(player: Player, action: any, tutorialId: any, n: any
 			local step = tutorial.steps[index]
 			pay(player, step.reward, tutorialId)
 			logEvent(player, `tut_{tutorialId}_{step.id}`, tutorialId)
-			if step.id == "after_catch" then
-				guide.kolamUnlocked = true -- the pond opens once the first fish was explained (Mak Sari teaches it)
-			end
 		end
 		guide.step.n = n
 		if tutorialId == "t1_awal" and n == Onboarding.GERIMIS_AFTER_STEP and guide.done.gerimis_t1 ~= true then
@@ -165,27 +157,6 @@ local function onGuideEvent(player: Player, action: any, tutorialId: any, n: any
 			end
 			logEvent(player, `tut_{tutorialId}_done`, tutorialId)
 		end
-	elseif action == "skipstep" or action == "skipall" then
-		-- A2 (v6.2.3): skip never blocks. The step's own prerequisites are granted first (the rod for the gift step, the fish
-		-- flag for the fishing steps), then the step is recorded through the normal "step" path, so its reward is paid the same
-		-- way. "skipall" does that for every remaining step (the tutorial's reward too, at the last one).
-		if guide.step.id ~= tutorialId then
-			return
-		end
-		local count = #tutorial.steps
-		local last = if action == "skipall" then count else guide.step.n + 1
-		for index = guide.step.n + 1, math.min(last, count) do
-			local step = tutorial.steps[index]
-			if step.done.kind == "rodgift" then
-				giveRodGift(player, data)
-			end
-			if step.done.kind == "fish" or step.id == "after_catch" then
-				guide.fishCaught = true
-			end
-			onGuideEvent(player, "step", tutorialId, index)
-		end
-		logEvent(player, `tut_{tutorialId}_{action}`, tutorialId)
-		return
 	elseif action == "replay" then
 		-- No state change and no reward: only the analytics event.
 		logEvent(player, "tut_replay", tutorialId)
@@ -218,6 +189,42 @@ end
 
 -- ShopService calls this once, when a sale with at least one item goes through and it is the player's first sale ever
 -- (data.guide.sells was 0). The server only tells the client; the cutscene and the dialogue are the client's.
+-- Bab 16.3 (v7.4): while Tutorial 1 runs, only the NPC of the live step may be talked to, bought from, or served.
+-- Every other NPC answers with one line ("Selesaikan tutorial dulu") and nothing opens. The step -> NPC map is the
+-- v7.4 table: Mak Sari (sapa), Pak Udin (panen_jual, and T1b warung), Kak Fajar (T1b kak_fajar, mancing, after_catch).
+local STEP_NPC: { [string]: string } = {
+	sapa = "mak_sari",
+	panen_jual = "pak_udin",
+	warung = "pak_udin",
+	kak_fajar = "kak_fajar",
+	mancing = "kak_fajar",
+	after_catch = "kak_fajar",
+}
+
+-- True while the player is in Tutorial 1 (T1 "t1_awal" not finished, and not skipped/reset-free).
+function TutorialService.T1Pending(player: Player): boolean
+	local data = DataService.Get(player)
+	if not data then
+		return false
+	end
+	return data.guide.done.t1_awal ~= true and data.guide.skipped.t1_awal ~= true
+end
+
+-- Blocked = Tutorial 1 runs and this NPC is not the one the live step needs. npcId nil = "any NPC-only service" (orders,
+-- social, repeat events): during Tutorial 1 none of those is a target, so they are all blocked.
+function TutorialService.NpcBlocked(player: Player, npcId: string?): boolean
+	if not TutorialService.T1Pending(player) then
+		return false
+	end
+	local data = DataService.Get(player)
+	local target: string? = nil
+	if data and data.guide.step.id == "t1_awal" then
+		local def = Onboarding.TUTORIALS[1].steps[data.guide.step.n + 1]
+		target = def and STEP_NPC[def.id]
+	end
+	return npcId == nil or npcId ~= target
+end
+
 function TutorialService.OnFirstSellSuccess(player: Player, npcId: string)
 	Net.Fire("OnFirstSellSuccess", player, npcId)
 end
@@ -251,9 +258,10 @@ function TutorialService.Init()
 			guide.fishingUnlocked = true
 			guide.rodGift = guide.rodGift or data.fishing.ownedRods.bambu == true
 		end
-		if #data.pond.list > 0 or guide.done.t1b_kolam == true or guide.skipped.t1b_kolam == true then
-			guide.kolamUnlocked = true
-			guide.fishCaught = guide.fishCaught or #data.pond.list > 0
+		-- v7.4 Bab 16.5: the tutorial no longer opens the pond, so kolamUnlocked is NOT granted here any more.
+		-- The field stays in the save (old saves keep whatever they had); the only pond gate is pond.kakekUnlocked.
+		if #data.pond.list > 0 then
+			guide.fishCaught = true
 		end
 		if guide.done.t1b_kolam == true or guide.skipped.t1b_kolam == true or #data.pond.list > 0 then
 			guide.decorUnlocked = true

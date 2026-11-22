@@ -57,6 +57,7 @@ local mode = "till" -- "till" (Cangkul) | "pond" (Kolam)
 local gui: ScreenGui
 local toggleButton: GuiButton
 local kolamButton: GuiButton
+local refreshKolamButton: () -> ()
 local hintLabel: TextLabel
 local ghost: Part? = nil
 local ghostLabel: TextLabel? = nil -- the green / gray arrow above the ghost (name kept from the old label)
@@ -619,6 +620,12 @@ function refreshHint()
 	end
 end
 
+function refreshKolamButton()
+	if kolamButton then
+		kolamButton.Visible = (State.current :: any) ~= nil and (State.current :: any).pondKakek == true
+	end
+end
+
 local function setMode(newMode: string)
 	mode = newMode
 	GarapController.Mode = newMode
@@ -857,6 +864,9 @@ function GarapController.Init()
 	darkBox(hintLabel)
 
 	kolamButton = UiKit.menuItem(hud :: Instance, "KolamButton", Locale.t("garap.tool_pond"), 2) :: GuiButton
+	-- v7.4 Bab 16.5: the pond left Tutorial 1. The dock button only appears once MQ4 / Bundel Kakek opened the pond
+	-- (pond.kakekUnlocked), so no tutorial step can point at it and a new player never sees a button he cannot use.
+	refreshKolamButton()
 	toggleButton.Activated:Connect(function()
 		pressTool("till")
 	end)
@@ -869,6 +879,7 @@ end
 
 function GarapController.Start()
 	State.Changed:Connect(function()
+		refreshKolamButton()
 		if GarapController.Active then
 			buildGrid() -- the land may have grown (a new block bought): the grid follows what you own
 			refreshHint() -- the price of the next pond changes with every pond built

@@ -36,11 +36,13 @@ local State = require(script.Parent:WaitForChild("State"))
 local NpcCamera = require(script.Parent:WaitForChild("NpcCamera"))
 local NpcPose = require(script.Parent:WaitForChild("NpcPose"))
 local T1Dialog = require(script.Parent:WaitForChild("T1Dialog"))
-local BeatSkip = require(script.Parent.BeatSkip) -- T-45: Lewati for the beats (intro, warung)
 local Locale = require(RS.Shared.Locale)
+local Items = require(RS.Shared.Modules.Items)
+local Npcs = require(RS.Shared.Config.Npcs)
 local Onboarding = require(RS.Shared.Config.Onboarding)
 local Cutscene = require(script.Parent:WaitForChild("Cutscene"))
 local FadeManager = require(script.Parent:WaitForChild("FadeManager"))
+local PlayerLock = require(script.Parent:WaitForChild("PlayerLock"))
 
 local GHOST_NAME = "MakSari_T1_Local"
 local SOURCE_NPC = "mak_sari"
@@ -93,7 +95,7 @@ local INTRO = {
 
 -- T1b, the first beat (Pak Udin, at the warung, right after the sale): Next after every line.
 local WARUNG = {
-	"Nah, hasil panenmu sudah laku. Selamat, kamu naik ke Lv 2!",
+	"Wah, hasil panenmu bagus ya, kalau ada lagi nanti jangan lupa mampir kesini ya!",
 	"Sekarang temui Kak Fajar di Toko Pancing. Dia punya joran dan umpan buat kamu. Ikuti panah di tanah ya.",
 }
 
@@ -121,15 +123,6 @@ local STEP_LINES: { [string]: Line } = {
 	mancing = {
 		who = "kak_fajar",
 		text = "Joran bambumu sudah siap, gratis. Ke dermaga di sungai, ketuk Mancing, dan dapatkan 1 ikan.",
-	},
-	bangun_kolam = {
-		who = "mak_sari",
-		text = "Sekarang balik ke lahan, Nak. Ketuk tombol Kolam yang menyala, lalu gali kolam pertamamu.",
-	},
-	bangun_kolam_ground = { who = "mak_sari", text = "Ketuk tanah hijau yang menyala itu. Kolam pertama gratis!" },
-	mancing_kolam = {
-		who = "mak_sari",
-		text = "Kolammu sudah jadi! Ikan di kolam berkembang biak sendiri. Coba mancing 1x di tepi kolam.",
 	},
 }
 -- Steps that are dialogs of the intro (T1Ghost plays them itself): the sink says "handled" without showing a line.
@@ -161,7 +154,7 @@ local lastLine: Line? = nil -- the tutorial line on screen (shown again after an
 local sessionTutorial = false -- this session saw T1 pending: the ghost lives on until T1b is done
 local t1bStartSent = false
 local warungStarted = false
-local firstSaleNpc: string? = nil -- who the first sale went to (server event OnFirstSellSuccess); runWarung plays the cutscene for it
+local saleBeatRan = false -- the Jual Pertama beat (Bab 16.4) started in this session: it is a once-ever beat
 local characterAddedAt = os.clock()
 player.CharacterAdded:Connect(function()
 	characterAddedAt = os.clock()
@@ -171,12 +164,6 @@ local function flat(v: Vector3): Vector3
 	return Vector3.new(v.X, 0, v.Z)
 end
 
--- The player's first sale (sent by the server once, TutorialService.OnFirstSellSuccess).
-Net.Listen("OnFirstSellSuccess", function(npcId: any)
-	if typeof(npcId) == "string" then
-		firstSaleNpc = npcId
-	end
-end)
 
 -- Tutorial state ----------------------------------------------------------------------------------------------------
 
@@ -187,6 +174,21 @@ end
 
 local function isDone(guide: any, id: string): boolean
 	return guide.done[id] == true or guide.skipped[id] == true
+end
+
+-- The id of the step the player is on right now, straight from the save (guide.step), not from the instruction sink:
+-- the sink only speaks for steps that have a line, so it cannot be used to tell which step is live.
+local function activeStepId(guide: any): string?
+	if not guide or not guide.step or guide.step.id == "" then
+		return nil
+	end
+	for _, tutorial in Onboarding.TUTORIALS do
+		if tutorial.id == guide.step.id then
+			local step = tutorial.steps[(guide.step.n or 0) + 1]
+			return step and step.id
+		end
+	end
+	return nil
 end
 
 -- Known guide state and T1 not finished. Unknown (no snapshot yet) counts as "do not build".
@@ -463,13 +465,6 @@ end
 -- Dialog ----------------------------------------------------------------------------------------------------------
 
 local function showLine(who: string, text: string, showNext: boolean, bottom: number, onNext: (() -> ())?)
-	if BeatSkip.Requested then
-		-- T-45: Lewati was pressed: the rest of the beat's speech is not shown (its effects still run).
-		if onNext then
-			onNext()
-		end
-		return
-	end
 	local speaker = SPEAKERS[who] or SPEAKERS.mak_sari
 	T1Dialog.Show({
 		name = speaker.name,
@@ -483,18 +478,11 @@ end
 
 -- Shows one line and waits for the player to press Next (nothing advances by itself). False if alive() said stop.
 local function waitNext(who: string, text: string, bottom: number, alive: () -> boolean): boolean
-	if BeatSkip.Requested then
-		return true -- T-45: skipped, nothing to wait for
-	end
 	local pressed = false
 	showLine(who, text, true, bottom, function()
 		pressed = true
 	end)
 	while not pressed do
-		if BeatSkip.Requested then
-			T1Dialog.Hide()
-			return true
-		end
 		if not alive() then
 			return false
 		end
@@ -510,45 +498,8 @@ local function menuDone(): boolean
 end
 
 -- Tutorial speech: GuideController hands each step to this sink; the line goes in the dialog box and the GUI shows no text.
--- Mak Sari's "balik ke lahan" line waits until the player is in the land zone (not when the fishing ends).
-local LAND_RADIUS = 60 -- studs from the plot centre: the same radius as the trail's arrival (Onboarding arrive)
-local landLinePending = false
-local function landDistance(): number?
-	local character = player.Character
-	local root = character and character:FindFirstChild("HumanoidRootPart")
-	if not root or not root:IsA("BasePart") then
-		return nil
-	end
-	for _, plot in Workspace.Plots:GetChildren() do
-		if plot:GetAttribute("OwnerUserId") == player.UserId then
-			local center = plot:GetPivot().Position
-			return (Vector3.new(root.Position.X, 0, root.Position.Z) - Vector3.new(center.X, 0, center.Z)).Magnitude
-		end
-	end
-	return nil
-end
-
-task.spawn(function()
-	while true do
-		task.wait(0.25)
-		if landLinePending then
-			local distance = landDistance()
-			local line = STEP_LINES.bangun_kolam
-			if line and distance and distance <= LAND_RADIUS and not dialogBusy and menuDone() then
-				landLinePending = false
-				lastSpoken = line.text
-				lastLine = line
-				lineDismissed = false
-				showLine(line.who, line.text, true, TUTORIAL_BOTTOM, function()
-				lineDismissed = true
-				T1Dialog.Hide() -- Next closes the line: a line never stays on screen without a way out
-			end)
-			end
-		end
-	end
-end)
-
--- After the first fish: Kak Fajar explains the pond. One button, "Mengerti": the step is acked and the server opens the pond.
+-- After the first fish: Kak Fajar's closing dialog. One button, "Mengerti": the step is acked and T1b ends.
+-- It opens no pond (v7.4 Bab 16.5: the first pond comes from MQ4 / Bundel Kakek only).
 local function showAfterCatch()
 	if guideModule == nil then
 		return
@@ -556,6 +507,7 @@ local function showAfterCatch()
 	T1Dialog.Show({
 		name = Locale.t("npc.kak_fajar"),
 		text = Locale.t("npc.kak_fajar.after_catch"),
+		avatar = T1Dialog.NpcModel("kak_fajar"), -- the face of Kak Fajar (owner: it was missing)
 		showNext = false,
 		bottom = TUTORIAL_BOTTOM,
 		choices = {
@@ -589,14 +541,6 @@ local function ensureSink()
 			lineDismissed = false
 			afterCatchAnswered = false
 		end
-		if key ~= "bangun_kolam" then
-			landLinePending = false
-		elseif not stuck then
-			if not lineDismissed then
-				landLinePending = true -- said only once the player is back on the land (and not again after Next)
-			end
-			return true
-		end
 		if NARRATIVE[key] then
 			return true -- an intro dialog: played by the intro / the warung beat
 		end
@@ -629,7 +573,6 @@ end
 
 local function clearSink()
 	afterCatchPending = false
-	landLinePending = false
 	if guideModule and sinkSet then
 		pcall(function()
 			guideModule.SetInstructionSink(nil)
@@ -1021,11 +964,8 @@ local function runWarung(guide: any)
 	dialogBusy = true
 	local endCutscene: (() -> ())? = nil -- Cutscene.Begin's End: camera and controls back (Cutscene.luau)
 
-	-- Fase 2 (Plan v3 3.5): the first sale ever (OnFirstSellSuccess) plays this beat RIGHT AWAY: the shop closes, the camera
-	-- goes to Pak Udin, and the screen fades to black and back (FadeManager) with the controls off. It does not wait for the
-	-- shop to be closed by the player, and it does not need the T1b step. Any other visit keeps the plain beat.
-	local firstSale = firstSaleNpc == "pak_udin"
-	firstSaleNpc = nil
+	-- v7.4 Bab 16.4: the first sale has its own beat (runSaleBeat, proximity-triggered BEFORE the sale) and it says these
+	-- same lines itself. What is left here is the plain visit: a save that resumes at T1b step 0 with the sale long done.
 
 	local function leave()
 		if endCutscene then
@@ -1036,9 +976,6 @@ local function runWarung(guide: any)
 	end
 
 	local function alive(): boolean
-		if firstSale then
-			return true -- the first sale is its own beat; the rest of its lines do not depend on the tutorial step
-		end
 		local id, n = guide.Current()
 		return tutorialPending() and id == TUTORIAL_B_ID and n == 0
 	end
@@ -1046,19 +983,12 @@ local function runWarung(guide: any)
 		local panel = player:WaitForChild("PlayerGui"):FindFirstChild("ShopPanel")
 		return panel ~= nil and panel:IsA("ScreenGui") and panel.Enabled
 	end
-	if firstSale then
-		-- The cutscene takes the screen: the shop closes at once (Plan 3.5: no shop, inventory or other GUI during it).
-		pcall(function()
-			require(script.Parent:WaitForChild("Controllers"):WaitForChild("ShopController") :: ModuleScript).Close()
-		end)
-	else
-		while shopOpen() do
-			if not alive() then
-				leave()
-				return
-			end
-			task.wait(0.2)
+	while shopOpen() do
+		if not alive() then
+			leave()
+			return
 		end
+		task.wait(0.2)
 	end
 
 	local npc = T1Dialog.NpcModel("pak_udin")
@@ -1073,25 +1003,10 @@ local function runWarung(guide: any)
 		and head:IsA("BasePart")
 		and (head.Position - root.Position).Magnitude < 22
 	then
-		local npcRig: Model = npc
-		local npcHead: BasePart = head
-		if firstSale then
-			Cutscene.Transition(function()
-				endCutscene = Cutscene.Begin(npcRig, npcHead)
-			end)
-		else
-			endCutscene = Cutscene.Begin(npcRig, npcHead)
-		end
+		endCutscene = Cutscene.Begin(npc :: Model, head :: BasePart)
 	end
 
-	local lines: { string } = WARUNG
-	if firstSale then
-		local greet = saleGreeting()
-		if greet then
-			lines = { greet, table.unpack(WARUNG) }
-		end
-	end
-	for _, line in lines do
+	for _, line in WARUNG do
 		if not waitNext("pak_udin", line, TUTORIAL_BOTTOM, alive) then
 			leave()
 			return
@@ -1129,6 +1044,249 @@ local function bigPanelOpen(): boolean
 	return false
 end
 
+-- JUAL PERTAMA (v7.4 Bab 16.4) ---------------------------------------------------------------------------------------
+-- One beat, once ever, started by WALKING UP to Pak Udin while the T1 step "panen_jual" is live and the harvest is in the
+-- Tas. No click, no auto-sell, no skip, full price: the beat only opens the Jual tab of the same ShopController the player
+-- would have opened himself, waits for a real sale (the server's OnFirstSellSuccess), then says Pak Udin's lines and ends.
+-- Walking away before the trigger does nothing at all, and the beat never starts a second time (guide.saleCutscene).
+local SALE_BEAT_DISTANCE = 18 -- studs between the player and Pak Udin's head: normal talking range, like any NPC prompt
+
+-- Anything in the Tas that Pak Udin buys (his buys are by item kind, Config/Npcs).
+local function hasSellableForUdin(): boolean
+	local snap = State.current :: any
+	local npc = Npcs.byId.pak_udin
+	if not snap or not snap.items or not npc then
+		return false
+	end
+	for itemId, count in snap.items do
+		if typeof(count) == "number" and count > 0 then
+			local info = Items.info(itemId)
+			if info and npc.buys[info.kind] ~= nil then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+local function udinHead(): BasePart?
+	local npc = T1Dialog.NpcModel("pak_udin")
+	local head = npc and npc:FindFirstChild("Head")
+	return if head and head:IsA("BasePart") then head else nil
+end
+
+-- The beat is due: T1 "panen_jual" is the live step, the sale has not happened, there is something to sell, and the player
+-- is standing at the warung. Everything else (a panel open, a dialog running, the menu) holds it back without consuming it.
+local function saleBeatDue(): boolean
+	if saleBeatRan or dialogBusy or not menuDone() or bigPanelOpen() then
+		return false
+	end
+	local guide = guideData()
+	if not guide or guide.saleCutscene == true or isDone(guide, TUTORIAL_ID) then
+		return false
+	end
+	if activeStepId(guide) ~= "panen_jual" or not hasSellableForUdin() then
+		return false
+	end
+	local head = udinHead()
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not head or not root or not root:IsA("BasePart") then
+		return false
+	end
+	return (head.Position - root.Position).Magnitude <= SALE_BEAT_DISTANCE
+end
+
+-- The cinematic: no GUI but the dialog bubble, a two-shot that shows the player WALKING to Pak Udin, Pak Udin turning to
+-- face him, the sapaan, then the sale is a bubble choice ("Jual semua"), no shop window, no confirm. Fade at the end.
+local saleRestore: (() -> ())? = nil -- undoes the cinematic (camera, GUIs, lock); called on the normal end AND on an error
+
+local function hideOtherGuis(): () -> ()
+	local playerGui = player:WaitForChild("PlayerGui")
+	local hidden: { ScreenGui } = {}
+	for _, gui in playerGui:GetChildren() do
+		if gui:IsA("ScreenGui") and gui.Enabled and gui.Name ~= "T1Dialog" and gui.Name ~= "FadeManager" and gui.Name ~= "T1Cutscene" then
+			gui.Enabled = false
+			table.insert(hidden, gui)
+		end
+	end
+	return function()
+		for _, gui in hidden do
+			gui.Enabled = true
+		end
+	end
+end
+
+local function runSaleBeat(guide: any)
+	dialogBusy = true
+	-- Claimed right away: the sale inside this beat finishes T1 and starts T1b, and the plain warung beat would otherwise
+	-- spawn on top of this one (its step "warung" reaches n == 0 while we are still waiting for the sale).
+	warungStarted = true
+
+	local camera = Workspace.CurrentCamera :: Camera
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	local head = udinHead()
+	local npc = head and head.Parent
+	if not head or not npc or not npc:IsA("Model") or not root or not root:IsA("BasePart") or not humanoid then
+		dialogBusy = false
+		saleBeatRan = false -- not ready (streaming / respawn): try again on a later poll
+		warungStarted = false
+		return
+	end
+	local npcRig: Model = npc
+	local udinRoot = npcRig:FindFirstChild("HumanoidRootPart") or npcRig.PrimaryPart or head
+
+	local previousFov = camera.FieldOfView
+	local restoreGuis = hideOtherGuis()
+	local lockOn = false
+	local conn: RBXScriptConnection? = nil
+	local function restore()
+		if conn then
+			conn:Disconnect()
+			conn = nil
+		end
+		if camera.CameraType ~= Enum.CameraType.Custom then
+			camera.CameraType = Enum.CameraType.Custom
+		end
+		camera.FieldOfView = previousFov
+		restoreGuis()
+		if lockOn then
+			lockOn = false
+			PlayerLock.Set(false)
+		end
+		T1Dialog.Hide()
+		dialogBusy = false
+		saleRestore = nil
+	end
+	saleRestore = restore
+
+	-- Two-shot: the camera stands on the road side and watches the line between the player and Pak Udin.
+	local function twoShot(): (CFrame, number)
+		local a = root.Position
+		local b = head.Position
+		local mid = (a + b) / 2
+		local planar = Vector3.new(b.X - a.X, 0, b.Z - a.Z)
+		local dir = if planar.Magnitude > 0.01 then planar.Unit else Vector3.new(0, 0, 1)
+		local side = dir:Cross(Vector3.yAxis)
+		local pos = mid + side * 11 + Vector3.new(0, 3.5, 0)
+		return CFrame.lookAt(pos, mid + Vector3.new(0, 1.5, 0)), 62
+	end
+
+	camera.CameraType = Enum.CameraType.Scriptable
+	local aim, fov = twoShot()
+	camera.CFrame = aim
+	camera.FieldOfView = fov
+	conn = RunService.RenderStepped:Connect(function(dt: number)
+		if camera.CameraType ~= Enum.CameraType.Scriptable then
+			camera.CameraType = Enum.CameraType.Scriptable
+		end
+		local target, targetFov = twoShot()
+		local alpha = 1 - math.exp(-dt * 3)
+		camera.CFrame = camera.CFrame:Lerp(target, alpha)
+		camera.FieldOfView += (targetFov - camera.FieldOfView) * alpha
+	end)
+
+	-- 1. He walks: the player runs to a spot in front of Pak Udin (the trail stops here; the camera watches it).
+	local stand = udinRoot.Position + (root.Position - udinRoot.Position).Unit * 4.5
+	humanoid.WalkSpeed = 16
+	humanoid:MoveTo(Vector3.new(stand.X, root.Position.Y, stand.Z))
+	local waited = 0
+	while waited < 6 and (Vector3.new(root.Position.X, 0, root.Position.Z) - Vector3.new(stand.X, 0, stand.Z)).Magnitude > 3.5 do
+		task.wait(0.1)
+		waited += 0.1
+	end
+	humanoid:MoveTo(root.Position)
+
+	-- 2. Pak Udin turns to face the player (a short turn, the rig only: other players see the normal pose).
+	local from = npcRig:GetPivot()
+	local turnTo = CFrame.lookAt(from.Position, Vector3.new(root.Position.X, from.Position.Y, root.Position.Z))
+	for step = 1, 8 do
+		npcRig:PivotTo(from:Lerp(turnTo, step / 8))
+		task.wait(0.04)
+	end
+
+	-- 3. Stop the player: the dialog is his only input now.
+	PlayerLock.Set(true)
+	lockOn = true
+
+	local function say(text: string, choices: { T1Dialog.Choice }?): boolean
+		local pressed = false
+		if choices then
+			T1Dialog.Show({
+				name = Locale.t("npc.pak_udin"),
+				text = text,
+				avatar = npcRig,
+				showNext = false,
+				bottom = TUTORIAL_BOTTOM,
+				choices = choices,
+			})
+			return true
+		end
+		T1Dialog.Show({
+			name = Locale.t("npc.pak_udin"),
+			text = text,
+			avatar = npcRig,
+			showNext = true,
+			bottom = TUTORIAL_BOTTOM,
+			onNext = function()
+				pressed = true
+			end,
+		})
+		while not pressed do
+			task.wait(0.05)
+		end
+		return true
+	end
+
+	-- 4. Sapaan (Next), then the sale is a bubble choice.
+	local greet = saleGreeting()
+	if greet then
+		say(greet)
+	end
+	local chosen = false
+	say(Locale.t("tut.t1.s4_sell_ask"), {
+		{
+			text = Locale.t("tut.t1.s4_sell_all"),
+			onChoose = function()
+				chosen = true
+			end,
+		},
+	})
+	while not chosen do
+		task.wait(0.05)
+	end
+	T1Dialog.Hide()
+
+	-- 5. The sale itself: the same server path as the shop (full price, nothing else). Wait for the save to show it.
+	Net.Send("Sell", "pak_udin", "all")
+	local sold = 0
+	while sold < 3 do
+		local snap = State.current :: any
+		if snap and snap.guide and snap.guide.saleCutscene == true then
+			break
+		end
+		task.wait(0.1)
+		sold += 0.1
+	end
+
+	-- 6. Pak Udin's lines after the sale (Next after each), then the fade and the controls back.
+	for _, line in WARUNG do
+		say(line)
+	end
+	T1Dialog.Hide()
+	lastSpoken = ""
+
+	FadeManager.Play(function()
+		restore()
+	end)
+	while FadeManager.IsPlaying() do
+		task.wait(0.05)
+	end
+	guide.AckStep("warung")
+end
+
 -- Poll -------------------------------------------------------------------------------------------------------------
 
 -- Decides, once the guide state is known, whether the intro plays (it then waits for MenuFlow's PLAY).
@@ -1151,9 +1309,7 @@ task.spawn(function()
 					introState = "running"
 					holdWelcomeModal(HOLD_SECONDS) -- before GuideController can open the welcome modal
 					task.spawn(function()
-						BeatSkip.Begin("t1_awal")
 						local ok, err = pcall(runIntro)
-						BeatSkip.End()
 						if not ok then
 							warn(`[T1Ghost] intro failed: {err}`)
 							if introFinish then
@@ -1205,6 +1361,22 @@ task.spawn(function()
 						end
 					end
 				end
+				-- JUAL PERTAMA (Bab 16.4): walking up to Pak Udin on the "panen_jual" step starts the beat.
+				if guideModule and saleBeatDue() then
+					saleBeatRan = true
+					local guideRef = guideModule
+					task.spawn(function()
+						local ok, err = pcall(runSaleBeat, guideRef)
+						if not ok then
+							warn(`[T1Ghost] jual pertama beat failed: {err}`)
+							if saleRestore then
+								saleRestore() -- camera, GUIs and the lock back, whatever stage it died in
+							end
+							Cutscene.End()
+							dialogBusy = false
+						end
+					end)
+				end
 				-- T1 is over (the sale): T1b starts, once.
 				if
 					isDone(guide, TUTORIAL_ID)
@@ -1218,12 +1390,10 @@ task.spawn(function()
 				-- T1b's first beat: Pak Udin at the warung.
 				if guideModule and not warungStarted then
 					local id, n = guideModule.Current()
-					if firstSaleNpc == "pak_udin" or (id == TUTORIAL_B_ID and n == 0) then
+					if id == TUTORIAL_B_ID and n == 0 then
 						warungStarted = true
 						task.spawn(function()
-							BeatSkip.Begin("t1b_kolam")
 							local ok, err = pcall(runWarung, guideModule)
-							BeatSkip.End()
 							if not ok then
 								warn(`[T1Ghost] warung dialog failed: {err}`)
 								-- A failed beat must not leave the camera on the NPC or the controls off.

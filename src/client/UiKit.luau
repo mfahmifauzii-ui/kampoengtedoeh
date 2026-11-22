@@ -1718,7 +1718,9 @@ function UiKit.menuItem(hud: Instance, name: string, text: string, slot: number)
 			corner(active, plateSize / 2)
 			stroke(active, Color3.fromRGB(120, 200, 80), 4)
 		else
-			item.Size = UDim2.fromOffset(if dock then 90 else 76, UiKit.TOUCH)
+			-- The column is MENU_SIZE wide: a text button in it must not be wider, or its edge hides under the round buttons
+			-- (owner 2026-11-22: "Acara", "Skill", "Dapur" were cut). Dock text buttons keep their own width.
+			item.Size = if dock then UDim2.fromOffset(90, UiKit.TOUCH) else UDim2.fromOffset(MENU_SIZE, UiKit.TOUCH)
 			item.BackgroundColor3 = UiKit.BG
 			item.Text = text
 			item.TextColor3 = UiKit.TEXT

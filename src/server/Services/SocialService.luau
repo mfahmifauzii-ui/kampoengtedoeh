@@ -15,6 +15,7 @@ local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Social = require(ReplicatedStorage.Shared.Config.Social)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
+local TutorialService = require(script.Parent.TutorialService)
 local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
@@ -282,6 +283,10 @@ end
 -- barang pembantu; tidak bisa bantu lahan sendiri. Siram -> Basah (ikut peluang Bagus/Prima).
 -- Panen -> hasil masuk tas pemilik + 1 bibit sejenis bonus, Kualitas tetap milik pemilik.
 local function onBantu(helper: Player, ownerId: any, kind: any)
+	if TutorialService.NpcBlocked(helper, nil) then
+		Net.Fire("Notify", helper, "npc.tut_block") -- Bab 16.3: no order/event/social while Tutorial 1 runs
+		return
+	end
 	if (kind ~= "siram" and kind ~= "panen") or typeof(ownerId) ~= "number" then
 		return
 	end
@@ -346,6 +351,14 @@ end
 -- Kirim Hadiah (Bab 12.3, P2-5): Lv 20, 3 hadiah/hari, max 500 Koin per hadiah (barang, bukan
 -- Koin mentah). Tidak bisa Legenda, Bunga, Robux. Penerima dapat barang, pengirim +20 Koin +5 XP.
 local function onGift(sender: Player, ownerId: any, itemId: any)
+	if TutorialService.NpcBlocked(sender, nil) then
+		Net.Fire("Notify", sender, "npc.tut_block")
+		return
+	end
+	if TutorialService.NpcBlocked(sender, nil) then
+		Net.Fire("Notify", sender, "npc.tut_block") -- Bab 16.3: no order/event/social while Tutorial 1 runs
+		return
+	end
 	if typeof(ownerId) ~= "number" or typeof(itemId) ~= "string" then
 		return
 	end

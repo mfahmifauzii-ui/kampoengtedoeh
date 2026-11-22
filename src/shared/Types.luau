@@ -232,7 +232,7 @@ export type PlayerData = {
 		rodGift: boolean, -- Terima Hadiah from Kak Fajar was taken (idempotent: the rod and bait are given once)
 		fishingUnlocked: boolean, -- set with rodGift: the fishing tutorial is open
 		fishCaught: boolean, -- the first fish of any kind was caught (the t1b "after_catch" step needs it)
-		kolamUnlocked: boolean, -- the t1b "after_catch" step is done: pond building opens (Mak Sari teaches it)
+		kolamUnlocked: boolean, -- LEGACY (v7.4 Bab 16.5): no longer set or read; the pond gate is pond.kakekUnlocked. Kept for old saves.
 		decorUnlocked: boolean, -- the t1b tutorial is finished: decorating (hias) opens
 		saleCutscene: boolean, -- the first-sale cutscene was played for this tutorial run (it is played once per run)
 	},

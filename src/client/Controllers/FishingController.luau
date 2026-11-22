@@ -25,7 +25,10 @@ local State = require(script.Parent.Parent.State)
 
 local REEL_ACTION = "FishingReel"
 local ZONE_WIDTH = 0.3
-local ZONE_SPEED = 0.9 -- bar widths per second
+local ZONE_SPEED = 0.9 -- bar widths per second, moving RIGHT (holding): owner says this speed is right
+local ZONE_SPEED_LEFT = 0.55 -- moving LEFT (released): slower, owner 2026-11-22
+local FILL_GAIN = 0.28 -- progress per second inside the box (was 0.15): the catch fills faster
+local FILL_DRAIN = 0.06 -- progress lost per second outside the box (was 0.10): a short miss is forgiven
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
@@ -72,7 +75,6 @@ end
 -- Two small bamboo-brown cards at the bottom centre: STATUS (waiting / bite, with Batal) and REEL (the mini-game). Only one is
 -- visible at a time. The reel bar is a wide, thick track so the fish and the zone read at a glance on a phone.
 local pullCoach: Frame? = nil
-local coachHidden = false -- Lewati pressed: no pull coachmark for the rest of the session
 
 -- The first fish of the save is still to come (the tutorial's mancing step). Client snapshot, read-only.
 local function fishPending(): boolean
@@ -89,25 +91,25 @@ local function buildUi()
 	statusFrame.Name = "Status"
 	statusFrame.AnchorPoint = Vector2.new(0.5, 1)
 	statusFrame.Position = UDim2.new(0.5, 0, 1, -92)
-	statusFrame.Size = UDim2.fromOffset(240, 78)
+	statusFrame.Size = UDim2.fromOffset(196, 54)
 	statusFrame.Visible = false
 	statusFrame.Parent = gui
 	darkBox(statusFrame, 16)
 
-	local rodIcon = UiKit.icon(statusFrame, "pancing", 34)
+	local rodIcon = UiKit.icon(statusFrame, "pancing", 24)
 	if rodIcon then
-		rodIcon.Position = UDim2.fromOffset(10, 8)
+		rodIcon.Position = UDim2.fromOffset(8, 6)
 	end
-	statusLabel = label(statusFrame, "", 17, Color3.fromRGB(255, 226, 120))
-	statusLabel.Position = UDim2.fromOffset(52, 6)
-	statusLabel.Size = UDim2.new(1, -62, 0, 34)
+	statusLabel = label(statusFrame, "", 13, Color3.fromRGB(255, 226, 120))
+	statusLabel.Position = UDim2.fromOffset(38, 4)
+	statusLabel.Size = UDim2.new(1, -46, 0, 22)
 	statusLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 	local cancel = UiKit.button(statusFrame, "Cancel", Locale.t("fish.cancel"), UiKit.BUTTON_MUTED)
 	cancel.AnchorPoint = Vector2.new(0.5, 1)
-	cancel.Position = UDim2.new(0.5, 0, 1, -7)
-	cancel.Size = UDim2.new(1, -24, 0, 30)
-	cancel.TextSize = 14
+	cancel.Position = UDim2.new(0.5, 0, 1, -5)
+	cancel.Size = UDim2.new(1, -20, 0, 20)
+	cancel.TextSize = 11
 	cancel.Activated:Connect(function()
 		Net.Send("FishCancel")
 	end)
@@ -121,7 +123,7 @@ local function buildUi()
 	reelFrame.Parent = gui
 
 	-- The pull coachmark (v6.2.3 playtest, T-45 rules). Shown only while the first fish is still pending (guide.fishCaught),
-	-- it follows the reel's visibility. Lewati hides it for this session; it changes no state (the step completes on the fish).
+	-- it follows the reel's visibility. It changes no state (the step completes on the fish).
 	pullCoach = Instance.new("Frame")
 	pullCoach.Name = "PullCoach"
 	pullCoach.AnchorPoint = Vector2.new(0.5, 1)
@@ -132,19 +134,11 @@ local function buildUi()
 	pullCoach.Visible = false
 	pullCoach.Parent = gui
 	local coachText = label(pullCoach, Locale.t("tut.coach.tarik"), 16, UiKit.CREAM)
-	coachText.Size = UDim2.new(1, -124, 1, -8)
+	coachText.Size = UDim2.new(1, -24, 1, -8)
 	coachText.Position = UDim2.fromOffset(12, 4)
 	coachText.TextWrapped = true
-	local coachSkip = UiKit.button(pullCoach, "PullCoachSkip", Locale.t("tut.skip"), UiKit.BUTTON_MUTED)
-	coachSkip.AnchorPoint = Vector2.new(1, 0.5)
-	coachSkip.Position = UDim2.new(1, -8, 0.5, 0)
-	coachSkip.Size = UDim2.fromOffset(104, 52) -- 52 px: above the 48 dp minimum
-	coachSkip.Activated:Connect(function()
-		coachHidden = true
-		pullCoach.Visible = false
-	end)
 	reelFrame:GetPropertyChangedSignal("Visible"):Connect(function()
-		pullCoach.Visible = reelFrame.Visible and not coachHidden and fishPending()
+		pullCoach.Visible = reelFrame.Visible and fishPending()
 	end)
 	darkBox(reelFrame, 18)
 
@@ -334,13 +328,13 @@ local function runReel()
 		end
 		elapsed += dt
 		local fishX = 0.5 + 0.35 * math.sin(elapsed * 1.6 + phase) + 0.08 * math.sin(elapsed * 4.1)
-		zoneX = math.clamp(zoneX + (if holding then ZONE_SPEED else -ZONE_SPEED) * dt, 0, 1 - zoneW)
+		zoneX = math.clamp(zoneX + (if holding then ZONE_SPEED else -ZONE_SPEED_LEFT) * dt, 0, 1 - zoneW)
 		local inside = fishX >= zoneX and fishX <= zoneX + zoneW
 		if inside then
 			inZone += dt
-			progress = math.min(progress + 0.15 * dt, 1)
+			progress = math.min(progress + FILL_GAIN * dt, 1)
 		else
-			progress = math.max(progress - 0.10 * dt, 0)
+			progress = math.max(progress - FILL_DRAIN * dt, 0)
 		end
 
 		marker.Position = UDim2.fromScale(fishX, 0.5)
@@ -396,11 +390,30 @@ local function buildAksi()
 	aksiGui.DisplayOrder = 6
 	aksiGui.Parent = player:WaitForChild("PlayerGui")
 
-	local button = UiKit.button(aksiGui, "AksiButton", Locale.t("prompt.fish"), UiKit.BUTTON)
-	button.AnchorPoint = Vector2.new(1, 1)
-	button.Position = UDim2.new(1, -24, 1, -200)
-	button.Size = UDim2.fromOffset(104, 104) -- 104 px: well above the 48 dp minimum
+	-- Round, with the rod icon (owner, 2026-11-22: "button bulat pakai icon joran, posisi yang gue tandai"). Same bamboo
+	-- frame and leaf-green fill as the other round buttons. Name kept: the tutorial rings "AksiButton".
+	local button = Instance.new("TextButton")
+	button.Name = "AksiButton"
+	button.Text = ""
+	button.AutoButtonColor = false
+	button.AnchorPoint = Vector2.new(0.5, 0.5)
+	button.Position = UDim2.fromScale(0.67, 0.69) -- the spot the owner circled on the playtest screenshot
+	button.Size = UDim2.fromOffset(84, 84)
+	button.BackgroundColor3 = UiKit.BUTTON
 	button.Visible = false
+	button.Parent = aksiGui
+	local round = Instance.new("UICorner")
+	round.CornerRadius = UDim.new(1, 0)
+	round.Parent = button
+	local ring = Instance.new("UIStroke")
+	ring.Color = UiKit.BAMBOO
+	ring.Thickness = 3
+	ring.Parent = button
+	local rod = UiKit.icon(button, "pancing", 52)
+	if rod then
+		rod.AnchorPoint = Vector2.new(0.5, 0.5)
+		rod.Position = UDim2.fromScale(0.5, 0.5)
+	end
 	button.Activated:Connect(function()
 		Net.Send("FishCast")
 	end)

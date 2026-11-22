@@ -14,6 +14,7 @@ local Npcs = require(ReplicatedStorage.Shared.Config.Npcs)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local MapService = require(script.Parent.MapService)
+local TutorialService = require(script.Parent.TutorialService)
 
 local NpcService = {}
 
@@ -62,6 +63,10 @@ local function adopt(npc: Npcs.Npc): boolean
 		prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
 		prompt.Parent = root
 		prompt.Triggered:Connect(function(player: Player)
+			if TutorialService.NpcBlocked(player, npc.id) then
+				Net.Fire("Notify", player, "npc.tut_block") -- Bab 16.3: "Selesaikan tutorial dulu", no dialog
+				return
+			end
 			Net.Fire("NpcTalk", player, npc.id)
 		end)
 	end
@@ -210,6 +215,10 @@ local function build(npc: Npcs.Npc)
 	prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
 	prompt.Parent = root
 	prompt.Triggered:Connect(function(player: Player)
+		if TutorialService.NpcBlocked(player, npc.id) then
+			Net.Fire("Notify", player, "npc.tut_block")
+			return
+		end
 		Net.Fire("NpcTalk", player, npc.id)
 	end)
 end

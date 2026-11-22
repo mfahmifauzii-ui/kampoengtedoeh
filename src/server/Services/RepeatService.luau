@@ -13,6 +13,7 @@ local Decor = require(ReplicatedStorage.Shared.Config.Decor)
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
+local TutorialService = require(script.Parent.TutorialService)
 local Ranch = require(ReplicatedStorage.Shared.Config.Ranch)
 local Repeat = require(ReplicatedStorage.Shared.Config.Repeat)
 local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
@@ -87,6 +88,10 @@ local function restockState(data: Types.PlayerData): { restock: number, bought: 
 end
 
 local function onGerobakBuy(player: Player, slotIndex: any)
+	if TutorialService.NpcBlocked(player, nil) then
+		Net.Fire("Notify", player, "npc.tut_block") -- Bab 16.3: no order/event/social while Tutorial 1 runs
+		return
+	end
 	if typeof(slotIndex) ~= "number" then
 		return
 	end
@@ -270,6 +275,10 @@ local function takeFish(player: Player, fishId: string, count: number): number
 end
 
 local function onPasarJual(player: Player, amount: any)
+	if TutorialService.NpcBlocked(player, nil) then
+		Net.Fire("Notify", player, "npc.tut_block") -- Bab 16.3: no order/event/social while Tutorial 1 runs
+		return
+	end
 	local data = DataService.Get(player)
 	if not data or pasar.item == "" then
 		return
@@ -312,6 +321,10 @@ local function onPasarJual(player: Player, amount: any)
 end
 
 local function onGelangThrow(player: Player)
+	if TutorialService.NpcBlocked(player, nil) then
+		Net.Fire("Notify", player, "npc.tut_block") -- Bab 16.3: no order/event/social while Tutorial 1 runs
+		return
+	end
 	local data = DataService.Get(player)
 	if not data then
 		return
@@ -644,6 +657,10 @@ local function setEvent(eventId: string?)
 end
 
 local function onTamuDeliver(player: Player)
+	if TutorialService.NpcBlocked(player, nil) then
+		Net.Fire("Notify", player, "npc.tut_block") -- Bab 16.3: no order/event/social while Tutorial 1 runs
+		return
+	end
 	local data = DataService.Get(player)
 	if not data or data.tamu.done or data.tamu.event == "" then
 		return

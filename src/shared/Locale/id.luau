@@ -182,8 +182,10 @@ return {
 	["fish.none_here"] = "Belum ada ikan di sini sekarang",
 	["fish.need_rod"] = "Kamu belum punya joran. Temui Kak Fajar di Toko Pancing dulu",
 	["fish.tut_locked"] = "Kamu belum bisa mancing, selesaikan tutorial agar bisa mancing",
-	["pond.tut_locked"] = "Belum bisa bikin kolam, selesaikan tutorial",
 	["pond.locked"] = "Kolam Kakek belum pulih (selesaikan MQ4)",
+	["banner.done"] = "Selesai",
+	["banner.started"] = "Dimulai",
+	["npc.tut_block"] = "Selesaikan tutorial dulu", -- Bab 16.3: NPC selain target langkah aktif, selama Tutorial 1
 	["decor.tut_locked"] = "Belum bisa menghias, selesaikan tutorial",
 	["dialog.understand"] = "Mengerti",
 	["rod.gift"] = "Kamu mendapatkan Joran Bambu dan pelet dari Kak Fajar! Sekarang kamu bisa mancing",
@@ -434,7 +436,7 @@ return {
 	["npc.pak_udin.meet"] = "Halo, {name}! Saya Pak Udin, pengepul hasil panen di warung ini. Mau jual panen atau beli bibit?",
 	["npc.kak_fajar"] = "Kak Fajar",
 	["npc.kak_fajar.role"] = "Joran & umpan",
-	["npc.kak_fajar.after_catch"] = "Selamat, kamu berhasil dapat ikan! Ikan ini bisa kamu jual ke penjual, atau kamu budidayakan di kolam. Sekarang bawa ikanmu ke Kolam. Belum punya kolam? Buat dulu ya.",
+	["npc.kak_fajar.after_catch"] = "Selamat, kamu berhasil dapat ikan! Ikan ini bisa kamu jual ke Pak Udin di warung.",
 	["npc.kak_fajar.greet"] = "Mau mancing? Joran dan umpan ada di sini.",
 	["npc.kak_fajar.meet"] = "Halo, {name}! Saya Kak Fajar, penjual alat pancing di sini. Mau belajar mancing? Saya kasih Joran Bambu gratis buat kamu, lengkap dengan pelet untuk umpan. Terima hadiahnya ya!",
 	["npc.mak_sari"] = "Mak Sari",
@@ -546,13 +548,6 @@ return {
 	["guide.talk"] = "Tap E dekat {npc}, pilih Jual atau Beli",
 
 	-- Tutorial engine (GuideController / SettingsController Panduan list)
-	["tut.skip"] = "Lewati",
-	["tut.skip_step"] = "Lewati langkah",
-	["tut.skip_all"] = "Lewati panduan",
-	["tut.skip_all_title"] = "Lewati panduan?",
-	["tut.skip_all_body"] = "Langkah sisa panduan dianggap selesai. Hadiahnya tetap kamu dapat.",
-	["tut.skip_all_yes"] = "Lewati",
-	["tut.skip_all_no"] = "Batal",
 	["tut.start"] = "Mulai",
 	["tut.stuck_suffix"] = " Ikuti cincin dan panah.",
 	["settings.guide"] = "Panduan",
@@ -592,6 +587,8 @@ return {
 	["tut.t1.s4_wait"] = "Tunggu tanamannya matang",
 	["tut.t1.s4_harvest"] = "Tap Panen",
 	["tut.t1.s4_sell"] = "Jual hasil panen ke Pak Udin",
+	["tut.t1.s4_sell_ask"] = "Ada hasil panen yang mau dijual?",
+	["tut.t1.s4_sell_all"] = "Jual semua",
 	["tut.arrow.tanam"] = "Tanam di sini",
 	["tut.arrow.siram"] = "Siram di sini",
 	["tut.arrow.tunggu"] = "Tunggu matang",
@@ -604,15 +601,13 @@ return {
 	["tut.t1.s4_greet"] = "Halo, {name}! Senang kamu datang ke warungku.",
 	-- T1b (Config/Onboarding): the lines Mak Sari / Pak Udin / Kak Fajar actually say live in T1Ghost.client; these are
 	-- the Panduan list title and the plain fallback when nobody can speak.
-	["tut.t1b.title"] = "Kolam dan Mancing",
+	["tut.t1b.title"] = "Joran dan Mancing",
 	["tut.t1b.warung"] = "Dengarkan Pak Udin",
 	["tut.t1b.kolam_demo"] = "Buka Kolam di dock",
 	["tut.t1b.kak_fajar"] = "Temui Kak Fajar di Toko Pancing",
 	["tut.t1b.mancing"] = "Mancing 1 ikan di dermaga",
 	["tut.coach.mancing"] = "Ketuk Mancing, lalu tarik saat ikan menggigit",
 	["tut.coach.tarik"] = "Tahan Tarik! Jaga ikan tetap di zona hijau",
-	["tut.t1b.bangun_kolam"] = "Gali kolam di lahanmu",
-	["tut.t1b.mancing_kolam"] = "Mancing 1x di kolammu",
 
 	-- Decor mode
 	["ui.decor"] = "Hias",

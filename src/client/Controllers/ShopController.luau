@@ -543,7 +543,8 @@ local function onSellAll()
 	})
 end
 
-function ShopController.Open(npcId: string)
+-- wantTab: forced tab ("sell" for the Jual Pertama beat, Bab 16.4). Otherwise the tab is picked from what is sellable here.
+function ShopController.Open(npcId: string, wantTab: string?)
 	currentNpc = npcId
 	table.clear(qtyBuy)
 	table.clear(qtySell)
@@ -553,6 +554,9 @@ function ShopController.Open(npcId: string)
 	tab = "buy"
 	if npc and snapshot and next(npc.buys) ~= nil and #sellableIds(npc, snapshot) > 0 then
 		tab = "sell"
+	end
+	if wantTab == "buy" or wantTab == "sell" then
+		tab = wantTab
 	end
 	panel.gui.Enabled = true
 	render()
