@@ -736,12 +736,14 @@ local function runIntro()
 		dialogBusy = false
 		NpcCamera.SetBlur(false)
 		player:SetAttribute("KTIntroRunning", nil)
+		player:SetAttribute("KTIntroPlaying", nil)
 		ui.gui:Destroy()
 		releaseWelcomeModal()
 		-- The fade already ran right after Mak Sari's last line (see runIntro); the coachmark can show now.
 		introState = "done"
 	end
 	introFinish = finish
+	player:SetAttribute("KTIntroPlaying", true) -- the hint bar stays off while the intro cutscene plays (Playtest 7 item 5)
 
 	-- True while the intro should keep going; also keeps the welcome modal held back.
 	local function alive(): boolean

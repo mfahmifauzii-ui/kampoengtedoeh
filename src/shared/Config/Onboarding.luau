@@ -91,7 +91,6 @@ local TUTORIALS: { Tutorial } = {
 	{
 		id = "t1_awal",
 		title = "tut.t1.title",
-		intro = "tut.t1.intro",
 		trigger = { kind = "newPlayer" },
 		auto = true,
 		steps = {

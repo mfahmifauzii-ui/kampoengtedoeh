@@ -823,6 +823,16 @@ local function inLandZone(radius: number): boolean
 	return (Vector3.new(root.Position.X, 0, root.Position.Z) - Vector3.new(center.X, 0, center.Z)).Magnitude <= radius
 end
 
+-- Playtest 7 item 5: no hint line while the welcome menu is up (KTMenu not "done") or while the intro cutscene plays
+-- (KTIntroPlaying, set by T1Ghost). A missing MenuFlow counts as done.
+local function hintAllowed(): boolean
+	local menu = player:GetAttribute("KTMenu")
+	if menu ~= nil and menu ~= "done" then
+		return false
+	end
+	return player:GetAttribute("KTIntroPlaying") ~= true
+end
+
 function refreshTutorial()
 	local current = running
 	if not current then
@@ -893,7 +903,7 @@ function refreshTutorial()
 				})
 			end
 		end
-		hint.Visible = not spoken and not GarapController.Active
+		hint.Visible = not spoken and not GarapController.Active and hintAllowed()
 		hintText.Text = text
 		return
 	end
@@ -950,10 +960,11 @@ function refreshTutorial()
 	CoachmarkController.Hide()
 	GarapController.SetHintHidden(false)
 
-	-- A step that is a dialog of the intro (kind "ack"): T1Ghost speaks it in the dialog box, so no hint bar here.
-	local spoken = say(stepDef.id, false)
+	-- A step that is a dialog of the intro (kind "ack"): T1Ghost speaks it in the dialog box, so no hint bar here, ever
+	-- (Playtest 7 item 5). The sink is still asked, so a line that is spoken is not doubled.
+	say(stepDef.id, false)
 	hintText.Text = text
-	hint.Visible = not spoken and not uiBusy() -- one instruction at a time: a modal or Atur / Panduan on screen hides this line
+	hint.Visible = false
 	hint.Position = UDim2.new(0.5, 0, 0, hintTop())
 	hintPad.PaddingRight = UDim.new(0, 14)
 
@@ -1219,6 +1230,9 @@ function GuideController.Init()
 end
 
 function GuideController.Start()
+	-- Playtest 7 item 5: the hint line follows the menu and the intro as they end.
+	player:GetAttributeChangedSignal("KTMenu"):Connect(refreshTutorial)
+	player:GetAttributeChangedSignal("KTIntroPlaying"):Connect(refreshTutorial)
 	State.Changed:Connect(function()
 		tutorialTick()
 		refresh()
