@@ -95,7 +95,8 @@ local function onSell(player: Player, npcId: any, target: any, amount: any)
 		local spot = FishService.AssignedRiverSpot(player)
 		local character = player.Character
 		local root = character and character:FindFirstChild("HumanoidRootPart")
-		local range = step.arrive or Shop.NPC_DISTANCE
+		-- Jarak = batas jual NPC biasa (Shop.NPC_DISTANCE, 25 studs). Angka ini USULAN untuk spot sungai (Lampiran D #25).
+		local range = Shop.NPC_DISTANCE
 		if not (spot and root and root:IsA("BasePart") and (root.Position - spot.Position).Magnitude <= range) then
 			Net.Fire("Notify", player, "shop.too_far")
 			return

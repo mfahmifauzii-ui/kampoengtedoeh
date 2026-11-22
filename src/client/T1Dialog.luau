@@ -460,6 +460,13 @@ end)
 
 -- The dialog box of the NPC `id` ("mak_sari", "pak_udin", "kak_fajar"): the model to draw as the face (the real NPC).
 function T1Dialog.NpcModel(id: string): Model?
+	-- Kak Fajar tutorial (Update owner 2026-11-22): the client-only copy at the fishing spot replaces the shop rig for this player.
+	if id == "kak_fajar" then
+		local copy = Workspace:FindFirstChild("KakFajar_Tutorial_Local")
+		if copy and copy:IsA("Model") then
+			return copy
+		end
+	end
 	local npcs = Workspace:FindFirstChild("Npcs")
 	local model = npcs and npcs:FindFirstChild(id)
 	return if model and model:IsA("Model") then model else nil
