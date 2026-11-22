@@ -121,6 +121,8 @@ local function addDailyRow(order: number)
 	step.Parent = row
 end
 
+local pointedQuest: string? = nil -- the quest whose step is pointed at ("Tunjukkan"), until its timer ends
+
 local function addRow(order: number, questId: string, progress: { step: number, count: number })
 	local quest = Quests.byId[questId]
 	local step = quest and quest.steps[progress.step]
@@ -201,13 +203,28 @@ local function refresh()
 	local active = snapshot and snapshot.quests and snapshot.quests.active
 	local order = 0
 	-- Stable order: follow the definition list, not pairs() order.
+	-- Playtest item 6: the active MAIN quest is always the top row (then side quests, in list order). The top row gets the
+	-- "Tunjukkan" button: it points at that quest's step for a few seconds (the step text turns gold).
 	if active then
+		local mains: { string } = {}
+		local sides: { string } = {}
 		for _, quest in Quests.list do
 			local progress = active[quest.id]
 			if progress and (quest.id ~= KOLAM_QUEST or kolamCardWanted(snapshot)) then
-				order += 1
-				addRow(order, quest.id, progress)
+				if quest.kind == "main" then
+					table.insert(mains, quest.id)
+				else
+					table.insert(sides, quest.id)
+				end
 			end
+		end
+		for _, questId in mains do
+			order += 1
+			addRow(order, questId, active[questId])
+		end
+		for _, questId in sides do
+			order += 1
+			addRow(order, questId, active[questId])
 		end
 	end
 	addDailyRow(order + 1)
@@ -278,12 +295,50 @@ local function refresh()
 		text.Text = Locale.t("quest.more", { n = #rows - MAX_ROWS })
 		text.Parent = more
 	end
+	-- The top row gets the "Tunjukkan" button (once; rebuilt with the rows).
+	local topRow = nil
+	for _, child in tracker:GetChildren() do
+		if child:IsA("Frame") and child.LayoutOrder == 1 and child.Name ~= "daily" and child.Name ~= "surat" then
+			topRow = child
+		end
+	end
+	if topRow then
+		local point = Instance.new("TextButton")
+		point.Name = "PointButton"
+		point.AnchorPoint = Vector2.new(1, 0)
+		point.Position = UDim2.new(1, 0, 0, 0)
+		point.Size = UDim2.fromOffset(74, 18)
+		point.BackgroundTransparency = 0.25
+		point.BackgroundColor3 = UiKit.DARK
+		point.Font = UiKit.FONT
+		point.TextSize = 12
+		point.TextColor3 = UiKit.CREAM
+		point.Text = Locale.t("quest.point")
+		point.ZIndex = 3
+		point.Parent = topRow
+		point.Activated:Connect(function()
+			pointedQuest = topRow.Name
+			refresh()
+			task.delay(4, function()
+				pointedQuest = nil
+				refresh()
+			end)
+		end)
+	end
 	-- Readable without a panel: cream text with a dark outline on every label of the tracker.
 	for _, label in tracker:GetDescendants() do
 		if label:IsA("TextLabel") then
 			label.TextColor3 = UiKit.CREAM
 			label.TextStrokeColor3 = UiKit.DARK
 			label.TextStrokeTransparency = 0
+		end
+	end
+	-- Tunjukkan: the pointed quest's step text turns gold while its timer runs.
+	if pointedQuest then
+		local pointed = tracker:FindFirstChild(pointedQuest)
+		local stepLabel = pointed and pointed:FindFirstChild("Step")
+		if stepLabel and stepLabel:IsA("TextLabel") then
+			stepLabel.TextColor3 = Color3.fromRGB(255, 226, 120)
 		end
 	end
 	tracker.Visible = order > 0 or tracker:FindFirstChild("daily") ~= nil

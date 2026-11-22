@@ -17,6 +17,7 @@ export type Quest = {
 	id: string,
 	unlockLevel: number,
 	after: string?,
+	kind: "main" | "side", -- Playtest item 6: main = membuka gameplay baru (banner Dimulai/Selesai), side = toast saja
 	requireTutorial: boolean?, -- Stage 7: starts only after T1 (guide.done.t1_awal)
 	requireKakek: boolean?, -- P2-2: starts only after Kolam Kakek pulih (MQ4/Bundel P2-7)
 	requireAlbum: number?, -- P2-7-fix: mulai hanya bila % Album >= nilai (MQ12, Side Kolektor)
@@ -32,6 +33,7 @@ export type Quest = {
 local list: { Quest } = {
 	{
 		id = "kolam_pertama",
+		kind = "main", -- Main Quest: membuka gameplay yang belum pernah dipakai pemain
 		unlockLevel = 2, -- same level the Kolam fishing location opens (Config/Fishing)
 		steps = {
 			{ event = "pond_built", count = 1 }, -- the first pond is free
@@ -44,6 +46,7 @@ local list: { Quest } = {
 	-- Agenda Harian + Gerobak Kaget terbuka setelah starter_pagar selesai.
 	{
 		id = "starter_bayam",
+		kind = "side", -- Side Quest: melanjutkan gameplay yang sudah terbuka
 		unlockLevel = 1,
 		steps = {
 			{ event = "plant_bayam", count = 1 }, -- Beli bibit Bayam, tanam 1 (event dikirim FarmService)
@@ -52,6 +55,7 @@ local list: { Quest } = {
 	},
 	{
 		id = "starter_nambang",
+		kind = "main", -- Main Quest: membuka gameplay yang belum pernah dipakai pemain
 		unlockLevel = 1,
 		after = "starter_bayam",
 		steps = {
@@ -61,6 +65,7 @@ local list: { Quest } = {
 	},
 	{
 		id = "starter_pagar",
+		kind = "main", -- Main Quest: membuka gameplay yang belum pernah dipakai pemain
 		unlockLevel = 1,
 		after = "starter_nambang",
 		steps = {
@@ -72,6 +77,7 @@ local list: { Quest } = {
 	-- MQ: Main Quest linear, cerita Kakek (Bab 14.2, LOCKED, P2-7-fix). Berurutan via `after`.
 	{
 		id = "mq1_pulang",
+		kind = "side", -- Side Quest: melanjutkan gameplay yang sudah terbuka
 		unlockLevel = 1,
 		auto = true,
 		steps = {},
@@ -81,6 +87,7 @@ local list: { Quest } = {
 	-- again as quests. The tutorial is not a main quest, so they are removed; the tutorial ends at the fish sale (T1b).
 	{
 		id = "mq4_kolam",
+		kind = "main", -- Main Quest: membuka gameplay yang belum pernah dipakai pemain
 		unlockLevel = 3,
 		after = "mq1_pulang",
 		auto = true, -- Lv 3, Mak Sari datang: Kolam Kakek pulih
@@ -91,6 +98,7 @@ local list: { Quest } = {
 	-- MQ5/MQ7/MQ8: Bubu/Tungku belum ada sistemnya di src. Reward Koin interim = USULAN (butuh lock owner).
 	{
 		id = "mq5_bubu",
+		kind = "main", -- Main Quest: membuka gameplay yang belum pernah dipakai pemain
 		unlockLevel = 6,
 		after = "mq4_kolam",
 		steps = {
@@ -100,6 +108,7 @@ local list: { Quest } = {
 	},
 	{
 		id = "mq6_kokok",
+		kind = "main", -- Main Quest: membuka gameplay yang belum pernah dipakai pemain
 		unlockLevel = 5,
 		after = "mq5_bubu",
 		auto = true, -- Lv 5, Pak Udin: Ayam gratis (pakan penuh) + kandang Lv1 bila belum ada
@@ -109,6 +118,7 @@ local list: { Quest } = {
 	},
 	{
 		id = "mq7_dapur",
+		kind = "main", -- Main Quest: membuka gameplay yang belum pernah dipakai pemain
 		unlockLevel = 6,
 		after = "mq6_kokok",
 		steps = {
@@ -118,6 +128,7 @@ local list: { Quest } = {
 	},
 	{
 		id = "mq8_jebakan",
+		kind = "side", -- Side Quest: melanjutkan gameplay yang sudah terbuka
 		unlockLevel = 6,
 		after = "mq7_dapur",
 		steps = {
@@ -128,6 +139,7 @@ local list: { Quest } = {
 	-- MQ9: "Slot Warung" kedua belum ada sistem (Warung 1 slot). Reward Koin saja; slot = USULAN.
 	{
 		id = "mq9_warung",
+		kind = "main", -- Main Quest: membuka gameplay yang belum pernah dipakai pemain
 		unlockLevel = 6,
 		after = "mq8_jebakan",
 		steps = {
@@ -137,6 +149,7 @@ local list: { Quest } = {
 	},
 	{
 		id = "mq10_bundel",
+		kind = "main", -- Main Quest: membuka gameplay yang belum pernah dipakai pemain
 		unlockLevel = 8,
 		after = "mq9_warung",
 		steps = {
@@ -147,6 +160,7 @@ local list: { Quest } = {
 	-- MQ11: Legenda ATAU Prima Late (anyOf, Bab 14.2). Title "Penakluk Legenda" = USULAN (v7.3 cuma "Title").
 	{
 		id = "mq11_legenda",
+		kind = "side", -- Side Quest: melanjutkan gameplay yang sudah terbuka
 		unlockLevel = 15,
 		after = "mq10_bundel",
 		anyOf = true,
@@ -158,6 +172,7 @@ local list: { Quest } = {
 	},
 	{
 		id = "mq12_warga",
+		kind = "side", -- Side Quest: melanjutkan gameplay yang sudah terbuka
 		unlockLevel = 15,
 		after = "mq11_legenda",
 		requireAlbum = 50,
@@ -169,6 +184,7 @@ local list: { Quest } = {
 	-- Kucing Alun-alun + Joran Hilang BELUM BISA: tidak ada sistem kucing / joran hilang di src (tunggu P2-9).
 	{
 		id = "side_rumah_rapi",
+		kind = "side", -- Side Quest: melanjutkan gameplay yang sudah terbuka
 		unlockLevel = 8,
 		steps = {
 			{ event = "decor_placed", count = 20 }, -- Pasang 20 piece (Pak Amran)
@@ -177,6 +193,7 @@ local list: { Quest } = {
 	},
 	{
 		id = "side_tetangga",
+		kind = "side", -- Side Quest: melanjutkan gameplay yang sudah terbuka
 		unlockLevel = 5,
 		steps = {
 			{ event = "bantu", count = 10 }, -- Bantu 10 lahan (Nek Ani)
@@ -185,6 +202,7 @@ local list: { Quest } = {
 	},
 	{
 		id = "side_resep",
+		kind = "side", -- Side Quest: melanjutkan gameplay yang sudah terbuka
 		unlockLevel = 6,
 		steps = {
 			{ event = "cook", count = 3 }, -- Masak 3 olahan (Mak Sari; "berbeda" belum ditegakkan, hitung total)
@@ -193,6 +211,7 @@ local list: { Quest } = {
 	},
 	{
 		id = "side_prima",
+		kind = "side", -- Side Quest: melanjutkan gameplay yang sudah terbuka
 		unlockLevel = 8,
 		steps = {
 			{ event = "harvest_prima", count = 5 }, -- Panen 5 Kualitas Prima (Mak Sari)
@@ -201,6 +220,7 @@ local list: { Quest } = {
 	},
 	{
 		id = "side_jumbo",
+		kind = "side", -- Side Quest: melanjutkan gameplay yang sudah terbuka
 		unlockLevel = 10,
 		steps = {
 			{ event = "catch_jumbo", count = 1 }, -- Dapat 1 Ikan Jumbo (Kak Fajar)
@@ -209,6 +229,7 @@ local list: { Quest } = {
 	},
 	{
 		id = "side_kolektor",
+		kind = "side", -- Side Quest: melanjutkan gameplay yang sudah terbuka
 		unlockLevel = 1,
 		requireAlbum = 25,
 		auto = true, -- Capai 25% Album (Nek Ani)
@@ -217,6 +238,7 @@ local list: { Quest } = {
 	},
 	{
 		id = "side_kerjabakti",
+		kind = "side", -- Side Quest: melanjutkan gameplay yang sudah terbuka
 		unlockLevel = 1,
 		steps = {
 			{ event = "kb", count = 10 }, -- Ikut 10 Kerja Bakti (Nek Ani)
@@ -225,6 +247,7 @@ local list: { Quest } = {
 	},
 	{
 		id = "side_warung",
+		kind = "side", -- Side Quest: melanjutkan gameplay yang sudah terbuka
 		unlockLevel = 6,
 		steps = {
 			{ event = "warung_sale", count = 10 }, -- Jual 10 olahan di Warung sendiri (Mak Sari)

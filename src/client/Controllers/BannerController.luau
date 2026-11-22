@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Onboarding = require(ReplicatedStorage.Shared.Config.Onboarding)
+local Quests = require(ReplicatedStorage.Shared.Config.Quests)
 local State = require(script.Parent.Parent.State)
 local PlayerLock = require(script.Parent.Parent.PlayerLock)
 local UiKit = require(script.Parent.Parent.UiKit)
@@ -24,6 +25,14 @@ local queue: { { title: string, subtitle: string } } = {}
 local playing = false
 local seenDone: { [string]: boolean } = {}
 local seenQuests: { [string]: boolean } = {}
+local seenQuestDone: { [string]: boolean } = {}
+
+-- Playtest item 6: only MAIN quests get the Dimulai / Selesai banner (and its short lock). Side quests get the tracker row and
+-- the small toast that the server already sends (quest.new / quest.done).
+local function isMain(id: string): boolean
+	local quest = Quests.byId[id]
+	return quest ~= nil and quest.kind == "main"
+end
 local initialized = false
 
 local function build(): (ScreenGui, Frame, Frame, TextLabel, TextLabel)
@@ -158,13 +167,24 @@ local function onSnapshot(snapshot: any)
 		-- banner waits until the tutorial's talk is over, and then shows once (seenQuests is not updated for it yet).
 		local tutorialRunning = guide.step ~= nil and guide.step.id ~= ""
 		for id in activeNow do
-			if not seenQuests[id] and not tutorialRunning then
+			if not seenQuests[id] and not tutorialRunning and isMain(id) then
 				local key = `quest.{id}.title`
 				push(Locale.t("banner.started"), Locale.t(key))
 			end
 		end
 	end
 	seenDone = doneNow
+	-- Main quest finished: "Selesai" with its title (side quests: toast only).
+	local doneQuestNow: { [string]: boolean } = {}
+	for id, value in quests.done do
+		if value == true then
+			doneQuestNow[id] = true
+			if initialized and not seenQuestDone[id] and (guide.step == nil or guide.step.id == "") and isMain(id) then
+				push(Locale.t("banner.done"), Locale.t(`quest.{id}.title`))
+			end
+		end
+	end
+	seenQuestDone = doneQuestNow
 	if initialized and guide.step ~= nil and guide.step.id ~= "" then
 		-- Tutorial running: a quest that is new now stays unseen, so its "Dimulai" still comes after the tutorial.
 		for id in seenQuests do
