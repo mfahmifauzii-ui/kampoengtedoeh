@@ -8,7 +8,7 @@
 --     TextLabel "LevelLabel"   -> "Lv 3 · 45/104 XP"            (optional)
 --     Frame     "XPFill"       -> width scale = XP progress     (optional)
 --     TextLabel "GoalLabel"    -> next small goal (set via HudController.SetGoal) (optional)
---     TextLabel "ToastLabel"   -> notifications, queued ~1.8s each (Visible toggled) (optional)
+--   Toasts go to UiKit.toastStack (one anchor, up to 3 chips), not to a HUD child.
 --   Buttons "BagButton", "DecorButton", "OrdersButton", "BookButton" are bound by their controllers.
 -- If no "HUD" exists, a plain placeholder is built so the game is testable.
 
@@ -40,12 +40,13 @@ local levelLabel: TextLabel?
 local xpFill: Frame?
 local goalLabel: TextLabel?
 local levelBadge: TextLabel? -- level number on the photo's star
-local toastLabel: TextLabel?
+local toastStack: Frame? -- the one toast anchor (UiKit.toastStack)
+local visibleToasts = 0
 local hudGui: ScreenGui? = nil
 type BuffSlot = { def: Buffs.Buff, slot: Frame, stroke: UIStroke, clip: Frame, hit: TextButton }
 local buffSlots: { BuffSlot } = {} -- the four buff icons on the player card (empty = off, full and draining = on)
 local toastQueue: { string } = {}
-local toastRunning = false
+
 
 local function buildPlaceholder(): ScreenGui
 	local gui = Instance.new("ScreenGui")
@@ -289,45 +290,6 @@ local function buildPlaceholder(): ScreenGui
 	local viewCamera = Workspace.CurrentCamera :: Camera
 	viewCamera:GetPropertyChangedSignal("ViewportSize"):Connect(layoutCard)
 
-	-- Feedback toast: the SAME look as the tutorial alert (dark box, bamboo border, cream bold 14 px, 40 % wide, 36 px tall),
-	-- at the same place: under the coin bar. When the tutorial alert is on screen, the toast stacks right under it (8 px gap).
-	local toastChip = Instance.new("Frame")
-	toastChip.Name = "ToastChip"
-	toastChip.AnchorPoint = Vector2.new(0.5, 0)
-	toastChip.Position = UDim2.new(0.5, 0, 0.12, 0)
-	toastChip.Size = UDim2.new(0.4, 0, 0, 36)
-
-
-	toastChip.BorderSizePixel = 0
-	toastChip.Parent = gui
-	UiKit.parchmentBox(toastChip) -- parchment chip: the same look as the tutorial info line
-	local toast = Instance.new("TextLabel")
-	toast.Name = "ToastLabel"
-	toast.BackgroundTransparency = 1
-	toast.Size = UDim2.new(1, -28, 1, 0)
-	toast.Position = UDim2.fromOffset(14, 0)
-	toast.TextColor3 = UiKit.TEXT -- dark brown ink on parchment
-	toast.Font = Enum.Font.FredokaOne -- heavier weight so the ink reads on the parchment
-	toast.TextSize = 14
-	toast.TextWrapped = true
-	toast.TextXAlignment = Enum.TextXAlignment.Center
-	toast.Parent = toastChip
-	-- stack under the tutorial alert when it is visible; otherwise stay at 12 % of the screen height
-	RunService.Heartbeat:Connect(function()
-		local playerGui = player:FindFirstChildOfClass("PlayerGui")
-		local guideUI = playerGui and playerGui:FindFirstChild("GuideUI")
-		local alert = guideUI and guideUI:FindFirstChild("Hint")
-		local view = (Workspace.CurrentCamera :: Camera).ViewportSize
-		local top = view.Y * 0.12
-		if alert and alert:IsA("GuiObject") and alert.Visible then
-			top = alert.AbsolutePosition.Y + alert.AbsoluteSize.Y + 8 -- both screens ignore the top-bar inset: same space
-		end
-		toastChip.Position = UDim2.fromOffset(view.X / 2, top)
-	end)
-	toastChip.Visible = false
-	toast:GetPropertyChangedSignal("Visible"):Connect(function()
-		toastChip.Visible = toast.Visible
-	end)
 
 	gui.Parent = playerGui
 	return gui
@@ -448,20 +410,23 @@ local function resolveVars(vars: { [string]: any }?): { [string]: any }
 	return resolved
 end
 
-local function runToasts()
-	local label = toastLabel
-	if toastRunning or not label then
+-- F-2: every toast goes to the one anchor (UiKit.toastStack). Up to TOAST_MAX_VISIBLE chips show at once, each for
+-- TOAST_SECONDS; the rest wait in the queue (capped at MAX_QUEUED_TOASTS, the oldest waiting one is dropped).
+local function pumpToasts()
+	local stack = toastStack
+	if not stack then
 		return
 	end
-	toastRunning = true
-	while #toastQueue > 0 do
-		label.Text = table.remove(toastQueue, 1) :: string
-		label.Visible = true
-		-- Short while others are waiting, so a burst of events never lags behind the action by seconds.
-		task.wait(if #toastQueue >= 2 then 0.9 else TOAST_SECONDS)
+	while visibleToasts < UiKit.TOAST_MAX_VISIBLE and #toastQueue > 0 do
+		local text = table.remove(toastQueue, 1) :: string
+		visibleToasts += 1
+		local chip = UiKit.toastChip(stack, text)
+		task.delay(TOAST_SECONDS, function()
+			chip:Destroy()
+			visibleToasts -= 1
+			pumpToasts()
+		end)
 	end
-	label.Visible = false
-	toastRunning = false
 end
 
 function HudController.Toast(text: string)
@@ -469,7 +434,7 @@ function HudController.Toast(text: string)
 		table.remove(toastQueue, 1)
 	end
 	table.insert(toastQueue, text)
-	task.spawn(runToasts)
+	pumpToasts()
 end
 
 function HudController.SetGoal(text: string)
@@ -487,7 +452,7 @@ function HudController.Init()
 	levelLabel = find(gui, "LevelLabel", "TextLabel")
 	xpFill = find(gui, "XPFill", "Frame")
 	goalLabel = find(gui, "GoalLabel", "TextLabel")
-	toastLabel = find(gui, "ToastLabel", "TextLabel")
+	toastStack = UiKit.toastStack(gui)
 	UiKit.autoScale() -- every ScreenGui (now and later) gets a responsive UIScale
 end
 

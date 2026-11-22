@@ -1457,6 +1457,87 @@ end
 
 -- Parchment chip for info lines (tutorial hint, feedback toast): the SAME chip as UiKit.pill (rounded ends, the parchment
 -- skin image), with a flat parchment + bamboo border until the image has loaded. Use it on any existing frame.
+-- F-2: ONE toast anchor for every toast (level up, unlocks, rewards, quest, errors). Top centre, under the currency bar
+-- (CurrencyBar in the HUD) with a fixed gap, at most TOAST_WIDTH_SHARE of the screen wide, between the quest tracker (left)
+-- and the right menu column, so it never covers either. Chips stack downwards. The anchor respects the device safe area
+-- because the HUD ScreenGui uses DeviceSafeInsets.
+UiKit.TOAST_GAP = 8 -- px: under the currency bar, and between stacked chips
+UiKit.TOAST_MAX_VISIBLE = 3 -- chips on screen at once; more wait in HudController's queue
+UiKit.TOAST_WIDTH_SHARE = 0.5 -- at most half the screen wide
+UiKit.TOAST_LEFT = 220 -- quest tracker: x 12, width 200 (QuestController), plus the gap
+UiKit.TOAST_RIGHT = 70 -- right menu column: 50 wide, 12 from the edge (UiKit.menuItem), plus the gap
+
+function UiKit.toastStack(screenGui: ScreenGui): Frame
+	local existing = screenGui:FindFirstChild("ToastStack")
+	if existing and existing:IsA("Frame") then
+		return existing
+	end
+	local stack = Instance.new("Frame")
+	stack.Name = "ToastStack"
+	stack.BackgroundTransparency = 1
+	stack.AnchorPoint = Vector2.new(0.5, 0)
+	stack.AutomaticSize = Enum.AutomaticSize.Y
+	stack.ZIndex = 6
+	stack.Parent = screenGui
+	local layout = Instance.new("UIListLayout")
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	layout.Padding = UDim.new(0, UiKit.TOAST_GAP)
+	layout.Parent = stack
+	local connection = game:GetService("RunService").Heartbeat:Connect(function()
+		local camera = workspace.CurrentCamera
+		if not camera then
+			return
+		end
+		local view = camera.ViewportSize
+		local left = UiKit.TOAST_LEFT
+		local right = view.X - UiKit.TOAST_RIGHT
+		local width = math.max(0, math.min(view.X * UiKit.TOAST_WIDTH_SHARE, right - left))
+		local bar = screenGui:FindFirstChild("CurrencyBar")
+		local top = 0
+		if bar and bar:IsA("GuiObject") then
+			top = bar.AbsolutePosition.Y + bar.AbsoluteSize.Y + UiKit.TOAST_GAP
+		end
+		stack.Position = UDim2.fromOffset((left + right) / 2, top)
+		stack.Size = UDim2.fromOffset(width, 0)
+	end)
+	stack.Destroying:Connect(function()
+		connection:Disconnect()
+	end)
+	return stack
+end
+
+-- One toast chip in the anchor: a parchment box with wrapped text (no overflow; it grows downwards).
+function UiKit.toastChip(stack: Frame, text: string): Frame
+	local chip = Instance.new("Frame")
+	chip.Name = "Toast"
+	chip.Size = UDim2.new(1, 0, 0, 0)
+	chip.AutomaticSize = Enum.AutomaticSize.Y
+	chip.ZIndex = 6
+	chip.Parent = stack
+	UiKit.parchmentBox(chip)
+	local pad = Instance.new("UIPadding")
+	pad.PaddingLeft = UDim.new(0, 14)
+	pad.PaddingRight = UDim.new(0, 14)
+	pad.PaddingTop = UDim.new(0, 8)
+	pad.PaddingBottom = UDim.new(0, 8)
+	pad.Parent = chip
+	local label = Instance.new("TextLabel")
+	label.Name = "Text"
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.new(1, 0, 0, 0)
+	label.AutomaticSize = Enum.AutomaticSize.Y
+	label.Font = UiKit.FONT
+	label.TextSize = UiKit.TEXT_SMALL
+	label.TextColor3 = UiKit.TEXT
+	label.TextWrapped = true
+	label.TextXAlignment = Enum.TextXAlignment.Center
+	label.Text = text
+	label.ZIndex = 7
+	label.Parent = chip
+	return chip
+end
+
 function UiKit.parchmentBox(frame: GuiObject, _radius: number?)
 	frame.BackgroundColor3 = UiKit.BG
 	frame.BackgroundTransparency = 0
