@@ -302,6 +302,10 @@ local function open(npcId: any)
 	if typeof(npcId) ~= "string" or not Npcs.byId[npcId] then
 		return
 	end
+	-- Playtest 7 item 3: this NPC's talk is already waiting for the box (one ambient line per approach): not queued twice.
+	if T1Dialog.Waiting(npcId, T1Dialog.AMBIENT) then
+		return
+	end
 	ShopController.Close()
 	currentNpc = npcId
 	-- holdFor = this NPC while the choose-or-sapaan decision is pending: State.Changed must not draw the choices first.
@@ -316,6 +320,18 @@ local function open(npcId: any)
 		local ok, alreadyMet = pcall(Net.Invoke, "HasMet", npcId)
 		if currentNpc ~= npcId or holdFor ~= npcId then
 			return -- closed meanwhile
+		end
+		-- The box is one channel: the talk waits its turn (a tutorial beat goes first) and is not lost; it opens when the box is free.
+		-- The talk owns the box until close() hides it (T1Dialog.Hide gives the turn back).
+		local held = T1Dialog.Acquire(npcId, T1Dialog.AMBIENT, function()
+			return currentNpc ~= npcId
+		end)
+		if not held then
+			return -- closed while it waited
+		end
+		if currentNpc ~= npcId or holdFor ~= npcId then
+			held() -- closed right after its turn came: give the box back
+			return
 		end
 		if ok and alreadyMet == false then
 			FirstMeetDialogue(npcId)

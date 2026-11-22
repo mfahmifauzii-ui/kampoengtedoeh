@@ -48,6 +48,21 @@ local avatarModel: Model? = nil -- the NPC currently drawn (the source, to skip 
 local avatarWell: Frame? = nil -- the round face frame (see ensure)
 local avatarPhoto: ImageLabel? = nil -- the 2D portrait when the NPC has one (UiAssets.PORTRAIT_IMAGES)
 local dialogWanted = false -- the box is meant to be on screen (Show until Hide); it is hidden only while fishing (Plan 3.6)
+
+-- Speech turns (Playtest 7, item 3): ONE box, ONE line at a time, for every NPC. A line takes its turn with Acquire and gives
+-- it back with the release function it returns, or simply by Hide (Next, a choice, the close of a talk). Tutorial beats
+-- (BEAT) go ahead of ambient lines (AMBIENT, e.g. an NPC talk opened by a prompt); within one rank the order is first come.
+-- A new line never replaces the one on screen: it waits its turn. Right after a beat, ambient lines wait a moment more, so
+-- the next line of the same beat is not overtaken.
+T1Dialog.BEAT = 1
+T1Dialog.AMBIENT = 2
+local BEAT_GRACE = 1.5 -- seconds after a beat line before an ambient line may take the box
+type Turn = { id: number, npc: string, rank: number }
+local turns: { Turn } = {}
+local turnCounter = 0
+local ownerId: number? = nil -- the turn whose line is on the box now
+local ownerRank = 0
+local lastBeatEnd = -math.huge
 local nextHandler: (() -> ())? = nil
 local choicesRow: Frame? = nil
 local choiceButtons: { TextButton } = {}
@@ -443,6 +458,66 @@ function T1Dialog.Hide()
 	end
 	nextHandler = nil
 	activeChoices = nil
+	if ownerId ~= nil and ownerRank == T1Dialog.BEAT then
+		lastBeatEnd = os.clock()
+	end
+	ownerId = nil -- the box is free: the next waiting line may take it
+end
+
+-- Waits for the box (see the speech turns above). Returns the release function once this line owns the box, or nil if
+-- `cancelled` said so while it waited (a line that is no longer wanted, e.g. the step moved on). Call the release when the
+-- line is finished (Next, a choice); Hide also frees it.
+function T1Dialog.Acquire(npc: string, rank: number, cancelled: (() -> boolean)?): (() -> ())?
+	turnCounter += 1
+	local turn: Turn = { id = turnCounter, npc = npc, rank = rank }
+	local at = #turns + 1
+	for index, other in turns do
+		if other.rank > rank then
+			at = index
+			break
+		end
+	end
+	table.insert(turns, at, turn)
+	local function leave()
+		for index, other in turns do
+			if other == turn then
+				table.remove(turns, index)
+				return
+			end
+		end
+	end
+	while true do
+		if cancelled and cancelled() then
+			leave()
+			return nil
+		end
+		local graceOver = rank ~= T1Dialog.AMBIENT or os.clock() - lastBeatEnd >= BEAT_GRACE
+		if turns[1] == turn and ownerId == nil and graceOver then
+			break
+		end
+		task.wait(0.05)
+	end
+	leave()
+	ownerId = turn.id
+	ownerRank = rank
+	return function()
+		if ownerId == turn.id then
+			if rank == T1Dialog.BEAT then
+				lastBeatEnd = os.clock()
+			end
+			ownerId = nil
+		end
+	end
+end
+
+-- True if a line for `npc` at this rank is already waiting for the box (so the same ambient line is not queued twice).
+function T1Dialog.Waiting(npc: string, rank: number): boolean
+	for _, turn in turns do
+		if turn.npc == npc and turn.rank == rank then
+			return true
+		end
+	end
+	return false
 end
 
 -- Still counts as shown while fishing (the box is only hidden on screen), so the tutorial does not re-open it.

@@ -462,16 +462,29 @@ end
 
 -- Dialog ----------------------------------------------------------------------------------------------------------
 
-local function showLine(who: string, text: string, showNext: boolean, bottom: number, onNext: (() -> ())?)
+-- A tutorial line is a BEAT (front of the speech queue, see T1Dialog.Acquire): it waits for the box, then shows. `cancelled`
+-- drops it if it is no longer wanted while it waits. Returns at once; the line is drawn when its turn comes.
+local function showLine(who: string, text: string, showNext: boolean, bottom: number, onNext: (() -> ())?, cancelled: (() -> boolean)?)
 	local speaker = SPEAKERS[who] or SPEAKERS.mak_sari
-	T1Dialog.Show({
-		name = speaker.name,
-		text = text,
-		avatar = T1Dialog.NpcModel(speaker.npc),
-		showNext = showNext,
-		bottom = bottom,
-		onNext = onNext,
-	})
+	task.spawn(function()
+		local release = T1Dialog.Acquire(speaker.npc, T1Dialog.BEAT, cancelled)
+		if not release then
+			return
+		end
+		T1Dialog.Show({
+			name = speaker.name,
+			text = text,
+			avatar = T1Dialog.NpcModel(speaker.npc),
+			showNext = showNext,
+			bottom = bottom,
+			onNext = function()
+				release()
+				if onNext then
+					onNext()
+				end
+			end,
+		})
+	end)
 end
 
 -- Shows one line and waits for the player to press Next (nothing advances by itself). False if alive() said stop.
@@ -479,6 +492,8 @@ local function waitNext(who: string, text: string, bottom: number, alive: () -> 
 	local pressed = false
 	showLine(who, text, true, bottom, function()
 		pressed = true
+	end, function()
+		return not alive()
 	end)
 	while not pressed do
 		if not alive() then
@@ -527,6 +542,8 @@ local function ensureSink()
 			showLine(line.who, line.text, true, TUTORIAL_BOTTOM, function()
 				lineDismissed = true
 				T1Dialog.Hide() -- Next closes the line: a line never stays on screen without a way out
+			end, function()
+				return sinkKey ~= key -- the step moved on while this line waited its turn: drop it
 			end)
 		end
 		return true
@@ -1119,6 +1136,10 @@ local saleRestore: (() -> ())? = nil -- ends the beat's camera and hold (Cutscen
 -- One bubble of an NPC beat with ONE button; waits until it is pressed.
 local function beatChoice(name: string, npcRig: Model, text: string, label: string)
 	local chosen = false
+	local release = T1Dialog.Acquire(name, T1Dialog.BEAT) -- a beat: waits for the box, never over another line
+	if not release then
+		return
+	end
 	T1Dialog.Show({
 		name = Locale.t(name),
 		text = text,
@@ -1137,6 +1158,7 @@ local function beatChoice(name: string, npcRig: Model, text: string, label: stri
 	while not chosen do
 		task.wait(0.05)
 	end
+	release()
 end
 
 -- Kak Fajar's first visit (playtest 2026-11-22): walking up to him starts the beat, no prompt. The gift bubble has ONE
@@ -1283,6 +1305,10 @@ local function runBeat(beat: Beat, guide: any)
 
 	local function say(text: string, choices: { T1Dialog.Choice }?)
 		local pressed = false
+		local release = T1Dialog.Acquire(beat.name, T1Dialog.BEAT) -- a beat line: its turn at the box (Playtest 7, item 3)
+		if not release then
+			return
+		end
 		if choices then
 			T1Dialog.Show({
 				name = Locale.t(beat.name),
@@ -1292,7 +1318,7 @@ local function runBeat(beat: Beat, guide: any)
 				bottom = TUTORIAL_BOTTOM,
 				choices = choices,
 			})
-			return
+			return -- the choice's pick hides the box, which gives the turn back
 		end
 		T1Dialog.Show({
 			name = Locale.t(beat.name),
@@ -1307,6 +1333,7 @@ local function runBeat(beat: Beat, guide: any)
 		while not pressed do
 			task.wait(0.05)
 		end
+		release()
 	end
 
 	-- 4. Sapaan (Next), then the sale is a bubble choice.
