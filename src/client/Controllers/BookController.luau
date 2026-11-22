@@ -123,11 +123,11 @@ local function reached(book: any, key: string): boolean
 	return false
 end
 
-local function claimRow(order: number, key: string, title: string, sub: string?, book: any)
+local function claimRow(list: ScrollingFrame, order: number, key: string, title: string, sub: string?, book: any)
 	local claimed = book.claimed[key] == true
 	local ready = not claimed and reached(book, key)
 	local buttonText = if claimed then Locale.t("book.claimed") elseif ready then Locale.t("book.claim") else "-"
-	UiKit.row(panel.list, order, title, sub, buttonText, ready, function()
+	UiKit.row(list, order, title, sub, buttonText, ready, function()
 		Net.Send("BookClaim", key)
 	end)
 end
@@ -136,11 +136,11 @@ local function renderRewards(book: any, nextOrder: () -> number)
 	UiKit.header(panel.list, Locale.t("book.tab.milestone"), nextOrder())
 	for _, category in Book.CATEGORIES do
 		if Book.CATEGORY_REWARDS[category] ~= nil then
-			claimRow(nextOrder(), `cat:{category}`, Locale.t("book.cat_claim", { category = Locale.t(`book.cat.{category}`) }), nil, book)
+			claimRow(panel.list, nextOrder(), `cat:{category}`, Locale.t("book.cat_claim", { category = Locale.t(`book.cat.{category}`) }), nil, book)
 		end
 	end
 	for _, milestone in Book.MILESTONES do
-		claimRow(nextOrder(), milestone.id, Locale.t("book.milestone_row", { percent = milestone.percent }), nil, book)
+		claimRow(panel.list, nextOrder(), milestone.id, Locale.t("book.milestone_row", { percent = milestone.percent }), nil, book)
 	end
 end
 
@@ -187,6 +187,19 @@ function BookController.Render()
 	local found, total = guiFound(book)
 	local percent = if total > 0 then math.floor(found / total * 100) else 0
 	panel.footerLabel.Text = Locale.t("book.progress", { n = found, total = total, percent = percent })
+end
+
+-- UI-3 (Hadiah > Koleksi): the Album category and milestone claims, drawn into another panel. Same rows, same BookClaim
+-- remote; the server still decides what is reached and claimed.
+function BookController.RenderClaims(list: ScrollingFrame, nextOrder: () -> number, book: any)
+	for _, category in Book.CATEGORIES do
+		if Book.CATEGORY_REWARDS[category] ~= nil then
+			claimRow(list, nextOrder(), `cat:{category}`, Locale.t("book.cat_claim", { category = Locale.t(`book.cat.{category}`) }), nil, book)
+		end
+	end
+	for _, milestone in Book.MILESTONES do
+		claimRow(list, nextOrder(), milestone.id, Locale.t("book.milestone_row", { percent = milestone.percent }), nil, book)
+	end
 end
 
 function BookController.Init()

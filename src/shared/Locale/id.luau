@@ -941,6 +941,11 @@ return {
 	["rewards.season_buy"] = "Beli {n} Bunga",
 	["rewards.season_on"] = "Aktif",
 	["rewards.season_day"] = "Hari {n}",
+	-- Hadiah panel tabs (UI-3, GUI doc 6.1): names from the GUI doc
+	["rewards.tab_daily"] = "Harian",
+	["rewards.tab_season"] = "Musim",
+	["rewards.tab_collection"] = "Koleksi",
+	["rewards.album_milestone"] = "Milestone Album",
 	["book.claim"] = "Klaim",
 	["book.claim_done"] = "Hadiah koleksi sudah masuk!",
 	["book.tab.collect"] = "Koleksi",
