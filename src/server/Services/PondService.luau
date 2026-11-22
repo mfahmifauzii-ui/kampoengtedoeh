@@ -479,7 +479,7 @@ local function onBuild(player: Player, cx: any, cz: any)
 		cx = cx,
 		cz = cz,
 		paid = price,
-		lastCollect = os.time(),
+		stock = {},
 		tier = "tanah",
 		kakek = first,
 		breed = nil,

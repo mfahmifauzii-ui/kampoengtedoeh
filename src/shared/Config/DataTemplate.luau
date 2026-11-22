@@ -6,7 +6,7 @@ local Economy = require(script.Parent.Economy)
 local Types = require(script.Parent.Parent.Types)
 
 local template: Types.PlayerData = {
-	version = 73,
+	version = 74, -- B-3: pond.list[].stock (no migration: an old entry without stock is read as empty)
 
 	koin = Economy.START_KOIN,
 	bunga = Economy.START_BUNGA,

@@ -33,7 +33,7 @@ export type PondEntry = {
 	cx: number,
 	cz: number,
 	paid: number,
-	lastCollect: number, -- os.time of the last collect (fish accrue from here)
+	stock: { string }, -- B-3: ikan yang disetor pemain, item id "fishId@size" (urutan = urutan simpan)
 	tier: string,
 	kakek: boolean,
 	breed: PondBreed?,

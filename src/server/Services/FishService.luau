@@ -2,7 +2,8 @@
 -- Fishing: cast (ProximityPrompt) -> bite after a server-rolled delay -> client reel
 -- mini-game -> catch. The fish is rolled by the SERVER at cast time; the client's reel
 -- score only picks the size tier. A catch can never fail.
--- Also runs the player-built ponds (kolam), which fill while the owner is offline.
+-- Player ponds (kolam) hold a STOCK of fish that the player deposits (PondDeposit). Fishing at a pond takes a random
+-- fish from the stock (same mini-game); no fish is ever created by time (B-3, 2026-11-22). The stock is part of PlayerData.
 --
 -- World contract: Workspace > Folder "Fishing" containing BaseParts tagged "FishingSpot"
 -- with attribute Location = "sungai" | "empang". Placeholders are built if it's missing.
@@ -50,6 +51,8 @@ type Session = {
 	fishId: string,
 	biteAt: number, -- os.clock
 	usedBait: Fishing.Bait?,
+	pondItem: string?, -- kolam: the stock item taken at cast ("nila@M"); back to the stock if the fish is not caught
+	pondUid: number?,
 }
 
 local sessions: { [Player]: Session } = {}
@@ -182,6 +185,104 @@ local function endSession(player: Player)
 	Net.Fire("FishState", player, "idle")
 end
 
+-- Pond (kolam) helpers: stock, capacity, the part of a pond. Defined before casting, which uses them.
+
+-- Kapasitas simpan kolam = tier persis (P2-2-fix, Bab 7.2 LOCKED): Tanah 10 / Semen 20 / Keramik 30.
+local function pondCap(_data: Types.PlayerData, entry: Types.PondEntry): number
+	local tierDef = Ranch.byTier[entry.tier or "tanah"] or Ranch.byTier.tanah
+	return tierDef.cap
+end
+
+-- Each pond part carries Attribute "PondUid" = its PondEntry.uid in data.pond.list.
+local function findEntry(data: Types.PlayerData, uid: any): Types.PondEntry?
+	for _, entry in data.pond.list do
+		if entry.uid == uid then
+			if typeof(entry.stock) ~= "table" then
+				entry.stock = {} -- save tanpa stok (dibuat sebelum B-3): kosong, tanpa migrasi lain
+			end
+			return entry
+		end
+	end
+	return nil
+end
+
+-- The pond part of this player with that uid (tag Pond, Owner = player).
+local function pondPart(player: Player, uid: number): BasePart?
+	for _, pond in CollectionService:GetTagged(POND_TAG) do
+		if pond:IsA("BasePart") and pond:GetAttribute("Owner") == player.UserId and pond:GetAttribute("PondUid") == uid then
+			return pond
+		end
+	end
+	return nil
+end
+
+local function syncPond(player: Player, pond: BasePart)
+	local data = DataService.Get(player)
+	local entry = data and findEntry(data, pond:GetAttribute("PondUid"))
+	if data and entry then
+		pond:SetAttribute("Cap", pondCap(data, entry))
+		pond:SetAttribute("Stock", #entry.stock)
+	end
+end
+
+-- Puts a fish that was taken from the stock back (escape, cancel, no room in the bag).
+local function returnToPond(player: Player, session: Session)
+	if not session.pondItem or not session.pondUid then
+		return
+	end
+	local data = DataService.Get(player)
+	local entry = data and findEntry(data, session.pondUid)
+	if entry then
+		table.insert(entry.stock, session.pondItem)
+		local pond = pondPart(player, session.pondUid)
+		if pond then
+			syncPond(player, pond)
+		end
+	end
+	session.pondItem = nil
+end
+
+-- Kolam: the fish comes from the stock (random), not from the global table. Empty = toast, no mini-game.
+local function startPondCast(player: Player, spot: BasePart, data: Types.PlayerData, rod: Fishing.Rod)
+	local uid = spot:GetAttribute("PondUid")
+	local entry = if typeof(uid) == "number" then findEntry(data, uid) else nil
+	if not entry then
+		return
+	end
+	if #entry.stock == 0 then
+		Net.Fire("Notify", player, "pond.empty")
+		return
+	end
+	local index = random:NextInteger(1, #entry.stock)
+	local item = table.remove(entry.stock, index) :: string
+	local pond = pondPart(player, entry.uid)
+	if pond then
+		syncPond(player, pond)
+	end
+	local fishId = item:match("^(.+)@.+$") or item
+
+	local biteDelay = random:NextNumber(Fishing.BITE_MIN, Fishing.BITE_MAX) * rod.biteMult
+	-- Buff Pancing (Bab 9.4): gigitan 20% lebih cepat.
+	if Buffs.active(data.buff, "pancing", os.time()) then
+		biteDelay *= Dapur.BUFF_PANCING_BITE
+	end
+	local session: Session = {
+		spot = spot,
+		fishId = fishId,
+		biteAt = os.clock() + biteDelay,
+		usedBait = nil,
+		pondItem = item,
+		pondUid = entry.uid,
+	}
+	sessions[player] = session
+	Net.Fire("FishState", player, "waiting", spot)
+	task.delay(biteDelay, function()
+		if sessions[player] == session then
+			Net.Fire("FishState", player, "bite")
+		end
+	end)
+end
+
 local function startCast(player: Player, spot: BasePart)
 	local data = DataService.Get(player)
 	local location = spot:GetAttribute("Location")
@@ -223,6 +324,10 @@ local function startCast(player: Player, spot: BasePart)
 	local rod = Fishing.rods[data.fishing.rod]
 	if not rod then
 		return -- cannot happen after the rod check above; kept so the type stays exact
+	end
+	if location == "kolam" then
+		startPondCast(player, spot, data, rod)
+		return
 	end
 	-- Umpan (Bab 6.3): yang pertama dipunyai dari urutan BAITS. Jangkrik = gigitan 30% lebih cepat.
 	local usedBait: Fishing.Bait? = nil
@@ -317,17 +422,20 @@ local function onReel(player: Player, score: any)
 		else
 			Net.Fire("Notify", player, "fish.lepas")
 		end
+		returnToPond(player, session) -- kolam: ikan lepas kembali ke stok
 		sessions[player] = nil
 		Net.Fire("FishState", player, "idle")
 		return
 	end
 
 	-- Skill Ikan Besar (Bab 4.5, P2-4): skor +2%/lv (peluang Besar/Jumbo naik, nilai harapan).
+	-- Kolam: ukuran ikan = ukuran yang sudah ada di stok (tidak diacak ulang).
 	local reelData = DataService.Get(player)
 	local ikanBesar = reelData and reelData.skill.ikan_besar or 0
-	local size = sizeFor(math.clamp(score + 0.02 * ikanBesar, 0, 1))
+	local size = if session.pondItem then session.pondItem:match("@(.+)$") or "S" else sizeFor(math.clamp(score + 0.02 * ikanBesar, 0, 1))
+	local item = FishService.ItemId(session.fishId, size)
 	sessions[player] = nil
-	if InventoryService.Add(player, FishService.ItemId(session.fishId, size), 1) then
+	if InventoryService.Add(player, item, 1) then
 		Net.Fire("Notify", player, "fish.caught", { item = `fish.{session.fishId}`, size = `size.{size}` })
 		local caughtData = DataService.Get(player)
 		if caughtData then
@@ -360,6 +468,10 @@ local function onReel(player: Player, score: any)
 		if session.spot:GetAttribute("Location") == "kolam" then
 			QuestService.Report(player, "catch_pond")
 		end
+	elseif session.pondItem and session.pondUid then
+		-- Tas tidak bisa menerima (item tidak valid): ikan tetap di kolam.
+		returnToPond(player, session)
+		Net.Fire("Notify", player, "pond.bag_full")
 	end
 	Net.Fire("FishState", player, "idle")
 end
@@ -373,92 +485,13 @@ local function onCancel(player: Player)
 			InventoryService.Add(player, session.usedBait.id, 1)
 			Net.Fire("Notify", player, "fish.bait_back")
 		end
+		returnToPond(player, session) -- kolam: ikan kembali ke stok
 		endSession(player)
 	end
 end
 FishService.Cancel = onCancel -- used by SocialService when teleporting
 
 -- Pond (kolam) -------------------------------------------------------------------
-
--- Kapasitas simpan kolam = tier persis (P2-2-fix, Bab 7.2 LOCKED): Tanah 10 / Semen 20 / Keramik 30.
--- Upgrade global "pond" kini hanya visual (lampu tier 2+ di PondService.buildLook). _data
--- dipertahankan agar pemanggil (syncPond/collectPond) tidak berubah.
-local function pondCap(_data: Types.PlayerData, entry: Types.PondEntry): number
-	local tierDef = Ranch.byTier[entry.tier or "tanah"] or Ranch.byTier.tanah
-	return tierDef.cap
-end
-
--- Each pond part carries Attribute "PondUid" = its PondEntry.uid in data.pond.list.
-local function findEntry(data: Types.PlayerData, pond: BasePart): Types.PondEntry?
-	local uid = pond:GetAttribute("PondUid")
-	for _, entry in data.pond.list do
-		if entry.uid == uid then
-			return entry
-		end
-	end
-	return nil
-end
-
-local function syncPond(player: Player, pond: BasePart)
-	local data = DataService.Get(player)
-	local entry = data and findEntry(data, pond)
-	if data and entry then
-		pond:SetAttribute("LastCollect", entry.lastCollect)
-		pond:SetAttribute("Cap", pondCap(data, entry))
-	end
-end
-
-local function collectPond(player: Player, pond: BasePart)
-	local data = DataService.Get(player)
-	if not data or pond:GetAttribute("Owner") ~= player.UserId or not isNear(player, pond, Fishing.CAST_DISTANCE) then
-		return
-	end
-	local entry = findEntry(data, pond)
-	if not entry then
-		return
-	end
-	if data.level < Fishing.LOCATIONS.kolam.unlockLevel then
-		Net.Fire("Notify", player, "fish.locked", { level = Fishing.LOCATIONS.kolam.unlockLevel })
-		return
-	end
-
-	local now = os.time()
-	local cap = pondCap(data, entry)
-	local ready = (now - entry.lastCollect) // Fishing.POND.INTERVAL
-	local count = math.min(ready, cap)
-	if count <= 0 then
-		Net.Fire("Notify", player, "pond.empty")
-		return
-	end
-
-	-- Stops at the first fish that doesn't fit; the rest stay in the pond.
-	local allowed = { C = true, U = true }
-	local collected = 0
-	for _ = 1, count do
-		local fishId = rollFish("kolam", data.level, 0, 0, nil, allowed)
-		if not fishId then
-			break
-		end
-		local size = if random:NextNumber() < 0.7 then "S" else "M"
-		if not InventoryService.Add(player, FishService.ItemId(fishId, size), 1) then
-			break
-		end
-		BookService.RecordFish(player, fishId, size)
-		collected += 1
-	end
-	if collected == 0 then
-		return
-	end
-
-	if ready > cap and collected == count then
-		entry.lastCollect = now -- pond was overflowing: restart the clock
-	else
-		local backlog = math.min(ready, cap) -- never bank more than the cap
-		entry.lastCollect = now - (backlog - collected) * Fishing.POND.INTERVAL - (now - entry.lastCollect) % Fishing.POND.INTERVAL
-	end
-	syncPond(player, pond)
-	Net.Fire("Notify", player, "pond.collected", { n = collected })
-end
 
 local function makePrompt(parent: BasePart, name: string, actionKey: string, order: number): ProximityPrompt
 	local prompt = Instance.new("ProximityPrompt")
@@ -490,8 +523,76 @@ local function setupSpot(spot: BasePart)
 	CollectionService:AddTag(spot, SPOT_TAG)
 end
 
--- Turns an (invisible) part over a player-built pond into the fishing + collect spot.
--- Called by the pond builder (phase 2) once the water terrain exists; there is no fixed pond anymore.
+-- PondDeposit(uid, itemId): one fish from the bag into the pond stock. Owner, distance, fish, capacity are checked here.
+local function onDeposit(player: Player, uid: any, itemId: any)
+	if typeof(uid) ~= "number" or typeof(itemId) ~= "string" then
+		return
+	end
+	local data = DataService.Get(player)
+	local entry = if data then findEntry(data, uid) else nil
+	local pond = pondPart(player, uid :: number)
+	if not data or not entry or not pond then
+		return
+	end
+	if not isNear(player, pond, Fishing.CAST_DISTANCE) then
+		Net.Fire("Notify", player, "pond.far")
+		return
+	end
+	local fishId = itemId:match("^(.+)@.+$")
+	if not fishId or not FishConfig.byId[fishId] then
+		Net.Fire("Notify", player, "pond.not_fish")
+		return
+	end
+	if InventoryService.Count(player, itemId) < 1 then
+		return
+	end
+	if #entry.stock >= pondCap(data, entry) then
+		Net.Fire("Notify", player, "pond.full")
+		return
+	end
+	InventoryService.Remove(player, itemId, 1)
+	table.insert(entry.stock, itemId)
+	syncPond(player, pond)
+	InventoryService.Sync(player)
+	Net.Fire("Notify", player, "pond.deposited", { item = `fish.{fishId}` })
+	QuestService.Report(player, "pond_deposit", 1) -- per ikan yang disetor
+end
+
+-- PondWithdraw(uid, index): one fish from the stock back into the bag.
+local function onWithdraw(player: Player, uid: any, index: any)
+	if typeof(uid) ~= "number" or typeof(index) ~= "number" then
+		return
+	end
+	local data = DataService.Get(player)
+	local entry = if data then findEntry(data, uid) else nil
+	local pond = pondPart(player, uid :: number)
+	if not data or not entry or not pond then
+		return
+	end
+	if not isNear(player, pond, Fishing.CAST_DISTANCE) then
+		Net.Fire("Notify", player, "pond.far")
+		return
+	end
+	local at = math.floor(index)
+	local item = entry.stock[at]
+	if not item then
+		return
+	end
+	if not InventoryService.CanAdd(player, item, 1) then
+		Net.Fire("Notify", player, "pond.bag_full")
+		return
+	end
+	table.remove(entry.stock, at)
+	InventoryService.Add(player, item, 1)
+	syncPond(player, pond)
+	InventoryService.Sync(player)
+	local fishId = item:match("^(.+)@.+$") or item
+	Net.Fire("Notify", player, "pond.withdrew", { item = `fish.{fishId}` })
+end
+
+-- Turns an (invisible) part over a player-built pond into the fishing spot + its two prompts:
+-- "Mancing" (the usual cast, FishPrompt) and "Kolam" (opens the pond sheet on the client, PondOpen).
+-- Called by the pond builder once the water terrain exists; there is no fixed pond anymore.
 function FishService.SetupPond(player: Player, pond: BasePart, entry: Types.PondEntry)
 	pond:SetAttribute("Location", "kolam")
 	pond:SetAttribute("Owner", player.UserId)
@@ -499,14 +600,15 @@ function FishService.SetupPond(player: Player, pond: BasePart, entry: Types.Pond
 
 	setupSpot(pond)
 	-- Two prompts on one part: different keys + AlwaysShow, otherwise Roblox shows only one.
-	local collect = makePrompt(pond, "CollectPrompt", "prompt.pond_collect", 1)
-	collect.KeyboardKeyCode = Enum.KeyCode.F
-	collect.GamepadKeyCode = Enum.KeyCode.ButtonY
-	collect.Exclusivity = Enum.ProximityPromptExclusivity.AlwaysShow
+	local kolam = makePrompt(pond, "KolamPrompt", "prompt.pond_open", 1)
+	kolam.Exclusivity = Enum.ProximityPromptExclusivity.AlwaysShow
 	local fishPrompt = pond:FindFirstChild("FishPrompt") :: ProximityPrompt
 	fishPrompt.Exclusivity = Enum.ProximityPromptExclusivity.AlwaysShow
-	collect.Triggered:Connect(function(triggeredBy)
-		collectPond(triggeredBy, pond)
+	local uid = entry.uid
+	kolam.Triggered:Connect(function(triggeredBy)
+		if pond:GetAttribute("Owner") == triggeredBy.UserId then
+			Net.Fire("PondOpen", triggeredBy, uid)
+		end
 	end)
 	CollectionService:AddTag(pond, POND_TAG)
 	syncPond(player, pond)
@@ -679,6 +781,10 @@ function FishService.Init()
 	end
 
 	PlotService.Released:Connect(function(player: Player)
+		local session = sessions[player]
+		if session then
+			returnToPond(player, session)
+		end
 		sessions[player] = nil
 	end)
 end
@@ -692,12 +798,18 @@ function FishService.Start()
 	Net.On("FishReel", onReel, { rate = 2, burst = 3 })
 	Net.On("FishCancel", onCancel, { rate = 2, burst = 3 })
 	Net.On("FishCast", onCastNearest, { rate = 2, burst = 3 })
+	Net.On("PondDeposit", onDeposit, { rate = 3, burst = 6 })
+	Net.On("PondWithdraw", onWithdraw, { rate = 3, burst = 6 })
 	Players.PlayerRemoving:Connect(function(player)
+		local session = sessions[player]
+		if session then
+			returnToPond(player, session)
+		end
 		sessions[player] = nil
 	end)
 end
 
--- Re-sends pond cap/timer after a pond upgrade.
+-- Re-sends cap/stock of all the player's ponds (after a tier upgrade or a change).
 local function ownedPonds(player: Player): { BasePart }
 	local ponds = {}
 	for _, pond in CollectionService:GetTagged(POND_TAG) do
@@ -708,21 +820,25 @@ local function ownedPonds(player: Player): { BasePart }
 	return ponds
 end
 
--- Re-sends cap/timer of all the player's ponds (after a tier upgrade or the offline pass).
 function FishService.RefreshPond(player: Player)
 	for _, pond in ownedPonds(player) do
 		syncPond(player, pond)
 	end
 end
 
--- Studio testing only (called by DevService): every pond of the player is full.
+-- Studio testing only (called by DevService): every pond of the player is filled to its cap with Early fish.
 function FishService.DevFillPond(player: Player)
 	local data = DataService.Get(player)
 	if not data then
 		return
 	end
 	for _, entry in data.pond.list do
-		entry.lastCollect -= Fishing.POND.INTERVAL * 50
+		local stock = findEntry(data, entry.uid)
+		if stock then
+			while #stock.stock < pondCap(data, stock) do
+				table.insert(stock.stock, FishService.ItemId("wader_cakul", "S"))
+			end
+		end
 	end
 	FishService.RefreshPond(player)
 end

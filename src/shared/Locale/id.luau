@@ -174,7 +174,7 @@ return {
 
 	-- Fishing
 	["prompt.fish"] = "Mancing",
-	["prompt.pond_collect"] = "Ambil Ikan",
+	["prompt.pond_open"] = "Kolam",
 	["fish.waiting"] = "Menunggu ikan menggigit…",
 	["fish.bite"] = "Ikan menggigit!",
 	["fish.reel_hint"] = "Tahan Tarik! agar ikan tetap di area terang",
@@ -197,7 +197,13 @@ return {
 	["rod.gift"] = "Kamu mendapatkan Joran Bambu dan pelet dari Kak Fajar! Sekarang kamu bisa mancing",
 	["rod.gift_again"] = "Kak Fajar sudah memberimu joran. Selamat memancing!",
 	["pond.count"] = "{n}/{cap} ikan",
-	["pond.empty"] = "Kolam belum ada ikan",
+	["pond.empty"] = "Kolam masih kosong",
+	["pond.deposited"] = "{item} masuk kolam",
+	["pond.withdrew"] = "{item} kembali ke tas",
+	["pond.full"] = "Kolam penuh",
+	["pond.far"] = "Terlalu jauh dari kolam",
+	["pond.not_fish"] = "Hanya ikan yang bisa disetor ke kolam",
+	["pond.bag_full"] = "Tas penuh, ikan tetap di kolam",
 	["pond.collected"] = "+{n} ikan dari kolam",
 
 	-- Nambang + Crafting (Bab 8.1 / 8.2)
