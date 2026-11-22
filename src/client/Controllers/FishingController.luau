@@ -474,6 +474,15 @@ local function renderBait()
 		shownBait = nil
 		baitLabel.Text = if baitOut then Locale.t("fish.bait_out") else Locale.t("fish.bait_none")
 	end
+	-- The chip width follows its text (measured), so a short line such as "Umpan habis" is never squeezed or clipped.
+	local ok, measured = pcall(function()
+		return game:GetService("TextService"):GetTextSize(baitLabel.Text, UiKit.TEXT_SMALL, UiKit.FONT, Vector2.new(400, 1000))
+	end)
+	local textWidth = if ok then (measured :: Vector2).X else 0
+	if baitChip then
+		local pad = 10 + 20 + 6 + 10 -- left pad, icon, gap, right pad
+		baitChip.Size = UDim2.fromOffset(math.ceil(textWidth + pad), 30)
+	end
 end
 
 local function makeBaitChip(parent: Instance)
@@ -482,11 +491,18 @@ local function makeBaitChip(parent: Instance)
 	chip.AnchorPoint = Vector2.new(0.5, 1)
 	chip.Position = stripPosition() -- the context strip (HUD map), not beside the rod button
 	chip.Size = UDim2.fromOffset(0, 30)
-	chip.AutomaticSize = Enum.AutomaticSize.X
+	chip.BackgroundColor3 = UiKit.BG -- solid parchment: the text is always readable, on any terrain
+	chip.BackgroundTransparency = 0
 	chip.Visible = false
 	chip.ZIndex = 4
 	chip.Parent = parent
-	UiKit.parchmentBox(chip)
+	local chipRound = Instance.new("UICorner")
+	chipRound.CornerRadius = UDim.new(0, UiKit.R_LG)
+	chipRound.Parent = chip
+	local chipEdge = Instance.new("UIStroke")
+	chipEdge.Color = UiKit.BAMBOO
+	chipEdge.Thickness = 2
+	chipEdge.Parent = chip
 	local scale = Instance.new("UIScale")
 	scale.Parent = chip
 	baitScale = scale
@@ -509,8 +525,7 @@ local function makeBaitChip(parent: Instance)
 	baitText.Name = "Text"
 	baitText.LayoutOrder = 2
 	baitText.BackgroundTransparency = 1
-	baitText.AutomaticSize = Enum.AutomaticSize.X
-	baitText.Size = UDim2.fromOffset(0, 22)
+	baitText.Size = UDim2.new(1, -36, 1, 0) -- the rest of the chip after the icon and the padding
 	baitText.Font = UiKit.FONT
 	baitText.TextSize = UiKit.TEXT_SMALL
 	baitText.TextColor3 = UiKit.TEXT
