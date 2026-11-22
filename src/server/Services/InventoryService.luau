@@ -5,6 +5,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local DecorConfig = require(ReplicatedStorage.Shared.Config.Decor)
+local FeatureGate = require(script.Parent.FeatureGate)
 local FarmConfig = require(ReplicatedStorage.Shared.Config.Farm)
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
 local RewardsConfig = require(ReplicatedStorage.Shared.Config.Rewards)
@@ -100,7 +101,16 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		ponds = pondCells(data),
 		pondState = pondStateFor(data), -- breeding per kolam (uid, tier, kakek, breed) untuk UI
 		pondKakek = data.pond.kakekUnlocked == true or data.level >= Fishing.POND.UNLOCK_LEVEL, -- gate kolam: Lv 2 (Fishing.POND.UNLOCK_LEVEL) atau Kolam Kakek pulih. Tombol Kolam ikut ini.
-		features = table.clone(data.features or {}), -- Q-2 feature gate (client UI nanti)
+		features = (function()
+			-- Quest features (data.features) plus the level-gated ones (FeatureGate.LEVEL_GATES, D-39) as "open".
+			local out = table.clone(data.features or {})
+			for id in FeatureGate.LEVEL_GATES do
+				if FeatureGate.LevelOpen(data.level, id) then
+					out[id] = "open"
+				end
+			end
+			return out
+		end)(),
 		ranch = data.ranch, -- kandang + hewan + mood untuk panel Ternak
 		bundel = data.bundel, -- Bundel Kakek (Bab 14.6): [id] = { given, done } + sumur_day (UI mendatang)
 		dapur = { tier = data.dapur.tier, slots = table.clone(data.dapur.slots) },

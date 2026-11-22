@@ -15,6 +15,13 @@ local DataService = require(script.Parent.DataService)
 
 local FeatureGate = {}
 
+-- D-39: features that open by PLAYER LEVEL, not by a quest step. The Skill panel opens at Player Lv 2 (the first root skills
+-- need Player Lv 2; SP = level - 1, so the first SP comes at Lv 2). The server writes "open" into the snapshot for these ids
+-- (InventoryService), and the client reads the same snapshot as for the quest features.
+FeatureGate.LEVEL_GATES = {
+	skill = 2,
+}
+
 local gated: { [string]: boolean } = {}
 for _, quest in Quests.list do
 	for _, step in quest.steps do
@@ -22,6 +29,15 @@ for _, quest in Quests.list do
 			gated[step.reveals] = true
 		end
 	end
+end
+for id in FeatureGate.LEVEL_GATES do
+	gated[id] = true
+end
+
+-- The level a player has reached: the same rule as the Level attribute.
+function FeatureGate.LevelOpen(level: number, id: string): boolean
+	local need = FeatureGate.LEVEL_GATES[id]
+	return need ~= nil and level >= need
 end
 
 function FeatureGate.IsGated(id: string): boolean
@@ -32,6 +48,9 @@ end
 function FeatureGate.IsUsable(data: any, id: string): boolean
 	if not gated[id] then
 		return true
+	end
+	if FeatureGate.LEVEL_GATES[id] ~= nil then
+		return FeatureGate.LevelOpen(data.level, id)
 	end
 	local features = data.features
 	local state = if typeof(features) == "table" then features[id] else nil

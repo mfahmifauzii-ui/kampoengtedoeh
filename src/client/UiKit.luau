@@ -1626,6 +1626,9 @@ local MENU_ICON = {
 	GarapButton = "garap",
 	KolamButton = "kolam",
 	RewardButton = "bintang", -- Hadiah (kalender + peti main)
+	-- D-39 placeholders: no asset id exists yet. Add UiAssets.ICONS.acara / .skill later and the icon appears; until then the pill is text.
+	AcaraButton = "acara",
+	SkillButton = "skill",
 }
 
 -- Where each button lives (thumb-friendly layout, no captions: the icons speak, a tooltip names them on hover):

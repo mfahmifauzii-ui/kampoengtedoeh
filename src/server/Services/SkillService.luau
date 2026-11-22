@@ -6,6 +6,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Skills = require(ReplicatedStorage.Shared.Config.Skills)
+local FeatureGate = require(script.Parent.FeatureGate)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
@@ -28,6 +29,10 @@ local function buy(player: Player, skillId: any): BuyResult
 	local data = DataService.Get(player)
 	if not def or not data then
 		return "unknown"
+	end
+	-- D-39: the Skill panel is a level-gated feature (Player Lv 2). Same toast as every gated feature when it is closed.
+	if not FeatureGate.Check(player, "skill") then
+		return "locked"
 	end
 	local level = data.skill[skillId] or 0
 	if level >= def.maxLevel then

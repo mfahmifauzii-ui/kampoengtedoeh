@@ -15,6 +15,7 @@ local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local State = require(script.Parent.Parent.State)
 local UiKit = require(script.Parent.Parent.UiKit)
+local FeatureClient = require(script.Parent.Parent.FeatureClient)
 
 local player = Players.LocalPlayer
 
@@ -427,6 +428,8 @@ function SkillController.Start()
 		end
 		local item = UiKit.menuItem(hud, "SkillButton", Locale.t("skill.title"), 8)
 		if item then
+			-- D-39: closed (Player Lv < 2) = hidden, like every gated HUD button (FeatureClient.GateHud).
+			FeatureClient.GateHud("SkillButton", "skill")
 			item.Activated:Connect(function()
 				if panel then
 					closePanel()
