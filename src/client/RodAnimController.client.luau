@@ -2,6 +2,8 @@ local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
 local KSP = game:GetService("KeyframeSequenceProvider")
 local Net = require(RS.Shared.Modules.Net)
+local FishingTutorial = require(RS.Shared.Modules.FishingTutorial)
+local State = require(script.Parent.State)
 local anims = RS:WaitForChild("CustomAnims")
 local template = workspace:WaitForChild("FishingRod")
 local player = Players.LocalPlayer
@@ -38,6 +40,13 @@ end
 local rod = nil
 local tracks = nil
 local prevState = "idle"
+-- B-5 (2026-11-22): joran pancing sungguhan digambar SERVER untuk semua pemain. Klien hanya memasang joran di pancing tutorial.
+local tutorialRod = false
+
+local function tutorialFishing(): boolean
+	local snap = State.current :: any
+	return FishingTutorial.isActive(snap and snap.guide)
+end
 
 local function loadTracks(char)
 	local hum = char:FindFirstChildOfClass("Humanoid")
@@ -107,7 +116,10 @@ end
 
 Net.Listen("FishState", function(state, spot)
 	if state == "waiting" then
-		equip()
+		tutorialRod = tutorialFishing()
+		if tutorialRod then
+			equip()
+		end
 		lastSpot = spot
 		Sfx.play("fish_cast", rootPart())
 		local castCF = spotCF(spot)
@@ -117,7 +129,9 @@ Net.Listen("FishState", function(state, spot)
 			if prevState == "waiting" then play("FishingIdle") end
 		end)
 	elseif state == "bite" then
-		equip()
+		if tutorialRod then
+			equip()
+		end
 		Sfx.stop(reelSound)
 		reelSound = Sfx.play("fish_reel", rootPart())
 		local biteCF = spotCF(lastSpot)

@@ -18,6 +18,7 @@ local Workspace = game:GetService("Workspace")
 
 local Dapur = require(ReplicatedStorage.Shared.Config.Dapur)
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
+local FishingTutorial = require(ReplicatedStorage.Shared.Modules.FishingTutorial)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local UiAssets = require(ReplicatedStorage.Shared.Config.UiAssets)
@@ -255,6 +256,13 @@ end
 
 -- Bobber --------------------------------------------------------------------------
 
+-- B-5 (2026-11-22): joran dan pelampung pancing sungguhan digambar SERVER (Workspace.FishingVisuals) untuk semua pemain.
+-- Klien menggambar sendiri hanya saat pancing tutorial Kak Fajar (salinan lokal, langkah mancing).
+local function tutorialFishing(): boolean
+	local snap = State.current :: any
+	return FishingTutorial.isActive(snap and snap.guide)
+end
+
 local function removeBobber()
 	if bobber then
 		bobber:Destroy()
@@ -478,7 +486,9 @@ function FishingController.Start()
 			statusFrame.Visible = true
 			player:SetAttribute("FishingActive", true) -- Plan 3.6: the fishing GUI is on top, the dialog steps aside
 			holdForFishing(true) -- B-4: movement off until the fishing ends
-			placeBobber(spot)
+			if tutorialFishing() then
+				placeBobber(spot)
+			end
 		elseif state == "bite" then
 			statusLabel.Text = Locale.t("fish.bite")
 			task.delay(0.4, runReel)
