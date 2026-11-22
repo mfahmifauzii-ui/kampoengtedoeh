@@ -2030,7 +2030,7 @@ function UiKit.notifyDot(target: GuiObject, count: number): Frame
 		badge = Instance.new("Frame")
 		badge.Name = "NotifyDot"
 		badge.AnchorPoint = Vector2.new(1, 0)
-		badge.Position = UDim2.new(1, 4, 0, -4)
+		badge.Position = UDim2.new(1, -2, 0, 2) -- Bug 9: fully inside the button; the menu column clips anything that sticks out
 		badge.Size = UDim2.fromOffset(22, 22)
 		badge.BackgroundColor3 = UiKit.RED
 		badge.ZIndex = 8
