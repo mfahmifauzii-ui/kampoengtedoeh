@@ -22,7 +22,9 @@ local template: Types.PlayerData = {
 		sessions = 0,
 	},
 
-	inventory = { seed_kangkung = 6 }, -- [itemId] = count. A new player starts with a few seeds (Pak Udin sells more)
+	-- [itemId] = count. Starting seeds are NOT here: a template default is refilled by profile:Reconcile() on every login
+	-- whenever the count reached 0 (the key is removed at 0), which gave 6 free seeds each login. DataService gives them once.
+	inventory = {},
 	upgrades = { pond = 0 }, -- tier per upgrade (Config/Shop UPGRADES, Modules/Upgrades)
 
 	farm = {

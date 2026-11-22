@@ -66,6 +66,7 @@ local function onPlayerAdded(player: Player)
 	local now = os.time()
 	if data.stats.firstJoin == 0 then
 		data.stats.firstJoin = now
+		data.inventory.seed_kangkung = 6 -- a new save starts with 6 bibit, once (see DataTemplate: never a template default)
 	end
 	data.stats.lastLogin = now
 	data.stats.sessions += 1

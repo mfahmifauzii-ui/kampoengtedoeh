@@ -162,7 +162,18 @@ local function grassRayParams(): RaycastParams
 	return grassParams :: RaycastParams
 end
 
-local function squareIsGrass(plot: Model, cx: number, cz: number): boolean
+-- Soil that our own beds paint (FarmService: Ground when dug, Mud when watered). Next to an existing bed it still counts
+-- as ground for a NEW bed (owner, 2026-11-22: a bed beside a bed must stay placeable). Soil with no bed next to it does not.
+local SOIL_MATERIALS = { [Enum.Material.Ground] = true, [Enum.Material.Mud] = true }
+
+local function touchesBed(tiles: { any }, cx: number, cz: number): boolean
+	return tileAt(tiles, cx + 1, cz) ~= nil
+		or tileAt(tiles, cx - 1, cz) ~= nil
+		or tileAt(tiles, cx, cz + 1) ~= nil
+		or tileAt(tiles, cx, cz - 1) ~= nil
+end
+
+local function squareIsGrass(plot: Model, cx: number, cz: number, tiles: { any }): boolean
 	local key = `{cx},{cz}`
 	local cached = grassCache[key]
 	local now = os.clock()
@@ -172,12 +183,15 @@ local function squareIsGrass(plot: Model, cx: number, cz: number): boolean
 	local origin = plot.PrimaryPart :: BasePart
 	local rect = Land.tileRect(cx, cz)
 	local params = grassRayParams()
+	local soilOk = touchesBed(tiles, cx, cz)
 	local ok = true
 	for _, ox in GRASS_OFFSETS do
 		for _, oz in GRASS_OFFSETS do
 			local world = origin.CFrame:PointToWorldSpace(Vector3.new(rect.minX + ox, 0, rect.minZ + oz))
 			local hit = Workspace:Raycast(world + Vector3.new(0, 30, 0), Vector3.new(0, -60, 0), params)
-			local onGrass = hit ~= nil and hit.Instance:IsA("Terrain") and hit.Material == Enum.Material.LeafyGrass
+			local onGrass = hit ~= nil
+				and hit.Instance:IsA("Terrain")
+				and (hit.Material == Enum.Material.LeafyGrass or (soilOk and SOIL_MATERIALS[hit.Material] == true))
 			if not onGrass then
 				ok = false
 			end
@@ -204,7 +218,7 @@ local function cellState(plot: Model, cx: number, cz: number): string
 	if not Land.canTill(cx, cz, tiles, blockers, if snapshot then snapshot.landChunks else nil) then
 		return "invalid"
 	end
-	return if squareIsGrass(plot, cx, cz) then "valid" else "invalid"
+	return if squareIsGrass(plot, cx, cz, tiles) then "valid" else "invalid"
 end
 
 -- Plot-local point under a camera ray (the ground plane of the plot).
@@ -356,7 +370,7 @@ local function moveState(plot: Model, cx: number, cz: number): string
 	end
 	local ok = Land.canTill(cx, cz, others, blockers, if State.current then (State.current :: any).landChunks else nil)
 	-- Pindah obeys the same grass rule as Garap: a bed never moves onto a road, a building or bare ground.
-	return if ok and squareIsGrass(plot, cx, cz) then "valid" else "invalid"
+	return if ok and squareIsGrass(plot, cx, cz, others) then "valid" else "invalid"
 end
 
 -- Public hooks: FarmController sets BedTapHandler (opens the Pindah / Hapus menu) and flips MenuOpen while that menu is up.

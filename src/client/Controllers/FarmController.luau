@@ -780,7 +780,7 @@ end
 local TweenService = game:GetService("TweenService")
 local Land = require(ReplicatedStorage.Shared.Modules.Land)
 
-local PROXIMITY = 4 -- studs from the bed's edge (HumanoidRootPart to the edge of the square): on a phone a joystick walk lands near 4, not exactly 1
+local PROXIMITY = 2 -- studs from the bed's edge (HumanoidRootPart to the edge of the square): owner 2026-11-22: the seed row shows within 2 studs only
 local RING_RADIUS = Land.TILE / 2 + PROXIMITY -- bed centre to the dashed ring
 local RING_DOTS = 12
 local HOLD_TIP_SECONDS = 0.3
@@ -840,7 +840,7 @@ local function buildPopup()
 	gui.Name = "SeedPopup"
 	gui.ResetOnSpawn = false
 	gui.IgnoreGuiInset = true
-	gui.DisplayOrder = 35 -- above the HUD and the pills, under the coachmark's top layer
+	gui.DisplayOrder = -1 -- under every panel and the HUD: when any menu opens, these seed rings lose (owner, 2026-11-22)
 	gui:SetAttribute("NoScale", true)
 	gui.Enabled = false
 	gui.Parent = player:WaitForChild("PlayerGui")

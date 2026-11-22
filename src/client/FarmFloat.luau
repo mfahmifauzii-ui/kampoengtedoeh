@@ -23,8 +23,10 @@ local UiKit = require(script.Parent.UiKit)
 
 local TILE_TAG = "FarmTile"
 local RANGE = 30 -- studs from you
-local MAX_PILLS = 3
-local PILL_W, PILL_H = 132, 38
+local MAX_PILLS = 9 -- room for a full 3x3 of beds around you
+local NEAR_GROUP = 12 -- studs: beds this close (the 3x3 around you) always show their pill
+local FAR_MAX = 3 -- pills for beds further away than NEAR_GROUP
+local PILL_W, PILL_H = 104, 30 -- compact (owner, 2026-11-22): the timer and Siram pills were too big over a bed
 local LIFT = 3.4 -- studs above the bed
 local PICK_SECONDS = 0.2
 
@@ -128,29 +130,29 @@ local function makePill(): Pill
 	icon.BackgroundTransparency = 1
 	icon.AnchorPoint = Vector2.new(0, 0.5)
 	icon.Position = UDim2.new(0, 6, 0.5, 0)
-	icon.Size = UDim2.fromOffset(28, 28)
+	icon.Size = UDim2.fromOffset(20, 20)
 	icon.ScaleType = Enum.ScaleType.Fit
 	icon.Parent = frame
 
 	local title = Instance.new("TextLabel")
 	title.Name = "Title"
 	title.BackgroundTransparency = 1
-	title.Position = UDim2.fromOffset(38, 3)
-	title.Size = UDim2.new(1, -42, 0, 18)
+	title.Position = UDim2.fromOffset(28, 2)
+	title.Size = UDim2.new(1, -32, 0, 14)
 	title.TextXAlignment = Enum.TextXAlignment.Left
 	title.Font = UiKit.FONT
-	title.TextSize = 15
+	title.TextSize = 12
 	title.TextColor3 = Color3.fromRGB(255, 226, 120)
 	title.Parent = frame
 
 	local sub = Instance.new("TextLabel")
 	sub.Name = "Sub"
 	sub.BackgroundTransparency = 1
-	sub.Position = UDim2.fromOffset(38, 21)
-	sub.Size = UDim2.new(1, -42, 0, 13)
+	sub.Position = UDim2.fromOffset(28, 16)
+	sub.Size = UDim2.new(1, -32, 0, 11)
 	sub.TextXAlignment = Enum.TextXAlignment.Left
 	sub.Font = Enum.Font.FredokaOne
-	sub.TextSize = 10
+	sub.TextSize = 9
 	sub.TextColor3 = UiKit.CREAM
 	sub.TextTransparency = 0.12
 	sub.Parent = frame
@@ -212,7 +214,7 @@ local function pick()
 		return
 	end
 	local now = Workspace:GetServerTimeNow()
-	local candidates: { { part: BasePart, kind: string, order: number } } = {}
+	local candidates: { { part: BasePart, kind: string, order: number, distance: number } } = {}
 	for _, instance in CollectionService:GetTagged(TILE_TAG) do
 		if instance:IsA("BasePart") and instance:GetAttribute("Owner") == player.UserId then
 			local distance = (instance.Position - root.Position).Magnitude
@@ -223,15 +225,28 @@ local function pick()
 			end
 			if distance <= RANGE and blockedUntil == nil then
 				local kind = bedKind(instance, now)
-				table.insert(candidates, { part = instance, kind = kind, order = distance + (if kind == "grow" then 1000 else 0) })
+				table.insert(candidates, { part = instance, kind = kind, order = distance, distance = distance })
 			end
 		end
 	end
 	table.sort(candidates, function(a, b)
 		return a.order < b.order
 	end)
-	for index = 1, math.min(MAX_PILLS, #candidates) do
-		picked[index] = candidates[index]
+	-- Every bed within NEAR_GROUP studs (the 3x3 you stand in) shows its pill: the timers and the Siram / Panen prompts.
+	-- Beyond that only FAR_MAX more, so the screen never fills up. Empty beds show nothing here (the seed rings do that).
+	local shown, far = 0, 0
+	for _, candidate in candidates do
+		local near = candidate.distance <= NEAR_GROUP
+		if near or far < FAR_MAX then
+			if shown >= MAX_PILLS then
+				break
+			end
+			shown += 1
+			picked[shown] = candidate
+			if not near then
+				far += 1
+			end
+		end
 	end
 end
 
@@ -273,7 +288,7 @@ local function layout()
 					pill.icon.ImageTransparency = if quiet then 0.35 else 0
 					pill.frame.BackgroundTransparency = if quiet then 0.3 else 0.04
 					pill.title.TextColor3 = if quiet then UiKit.CREAM else Color3.fromRGB(255, 226, 120)
-					pill.title.TextSize = if quiet then 13 else 15
+					pill.title.TextSize = if quiet then 11 else 12
 					local border = pill.frame:FindFirstChild("Border") :: UIStroke
 					border.Color = if choice.kind == "ripe" then Color3.fromRGB(255, 226, 120) elseif quiet then UiKit.BAMBOO_DARK else UiKit.BAMBOO
 				end
