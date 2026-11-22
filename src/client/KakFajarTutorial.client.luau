@@ -11,8 +11,10 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
+local Map = require(ReplicatedStorage.Shared.Config.Map)
 local Npcs = require(ReplicatedStorage.Shared.Config.Npcs)
 local Onboarding = require(ReplicatedStorage.Shared.Config.Onboarding)
 local NpcPose = require(script.Parent.NpcPose)
@@ -22,12 +24,24 @@ local player = Players.LocalPlayer
 
 local NPC_ID = "kak_fajar"
 local COPY_NAME = "KakFajar_Tutorial_Local" -- T1Dialog.NpcModel looks this name up for "kak_fajar"
-local STAND_OFFSET = 3 -- studs from the spot onto the bank (away from the water)
 local IDLE_ANIMATION = "rbxassetid://507766666" -- same idle as NpcService (town NPCs)
 local CHECK_SECONDS = 0.25
 
-local copy: Model? = nil
+-- Ground rules (Playtest 8, item 1). A point is ground when a collidable, non-foliage part (or terrain) with a floor-like
+-- normal is hit. Trees, bushes and characters are never ground. The bank is the first ground point that sits within
+-- [water surface - BANK_BELOW, water surface + BANK_ABOVE]; higher hits (canopies, roofs) are not the bank.
+local FLOOR_NORMAL_Y = 0.7 -- a floor is at most this steep (normal.Y)
+local BANK_BELOW = 0.5 -- studs under the water surface still counted as bank
+local BANK_ABOVE = 6 -- studs above the water surface still counted as bank
+local BANK_SEARCH = 40 -- studs from the spot toward land (the usual bank)
+local BANK_SEARCH_FAR = 200 -- studs along the same line, only when the near search finds no bank
+local BANK_STAND = 2 -- studs onto land past the bank edge where the copy stands
+local FIND_PASSES = 8 -- rays per point at most: a rejected hit is skipped and the ray is cast again below it
+local FOLIAGE_WORDS = { "tree", "pohon", "beringin", "bush", "semak" }
 
+local copy: Model? = nil
+local failedSpot: BasePart? = nil -- a spot with no walkable stand point: not searched again (no per-frame raycasts)
+local checkedSpots = false -- the Studio-only map check runs once
 
 
 -- Steps of the fishing segment that Kak Fajar is part of (Update owner playtest, item 3): from the step right after the Pak Udin
@@ -61,12 +75,56 @@ local function assignedSpot(): BasePart?
 	return if spot and spot:IsA("BasePart") then spot else nil
 end
 
--- Ground height under a point (a ray from high above; falls back to the spot's own height). Water is ignored (the
--- river is not the floor), and so are the player's character and the copy itself.
-local function groundY(x: number, z: number, refY: number, ownRig: Model?): number
-	local params = RaycastParams.new()
-	params.FilterType = Enum.RaycastFilterType.Exclude
-	params.IgnoreWater = true
+local function flat(v: Vector3): Vector3
+	return Vector3.new(v.X, 0, v.Z)
+end
+
+local function isWater(hit: RaycastResult): boolean
+	return hit.Material == Enum.Material.Water or string.find(string.lower(hit.Instance.Name), "water") ~= nil
+end
+
+-- Foliage: any part inside a model named like a tree or bush (Roblox has no leaf material).
+local function isFoliage(part: BasePart): boolean
+	local node: Instance? = part
+	while node and node ~= Workspace do
+		local name = string.lower(node.Name)
+		for _, word in FOLIAGE_WORDS do
+			if string.find(name, word, 1, true) then
+				return true
+			end
+		end
+		node = node.Parent
+	end
+	return false
+end
+
+-- A character or NPC rig (any model with a Humanoid) holds the part.
+local function isCharacter(part: BasePart): boolean
+	local node: Instance? = part.Parent
+	while node and node ~= Workspace do
+		if node:IsA("Model") and node:FindFirstChildOfClass("Humanoid") then
+			return true
+		end
+		node = node.Parent
+	end
+	return false
+end
+
+-- Walkable: terrain, or a collidable part that is not foliage and not a character, with a floor-like normal, not water.
+local function isFloor(hit: RaycastResult): boolean
+	if isWater(hit) or hit.Normal.Y < FLOOR_NORMAL_Y then
+		return false
+	end
+	local part = hit.Instance
+	if part:IsA("Terrain") then
+		return true
+	end
+	return part:IsA("BasePart") and part.CanCollide and not isFoliage(part) and not isCharacter(part)
+end
+
+-- The first walkable point straight down from above (x, z), skipping whatever is not walkable (foliage, characters, the copy,
+-- the player). Water is ignored, so the river bed can be hit: it is rejected by height in findBank / planStand.
+local function groundHit(x: number, z: number, fromY: number, ownRig: Model?): Vector3?
 	local ignore: { Instance } = {}
 	if player.Character then
 		table.insert(ignore, player.Character)
@@ -74,9 +132,136 @@ local function groundY(x: number, z: number, refY: number, ownRig: Model?): numb
 	if ownRig then
 		table.insert(ignore, ownRig)
 	end
-	params.FilterDescendantsInstances = ignore
-	local hit = Workspace:Raycast(Vector3.new(x, refY + 40, z), Vector3.new(0, -80, 0), params)
-	return if hit then hit.Position.Y else refY
+	for _ = 1, FIND_PASSES do
+		local params = RaycastParams.new()
+		params.FilterType = Enum.RaycastFilterType.Exclude
+		params.IgnoreWater = true
+		params.FilterDescendantsInstances = ignore
+		local hit = Workspace:Raycast(Vector3.new(x, fromY + 80, z), Vector3.new(0, -200, 0), params)
+		if not hit then
+			return nil
+		end
+		if isFloor(hit) then
+			return hit.Position
+		end
+		if hit.Instance:IsA("Terrain") then
+			return nil -- terrain too steep to stand on: no ground here
+		end
+		table.insert(ignore, hit.Instance)
+	end
+	return nil
+end
+
+-- The water surface at the spot: the first water hit straight down. Map.RIVER.WATER_Y when no water is hit.
+local function waterSurfaceY(spot: BasePart): number
+	local ignore: { Instance } = {}
+	if player.Character then
+		table.insert(ignore, player.Character)
+	end
+	local top = spot.Position + Vector3.new(0, 80, 0)
+	for _ = 1, FIND_PASSES do
+		local params = RaycastParams.new()
+		params.FilterType = Enum.RaycastFilterType.Exclude
+		params.IgnoreWater = false
+		params.FilterDescendantsInstances = ignore
+		local hit = Workspace:Raycast(top, Vector3.new(0, -200, 0), params)
+		if not hit then
+			break
+		end
+		if isWater(hit) then
+			return hit.Position.Y
+		end
+		table.insert(ignore, hit.Instance)
+	end
+	return Map.RIVER.WATER_Y
+end
+
+-- Direction from the spot toward land: toward the player's own plot (the centre of their beds, the attribute "Owner" =
+-- UserId). Without a bed yet: the opposite of the spot's "Dir" (which points out over the water).
+local function landDirection(spot: BasePart): Vector3
+	local dir = spot:GetAttribute("Dir")
+	local outward = if typeof(dir) == "Vector3" then flat(dir) else Vector3.new(0, 0, 1)
+	if outward.Magnitude < 1e-3 then
+		outward = Vector3.new(0, 0, 1)
+	end
+	local fallback = -outward.Unit
+	local sum = Vector3.zero
+	local count = 0
+	for _, inst in Workspace:GetDescendants() do
+		if inst:IsA("BasePart") and inst:GetAttribute("Owner") == player.UserId then
+			sum += inst.Position
+			count += 1
+		end
+	end
+	if count == 0 then
+		return fallback
+	end
+	local toPlot = flat(sum / count - spot.Position)
+	if toPlot.Magnitude < 1e-3 then
+		return fallback
+	end
+	return toPlot.Unit
+end
+
+-- The bank edge: walking from the spot along landDir, the first walkable point inside the water band. Higher or lower
+-- walkable points are not the bank and the walk goes on.
+local function findBank(spot: BasePart, surfaceY: number, landDir: Vector3, reach: number): Vector3?
+	for step = 1, reach do
+		local p = spot.Position + landDir * step
+		local ground = groundHit(p.X, p.Z, surfaceY, nil)
+		if ground and ground.Y >= surfaceY - BANK_BELOW and ground.Y <= surfaceY + BANK_ABOVE then
+			return ground
+		end
+	end
+	return nil
+end
+
+-- Studio only, once: logs river spots with no bank within BANK_SEARCH studs. Each spot uses its own "Dir" as the land side.
+-- It only logs; no spot is moved.
+local function checkSpots()
+	if checkedSpots or not RunService:IsStudio() then
+		return
+	end
+	checkedSpots = true
+	local fishing = Workspace:FindFirstChild("Fishing")
+	if not fishing then
+		return
+	end
+	for _, spot in fishing:GetChildren() do
+		if spot:IsA("BasePart") then
+			local dir = spot:GetAttribute("Dir")
+			local landDir = if typeof(dir) == "Vector3" and flat(dir).Magnitude > 1e-3 then -flat(dir).Unit else Vector3.new(0, 0, -1)
+			if findBank(spot, waterSurfaceY(spot), landDir, BANK_SEARCH) == nil then
+				warn(`[KakFajarTutorial] river spot {spot.Name} has no bank within {BANK_SEARCH} studs (check the map)`)
+			end
+		end
+	end
+end
+
+-- Where the copy stands (a walkable point on land, never in the air) and which way he faces (toward the water). Nil when
+-- no walkable point exists on the line from the spot toward the plot.
+local function planStand(spot: BasePart): (Vector3?, Vector3)
+	local landDir = landDirection(spot)
+	local outward = -landDir
+	local surfaceY = waterSurfaceY(spot)
+	local edge = findBank(spot, surfaceY, landDir, BANK_SEARCH)
+	if not edge then
+		edge = findBank(spot, surfaceY, landDir, BANK_SEARCH_FAR)
+		if edge then
+			warn(`[KakFajarTutorial] river spot {spot.Name}: bank found beyond {BANK_SEARCH} studs`)
+		end
+	end
+	if not edge then
+		return nil, outward
+	end
+	-- Two studs further onto land, if that point is walkable too; otherwise the edge itself (still a walkable point).
+	local along = flat(edge - spot.Position).Magnitude
+	local beyond = spot.Position + landDir * (along + BANK_STAND)
+	local ground = groundHit(beyond.X, beyond.Z, surfaceY, nil)
+	if ground and ground.Y >= surfaceY - BANK_BELOW and ground.Y <= surfaceY + BANK_ABOVE then
+		return ground, outward
+	end
+	return edge, outward
 end
 
 -- The copy's rig: a designed one from ReplicatedStorage.NpcTutorial, else a colour-only rig like the server's.
@@ -147,84 +332,13 @@ local function startIdle(rig: Model)
 	end
 end
 
--- Stand on the bank of the spot, facing back toward the bank side (the spot's "Dir" attribute points out over the water).
--- The rig is set on the ground like a player: the ray hits the floor under the bank, and the rig is lowered until its lowest
--- point (the feet, whatever the rig's height or HipHeight) sits on that hit point. The root is then anchored, so it stays put.
--- Playtest 7 (4f3500f) item 1: the bank is found in the world, not assumed. Walking from the spot toward land, the first ray
--- hit that is land (not water, not under the surface) is the bank edge. Water is NOT ignored here.
-local BANK_SEARCH = 40 -- studs from the spot toward land
-local BANK_STAND = 2 -- studs onto land past the edge where the copy stands
-local bankChecked = false
-
-local function isWater(hit: RaycastResult): boolean
-	return hit.Material == Enum.Material.Water or string.find(string.lower(hit.Instance.Name), "water") ~= nil
-end
-
--- The bank edge along `landDir` from `spot` (flat), or nil when no land is found within BANK_SEARCH.
-local function findBank(spot: BasePart, landDir: Vector3, ownRig: Model?): Vector3?
-	local params = RaycastParams.new()
-	params.FilterType = Enum.RaycastFilterType.Exclude
-	params.IgnoreWater = false
-	local ignore: { Instance } = {}
-	if player.Character then
-		table.insert(ignore, player.Character)
-	end
-	if ownRig then
-		table.insert(ignore, ownRig)
-	end
-	params.FilterDescendantsInstances = ignore
-	local surfaceY = spot.Position.Y
-	for step = 1, BANK_SEARCH do
-		local p = spot.Position + landDir * step
-		local hit = Workspace:Raycast(Vector3.new(p.X, surfaceY + 40, p.Z), Vector3.new(0, -80, 0), params)
-		if hit and not isWater(hit) and hit.Position.Y >= surfaceY - 0.5 then
-			return hit.Position
-		end
-	end
-	return nil
-end
-
--- Logs (does not move) river spots that have no bank within reach on this map. Runs once.
-local function checkSpots(landDir: Vector3)
-	if bankChecked then
-		return
-	end
-	bankChecked = true
-	local fishing = Workspace:FindFirstChild("Fishing")
-	if not fishing then
-		return
-	end
-	for _, spot in fishing:GetChildren() do
-		if spot:IsA("BasePart") and findBank(spot, landDir, nil) == nil then
-			warn(`[KakFajarTutorial] river spot {spot.Name} has no bank within {BANK_SEARCH} studs (check the map)`)
-		end
-	end
-end
-
-local function placeCopy(rig: Model, spot: BasePart)
-	local dir = spot:GetAttribute("Dir")
-	local outward = if typeof(dir) == "Vector3" then Vector3.new(dir.X, 0, dir.Z) else Vector3.new(0, 0, 1)
-	if outward.Magnitude < 1e-3 then
-		outward = Vector3.new(0, 0, 1)
-	end
-	outward = outward.Unit
-	local landDir = -outward -- from the water toward the bank
-	checkSpots(landDir)
-	local stand: Vector3
-	local edge = findBank(spot, landDir, rig)
-	if edge then
-		local along = Vector3.new(edge.X - spot.Position.X, 0, edge.Z - spot.Position.Z).Magnitude
-		stand = spot.Position + landDir * (along + BANK_STAND)
-	else
-		warn(`[KakFajarTutorial] no bank found from river spot {spot.Name}: falling back to the fixed offset`)
-		stand = spot.Position - outward * STAND_OFFSET
-	end
-	local at = Vector3.new(stand.X, spot.Position.Y, stand.Z)
-	rig:PivotTo(CFrame.lookAt(at, at + outward)) -- faces the water, so the player coming from the bank sees his face
-	local floorY = groundY(stand.X, stand.Z, spot.Position.Y, rig)
+-- Sets the rig on the planned ground point, facing the water. The rig is lowered until its lowest point (the feet, whatever
+-- the rig's height) sits on that point. The root is anchored, so it stays put.
+local function placeCopy(rig: Model, ground: Vector3, outward: Vector3)
+	rig:PivotTo(CFrame.lookAt(ground, ground + outward))
 	local boxCFrame, boxSize = rig:GetBoundingBox()
 	local feetY = boxCFrame.Position.Y - boxSize.Y / 2
-	rig:PivotTo(rig:GetPivot() + Vector3.new(0, floorY - feetY, 0))
+	rig:PivotTo(rig:GetPivot() + Vector3.new(0, ground.Y - feetY, 0))
 	local root = rig:FindFirstChild("HumanoidRootPart")
 	if root and root:IsA("BasePart") then
 		root.Anchored = true
@@ -305,23 +419,33 @@ local function sync()
 			copy:Destroy()
 			copy = nil
 		end
+		failedSpot = nil
 		hideServerFajar(false)
 		return
 	end
-	if not copy then
-		copy = buildCopy()
-		if copy and spot then
-			placeCopy(copy, spot)
-			-- Playtest 7 item 2, after the rig is parented and placed. A designed rig has AnimationConstraint joints: NpcPose
-			-- drives them (it stops every track each frame, so no idle track there). The Motor6D fallback rig has no
-			-- AnimationConstraint: it gets the idle track only.
-			if copy:FindFirstChildWhichIsA("AnimationConstraint", true) then
-				NpcPose.Manage(copy)
-			else
-				startIdle(copy)
+	if not copy and spot ~= failedSpot then
+		-- The stand point is planned first (no copy in the world yet), then the rig is built and placed on it.
+		local ground, outward = planStand(spot :: BasePart)
+		if not ground then
+			failedSpot = spot
+			warn(`[KakFajarTutorial] river spot {(spot :: BasePart).Name}: no walkable point on the way to the plot; the copy is not placed`)
+		else
+			local rig = buildCopy()
+			if rig then
+				placeCopy(rig, ground, outward)
+				copy = rig
+				-- Playtest 7 item 2, after the rig is parented and placed. A designed rig has AnimationConstraint joints: NpcPose
+				-- drives them (it stops every track each frame, so no idle track there). The Motor6D fallback rig has no
+				-- AnimationConstraint: it gets the idle track only.
+				if rig:FindFirstChildWhichIsA("AnimationConstraint", true) then
+					NpcPose.Manage(rig)
+				else
+					startIdle(rig)
+				end
 			end
 		end
 	end
+	checkSpots()
 	hideServerFajar(copy ~= nil)
 end
 
@@ -334,4 +458,3 @@ task.spawn(function()
 		task.wait(CHECK_SECONDS)
 	end
 end)
-
