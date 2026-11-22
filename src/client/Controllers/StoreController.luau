@@ -60,38 +60,27 @@ local function renderSide(sideFrame: Frame)
 		local on = def.id == selected
 		local button = sideButtons[def.id]
 		if not button then
+			-- GUI doc 4.4: a tab is a standard touch target (32 px), with 8 px between tabs.
 			button = UiKit.button(sideFrame, `Side_{def.id}`, Locale.t(def.text), UiKit.BUTTON_MUTED)
-			button.Size = UDim2.new(1, 0, 0, 34) -- small side tabs (was 58 px)
-			button.Position = UDim2.fromOffset(0, (index - 1) * 40)
-			button.TextSize = 13
+			button.Size = UDim2.new(1, 0, 0, UiKit.TOUCH)
+			button.Position = UDim2.fromOffset(0, (index - 1) * (UiKit.TOUCH + 8))
+			button.TextSize = UiKit.TEXT_SMALL
 			button.Activated:Connect(function()
 				selected = def.id
 				StoreController.Render()
 			end)
 			sideButtons[def.id] = button
 		end
+		-- Bug 5: readable in both states. The chosen tab is the green plank with cream text; the others are tan with dark ink
+		-- (no transparency, so nothing looks faded or disabled).
 		button.BackgroundColor3 = if on then UiKit.BUTTON else UiKit.BUTTON_MUTED
-		button.TextTransparency = if on then 0 else 0.25
+		button.TextColor3 = if on then UiKit.CREAM else UiKit.TEXT
+		button.TextTransparency = 0
 	end
 end
 
--- The panel hugs its content: the height is the header + the rows + the footer, never more than 86 % of the screen (no empty
--- space under the last row). Measured after the rows are laid out (one frame later).
-local TOP_SPACE = 52 -- the title ribbon and the first row
-local BOTTOM_SPACE = 52 -- the footer line and the rounded bottom edge
-local function fitHeight()
-	task.defer(function()
-		local frame = panel.gui:FindFirstChild("Panel")
-		local layout = panel.list:FindFirstChildOfClass("UIListLayout")
-		if not (frame and frame:IsA("Frame") and layout) then
-			return
-		end
-		local content = layout.AbsoluteContentSize.Y
-		local view = (Workspace.CurrentCamera :: Camera).ViewportSize
-		local height = math.min(TOP_SPACE + content + BOTTOM_SPACE, view.Y * 0.86)
-		frame.Size = UDim2.new(0.88, 0, 0, height)
-	end)
-end
+-- Bug 5: the panel keeps the UiKit sheet size (88 % x 86 % of the screen, max 600 x 400). The old fit-to-content measured
+-- the list before it was laid out and shrank the sheet to ~100 px, so the rows were out of view. Rows scroll inside the sheet.
 
 local function render()
 	if not panel.gui.Enabled then
@@ -146,7 +135,6 @@ local function render()
 	end
 
 	panel.footerLabel.Text = "" -- Premium gives no Koin boost (Bab 19, T-32): no footer line
-	fitHeight()
 end
 
 function StoreController.Render()
