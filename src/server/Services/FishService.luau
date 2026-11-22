@@ -15,6 +15,7 @@
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
@@ -37,6 +38,7 @@ local QuestService = require(script.Parent.QuestService)
 local AnalyticsHooks = require(script.Parent.AnalyticsHooks)
 local Progression = require(ReplicatedStorage.Shared.Config.Progression)
 local Types = require(ReplicatedStorage.Shared.Types)
+local FishingTutorial = require(ReplicatedStorage.Shared.Modules.FishingTutorial)
 
 type Fish = FishConfig.Fish
 type Rarity = FishConfig.Rarity
@@ -180,29 +182,265 @@ local function isNear(player: Player, part: BasePart, distance: number): boolean
 	return root ~= nil and root:IsA("BasePart") and (root.Position - part.Position).Magnitude <= distance
 end
 
--- Atribut "Fishing" (B-5, 2026-11-22) = state server: Casting (lemparan) -> Waiting (menunggu) -> Bite (gigitan) -> Reeling
--- (tarikan diterima) -> nil. Klien tetap memakai FishingActive untuk UI; atribut ini untuk pemain lain (visual, animasi).
-local CAST_SECONDS = 1.2 -- sama dengan lama animasi lempar di klien (RodAnimController)
+-- Visual bersama (B-5, 2026-11-22): joran (Motor6D ke tangan kanan), pelampung, tali (Beam), riak saat gigitan. Satu Model per
+-- pemain di Workspace.FishingVisuals. Dibuat saat lemparan, dihancurkan di semua jalur akhir (endSession, mati, keluar, lepas
+-- dari plot) dan saat pemain menjauh dari spot. Pancing tutorial Kak Fajar (salinan lokal di klien) tidak membuat visual.
+type Visuals = { model: Model, bobber: BasePart, tip: BasePart, tracks: { [string]: AnimationTrack } }
+local visuals: { [Player]: Visuals } = {}
+local VISUALS_FOLDER = "FishingVisuals"
+local TIP_FALLBACK = 2 -- studs dari pegangan ke ujung joran bila template tak punya bagian "Tip" (cek geometri di Studio)
+local CATCH_SECONDS = 1.3 -- lama animasi tangkap sebelum visual hilang (sama dengan klien)
 
-local function endSession(player: Player)
-	sessions[player] = nil
-	player:SetAttribute("Fishing", nil)
-	Net.Fire("FishState", player, "idle")
+local function visualsFolder(): Folder
+	local folder = Workspace:FindFirstChild(VISUALS_FOLDER)
+	if not (folder and folder:IsA("Folder")) then
+		folder = Instance.new("Folder")
+		folder.Name = VISUALS_FOLDER
+		folder.Parent = Workspace
+	end
+	return folder :: Folder
 end
 
-local function beginCast(player: Player, session: Session)
-	player:SetAttribute("Fishing", "Casting")
-	task.delay(CAST_SECONDS, function()
-		if sessions[player] == session then
-			player:SetAttribute("Fishing", "Waiting")
+local function destroyVisuals(player: Player)
+	local record = visuals[player]
+	if not record then
+		return
+	end
+	visuals[player] = nil
+	for _, track in record.tracks do
+		track:Stop(0.1)
+	end
+	record.model:Destroy()
+end
+
+-- Animasi (Roadmap §12.4): ID Animation permanen dari Config/Fishing.ANIMS. Kosong = tidak diputar, pose joran statis.
+local function playAnim(player: Player, name: string)
+	local record = visuals[player]
+	local id = Fishing.ANIMS[name]
+	if not record or not id or id == "" then
+		return
+	end
+	local character = player.Character
+	local humanoid = if character then character:FindFirstChildOfClass("Humanoid") else nil
+	local animator = if humanoid then humanoid:FindFirstChildOfClass("Animator") else nil
+	if not animator then
+		return
+	end
+	local track = record.tracks[name]
+	if not track then
+		local animation = Instance.new("Animation")
+		animation.AnimationId = id
+		track = animator:LoadAnimation(animation)
+		record.tracks[name] = track
+	end
+	for otherName, other in record.tracks do
+		if otherName ~= name then
+			other:Stop(0.15)
+		end
+	end
+	track:Play(0.15)
+end
+
+-- Joran: salinan Workspace.FishingRod (template klien, bagian "Grip") dilas ke tangan kanan lewat Motor6D. Tanpa template: batang biasa.
+-- Mengembalikan bagian ujung joran (tali diikat di sana).
+local function buildRod(model: Model, character: Model): BasePart?
+	local hand = character:FindFirstChild("RightHand") or character:FindFirstChild("Right Arm")
+	if not (hand and hand:IsA("BasePart")) then
+		return nil
+	end
+	local template = Workspace:FindFirstChild("FishingRod")
+	local rod: Instance
+	if template then
+		rod = template:Clone()
+	else
+		local stick = Instance.new("Part")
+		stick.Name = "Grip"
+		stick.Size = Vector3.new(0.3, 0.3, 4)
+		rod = stick
+	end
+	local grip = rod:FindFirstChild("Grip", true) or rod
+	if not grip:IsA("BasePart") then
+		rod:Destroy()
+		return nil
+	end
+	local gripPart = grip :: BasePart
+	rod.Parent = model
+
+	local parts: { Instance } = rod:GetDescendants()
+	table.insert(parts, rod)
+	for _, part in parts do
+		if part:IsA("BasePart") then
+			part.Anchored = false
+			part.CanCollide = false
+			part.Massless = true
+			if part ~= gripPart then
+				local weld = Instance.new("WeldConstraint")
+				weld.Part0 = gripPart
+				weld.Part1 = part
+				weld.Parent = gripPart
+			end
+		end
+	end
+
+	local motor = Instance.new("Motor6D")
+	motor.Name = "RodGrip"
+	motor.Part0 = hand
+	motor.Part1 = gripPart
+	motor.C0 = CFrame.new(0, -0.4, 0) * CFrame.Angles(math.rad(-90), 0, 0) -- sama dengan RodAnimController
+	motor.C1 = CFrame.new()
+	motor.Parent = model
+	gripPart.CFrame = hand.CFrame * motor.C0
+
+	local tip = rod:FindFirstChild("Tip", true)
+	if tip and tip:IsA("BasePart") then
+		return tip
+	end
+	local fallback = Instance.new("Part")
+	fallback.Name = "Tip"
+	fallback.Size = Vector3.new(0.2, 0.2, 0.2)
+	fallback.Transparency = 1
+	fallback.Massless = true
+	fallback.CanCollide = false
+	fallback.CanQuery = false
+	fallback.CanTouch = false
+	fallback.CFrame = gripPart.CFrame * CFrame.new(0, 0, -TIP_FALLBACK)
+	fallback.Parent = model
+	local weld = Instance.new("WeldConstraint")
+	weld.Part0 = gripPart
+	weld.Part1 = fallback
+	weld.Parent = gripPart
+	return fallback
+end
+
+-- Riak di permukaan saat gigitan (B-5): cincin yang melebar lalu hilang.
+local function splash(position: Vector3, parent: Instance)
+	local ring = Instance.new("Part")
+	ring.Name = "Splash"
+	ring.Shape = Enum.PartType.Cylinder
+	ring.Anchored = true
+	ring.CanCollide = false
+	ring.CanQuery = false
+	ring.CanTouch = false
+	ring.Material = Enum.Material.SmoothPlastic
+	ring.Color = Color3.fromRGB(230, 245, 255)
+	ring.Transparency = 0.3
+	ring.Size = Vector3.new(0.1, 1, 1)
+	ring.CFrame = CFrame.new(position) * CFrame.Angles(0, 0, math.rad(90))
+	ring.Parent = parent
+	TweenService:Create(ring, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		Size = Vector3.new(0.1, 6, 6),
+		Transparency = 1,
+	}):Play()
+	task.delay(1, function()
+		ring:Destroy()
+	end)
+end
+
+local function startVisuals(player: Player, spot: BasePart)
+	destroyVisuals(player)
+	local character = player.Character
+	if not character then
+		return
+	end
+	local model = Instance.new("Model")
+	model.Name = `Fishing_{player.UserId}`
+	local tip = buildRod(model, character)
+	if not tip then
+		model:Destroy()
+		return
+	end
+	-- Pelampung: sama dengan placeBobber di klien (di atas dermaga / permukaan spot).
+	local bobber = Instance.new("Part")
+	bobber.Name = "Bobber"
+	bobber.Shape = Enum.PartType.Ball
+	bobber.Size = Vector3.one * 0.8
+	bobber.Anchored = true
+	bobber.CanCollide = false
+	bobber.CanQuery = false
+	bobber.CanTouch = false
+	bobber.Color = Color3.fromRGB(196, 92, 72)
+	bobber.Position = spot.Position + Vector3.new(0, spot.Size.Y / 2 + 0.3, 0)
+	bobber.Parent = model
+	-- Tali: Beam dari ujung joran ke pelampung.
+	local tipAttachment = Instance.new("Attachment")
+	tipAttachment.Parent = tip
+	local bobberAttachment = Instance.new("Attachment")
+	bobberAttachment.Parent = bobber
+	local line = Instance.new("Beam")
+	line.Attachment0 = tipAttachment
+	line.Attachment1 = bobberAttachment
+	line.Width0 = 0.06
+	line.Width1 = 0.06
+	line.Color = ColorSequence.new(Color3.fromRGB(240, 240, 235))
+	line.FaceCamera = true
+	line.Parent = model
+
+	model:SetAttribute("Owner", player.UserId)
+	model.Parent = visualsFolder()
+	visuals[player] = { model = model, bobber = bobber, tip = tip, tracks = {} }
+end
+
+-- Pemain yang menjauh dari spot (lebih dari LEAVE_DISTANCE) = batal: umpan kembali, visual hilang lewat endSession.
+local function watchSession(player: Player, session: Session)
+	task.spawn(function()
+		while sessions[player] == session do
+			task.wait(0.5)
+			if sessions[player] == session and not isNear(player, session.spot, Fishing.LEAVE_DISTANCE) then
+				FishService.Cancel(player)
+			end
 		end
 	end)
 end
 
+-- Atribut "Fishing" (B-5, 2026-11-22) = state server: Casting (lemparan) -> Waiting (menunggu) -> Bite (gigitan) -> Reeling
+-- (tarikan diterima) -> nil. Klien tetap memakai FishingActive untuk UI; atribut ini untuk pemain lain (visual, animasi).
+local CAST_SECONDS = 1.2 -- sama dengan lama animasi lempar di klien (RodAnimController)
+
+local function endSession(player: Player, catchSeconds: number?)
+	sessions[player] = nil
+	Net.Fire("FishState", player, "idle")
+	local record = visuals[player]
+	if catchSeconds and record then
+		-- Tangkap: visual tinggal sebentar untuk animasi tangkap, lalu hilang. Lemparan baru punya visual sendiri (cek record).
+		player:SetAttribute("Fishing", "Reeling")
+		task.delay(catchSeconds, function()
+			if visuals[player] == record and sessions[player] == nil then
+				player:SetAttribute("Fishing", nil)
+				destroyVisuals(player)
+			end
+		end)
+		return
+	end
+	player:SetAttribute("Fishing", nil)
+	destroyVisuals(player)
+end
+
+local function beginCast(player: Player, session: Session, data: Types.PlayerData)
+	player:SetAttribute("Fishing", "Casting")
+	-- Pancing tutorial Kak Fajar (T1b, langkah mancing) = salinan lokal di klien: server tidak membuat visual (B-5).
+	if not FishingTutorial.isActive(data.guide) then
+		startVisuals(player, session.spot)
+		playAnim(player, "FishingCast")
+	end
+	watchSession(player, session)
+	task.delay(CAST_SECONDS, function()
+		if sessions[player] == session then
+			player:SetAttribute("Fishing", "Waiting")
+			playAnim(player, "FishingIdle")
+		end
+	end)
+end
+
+-- Riak + animasi reel saat gigitan (visual hanya ada bila bukan pancing tutorial).
 local function scheduleBite(player: Player, session: Session, biteDelay: number)
 	task.delay(biteDelay, function()
 		if sessions[player] == session then
 			player:SetAttribute("Fishing", "Bite")
+			local record = visuals[player]
+			if record then
+				splash(record.bobber.Position, record.model)
+				playAnim(player, "FishingReel")
+			end
 			Net.Fire("FishState", player, "bite")
 		end
 	end)
@@ -298,7 +536,7 @@ local function startPondCast(player: Player, spot: BasePart, data: Types.PlayerD
 		pondUid = entry.uid,
 	}
 	sessions[player] = session
-	beginCast(player, session)
+	beginCast(player, session, data)
 	Net.Fire("FishState", player, "waiting", spot)
 	scheduleBite(player, session, biteDelay)
 end
@@ -411,7 +649,7 @@ local function startCast(player: Player, spot: BasePart)
 	end
 	local session: Session = { spot = spot, fishId = fishId, biteAt = os.clock() + biteDelay, usedBait = usedBait }
 	sessions[player] = session
-	beginCast(player, session)
+	beginCast(player, session, data)
 	Net.Fire("FishState", player, "waiting", spot)
 	scheduleBite(player, session, biteDelay)
 end
@@ -451,7 +689,9 @@ local function onReel(player: Player, score: any)
 	local size = if session.pondItem then session.pondItem:match("@(.+)$") or "S" else sizeFor(math.clamp(score + 0.02 * ikanBesar, 0, 1))
 	local item = FishService.ItemId(session.fishId, size)
 	sessions[player] = nil
-	if InventoryService.Add(player, item, 1) then
+	local caught = InventoryService.Add(player, item, 1)
+	if caught then
+		playAnim(player, "FishingCatch")
 		Net.Fire("Notify", player, "fish.caught", { item = `fish.{session.fishId}`, size = `size.{size}` })
 		local caughtData = DataService.Get(player)
 		if caughtData then
@@ -489,7 +729,7 @@ local function onReel(player: Player, score: any)
 		returnToPond(player, session)
 		Net.Fire("Notify", player, "pond.bag_full")
 	end
-	endSession(player)
+	endSession(player, if caught then CATCH_SECONDS else nil)
 end
 
 local function onCancel(player: Player)
@@ -803,6 +1043,7 @@ function FishService.Init()
 		end
 		sessions[player] = nil
 		player:SetAttribute("Fishing", nil)
+		destroyVisuals(player)
 	end)
 end
 
@@ -817,12 +1058,28 @@ function FishService.Start()
 	Net.On("FishCast", onCastNearest, { rate = 2, burst = 3 })
 	Net.On("PondDeposit", onDeposit, { rate = 3, burst = 6 })
 	Net.On("PondWithdraw", onWithdraw, { rate = 3, burst = 6 })
+	-- Mati / ganti karakter = batal, dan visual hilang. Dipasang juga untuk pemain yang sudah ada.
+	local function hookCharacter(player: Player)
+		player.CharacterRemoving:Connect(function()
+			if sessions[player] then
+				onCancel(player)
+			end
+			destroyVisuals(player)
+			player:SetAttribute("Fishing", nil)
+		end)
+	end
+	Players.PlayerAdded:Connect(hookCharacter)
+	for _, player in Players:GetPlayers() do
+		hookCharacter(player)
+	end
+
 	Players.PlayerRemoving:Connect(function(player)
 		local session = sessions[player]
 		if session then
 			returnToPond(player, session)
 		end
 		sessions[player] = nil
+		destroyVisuals(player)
 	end)
 end
 

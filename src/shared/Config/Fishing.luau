@@ -50,6 +50,11 @@ return {
 	REEL_MIN_SECONDS = 2.5, -- server: earliest accepted reel after the bite
 	-- REEL_WINDOW removed (user, 16 Nov): NO TIMEOUT. The fish waits on the line until it is reeled in.
 	CAST_DISTANCE = 18, -- studs, server-checked
+	LEAVE_DISTANCE = 24, -- studs: pemain yang lebih jauh dari spot dianggap menjauh = batal (watchdog server, B-5)
+
+	-- Animasi joran (B-5, Roadmap §12.4): ID Animation PERMANEN (Publish to Roblox), BUKAN hash sementara Studio.
+	-- Kosong = belum ada: server tidak memutar animasi, joran tetap pose statis. Isi setelah owner publish.
+	ANIMS = { FishingIdle = "", FishingCast = "", FishingReel = "", FishingCatch = "" } :: { [string]: string },
 
 	LOCATIONS = {
 		sungai_lahan = { unlockLevel = 1 }, -- Sungai lahan (Update owner 2026-11-22): 32 spot di 4 sungai sumbu, Early saja
