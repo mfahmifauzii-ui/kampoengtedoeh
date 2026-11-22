@@ -294,23 +294,15 @@ Aturan: satu bug = satu commit, dengan Cara Cek (selene, rojo build, grep / file
 - Breeding (`PondController`, `BreedStart/Collect/Instant`) jalan dan tidak terkait stok.
 - Yang belum ada: `Deposit`, `Withdraw`, `Catch` dari stok, sheet "Kolam", event kuis M3 "setor 3 ikan Early" lewat kolam.
 
-### 12.4 Rencana B-5 (status: sebagian, lihat tabel §12)
+### 12.4 Rencana B-5 (status: kode selesai, belum diuji di Studio)
 
 **Catatan belum bisa dibenerin (per 2026-11-22):**
-- **Animasi memancing (B-5).** Empat KeyframeSequence (FishingCast, FishingIdle, FishingReel, FishingCatch) hanya punya ID sementara dari Studio. Upload ke Roblox butuh file `.rbxm` di disk, dan dari sesi ini tidak ada cara membuatnya. Solusi: owner klik kanan tiap sequence di `ReplicatedStorage.CustomAnims` > Publish to Roblox, lalu kirim 4 ID `rbxassetid://`. Sampai itu, joran tampil tanpa animasi untuk pemain lain.
+- **Animasi memancing (B-5).** Owner Publish to Roblox keempat KeyframeSequence di `ReplicatedStorage.CustomAnims` (FishingCast, FishingIdle, FishingReel, FishingCatch), lalu tempel ID `rbxassetid://` ke `Config/Fishing` ANIMS. Sampai itu, joran tampil tanpa animasi untuk pemain lain.
 - **Bag tanpa kapasitas (B-3).** `InventoryService.CanAdd` hanya cek item valid, jadi "tas penuh" tidak pernah terjadi. Perlu keputusan owner: beri kapasitas tas atau hapus syarat "tas penuh" dari playtest.
 - **B-1 belum diukur di Studio.** Target < 0.3 dtk hanya bisa dicek dengan log `[beat-timing]` di Output.
 - **Feature gate (Q-2) dan semua Q-3..Q-5** belum dikerjakan; B-3 (gate kolam) menunggu Q-2.
 
 Yang sudah ada di server: roll ikan saat lempar (`startCast`), gigitan dengan `task.delay` (server), validasi reel (`REEL_MIN_SECONDS`, skor 0..1), `endSession` untuk semua jalur akhir, dan `PlayerRemoving` membersihkan sesi.
-
-Yang belum:
-1. Atribut `Fishing` per pemain (Casting / Waiting / Bite / Reeling / nil), diset di `startCast`, bite, `onReel`, `endSession`. Klien tetap memakai `FishingActive` untuk UI.
-2. Visual bersama di server: folder `Workspace.FishingVisuals` berisi joran (Motor6D ke tangan kanan), bobber (Part), tali (Beam antar Attachment), riak / cipratan saat gigitan. Dibuat di `startCast`, dihancurkan di `endSession`, `PlayerRemoving`, `CharacterRemoving`, dan saat pemain keluar dari area spot.
-3. Animasi: `RodAnimController` memakai KeyframeSequence (`FishingIdle`, `FishingCast`, `FishingReel`, `FishingCatch` di `ReplicatedStorage.CustomAnims`) yang didaftarkan klien lewat `KeyframeSequenceProvider`. Komentarnya sendiri menulis bahwa pendaftaran itu hanya jalan di Studio. Agar terlihat di server, animasi harus berupa Animation asset yang diupload (ID baru).
-4. Klien: `placeBobber` dan visual joran di `FishingController` / `RodAnimController` dimatikan untuk pancing sungguhan, tinggal UI mini-game. Pancing tutorial Kak Fajar (salinan lokal, `KakFajarTutorial` dan T1Ghost) tetap klien-only: server tidak membuat visual bila guide sedang di langkah mancing tutorial.
-
-Commit yang direncanakan: (a) atribut + sesi, (b) visual + pembersihan, (c) hubungan klien dan pancing tutorial.
 
 **Status kode (2026-11-22):** selesai: (a) `0b09e6c`, (b) `ca5e8e2`, (c) `6419190`. Perubahan perilaku: server kini membatalkan pancing bila pemain menjauh lebih dari `Fishing.LEAVE_DISTANCE` (24 stud) dari spot (sebelumnya server tidak mengecek jarak saat memancing). ID animasi di `Config/Fishing.ANIMS` masih kosong: owner harus Publish to Roblox untuk keempat KeyframeSequence, lalu mengisi ID permanennya di sana. Belum ada yang diuji di Studio dari sesi ini.
 
@@ -319,4 +311,3 @@ Commit yang direncanakan: (a) atribut + sesi, (b) visual + pembersihan, (c) hubu
 ### 12.3 Keputusan yang dibutuhkan (B-3, B-5)
 
 1. B-3: timer "Ambil Ikan" dihapus (ikan kolam hanya dari setoran), atau tetap ada sebagai hasil ekstra?
-2. B-5: dikerjakan di sesi terpisah (perubahan besar pada FishService dan sisi klien)?
