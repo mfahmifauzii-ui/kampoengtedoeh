@@ -173,7 +173,10 @@ end
 
 -- Client asks HasMet(npcId) when the player starts a talk. Returns true if that NPC was already met before this call, and
 -- records the meeting either way. The client shows the sapaan only when it returns false (the first talk).
-local function onHasMet(player: Player, npcId: any): boolean
+-- guide.hasMet[npcId] = true once the player has met that NPC, from ANY source (talk, quest accept or finish, shop, the
+-- tutorial). Saved with the profile (DataTemplate default {}; old saves get it by the profile reconcile). Returns true if the
+-- meeting was already recorded.
+function TutorialService.MarkMet(player: Player, npcId: any): boolean
 	if typeof(npcId) ~= "string" or not Npcs.byId[npcId] then
 		return true -- unknown NPC: treat as met, so no sapaan plays
 	end
@@ -187,6 +190,10 @@ local function onHasMet(player: Player, npcId: any): boolean
 	end
 	met[npcId] = true
 	return false
+end
+
+local function onHasMet(player: Player, npcId: any): boolean
+	return TutorialService.MarkMet(player, npcId)
 end
 
 -- ShopService calls this once, when a sale with at least one item goes through and it is the player's first sale ever
@@ -256,6 +263,7 @@ local function onMeetFajar(player: Player): any
 	if not data then
 		return { ok = false }
 	end
+	TutorialService.MarkMet(player, "kak_fajar") -- the gift is the meeting: no sapaan on a later talk
 	if not giveRodGift(player, data) then
 		Net.Fire("Notify", player, "rod.gift_again")
 		return { ok = true, gave = false }

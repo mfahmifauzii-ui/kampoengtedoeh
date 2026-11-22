@@ -87,6 +87,7 @@ end
 local function finishQuest(player: Player, data: Types.PlayerData, quest: Quests.Quest)
 	data.quests.active[quest.id] = nil
 	data.quests.done[quest.id] = true
+	TutorialService.MarkMet(player, quest.giver) -- the giver's closing line is a meeting too (no second intro later)
 	ProgressionService.Grant(player, quest.reward, `quest:{quest.id}`)
 	if quest.freePond == true then
 		data.pond.freeBuilds += 1
@@ -104,6 +105,7 @@ local function startQuest(player: Player, data: Types.PlayerData, quest: Quests.
 		return false
 	end
 	data.quests.active[quest.id] = { step = 1, count = 0 }
+	TutorialService.MarkMet(player, quest.giver) -- Bug: a giver met through a quest is not introduced again
 	Net.Fire("Notify", player, "quest.new", { title = `quest.{quest.id}.title` })
 	return true
 end

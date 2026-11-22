@@ -76,6 +76,7 @@ end
 -- Selling --------------------------------------------------------------------------
 
 local function onSell(player: Player, npcId: any, target: any, amount: any)
+	TutorialService.MarkMet(player, npcId)
 	if typeof(npcId) == "string" and string.sub(npcId, 1, 9) == "bang_jali" and not FeatureGate.Check(player, "jual_bang_jali") then return end
 	if typeof(target) ~= "string" then
 		return
@@ -331,6 +332,7 @@ local function buyFish(player: Player, fishId: string, amount: any): boolean
 end
 
 local function onBuy(player: Player, npcId: any, kind: any, id: any, amount: any)
+	TutorialService.MarkMet(player, npcId)
 	-- Bug 4: the Bang Jali shop (buy as well as sell) is closed until jual_bang_jali is open.
 	if typeof(npcId) == "string" and string.sub(npcId, 1, 9) == "bang_jali" and not FeatureGate.Check(player, "jual_bang_jali") then return end
 	if typeof(kind) ~= "string" or typeof(id) ~= "string" then
