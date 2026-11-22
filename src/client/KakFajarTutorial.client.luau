@@ -117,7 +117,8 @@ local function buildCopy(): Model?
 	rig.PrimaryPart = root
 	for _, descendant in rig:GetDescendants() do
 		if descendant:IsA("BasePart") then
-			descendant.Anchored = true
+			-- Only the root is anchored (as NpcService build()): the limbs must move on their joints (Motor6D / AnimationConstraint).
+			descendant.Anchored = descendant == root
 			descendant.CanCollide = false
 			descendant.CanQuery = false
 			descendant.CanTouch = false
@@ -310,9 +311,15 @@ local function sync()
 	if not copy then
 		copy = buildCopy()
 		if copy and spot then
-			NpcPose.Manage(copy) -- relaxed pose, as on the town NPCs (client only)
-			startIdle(copy)
 			placeCopy(copy, spot)
+			-- Playtest 7 item 2, after the rig is parented and placed. A designed rig has AnimationConstraint joints: NpcPose
+			-- drives them (it stops every track each frame, so no idle track there). The Motor6D fallback rig has no
+			-- AnimationConstraint: it gets the idle track only.
+			if copy:FindFirstChildWhichIsA("AnimationConstraint", true) then
+				NpcPose.Manage(copy)
+			else
+				startIdle(copy)
+			end
 		end
 	end
 	hideServerFajar(copy ~= nil)
