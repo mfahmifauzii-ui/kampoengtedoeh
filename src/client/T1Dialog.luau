@@ -467,7 +467,7 @@ end
 -- Waits for the box (see the speech turns above). Returns the release function once this line owns the box, or nil if
 -- `cancelled` said so while it waited (a line that is no longer wanted, e.g. the step moved on). Call the release when the
 -- line is finished (Next, a choice); Hide also frees it.
-function T1Dialog.Acquire(npc: string, rank: number, cancelled: (() -> boolean)?): (() -> ())?
+function T1Dialog.Acquire(npc: string, rank: number, cancelled: (() -> boolean)?): (() -> boolean)?
 	turnCounter += 1
 	local turn: Turn = { id = turnCounter, npc = npc, rank = rank }
 	local at = #turns + 1
@@ -500,13 +500,16 @@ function T1Dialog.Acquire(npc: string, rank: number, cancelled: (() -> boolean)?
 	leave()
 	ownerId = turn.id
 	ownerRank = rank
-	return function()
+	-- Returns true when this call freed the box (the turn was still ours), false when it had already gone.
+	return function(): boolean
 		if ownerId == turn.id then
 			if rank == T1Dialog.BEAT then
 				lastBeatEnd = os.clock()
 			end
 			ownerId = nil
+			return true
 		end
+		return false
 	end
 end
 

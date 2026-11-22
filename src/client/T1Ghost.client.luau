@@ -515,6 +515,63 @@ local function waitNext(who: string, text: string, bottom: number, alive: () -> 
 	return true
 end
 
+-- Instruction lines (Playtest 8 item 2): the sink's step line is REPLACEABLE, not a beat. It holds the box only while its step
+-- key is live: a new key, the step completing, or a beat starting closes it at once (the next step's line then takes the box
+-- straight away, or nothing shows if that step has no line). Next only dismisses it; progress never depends on it.
+-- Beats are never replaced: they wait for the box (T1Dialog.Acquire) and close the instruction first.
+local instrRelease: (() -> boolean)? = nil -- the box turn this instruction holds on screen
+local instrKey: string? = nil -- the sink key of the instruction on screen or waiting for the box
+local instrStep: string? = nil -- the tutorial step that instruction belongs to
+
+-- Closes the instruction (on screen or still waiting). forgetLine = true also forgets it, so it is never re-shown (step over).
+local function closeInstruction(forgetLine: boolean)
+	local release = instrRelease
+	instrRelease = nil
+	instrKey = nil
+	instrStep = nil
+	if release and release() then
+		T1Dialog.Hide()
+	end
+	if forgetLine then
+		lastLine = nil
+	end
+end
+
+-- Shows a step's instruction line now (or as soon as the box is free). Never two of the same key at once.
+local function showInstruction(line: Line, key: string)
+	if instrKey == key then
+		return
+	end
+	local speaker = SPEAKERS[line.who] or SPEAKERS.mak_sari
+	local step = activeStepId(guideData())
+	instrKey = key
+	instrStep = step
+	task.spawn(function()
+		local release = T1Dialog.Acquire(speaker.npc, T1Dialog.AMBIENT, function()
+			return sinkKey ~= key or dialogBusy or activeStepId(guideData()) ~= step
+		end)
+		if not release then
+			if instrKey == key then
+				instrKey = nil
+				instrStep = nil
+			end
+			return
+		end
+		instrRelease = release
+		T1Dialog.Show({
+			name = speaker.name,
+			text = lineText(line),
+			avatar = T1Dialog.NpcModel(speaker.npc),
+			showNext = true,
+			bottom = TUTORIAL_BOTTOM,
+			onNext = function()
+				lineDismissed = true
+				closeInstruction(false) -- Next only dismisses the line
+			end,
+		})
+	end)
+end
+
 -- The dialog box and the ghost wait for the end of the menu (a missing MenuFlow counts as done).
 local function menuDone(): boolean
 	local state = player:GetAttribute("KTMenu")
@@ -538,6 +595,7 @@ local function ensureSink()
 			sinkKey = key
 			lastLine = nil -- the old step's line must not come back over the new step (e.g. after the fish dialog)
 			lineDismissed = false
+			closeInstruction(false) -- the old step's line closes at once: the new one takes the box now (Playtest 8 item 2)
 		end
 		if key == beatStep then
 			return true -- the beat on screen owns this step: its line is never shown again by the poll (Playtest 7 item 4)
@@ -553,12 +611,7 @@ local function ensureSink()
 			lastSpoken = line.key
 			lastLine = line
 			lineDismissed = false
-			showLine(line.who, lineText(line), true, TUTORIAL_BOTTOM, function()
-				lineDismissed = true
-				T1Dialog.Hide() -- Next closes the line: a line never stays on screen without a way out
-			end, function()
-				return sinkKey ~= key -- the step moved on while this line waited its turn: drop it
-			end)
+			showInstruction(line, key)
 		end
 		return true
 	end)
@@ -573,6 +626,7 @@ local function clearSink()
 	end
 	sinkSet = false
 	lastSpoken = ""
+	closeInstruction(true)
 	lastLine = nil
 	-- The poll calls this every tick once the tutorial is done. The dialog box is shared with town NPC talks
 	-- (DialogueController), so only hide it when no conversation owns it: otherwise the NPC's bubble vanishes at once.
@@ -946,6 +1000,7 @@ end
 -- Pak Udin's three lines (Next after each) once the shop panel is closed after the sale, then the step is acknowledged.
 -- If the player is at the warung (near him), the camera goes over their shoulder onto his face with the blur, like any talk.
 local function runWarung(guide: any)
+	closeInstruction(true) -- a beat starts: the step line closes at once (Playtest 8 item 2)
 	dialogBusy = true
 	local endCutscene: (() -> ())? = nil -- Cutscene.Begin's End: camera and controls back (Cutscene.luau)
 
@@ -1207,6 +1262,7 @@ end
 -- Kak Fajar's first visit (playtest 2026-11-22): walking up to him starts the beat, no prompt. The gift bubble has ONE
 -- button (Terima Hadiah); then the gift is given and a fade ends the beat (no bubble after it).
 local function runGiftBeat(beat: Beat, _guide: any)
+	closeInstruction(true) -- a beat starts: the step line closes at once (Playtest 8 item 2)
 	dialogBusy = true
 	beatStep = beat.step
 	lastLine = nil
@@ -1287,6 +1343,7 @@ local function runGiftBeat(beat: Beat, _guide: any)
 end
 
 local function runBeat(beat: Beat, guide: any)
+	closeInstruction(true) -- a beat starts: the step line closes at once (Playtest 8 item 2)
 	dialogBusy = true
 	beatStep = beat.step -- Playtest 7 item 4: this step's line is not re-shown while the beat runs or until the step moves on
 	lastLine = nil
@@ -1536,13 +1593,11 @@ task.spawn(function()
 					then
 						if bigPanelOpen() then
 							if T1Dialog.IsShown() then
+								closeInstruction(false)
 								T1Dialog.Hide()
 							end
 						elseif not T1Dialog.IsShown() then
-							showLine(lastLine.who, lineText(lastLine), true, TUTORIAL_BOTTOM, function()
-								lineDismissed = true
-								T1Dialog.Hide() -- Next closes it: a re-shown line is dismissable too
-							end)
+							showInstruction(lastLine, sinkKey) -- the same step's line, through the replaceable path
 						end
 					end
 				end
@@ -1577,6 +1632,10 @@ task.spawn(function()
 				destroyGhost()
 				clearSink()
 			end
+		end
+		-- Playtest 8 item 2: the step completed (the fish caught, the crop tilled): its instruction closes without a Next.
+		if instrKey ~= nil and activeStepId(guideData()) ~= instrStep then
+			closeInstruction(true)
 		end
 		task.wait(POLL_SECONDS)
 	end
