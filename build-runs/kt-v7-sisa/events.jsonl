@@ -1,0 +1,13 @@
+{"kind": "run-start", "mode": "fanout", "ts": "2026-11-22T11:30:48+07:00"}
+{"kind": "note", "stage": null, "note": "Plan disesuaikan untuk project existing: tanpa market-research/design-spec (SSOT = docs/Kampoeng_Tedoeh_v7.4.md, Roadmap = docs/Roadmap.md). Map JANGAN diubah: tidak ada worker map.", "ts": "2026-11-22T11:30:50+07:00"}
+{"kind": "fallback", "stage": "p2-1", "note": "Fallback node Nambang di (268,268) DEV ONLY bila Hutan tidak punya 6 part Mining+NodeId. Fix: pasang node di Studio (Roadmap §6).", "ts": "2026-11-22T11:30:51+07:00"}
+{"kind": "fallback", "stage": "p2-1", "note": "Suara Critical Nambang = place_item pitch-up placeholder. Fix: aset crunchy via roblox-sfx.", "ts": "2026-11-22T11:30:51+07:00"}
+{"kind": "fallback", "stage": "p2-5", "note": "Emote Jempol tanpa animasi (anim=nil). Fix: custom animation via roblox-animation.", "ts": "2026-11-22T11:30:52+07:00"}
+{"kind": "fallback", "stage": "p2-5", "note": "Galeri: pemilik offline = toast, bukan rumah snapshot read-only. Due 2026-11-28.", "ts": "2026-11-22T11:30:52+07:00"}
+{"kind": "fallback", "stage": "p2-6", "note": "Decor event = Part lampion/gapura sementara. Fix: model final (P2-10).", "ts": "2026-11-22T11:30:53+07:00"}
+{"kind": "fallback", "stage": "p2-6", "note": "nightCounter Pasar Malam in-memory: reset tiap restart server, batas harian bisa bocor.", "ts": "2026-11-22T11:30:53+07:00"}
+{"kind": "fallback", "stage": "p2-7", "note": "MQ5/7/8 Bubu/Tungku diganti Koin 150/200/250; MQ9 slot Warung ke-2 cuma 200 Koin; Kucing Alun-alun + Joran Hilang belum ada sistem.", "ts": "2026-11-22T11:30:54+07:00"}
+{"kind": "fallback", "stage": "repo", "note": "selene 5 error pre-existing: FarmFloat mismatched_arg_count x2, FishSpotFx/SettingsService/MapService if_same_then_else.", "ts": "2026-11-22T11:30:55+07:00"}
+{"kind": "fallback", "stage": "repo", "note": "Perintah DevService (!kakek, !sp, !cuaca, dst.) harus dikunci Studio-only sebelum rilis.", "ts": "2026-11-22T11:30:56+07:00"}
+{"kind": "start", "stage": "p2-8-ftue", "ts": "2026-11-22T11:32:31+07:00"}
+{"kind": "note", "stage": "p2-8-ftue", "note": "P2-8a selesai: skip dihapus (7 file + BeatSkip.luau). selene 0 err, rojo ok. Belum di-commit. P2-8b-e belum dikerjakan; stage tetap berjalan.", "ts": "2026-11-22T11:33:31+07:00"}

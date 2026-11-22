@@ -1,0 +1,59 @@
+{
+  "run": "kt-v7-sisa",
+  "mode": "fanout",
+  "started": "2026-11-22T11:30:48+07:00",
+  "plan": [
+    {
+      "stage": "p2-8-ftue",
+      "budget_min": 120,
+      "parallelisable": false
+    },
+    {
+      "stage": "p2-9-login-season",
+      "budget_min": 150,
+      "parallelisable": false
+    },
+    {
+      "stage": "p2-10-code",
+      "budget_min": 180,
+      "parallelisable": false
+    },
+    {
+      "stage": "ui",
+      "budget_min": 45,
+      "parallelisable": true
+    },
+    {
+      "stage": "3d-meshes",
+      "budget_min": 50,
+      "parallelisable": true
+    },
+    {
+      "stage": "animation",
+      "budget_min": 60,
+      "parallelisable": true
+    },
+    {
+      "stage": "vfx",
+      "budget_min": 45,
+      "parallelisable": true
+    },
+    {
+      "stage": "sfx",
+      "budget_min": 45,
+      "parallelisable": true
+    },
+    {
+      "stage": "assembly-playtest",
+      "budget_min": 120,
+      "parallelisable": false
+    },
+    {
+      "stage": "publish",
+      "budget_min": 15,
+      "parallelisable": false
+    }
+  ],
+  "stall_minutes": 30,
+  "project": "Kampoeng Tedoeh (feat/v.7), sisa Roadmap v7.4"
+}
