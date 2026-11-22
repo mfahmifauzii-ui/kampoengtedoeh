@@ -444,6 +444,27 @@ local function zoneWidthFor(data: Types.PlayerData): number
 	return width * (1 + 0.02 * (data.skill.joran_kuat or 0))
 end
 
+-- B-1: waktu tunggu gigitan. Base: dengan umpan 3-6 dtk, tanpa umpan 6-12 dtk (Fishing.BITE_*). Lalu rod.biteMult (tabel joran),
+-- umpan (biteReduction), buff Pancing (Dapur.BUFF_PANCING_BITE), dan hujan (Fishing.BITE_RAIN_MULT). Urutan ini sama dengan doc.
+local function biteDelayFor(rod: Fishing.Rod, usedBait: Fishing.Bait?, data: Types.PlayerData): number
+	local _, raining = getConditions()
+	local low, high = Fishing.BITE_MIN, Fishing.BITE_MAX
+	if not usedBait then
+		low, high = Fishing.BITE_NO_BAIT_MIN, Fishing.BITE_NO_BAIT_MAX
+	end
+	local delay = random:NextNumber(low, high) * rod.biteMult
+	if usedBait then
+		delay *= 1 - usedBait.biteReduction
+	end
+	if Buffs.active(data.buff, "pancing", os.time()) then
+		delay *= Dapur.BUFF_PANCING_BITE
+	end
+	if raining then
+		delay *= Fishing.BITE_RAIN_MULT
+	end
+	return delay
+end
+
 -- Riak + animasi reel saat gigitan (visual hanya ada bila bukan pancing tutorial).
 local function scheduleBite(player: Player, session: Session, biteDelay: number)
 	local data = DataService.Get(player)
@@ -537,11 +558,8 @@ local function startPondCast(player: Player, spot: BasePart, data: Types.PlayerD
 	end
 	local fishId = item:match("^(.+)@.+$") or item
 
-	local biteDelay = random:NextNumber(Fishing.BITE_MIN, Fishing.BITE_MAX) * rod.biteMult
-	-- Buff Pancing (Bab 9.4): gigitan 20% lebih cepat.
-	if Buffs.active(data.buff, "pancing", os.time()) then
-		biteDelay *= Dapur.BUFF_PANCING_BITE
-	end
+	-- Kolam: tidak memakai umpan, jadi waktu tunggu tanpa umpan (lihat biteDelayFor).
+	local biteDelay = biteDelayFor(rod, nil, data)
 	local session: Session = {
 		spot = spot,
 		fishId = fishId,
@@ -661,14 +679,7 @@ local function startCast(player: Player, spot: BasePart)
 		return
 	end
 
-	local biteDelay = random:NextNumber(Fishing.BITE_MIN, Fishing.BITE_MAX) * rod.biteMult
-	if usedBait then
-		biteDelay *= 1 - usedBait.biteReduction
-	end
-	-- Buff Pancing (Bab 9.4): gigitan 20% lebih cepat.
-	if Buffs.active(data.buff, "pancing", os.time()) then
-		biteDelay *= Dapur.BUFF_PANCING_BITE
-	end
+	local biteDelay = biteDelayFor(rod, usedBait, data)
 	local session: Session = { spot = spot, fishId = fishId, biteAt = os.clock() + biteDelay, usedBait = usedBait }
 	sessions[player] = session
 	beginCast(player, session, data)
