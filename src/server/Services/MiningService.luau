@@ -17,6 +17,7 @@ local CollectionService = game:GetService("CollectionService")
 local Buffs = require(ReplicatedStorage.Shared.Config.Buffs)
 local Farm = require(ReplicatedStorage.Shared.Config.Farm)
 local Mining = require(ReplicatedStorage.Shared.Config.Mining)
+local Skills = require(ReplicatedStorage.Shared.Config.Skills)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Types = require(ReplicatedStorage.Shared.Types)
 local FeatureGate = require(script.Parent.FeatureGate)
@@ -152,10 +153,8 @@ local function onHit(player: Player, nodeId: any, crit: any)
 	entry.hits -= 1
 	if entry.hits <= 0 then
 		entry.readyAt = os.time() + Mining.RESPAWN_SECONDS
-		local bonus = axeBonus(data)
-		-- Skill Tukang Cepat (Bab 4.5, P2-4): +1 bahan per node di Lv 3, +2 di Lv 5 (tumpuk kapak).
-		local tc = data.skill.tukang_cepat or 0
-		bonus += if tc >= 5 then 2 elseif tc >= 3 then 1 else 0
+		-- Kapak terbaik (kapak tidak menumpuk) + Tukang Cepat (tumpuk dengan kapak), paling banyak +4 per node (Skill Tree Bab 6).
+		local bonus = math.min(Skills.NODE_BONUS_MAX, axeBonus(data) + Skills.tukangBonus(data.skill.tukang_cepat or 0))
 		if bonus > 0 then
 			if InventoryService.Add(player, node.itemId, bonus) then
 				gained += bonus

@@ -10,6 +10,7 @@ local Workspace = game:GetService("Workspace")
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
 local Social = require(ReplicatedStorage.Shared.Config.Social)
+local Skills = require(ReplicatedStorage.Shared.Config.Skills)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local State = require(script.Parent.Parent.State)
@@ -184,7 +185,7 @@ local function render()
 			doneCount += 1
 		end
 		local skills = (snap and snap.skills) or {}
-		local maxPlots = if (skills.tetangga_baik or 0) >= 3 then Social.BANTU_MAX_DAY + 1 else Social.BANTU_MAX_DAY
+		local maxPlots = Social.BANTU_MAX_DAY + Skills.tetanggaBonus(skills.tetangga_baik or 0)
 		UiKit.row(panel.list, nextOrder(), Locale.t("bantu.siram"), `{doneCount}/{maxPlots}`, Locale.t("bantu.siram"), true, function()
 			Net.Send("SocialBantu", here, "siram")
 		end)

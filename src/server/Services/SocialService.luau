@@ -13,6 +13,7 @@ local PlotsConfig = require(ReplicatedStorage.Shared.Config.Plots)
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Social = require(ReplicatedStorage.Shared.Config.Social)
+local Skills = require(ReplicatedStorage.Shared.Config.Skills)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local TutorialService = require(script.Parent.TutorialService)
@@ -273,7 +274,7 @@ end
 -- Batas bantu harian (Bab 4.5/12, P2-4 + P2-5): 5 lahan/hari, +1 saat skill Tetangga Baik Lv 3+.
 -- P2-5 (Bantu/Sosial) memanggil ini saat reset 05:00; skill dibeli di P2-4.
 function SocialService.MaxBantu(data: Types.PlayerData): number
-	local bonus = if (data.skill.tetangga_baik or 0) >= 3 then 1 else 0
+	local bonus = Skills.tetanggaBonus(data.skill.tetangga_baik or 0)
 	return Social.BANTU_MAX_DAY + bonus
 end
 

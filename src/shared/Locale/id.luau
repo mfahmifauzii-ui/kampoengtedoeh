@@ -720,7 +720,13 @@ return {
 
 	-- Skill 16 (Bab 4.5)
 	["skill.title"] = "Skill",
-	["skill.buy"] = "Beli (1 SP)",
+	["skill.buy"] = "Beli (1 SP + 3.000 Koin)",
+	["skill.locked"] = "Prasyarat belum terpenuhi",
+	["skill.need_koin"] = "Koin belum cukup",
+	["skill.req_level"] = "Butuh Player Lv {n}",
+	["skill.req_skill"] = "Butuh {skill} Lv {n}",
+	["skill.req_any"] = "Butuh {a} Lv {n} atau {b} Lv {n}",
+	["skill.req_total"] = "Butuh {n} SP di mana pun",
 	["skill.bought"] = "{skill} naik Lv {n}!",
 	["skill.maxed"] = "Skill sudah max",
 	["skill.need_sp"] = "SP kurang (naik level dulu)",

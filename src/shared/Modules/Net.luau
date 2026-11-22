@@ -85,7 +85,7 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	PondWithdraw = "Event", -- C->S (pondUid: number, index: number) ambil 1 ikan dari stok kolam ke tas (B-3)
 	PondOpen = "Event", -- S->C (pondUid: number) tombol "Kolam" ditekan: buka sheet Kolam (B-3)
 
-	SkillBuy = "Event", -- C->S (skillId: string) beli 1 level skill pakai SP (max Lv 5)
+	SkillBuy = "Function", -- C->S (skillId: string) -> "ok" | "max" | "locked" | "noSP" | "noKoin" | "unknown" (SkillService)
 	GerobakBuy = "Event", -- C->S (slot: number) beli 1 unit slot Gerobak Kaget (max 3/slot/restock)
 	PasarJual = "Event", -- C->S (count: number) jual barang malam ini ke Pedagang Tamu (+50%, max 10/malam)
 	GelangThrow = "Event", -- C->S () lempar gelang (max 3/malam)

@@ -91,7 +91,7 @@ local function rebuild()
 			end)
 			order += 1
 			local tpb = (snap and snap.skills and snap.skills.tempat_pakan_besar) or 0
-			local maxFeed = if tpb >= 1 then 5 else Ranch.FEED_MAX
+			local maxFeed = Ranch.FeedMax(tpb) -- one rule (Config/Ranch), breakpoint Lv 3
 			local missing = 0
 			for _, animal in entry.animals or {} do
 				missing += math.max(maxFeed - (animal.feed or 0), 0)

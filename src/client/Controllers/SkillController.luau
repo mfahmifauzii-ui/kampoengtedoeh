@@ -10,6 +10,7 @@ local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local UiKit = require(script.Parent.Parent.UiKit)
 local State = require(script.Parent.Parent.State)
+local HudController = require(script.Parent.HudController)
 
 local player = Players.LocalPlayer
 
@@ -20,6 +21,26 @@ local panel: UiKit.Panel? = nil
 local function spBalance(): number
 	local sp = player:GetAttribute("SP")
 	return if typeof(sp) == "number" then sp else 0
+end
+
+-- Server answers with a reason (SkillService.buy): "ok" needs no text, the others tell the player what is missing.
+local REASON_TEXT: { [string]: string } = {
+	max = "skill.maxed",
+	locked = "skill.locked",
+	noSP = "skill.need_sp",
+	noKoin = "skill.need_koin",
+}
+
+local function buy(skillId: string)
+	task.spawn(function()
+		local ok, result = pcall(Net.Invoke, "SkillBuy", skillId)
+		if ok and typeof(result) == "string" and result ~= "ok" then
+			local key = REASON_TEXT[result]
+			if key then
+				HudController.Toast(Locale.t(key))
+			end
+		end
+	end)
 end
 
 local function rebuild()
@@ -43,7 +64,7 @@ local function rebuild()
 				local maxed = level >= def.maxLevel
 				local sub = `Lv {level}/{def.maxLevel} · {Locale.t(`skill.{def.id}.desc`)}`
 				UiKit.row(list, order, Locale.t(`skill.{def.id}`), sub, Locale.t("skill.buy"), not maxed and spBalance() >= Skills.SP_PER_LEVEL, function()
-					Net.Send("SkillBuy", def.id)
+					buy(def.id)
 				end)
 			end
 		end

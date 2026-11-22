@@ -139,6 +139,6 @@ return {
 	-- Tempat Pakan Besar (Bab 4.5, P2-4): max jatah 3 -> 5 saat skill lv >= 1 (USULAN: v7.3
 	-- tidak merinci progresi per level; final ikut owner/playtest 17.8).
 	FeedMax = function(skillLv: number): number
-		return if skillLv >= 1 then 5 else 3
+		return if skillLv >= 3 then 5 else 3 -- efek mulai Lv 3 (Skill Tree Bab 1.1)
 	end,
 }
