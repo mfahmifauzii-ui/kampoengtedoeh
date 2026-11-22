@@ -1461,11 +1461,42 @@ end
 -- (CurrencyBar in the HUD) with a fixed gap, at most TOAST_WIDTH_SHARE of the screen wide, between the quest tracker (left)
 -- and the right menu column, so it never covers either. Chips stack downwards. The anchor respects the device safe area
 -- because the HUD ScreenGui uses DeviceSafeInsets.
+-- HUD layout map (GUI fix batch): the ONE place for HUD margins and zones. Pixels. Zones that touch a screen edge are
+-- computed from the viewport (UiKit.hudStripBottomGap). Other HUD code reads these names; it does not repeat the numbers.
+--   top centre   : CurrencyBar (top), then the toast anchor (TOAST_GAP below the bar)
+--   left column  : quest tracker, at MARGIN from the left edge and TRACKER_TOP below the bar / goal chip (Roblox topbar inset applies)
+--   right column : menu items, MENU_W wide, MENU_TOP from the top, MARGIN from the right edge
+--   bottom centre: dock row (landscape); portrait: the dock is a column on the right (DOCK_PORTRAIT_TOP)
+--   context strip: ABOVE the bottom dock with a gap of one dock button (DOCK_H), STRIP_H tall, centred: fishing status, bait chip
+UiKit.HUD = {
+	MARGIN = 12, -- from the screen edge (left tracker, right column)
+	GAP = 8, -- between two HUD elements
+	CURRENCY_H = 42, -- top-centre currency bar (HudController)
+	TRACKER_W = 200, -- left column width (QuestController)
+	TRACKER_TOP = 118, -- left column top (under the bar and the goal chip)
+	MENU_TOP = 8, -- right column top
+	MENU_W = 50, -- right column item size
+	DOCK_H = 58, -- dock plate (bottom row / right column)
+	DOCK_BOTTOM = 10, -- dock margin from the bottom (landscape row)
+	DOCK_PORTRAIT_TOP = 184, -- dock column top (portrait)
+	STRIP_H = 54, -- context strip height (fishing status panel, bait chip)
+}
+
+-- The distance from the screen bottom to the bottom edge of the context strip. Landscape: above the dock row (one dock button
+-- of gap). Portrait: the dock is a column on the right, so the strip sits at the bottom edge.
+function UiKit.hudStripBottomGap(view: Vector2): number
+	local portrait = view.X < view.Y * 1.1 -- the same rule as the dock (relayoutDock)
+	if portrait then
+		return UiKit.HUD.DOCK_BOTTOM
+	end
+	return UiKit.HUD.DOCK_BOTTOM + UiKit.HUD.DOCK_H + UiKit.HUD.DOCK_H
+end
+
 UiKit.TOAST_GAP = 8 -- px: under the currency bar, and between stacked chips
 UiKit.TOAST_MAX_VISIBLE = 3 -- chips on screen at once; more wait in HudController's queue
 UiKit.TOAST_WIDTH_SHARE = 0.5 -- at most half the screen wide
-UiKit.TOAST_LEFT = 220 -- quest tracker: x 12, width 200 (QuestController), plus the gap
-UiKit.TOAST_RIGHT = 70 -- right menu column: 50 wide, 12 from the edge (UiKit.menuItem), plus the gap
+UiKit.TOAST_LEFT = UiKit.HUD.MARGIN + UiKit.HUD.TRACKER_W + UiKit.HUD.GAP -- right of the quest tracker
+UiKit.TOAST_RIGHT = UiKit.HUD.MENU_W + UiKit.HUD.MARGIN + UiKit.HUD.GAP -- left of the right menu column
 
 function UiKit.toastStack(screenGui: ScreenGui): Frame
 	local existing = screenGui:FindFirstChild("ToastStack")
@@ -1603,7 +1634,7 @@ local MENU_ICON = {
 --   everything else = a vertical column at the top right (Warga, Toko, Atur, Koleksi). On phones it collapses behind a
 --   round menu button and slides open downward.
 local DOCK_ORDER = { GarapButton = 1, KolamButton = 2, DecorButton = 3, BagButton = 4, OrdersButton = 5 }
-local MENU_SIZE = 50 -- round button size in the top-right column
+local MENU_SIZE = UiKit.HUD.MENU_W -- round button size in the top-right column (HUD map)
 
 -- Calls `callback` now and whenever the screen size changes (rotation, window resize). It follows the CURRENT camera:
 -- Roblox may swap Workspace.CurrentCamera (respawn, cutscenes), and a connection to the old one would go silent.
@@ -1635,12 +1666,12 @@ local function relayoutDock(bar: Frame, layout: UIListLayout)
 	local size = if camera then camera.ViewportSize else Vector2.new(800, 400)
 	if size.X < size.Y * 1.1 then
 		bar.AnchorPoint = Vector2.new(1, 0)
-		bar.Position = UDim2.new(1, -8, 0, 184)
+		bar.Position = UDim2.new(1, -UiKit.HUD.GAP, 0, UiKit.HUD.DOCK_PORTRAIT_TOP)
 		layout.FillDirection = Enum.FillDirection.Vertical
 		layout.HorizontalAlignment = Enum.HorizontalAlignment.Right
 	else
 		bar.AnchorPoint = Vector2.new(0.5, 1)
-		bar.Position = UDim2.new(0.5, 0, 1, -10)
+		bar.Position = UDim2.new(0.5, 0, 1, -UiKit.HUD.DOCK_BOTTOM)
 		layout.FillDirection = Enum.FillDirection.Horizontal
 		layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	end

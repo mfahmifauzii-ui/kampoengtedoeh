@@ -27,6 +27,14 @@ local player = Players.LocalPlayer
 local QuestController = {}
 
 local tracker: Frame
+
+-- A tracker row stacks its title and its step on a vertical list. Text wraps and the row grows to fit, so nothing is cut
+-- at the edge (Bug: "Ikut 10 Kerja Bakti" was clipped). "Tunjukkan" sits over the top-right corner (see refresh).
+local function listRow(row: Frame)
+	local layout = Instance.new("UIListLayout")
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Parent = row
+end
 local refresh: () -> ()
 local logPanel: any = nil -- the open Quest Log (UiKit.panel), nil while closed
 local logTab: string = "main"
@@ -57,13 +65,18 @@ local function addSlotRows(order: number, slots: { any }?, pool: { any }, label:
 				row.Name = `{label}_{def.id}`
 				row.LayoutOrder = order
 				row.BackgroundTransparency = 1
-				row.Size = UDim2.new(1, 0, 0, UiKit.TOUCH_ROW)
+				row.Size = UDim2.new(1, 0, 0, 0)
+				row.AutomaticSize = Enum.AutomaticSize.Y
+				listRow(row)
 				row.Parent = tracker
 
 				local title = Instance.new("TextLabel")
 				title.Name = "Title"
 				title.BackgroundTransparency = 1
-				title.Size = UDim2.new(1, 0, 0, 16)
+				title.Size = UDim2.new(1, 0, 0, 0)
+				title.AutomaticSize = Enum.AutomaticSize.Y
+				title.TextWrapped = true
+				title.LayoutOrder = 1
 				title.Font = UiKit.FONT
 				title.TextSize = 13
 				title.TextColor3 = UiKit.TEXT
@@ -74,8 +87,10 @@ local function addSlotRows(order: number, slots: { any }?, pool: { any }, label:
 				local step = Instance.new("TextLabel")
 				step.Name = "Step"
 				step.BackgroundTransparency = 1
-				step.Position = UDim2.fromOffset(0, 16)
-				step.Size = UDim2.new(1, 0, 0, 16)
+				step.Size = UDim2.new(1, 0, 0, 0)
+				step.AutomaticSize = Enum.AutomaticSize.Y
+				step.TextWrapped = true
+				step.LayoutOrder = 2
 				step.Font = UiKit.FONT
 				step.TextSize = 12
 				step.TextColor3 = UiKit.TEXT
@@ -112,13 +127,18 @@ local function addDailyRow(order: number)
 	row.Name = "daily"
 	row.LayoutOrder = order
 	row.BackgroundTransparency = 1
-	row.Size = UDim2.new(1, 0, 0, UiKit.TOUCH_ROW)
+	row.Size = UDim2.new(1, 0, 0, 0)
+	row.AutomaticSize = Enum.AutomaticSize.Y
+	listRow(row)
 	row.Parent = tracker
 
 	local title = Instance.new("TextLabel")
 	title.Name = "Title"
 	title.BackgroundTransparency = 1
-	title.Size = UDim2.new(1, 0, 0, 16)
+	title.Size = UDim2.new(1, 0, 0, 0)
+	title.AutomaticSize = Enum.AutomaticSize.Y
+	title.TextWrapped = true
+	title.LayoutOrder = 1
 	title.Font = UiKit.FONT
 	title.TextSize = 13
 	title.TextColor3 = UiKit.TEXT
@@ -129,8 +149,10 @@ local function addDailyRow(order: number)
 	local step = Instance.new("TextLabel")
 	step.Name = "Step"
 	step.BackgroundTransparency = 1
-	step.Position = UDim2.new(0, 0, 0, 16)
-	step.Size = UDim2.new(1, 0, 0, 16)
+	step.Size = UDim2.new(1, 0, 0, 0)
+	step.AutomaticSize = Enum.AutomaticSize.Y
+	step.TextWrapped = true
+	step.LayoutOrder = 2
 	step.Font = UiKit.FONT
 	step.TextSize = 12
 	step.TextColor3 = UiKit.TEXT
@@ -150,13 +172,18 @@ local function addRow(order: number, questId: string, progress: { step: number, 
 	row.Name = questId
 	row.LayoutOrder = order
 	row.BackgroundTransparency = 1
-	row.Size = UDim2.new(1, 0, 0, UiKit.TOUCH_ROW)
+	row.Size = UDim2.new(1, 0, 0, 0)
+	row.AutomaticSize = Enum.AutomaticSize.Y
+	listRow(row)
 	row.Parent = tracker
 
 	local title = Instance.new("TextLabel")
 	title.Name = "Title"
 	title.BackgroundTransparency = 1
-	title.Size = UDim2.new(1, 0, 0, 16)
+	title.Size = UDim2.new(1, 0, 0, 0)
+	title.AutomaticSize = Enum.AutomaticSize.Y
+	title.TextWrapped = true
+	title.LayoutOrder = 1
 	title.TextXAlignment = Enum.TextXAlignment.Left
 	title.TextColor3 = UiKit.TEXT
 	title.Font = Enum.Font.FredokaOne
@@ -167,8 +194,10 @@ local function addRow(order: number, questId: string, progress: { step: number, 
 	local text = Instance.new("TextLabel")
 	text.Name = "Step"
 	text.BackgroundTransparency = 1
-	text.Position = UDim2.fromOffset(0, 16)
-	text.Size = UDim2.new(1, 0, 0, 16)
+	text.Size = UDim2.new(1, 0, 0, 0)
+	text.AutomaticSize = Enum.AutomaticSize.Y
+	text.TextWrapped = true
+	text.LayoutOrder = 2
 	text.TextXAlignment = Enum.TextXAlignment.Left
 	text.TextYAlignment = Enum.TextYAlignment.Top
 	text.TextWrapped = true
@@ -212,7 +241,7 @@ local function fitTracker()
 	if tracker then
 		local content = tracker:FindFirstChildOfClass("UIListLayout")
 		local height = if content then content.AbsoluteContentSize.Y + 16 else 0
-		tracker.Size = UDim2.fromOffset(200, math.min(maxHeight(), math.max(height, 0)))
+		tracker.Size = UDim2.fromOffset(UiKit.HUD.TRACKER_W, math.min(maxHeight(), math.max(height, 0)))
 	end
 end
 
@@ -458,12 +487,17 @@ local function buildRows()
 			row.Name = "surat"
 			row.LayoutOrder = order
 			row.BackgroundTransparency = 1
-			row.Size = UDim2.new(1, 0, 0, UiKit.TOUCH_ROW)
+			row.Size = UDim2.new(1, 0, 0, 0)
+			row.AutomaticSize = Enum.AutomaticSize.Y
+			listRow(row)
 			row.Parent = tracker
 			local title = Instance.new("TextLabel")
 			title.Name = "Title"
 			title.BackgroundTransparency = 1
-			title.Size = UDim2.new(1, 0, 0, 16)
+			title.Size = UDim2.new(1, 0, 0, 0)
+			title.AutomaticSize = Enum.AutomaticSize.Y
+			title.TextWrapped = true
+			title.LayoutOrder = 1
 			title.Font = UiKit.FONT
 			title.TextSize = 13
 			title.TextColor3 = UiKit.TEXT
@@ -473,8 +507,10 @@ local function buildRows()
 			local step = Instance.new("TextLabel")
 			step.Name = "Step"
 			step.BackgroundTransparency = 1
-			step.Position = UDim2.fromOffset(0, 16)
-			step.Size = UDim2.new(1, 0, 0, 16)
+			step.Size = UDim2.new(1, 0, 0, 0)
+			step.AutomaticSize = Enum.AutomaticSize.Y
+			step.TextWrapped = true
+			step.LayoutOrder = 2
 			step.Font = UiKit.FONT
 			step.TextSize = 12
 			step.TextColor3 = UiKit.TEXT
@@ -565,7 +601,7 @@ function refresh()
 		-- Bug 10: the step and title text stop before the Tunjukkan button (74 px + 8 px gap), so they never run under it.
 		for _, label in topRow:GetChildren() do
 			if label:IsA("TextLabel") then
-				label.Size = UDim2.new(1, -82, 0, label.Size.Y.Offset)
+				label.Size = UDim2.new(1, -82, 0, 0) -- keeps clear of the Tunjukkan button; the height follows the wrapped text
 			end
 		end
 		point.Activated:Connect(function()
@@ -602,8 +638,8 @@ function QuestController.Init()
 
 	tracker = Instance.new("Frame")
 	tracker.Name = "Tracker"
-	tracker.Position = UDim2.fromOffset(12, 118) -- under the status row and the goal chip
-	tracker.Size = UDim2.fromOffset(200, 0)
+	tracker.Position = UDim2.fromOffset(UiKit.HUD.MARGIN, UiKit.HUD.TRACKER_TOP) -- HUD map: left column
+	tracker.Size = UDim2.fromOffset(UiKit.HUD.TRACKER_W, 0)
 	-- Owner (2026-11-22): the list ran over the Craft button and the XP card. Its height follows the rows (see
 	-- fitTracker) but never goes past maxHeight (200 px or 25 % of the screen), which stops above Craft (Craft sits 200 px up from the bottom); the rest
 	-- is clipped, so nothing draws over the buttons.

@@ -26,6 +26,17 @@ local UiKit = require(script.Parent.Parent.UiKit)
 local PlayerLock = require(script.Parent.Parent.PlayerLock)
 local State = require(script.Parent.Parent.State)
 local TweenService = game:GetService("TweenService")
+
+-- The viewport (the HUD map in UiKit computes the context strip from it).
+local function currentViewport(): Vector2
+	local camera = workspace.CurrentCamera
+	return if camera then camera.ViewportSize else Vector2.new(800, 400)
+end
+
+-- The context strip (HUD map): one place for the fishing status panel and the bait chip, centred, above the bottom dock.
+local function stripPosition(): UDim2
+	return UDim2.new(0.5, 0, 1, -UiKit.hudStripBottomGap(currentViewport()))
+end
 local FeatureClient = require(script.Parent.Parent.FeatureClient)
 
 local REEL_ACTION = "FishingReel"
@@ -87,8 +98,8 @@ local function buildUi()
 	statusFrame = Instance.new("Frame")
 	statusFrame.Name = "Status"
 	statusFrame.AnchorPoint = Vector2.new(0.5, 1)
-	statusFrame.Position = UDim2.new(0.5, 0, 1, -92)
-	statusFrame.Size = UDim2.fromOffset(196, 54)
+	statusFrame.Position = stripPosition()
+	statusFrame.Size = UDim2.fromOffset(196, UiKit.HUD.STRIP_H)
 	statusFrame.Visible = false
 	statusFrame.Parent = gui
 	darkBox(statusFrame, 16)
@@ -98,18 +109,20 @@ local function buildUi()
 		rodIcon.Position = UDim2.fromOffset(8, 6)
 	end
 	statusLabel = label(statusFrame, "", 13, Color3.fromRGB(255, 226, 120))
-	statusLabel.Position = UDim2.fromOffset(38, 4)
-	statusLabel.Size = UDim2.new(1, -72, 0, 22) -- B-4: room for the X button at the right
+	-- The text wraps inside the panel, between the rod icon (x 8..32) and the Batal button on the right (64 px + 8 px margin).
+	statusLabel.Position = UDim2.fromOffset(38, 6)
+	statusLabel.Size = UDim2.new(1, -118, 1, -12)
 	statusLabel.TextXAlignment = Enum.TextXAlignment.Left
-	-- Bug 10: the text stops before the X button (and never runs under the rod icon, which ends at x = 32): truncated, not drawn over.
-	statusLabel.TextTruncate = Enum.TextTruncate.AtEnd
+	statusLabel.TextYAlignment = Enum.TextYAlignment.Center
+	statusLabel.TextWrapped = true
 
-	-- B-4: X button, top right of the fishing status (cancels the fishing; the server then sends the idle state).
-	local cancel = UiKit.button(statusFrame, "Cancel", "✕", UiKit.BUTTON_MUTED)
-	cancel.AnchorPoint = Vector2.new(1, 0)
-	cancel.Position = UDim2.new(1, -4, 0, 4)
-	cancel.Size = UDim2.fromOffset(26, 26)
-	cancel.TextSize = 14
+	-- B-4: Batal button on the right of the fishing status (cancels the fishing; the server then sends the idle state).
+	-- A labelled standard-tier button (32 px tall, 64 px wide): not a clipped icon.
+	local cancel = UiKit.button(statusFrame, "Cancel", Locale.t("fish.cancel"), UiKit.BUTTON_MUTED)
+	cancel.AnchorPoint = Vector2.new(1, 0.5)
+	cancel.Position = UDim2.new(1, -8, 0.5, 0)
+	cancel.Size = UDim2.fromOffset(64, UiKit.TOUCH)
+	cancel.TextSize = UiKit.TEXT_BODY
 	cancel.Activated:Connect(function()
 		Net.Send("FishCancel")
 	end)
@@ -485,7 +498,7 @@ local function makeBaitChip(parent: Instance)
 	local chip = Instance.new("Frame")
 	chip.Name = "BaitChip"
 	chip.AnchorPoint = Vector2.new(0.5, 1)
-	chip.Position = UDim2.new(0.8, 0, 0.67, -50) -- above the rod button (84 px, centred at 0.67 of the screen)
+	chip.Position = stripPosition() -- the context strip (HUD map), not beside the rod button
 	chip.Size = UDim2.fromOffset(0, 30)
 	chip.AutomaticSize = Enum.AutomaticSize.X
 	chip.Visible = false
@@ -584,6 +597,10 @@ local function refreshAksi()
 	aksiButton.Visible = gifted and not fishing and nearSpot()
 	if baitChip then
 		baitChip.Visible = aksiButton.Visible
+		baitChip.Position = stripPosition()
+	end
+	if statusFrame then
+		statusFrame.Position = stripPosition()
 	end
 end
 
