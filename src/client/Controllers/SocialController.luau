@@ -9,14 +9,14 @@ local Workspace = game:GetService("Workspace")
 
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
-local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Social = require(ReplicatedStorage.Shared.Config.Social)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local State = require(script.Parent.Parent.State)
 local UiKit = require(script.Parent.Parent.UiKit)
 
-local CHECK_SECONDS = 0.5
+local CHECK_SECONDS = 0.2 -- B-2: the like button follows the player every 0.2 s
+local LIKE_SIGN_RADIUS = 12 -- B-2: studs from the plot's sign ("Kebun <nama>", beside the gate). Not the whole plot, not the river.
 
 local player = Players.LocalPlayer
 
@@ -78,10 +78,12 @@ local function plotUnderMe(): number?
 	end
 	for _, plot in plots:GetChildren() do
 		local ownerId = plot:GetAttribute("OwnerUserId")
-		local origin = plot:IsA("Model") and plot.PrimaryPart
-		if typeof(ownerId) == "number" and ownerId ~= player.UserId and origin then
-			local localPos = origin.CFrame:PointToObjectSpace(root.Position)
-			if Land.contains(localPos.X, localPos.Z, Social.LIKE_MARGIN - 1) then -- a bit stricter than the server
+		local sign = plot:FindFirstChild("Sign")
+		if typeof(ownerId) == "number" and ownerId ~= player.UserId and sign then
+			-- B-2: only next to the sign of someone else's plot (PlotService draws "Kebun <nama>" there).
+			local signPos = sign:GetPivot().Position
+			local flat = Vector3.new(root.Position.X - signPos.X, 0, root.Position.Z - signPos.Z)
+			if flat.Magnitude <= LIKE_SIGN_RADIUS then
 				return ownerId
 			end
 		end
@@ -220,7 +222,9 @@ end
 local function refreshLike()
 	currentOwnerId = plotUnderMe()
 	local gui = likeButton:FindFirstAncestorOfClass("ScreenGui") :: ScreenGui
-	gui.Enabled = currentOwnerId ~= nil
+	-- B-2: hidden while fishing (the "Tarik!" prompt owns that spot), while any panel is open, and while a dialog runs.
+	local busy = player:GetAttribute("FishingActive") == true or UiKit.anyPanelOpen() or player:GetAttribute("KTBeatBusy") == true
+	gui.Enabled = currentOwnerId ~= nil and not busy
 	if currentOwnerId then
 		local liked = likedEver(currentOwnerId)
 		likeButton.Text = Locale.t(if liked then "social.liked" else "social.like")
@@ -233,6 +237,7 @@ end
 local function buildLikeUi()
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "LikeUI"
+	gui.DisplayOrder = UiKit.LAYER.ACTION -- B-2: GUI doc Bab 4.5, layer Aksi (10)
 	gui.ResetOnSpawn = false
 	gui.Enabled = false
 	likeButton = UiKit.button(gui, "LikeButton", Locale.t("social.like"))

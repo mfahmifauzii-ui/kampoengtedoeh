@@ -22,6 +22,33 @@ local UiAssets = require(ReplicatedStorage.Shared.Config.UiAssets)
 
 local UiKit = {}
 
+-- GUI doc Bab 4.5: one table for every DisplayOrder. Controllers use these names, not raw numbers.
+-- Panels still use 0 here until the Q-4 layer pass moves them to PANEL (40).
+UiKit.LAYER = {
+	WORLD = -1,
+	ACTION = 10,
+	HUD = 20,
+	GUIDE = 30,
+	PANEL = 40,
+	COACH = 50,
+	TOAST = 60,
+	BANNER = 80,
+	MODAL = 100,
+	DIALOG = 120,
+	FADE = 150,
+}
+
+-- Every ScreenGui made by UiKit.panel, so other UI can ask "is a panel open?" (B-2 like button).
+local panelGuis: { ScreenGui } = {}
+function UiKit.anyPanelOpen(): boolean
+	for _, gui in panelGuis do
+		if gui.Enabled then
+			return true
+		end
+	end
+	return false
+end
+
 -- Palette ------------------------------------------------------------------------------------
 UiKit.BG = Color3.fromRGB(250, 240, 214) -- parchment: panels and chips
 UiKit.ROW = Color3.fromRGB(255, 251, 240) -- list rows (cards)
@@ -314,6 +341,7 @@ export type Panel = {
 
 function UiKit.panel(name: string, titleText: string, onClose: () -> ()): Panel
 	local gui = Instance.new("ScreenGui")
+	table.insert(panelGuis, gui)
 	gui.Name = name
 	gui.ResetOnSpawn = false
 	gui.Enabled = false
