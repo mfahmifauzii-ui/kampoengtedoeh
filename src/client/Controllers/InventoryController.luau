@@ -24,14 +24,18 @@ local TABS = {
 	{ id = "crop", text = "Panen" },
 	{ id = "fish", text = "Ikan" },
 	{ id = "tool", text = "Alat" },
+	{ id = "bait", text = "Umpan" }, -- F-1: bait (Pelet, Cacing, Jangkrik, Udang Kecil) has its own tab
 }
-local TAB_HEIGHT = 26 -- smaller than the shop tabs (34 px): the bag is a list of items, not the main action
+local TAB_HEIGHT = UiKit.TOUCH -- a tab is a standard touch target (32 px, GUI doc 4.4)
 local selectedTab = "all"
 
--- Category of an item: seeds (bibit), crops (panen), fish, everything else (tools, bait).
+-- Category of an item: seeds (bibit), crops (panen), fish, bait (umpan), everything else (tools).
 local function categoryOf(itemId: string, info: any): string
 	if itemId:match("^seed_") then
 		return "seed"
+	end
+	if info.kind == "bait" then
+		return "bait" -- F-1: bait is only under Umpan (and Semua)
 	end
 	if info.kind == "crop" then
 		return "crop"
@@ -58,17 +62,14 @@ local function render()
 	end
 	Items.sortIds(ids)
 
-	-- Category tabs, like the shop's (small ones): they sit above the grid and filter it.
+	-- Category tabs (6 in one row: Semua, Bibit, Panen, Ikan, Alat, Umpan). UiKit.tabs shares the row width between the tabs,
+	-- so each tab gets the same share and its label is not cut at the edge (F-1).
 	local tabs = UiKit.tabs(panel.list, TABS, selectedTab, function(id)
 		selectedTab = id
 		render()
 	end)
 	tabs.frame.LayoutOrder = 0
 	tabs.frame.Size = UDim2.new(1, 0, 0, TAB_HEIGHT)
-	for _, button in tabs.buttons do
-		button.Size = UDim2.new(1 / #TABS, -4, 1, 0)
-		button.TextSize = 12
-	end
 	local shown = {}
 	for _, itemId in ids do
 		local info = Items.info(itemId)
