@@ -279,6 +279,7 @@ Bunga F2P ~240/bulan (Login 40, Pencapaian 40, Album 30, Season 30, Event 30, Bu
 | 30 | Melati, Belida, Kolam Keramik |
 | 35 | Mangga, Dapur Tier 3 |
 | 36 | 6.x (Toko, Robux) | Toko: panel menyesuaikan isi ("sized to content"). | Bug UI 5: fit-to-content mengukur daftar sebelum tata letak selesai, lalu memperkecil panel (sekitar 100 px). Isi tidak terlihat. Sekarang panel memakai ukuran sheet UiKit standar (88 % x 86 %, maks 600 x 400), daftar bisa digulir. Tab sisi memakai tier 32 px dan teks terbaca di kedua keadaan. | BUTUH KEPUTUSAN OWNER: setujui panel ukuran standar dengan daftar bergulir, atau minta ukuran sesuai isi dengan batas bawah yang disetujui. |
+| 37 | 13.4 / 14.4 (Kerja Bakti, quest Side Kerja Bakti 10x) | Quest "Ikut 10 Kerja Bakti" perlu petunjuk: di mana, apa, dan kapan aktif. | Bug UI 6: baris petunjuk di Quest Log memakai teks yang sudah ada (`kb.active` / `kb.none`, `kb.how` "Hujan reda: pungut sampah di plaza, +15 Koin +3 XP/poin"). "Tunjukkan" menunjuk sampah terdekat dengan panah (`WorldArrow`) selama Kerja Bakti aktif. Belum ada di Naskah / Locale: syarat muncul yang sama dengan Bab 13.4 ("setelah Hujan Deres / Petir"), karena kb.how memakai "Hujan reda". | BUTUH KEPUTUSAN OWNER: teks syarat muncul (Bab 13.4: hujan deres atau petir) dan apakah teks "Hujan reda" tetap. Tidak ditulis baru. |
 | 45 | Durian |
 
 ### 4.5 Skills (16 skills)

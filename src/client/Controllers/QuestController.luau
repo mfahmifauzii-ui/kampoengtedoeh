@@ -11,6 +11,7 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Quests = require(ReplicatedStorage.Shared.Config.Quests)
@@ -19,6 +20,7 @@ local State = require(script.Parent.Parent.State)
 local FeatureClient = require(script.Parent.Parent.FeatureClient)
 local UiKit = require(script.Parent.Parent.UiKit)
 local QuestOfferController = require(script.Parent.QuestOfferController)
+local WorldArrow = require(script.Parent.Parent.WorldArrow)
 
 local player = Players.LocalPlayer
 
@@ -28,6 +30,11 @@ local tracker: Frame
 local refresh: () -> ()
 local logPanel: any = nil -- the open Quest Log (UiKit.panel), nil while closed
 local logTab: string = "main"
+-- Bug 6: Kerja Bakti (side_kerjabakti) has no step hint of its own. Its existing copy (kb.active / kb.none, kb.how) tells what
+-- to do and when; "Tunjukkan" on it points at a trash spot while the event runs.
+local KB_QUEST = "side_kerjabakti"
+local kbArrow: any = nil
+
 local pointedQuest: string? = nil -- the quest whose step is pointed at ("Tunjukkan"), until its timer ends
 
 -- Baris slot (Quest Harian / Mingguan): 1 baris per slot yang belum selesai.
@@ -240,6 +247,11 @@ local function logSections(kind: string, snapshot: any): { LogSection }
 						.. (if step.count > 1 then ` ({progress.count}/{step.count})` else "")
 				end
 				table.insert(active, { title = Locale.t(`quest.{quest.id}.title`), sub = sub, pointable = true, questId = quest.id })
+				if quest.id == KB_QUEST then
+					-- Bug 6: the hint row. Status (running / not now) and the existing how-to line.
+					local running = Workspace:GetAttribute("KBActive") == true
+					table.insert(active, { title = Locale.t(if running then "kb.active" else "kb.none"), sub = Locale.t("kb.how"), pointable = false, questId = nil })
+				end
 			elseif quests and quests.done and quests.done[quest.id] == true then
 				table.insert(done, { title = Locale.t(`quest.{quest.id}.title`), sub = Locale.t("banner.done"), pointable = false, questId = nil })
 			elseif offerSet[quest.id] then
@@ -275,12 +287,41 @@ local function closeLog()
 end
 
 -- "Tunjukkan" from the Quest Log: close the log and point at the quest's step on the tracker.
+local function kbSpot(): BasePart?
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	local best: BasePart? = nil
+	local bestDistance = math.huge
+	for _, descendant in Workspace:GetDescendants() do
+		if descendant.Name == "Sampah" and descendant:IsA("BasePart") then
+			local distance = if root and root:IsA("BasePart") then (descendant.Position - root.Position).Magnitude else 0
+			if distance < bestDistance then
+				best, bestDistance = descendant, distance
+			end
+		end
+	end
+	return best
+end
+
 local function pointAt(questId: string)
 	closeLog()
 	pointedQuest = questId
+	-- Bug 6: while Kerja Bakti runs, the arrow points at the nearest trash spot.
+	if questId == KB_QUEST and Workspace:GetAttribute("KBActive") == true then
+		local spot = kbSpot()
+		if spot then
+			if not kbArrow then
+				kbArrow = WorldArrow.new("KBArrow", 4)
+			end
+			kbArrow.show(spot, Locale.t("kb.active"))
+		end
+	end
 	refresh()
 	task.delay(4, function()
 		pointedQuest = nil
+		if kbArrow then
+			kbArrow.hide()
+		end
 		refresh()
 	end)
 end
