@@ -66,7 +66,7 @@ local list: { Quest } = {
 		after = "m1_kampung",
 		steps = {
 			{ event = "mine", count = 1, reveals = "hutan" }, -- pergi ke Hutan Nambang = pukul 1 node
-			{ items = { batu = 10, kayu = 9 } }, -- kumpulkan 10 Batu + 9 Kayu (tidak diambil di sini)
+			{ count = 1, items = { batu = 10, kayu = 9 } }, -- kumpulkan 10 Batu + 9 Kayu (tidak diambil di sini)
 			{ event = "craft_papan", count = 2, reveals = "craft" }, -- 2 Papan = 4 Kayu (Config/Mining resep papan)
 		},
 		reward = { koin = 50, xp = 20 },
