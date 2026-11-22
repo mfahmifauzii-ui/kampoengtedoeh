@@ -22,6 +22,7 @@ local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local State = require(script.Parent.Parent.State)
+local FeatureClient = require(script.Parent.Parent.FeatureClient)
 local UiKit = require(script.Parent.Parent.UiKit)
 
 type Item = Decor.Item
@@ -548,6 +549,7 @@ function DecorController.Init()
 end
 
 function DecorController.Start()
+	FeatureClient.GateHud("DecorButton", "hias") -- Q-2: hidden until the hias feature is open
 	task.spawn(hookDecorButton)
 	State.Changed:Connect(function()
 		if active then

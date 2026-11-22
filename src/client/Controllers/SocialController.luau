@@ -13,6 +13,7 @@ local Social = require(ReplicatedStorage.Shared.Config.Social)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local State = require(script.Parent.Parent.State)
+local FeatureClient = require(script.Parent.Parent.FeatureClient)
 local UiKit = require(script.Parent.Parent.UiKit)
 
 local CHECK_SECONDS = 0.2 -- B-2: the like button follows the player every 0.2 s
@@ -285,6 +286,7 @@ function SocialController.Start()
 	Players.PlayerRemoving:Connect(function()
 		task.defer(render)
 	end)
+	FeatureClient.GateHud("SocialButton", "bantu") -- Q-2: hidden until the bantu feature is open
 	task.spawn(UiKit.hudButton, "SocialButton", Locale.t("ui.social"), 7, function()
 		panel.gui.Enabled = not panel.gui.Enabled
 		render()

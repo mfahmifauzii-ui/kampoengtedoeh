@@ -210,6 +210,7 @@ local function buildOne(plot: Model, player: Player, hewanId: string, entry: Typ
 	ambil.HoldDuration = 0
 	ambil.MaxActivationDistance = 12
 	ambil.RequiresLineOfSight = false
+	ambil:SetAttribute("Feature", "kandang_" .. hewanId) -- Q-2: client hides the ranch prompts while the kandang feature is closed
 	ambil.Parent = spot
 	ambil.Triggered:Connect(function(triggeredBy: Player)
 		if triggeredBy == player then -- kandang sendiri; pengunjung ditolak di canTouch juga
@@ -225,6 +226,7 @@ local function buildOne(plot: Model, player: Player, hewanId: string, entry: Typ
 	kelola.MaxActivationDistance = 12
 	kelola.RequiresLineOfSight = false
 	kelola.Exclusivity = Enum.ProximityPromptExclusivity.AlwaysShow
+	kelola:SetAttribute("Feature", "kandang_" .. hewanId)
 	kelola.Parent = spot
 	kelola.Triggered:Connect(function(triggeredBy: Player)
 		if triggeredBy == player then

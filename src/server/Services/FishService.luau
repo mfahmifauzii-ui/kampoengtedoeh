@@ -872,6 +872,9 @@ function FishService.SetupPond(player: Player, pond: BasePart, entry: Types.Pond
 	kolam.Exclusivity = Enum.ProximityPromptExclusivity.AlwaysShow
 	local fishPrompt = pond:FindFirstChild("FishPrompt") :: ProximityPrompt
 	fishPrompt.Exclusivity = Enum.ProximityPromptExclusivity.AlwaysShow
+	-- Q-2: client hides both pond prompts while the kolam feature is closed (FeatureClient)
+	kolam:SetAttribute("Feature", "kolam")
+	fishPrompt:SetAttribute("Feature", "kolam")
 	local uid = entry.uid
 	kolam.Triggered:Connect(function(triggeredBy)
 		if pond:GetAttribute("Owner") == triggeredBy.UserId then

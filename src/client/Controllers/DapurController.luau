@@ -10,6 +10,7 @@ local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local UiKit = require(script.Parent.Parent.UiKit)
 local State = require(script.Parent.Parent.State)
+local FeatureClient = require(script.Parent.Parent.FeatureClient)
 
 local DapurController = {}
 
@@ -183,6 +184,7 @@ function DapurController.Start()
 			rebuild()
 		end
 	end)
+	FeatureClient.GateHud("DapurButton", "dapur") -- Q-2: hidden until the dapur feature is open
 	task.spawn(UiKit.hudButton, "DapurButton", Locale.t("dapur.title"), 4, function()
 		if panel then
 			panel.gui.Enabled = not panel.gui.Enabled

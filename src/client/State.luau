@@ -8,6 +8,7 @@ local Signal = require(ReplicatedStorage.Shared.Modules.Signal)
 
 export type Snapshot = {
 	items: { [string]: number },
+	features: { [string]: string }?, -- Q-2 feature gate: "introduced" | "open" per fitur quest (FeatureClient reads this)
 	playtime: { day: string, seconds: number, claimed: number }, -- Hadiah playtime (seconds is live via the "PlaytimeSec" attribute)
 	pondTier: number,
 	pondKakek: boolean?, -- Kolam Kakek pulih (MQ4 / Bundel, v7.4 Bab 16.5): satu-satunya gate kolam

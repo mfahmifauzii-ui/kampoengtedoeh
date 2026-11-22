@@ -32,6 +32,7 @@ local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local State = require(script.Parent.Parent.State)
+local FeatureClient = require(script.Parent.Parent.FeatureClient)
 local UiKit = require(script.Parent.Parent.UiKit)
 
 local VALID_COLOR = Color3.fromRGB(104, 214, 84) -- bright green: clearly "can place" on grass (the ghost is a preview)
@@ -660,7 +661,8 @@ end
 
 function refreshKolamButton()
 	if kolamButton then
-		kolamButton.Visible = (State.current :: any) ~= nil and (State.current :: any).pondKakek == true
+		-- Q-2: also needs the kolam feature open (server FeatureGate "kolam", set by the quest step that reveals it)
+		kolamButton.Visible = (State.current :: any) ~= nil and (State.current :: any).pondKakek == true and FeatureClient.IsOpen("kolam")
 	end
 end
 

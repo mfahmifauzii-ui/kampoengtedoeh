@@ -20,6 +20,7 @@ local Sfx = require(ReplicatedStorage.Shared.Sfx)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local UiKit = require(script.Parent.Parent.UiKit)
 local State = require(script.Parent.Parent.State)
+local FeatureClient = require(script.Parent.Parent.FeatureClient)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
@@ -328,7 +329,7 @@ local function refreshCraft()
 		return
 	end
 	local level = player:GetAttribute("Level")
-	local unlocked = typeof(level) == "number" and level >= Mining.CRAFT_UNLOCK
+	local unlocked = typeof(level) == "number" and level >= Mining.CRAFT_UNLOCK and FeatureClient.IsOpen("craft") -- Q-2 gate "craft"
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	local camera = Workspace.CurrentCamera
