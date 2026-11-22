@@ -306,6 +306,8 @@ Yang belum:
 
 Commit yang direncanakan: (a) atribut + sesi, (b) visual + pembersihan, (c) hubungan klien dan pancing tutorial.
 
+**Status animasi (2026-11-22):** `KeyframeSequenceProvider:RegisterKeyframeSequence` di Studio mengembalikan ID sementara (hash) untuk FishingCast / FishingIdle / FishingReel / FishingCatch. Dokumen Roblox menulis ID ini hanya berlaku di Studio, bukan untuk server live. Asset ID yang permanen harus dibuat dengan Publish ke Roblox (Animation Editor, atau klik kanan KeyframeSequence > Publish to Roblox). Langkah ini belum dilakukan dan butuh tindakan di Studio oleh owner.
+
 ### 12.3 Keputusan yang dibutuhkan (B-3, B-5)
 
 1. B-3: timer "Ambil Ikan" dihapus (ikan kolam hanya dari setoran), atau tetap ada sebagai hasil ekstra?
