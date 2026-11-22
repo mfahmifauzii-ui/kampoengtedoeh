@@ -1,9 +1,9 @@
-# KAMPOENG TEDOEH — Dokumen Gameplay v7.2
+# KAMPOENG TEDOEH — Dokumen Gameplay v7.3
 ## Single Source of Truth (revisi konsistensi)
 
-> Dokumen ini menggantikan SEMUA versi sebelumnya (v1.0 sampai v7.1), termasuk `00_Design_Doc.md` (v0.3) dan `Audit_v6.1.md`. `Roadmap.md`, `TODO.md`, dan dokumen teknis hanya catatan status dan tidak boleh mengubah angka di sini. Daftar status dokumen dan konflik yang sudah diselesaikan ada di Lampiran A dan B.
+> Dokumen ini menggantikan SEMUA versi sebelumnya (v1.0 sampai v7.2), termasuk `00_Design_Doc.md` (v0.3) dan `Audit_v6.1.md`. `Roadmap.md`, `TODO.md`, dan dokumen teknis hanya catatan status dan tidak boleh mengubah angka di sini. Daftar status dokumen dan konflik yang sudah diselesaikan ada di Lampiran A dan B.
 > Aturan revisi: setiap aturan hanya ditulis di SATU bab. Bab lain cukup merujuk (`lihat Bab X`). Tidak ada lagi aturan yang ditulis ulang di 3 tempat dengan angka beda.
-> Revisi berikutnya wajib nomor baru (v7.3) + isi Changelog di Bab 0.3.
+> Revisi berikutnya wajib nomor baru (v7.4) + isi Changelog di Bab 0.3.
 > Format dokumen ini mengikuti v6.2.3. Format file829 (Blueprint map, Build order Fase, Authority / Scripts / Remotes) TIDAK dipakai.
 
 ---
@@ -12,7 +12,7 @@
 
 ### 0.1 Ringkasan 1 Paragraf
 
-Kampoeng Tedoeh adalah game Roblox cozy farming + fishing + ranching + cooking + building berlatar kampung Indonesia, untuk 16+, netral gender. Player adalah cucu Kakek Daeng yang pulang mengurus lahan warisan dan menemukan surat-surat yang ditinggalkan kakeknya. Tidak ada fail, tidak ada stamina, tidak ada hukuman. Tanaman, hewan, dan bangunan tidak pernah mati atau rusak. Sesi ideal 20-40 menit. Yang bikin player cerita ke temannya: **panen Prima saat hujan, Ikan Legenda yang diumumkan ke satu server, dan Gerobak Kaget yang restock tiap 15 menit.** Yang bikin player balik besok: **bubu, kolam, Surat Kakek harian, Bundel Kakek (memulihkan bangunan peninggalan Kakek), dan Kerja Bakti Kilat setiap habis hujan deres / petir.** Tidak ada satu pun sistem yang butuh banyak player supaya bisa selesai.
+Kampoeng Tedoeh adalah game Roblox cozy farming + fishing + ranching + cooking + building berlatar kampung Indonesia, untuk 16+, netral gender. Player adalah cucu Kakek Daeng yang pulang mengurus lahan warisan dan menemukan surat-surat yang ditinggalkan kakeknya. Tidak ada fail, tidak ada stamina, tidak ada hukuman. Tanaman, hewan, dan bangunan tidak pernah mati atau rusak. Sesi ideal 20-40 menit. Yang bikin player cerita ke temannya: **panen Prima saat hujan, Ikan Legenda yang diumumkan ke satu server, Gerobak Kaget yang restock tiap 15 menit, dan Olahan yang dimakan sendiri jadi buff untuk kegiatan aktif.** Yang bikin player balik besok: **bubu, kolam, Surat Kakek harian, Order Villager harian, Bundel Kakek (memulihkan bangunan peninggalan Kakek), dan Kerja Bakti Kilat setiap habis hujan deres / petir.** Tidak ada satu pun sistem yang butuh banyak player supaya bisa selesai.
 
 Tagline tim: `Kampung lo, rumah lo, panen lo — tiap hujan bisa jadi panen Prima.`
 
@@ -30,7 +30,18 @@ Tagline tim: `Kampung lo, rumah lo, panen lo — tiap hujan bisa jadi panen Prim
 
 > Bagian 0.3 sampai 0.3.7 adalah sejarah keputusan. Aturan aktif ada di bab masing-masing dan di Lampiran B.
 
-### 0.3 Changelog v6.2.3 → v7.2 (Keputusan Owner + Revisi 100% Disepakati)
+### 0.3 Changelog v7.2 → v7.3 (Keputusan Owner — LOCKED)
+
+| # | Perubahan | Alasan / Angka |
+|---|-----------|--------|
+| 1 | **Order Villager TAMBAH (Bab 14.7)** | Bukan karangan. Sistem yang kelewat di v7.2, masih perlu. Daily 3 + Weekly 1, reward nilai jual x1,5 (daily) / x3 (weekly), reroll 2 Bunga. Beda dari Agenda (Agenda = tugas sistem, Order = permintaan NPC spesifik setor barang). |
+| 2 | **Buff Olahan TAMBAH (Bab 9.4)** | Olahan bisa dijual ATAU dimakan sendiri. Dimakan = buff 10 / 12 / 15 menit (Biasa / Bagus / Prima) untuk kegiatan AKTIF saja: Nanem, Mancing, Nambang, Nebang Pohon. Tidak ada buff pasif (Ternak, Kolam, Dapur, Bubu, Warung). |
+| 3 | **Bibit Unggul DIHAPUS total** | Angka +10% tumbuh, x1,5 harga adalah karangan di kode. Pasif, nabrak Skill Tangan Hijau + Buff Tani, ekonomi jelek (hemat 3 menit untuk tanaman 30 menit tapi harga x1,5). Pak Udin hanya jual Bibit biasa. |
+| 4 | **Backpack Pass DIHAPUS total** | Karangan di kode (+40 slot). Tas di v7.2 / v7.3 tanpa cap slot (stack 99). Pass menyelesaikan masalah yang tidak ada, dan jadi pay-to-not-annoying, tidak cozy. |
+| 5 | **Blueprint gating DIHAPUS total** | Blueprint BUKAN gating. Dekor bisa langsung di-craft pakai bahan tanpa beli Blueprint. Blueprint hanya simpan desain (3 slot gratis) + bagikan kode. Lihat Bab 8.7. |
+| 6 | **Yang tidak dibahas = LOCKED** | Semua angka yang tidak dibahas di revisi ini tetap sama seperti v7.2, tidak diubah. |
+
+### 0.3.1 Changelog v6.2.3 → v7.2 (Riwayat, tetap LOCKED)
 
 | # | Perubahan | Alasan / Angka |
 |---|-----------|--------|
@@ -82,6 +93,8 @@ Tagline tim: `Kampung lo, rumah lo, panen lo — tiap hujan bisa jadi panen Prim
 | 17 | Kualitas, bukan lotre | Kualitas didapat dari timing + siram, bukan dari roll lotre / jendela acak. Tidak ada Mutasi, tidak ada Pelangi, tidak ada Greenhouse yang memisahkan tanaman dari hujan. |
 
 ---
+
+**Gating — Definisi (LOCKED v7.3):** Gating = syarat yang harus dipenuhi dulu baru konten kebuka. Gating yang BOLEH: Level gating (Dapur Tier 2 Lv 15), Koin gating (Petak n x 150, Chunk 1.500 x 1,2^n), Quest gating (Kolam Kakek setelah MQ4). Gating yang DILARANG: Blueprint gating (dekor terkunci di balik beli Blueprint), Backpack gating (Tas terkunci di balik Pass), Bibit Unggul gating (tumbuh cepat terkunci di balik harga x1,5). Blueprint hanya simpan / share desain, bukan gating.
 
 ## 2. Target Pemain & Bentuk Sesi
 
@@ -505,6 +518,7 @@ Kumpul bahan → Buka Menu Hias → Pilih piece → Warna (12) + Material (4) �
 ### 8.7 Blueprint, Visit, Galeri
 
 - **Blueprint:** simpan desain (3 slot gratis), bagikan kode ke teman. Teman tetap harus punya bahan sendiri. Saat dipakai, ghost blueprint muncul transparan dan bisa dipasang per bagian.
+- **Blueprint BUKAN gating.** Dekor bisa langsung di-craft pakai bahan tanpa beli Blueprint. Tidak ada dekor yang terkunci di balik beli Blueprint. Gating yang boleh hanya Level / Koin / Quest (lihat Bab 5 di bawah: Gating). Slot Blueprint ekstra pakai Bunga (lihat Bab 4.1) hanya tambah slot simpan, bukan buka dekor.
 - **Visit:** jalan-jalan, duduk, foto. Tidak bisa bangun/hapus/ambil.
 - **Like:** `👍 Bagus!` 1x per lahan selamanya per player. Pemberi like +20 Koin (max 10 like berhadiah per hari). Like masuk hitungan mingguan.
 - **Galeri Kampung:** papan di Alun-alun berisi 5 lahan dengan like mingguan terbanyak (global, bukan per server). Pencet = visit (teleport ke server pemilik jika online, atau "rumah snapshot" read-only jika offline).
@@ -579,6 +593,8 @@ Semua bahan bisa dilacak ke: **Tanaman (18)** / **Ikan (20)** / **Ternak (Telur 
 
 Cek kombinasi: **18/18 Tanaman terpakai, 17/17 Ikan non-Legenda bisa dipakai lewat kategori Early (Wader / Betok / Sepat / Lele) / Mid (Mujair / Nila / Tawes / Gurame / Patin / Gabus / Baung) / Late (Jelawat / Toman / Tapah / Sidat / Semah / Belida), 3/3 Produk Ternak terpakai.**
 
+Pakan Jagung adalah pakan Ayam, bukan Olahan untuk player. Pakan Jagung tidak bisa dijual di Warung dan tidak memberi buff (lihat Bab 9.4).
+
 ### 9.3 Warung Player (Baru, 1 Core Loop)
 
 - Warung dibuka di Lv 6 (bersamaan Dapur Tier 1). Warung adalah bangunan di lahan sendiri, 1 slot pajang per Warung.
@@ -588,6 +604,25 @@ Cek kombinasi: **18/18 Tanaman terpakai, 17/17 Ikan non-Legenda bisa dipakai lew
 - Warung bukan Pasar antar-player. Tidak ada transaksi player-ke-player, tidak ada tawar-menawar, tidak ada harga dari player lain.
 - Warung juga bisa jual hasil mentah? Tidak. Warung hanya untuk olahan. Hasil mentah dijual ke NPC (Bab 10).
 
+### 9.4 Buff Olahan — Makan Sendiri untuk Kegiatan Aktif — LOCKED
+
+- **Prinsip:** Olahan bisa **dijual ATAU dimakan sendiri.** Dijual = dapat Koin. Dimakan = dapat buff. Ada tradeoff beneran, tidak bisa dapat dua-duanya dari 1 Olahan.
+- **Cuma 1 buff aktif.** Makan Olahan baru = ganti buff lama. Tidak bisa stack.
+- **Durasi dari Kualitas Olahan:** Biasa 10 menit / Bagus 12 menit / Prima 15 menit. Timer jalan real-time, tidak pause offline. Sama seperti Mood Hujan 5 menit.
+- **Hanya kegiatan AKTIF.** Buff hanya ngaruh ke aksi yang player lakukan sendiri saat itu. Tidak ada buff pasif.
+- **Yang TIDAK kena buff (pasif, haram):** Cooldown Ternak, Breeding Kolam, Waktu Masak Dapur, Bubu, Warung offline, Mood Hujan, Stat Dekor, XP pasif.
+- **Pakan Jagung tidak memberi buff.** Hanya untuk Ayam.
+
+| Buff | Dari resep apa | Efek selama buff |
+|---|---|---|
+| **Buff Tani (Nanem)** | Olahan sayur / buah: Tumis Kangkung, Tumis Bayam, Sambal Tomat, Sup Ubi, Salad Sawi, Nasi Goreng Spesial, Nasi Padang Mini, Salad Buah | Panen +10% peluang Super. Tidak ngaruh ke waktu tumbuh (itu pasif). |
+| **Buff Pancing (Mancing)** | Olahan ikan: Ikan Early Goreng, Pepes Ikan Mid, Ikan Late Bakar | Gigitan 20% lebih cepat + Kotak tarik +10% lebih lebar |
+| **Buff Tukang (Nambang)** | Olahan energi: Jus Jagung, Keripik Singkong, Gulai Telur, Kue Pisang, Selai Stroberi, Es Tebu, Es Krim Durian, Durian Goreng | Jendela Critical +25% lebih lebar + +1 bahan saat Critical. Berlaku untuk Batu / Tanah Liat / Pasir / Bambu / Ijuk |
+| **Buff Tebang (Nebang Pohon)** | Olahan kopi / teh / telur: Kopi Tubruk, Teh Melati, Kopi Susu Gula Aren, Telur Asin | Jendela Critical +25% lebih lebar + +1 Kayu saat Critical. Berlaku hanya untuk Pohon (Kayu) |
+
+- Contoh: Makan Tumis Kangkung Prima = Buff Tani 15 menit. Selama 15 menit, setiap Panen punya +10% peluang Super. Setelah 15 menit habis, buff hilang.
+- Buff + Skill stack (contoh: Skill Tangan Hijau + Buff Tani), tapi peluang Super tetap dibatasi cap di Bab 17.6 / Bab 5.4.
+
 ---
 
 ## 10. NPC & SISTEM JUAL
@@ -596,10 +631,10 @@ Cek kombinasi: **18/18 Tanaman terpakai, 17/17 Ikan non-Legenda bisa dipakai lew
 
 | NPC | Peran | Lokasi |
 |-----|-------|--------|
-| Pak Udin | Warung utama. Jual bibit (termasuk bibit unggul), pakan, hewan, garam, alat. Beli hasil mentah 100%. Tanpa kuota harian. | Alun-alun |
+| Pak Udin | Warung utama. Jual bibit, pakan, hewan, garam, alat. Beli hasil mentah 100%. Tanpa kuota harian. Bibit Unggul DIHAPUS, hanya Bibit biasa. | Alun-alun |
 | Kak Fajar | Joran & umpan. Beli ikan 100%. | Pinggir Kanal |
-| Pak Amran | Tukang Kayu. Hadiah rangka rumah pertama, jual alat Tukang, Blueprint. | Alun-alun |
-| Mak Sari | Warung Mak Sari. Beli olahan 100%. Narator tutorial. Sebelum Dapur terbuka hanya menampilkan baris sapaan. | Alun-alun |
+| Pak Amran | Tukang Kayu. Hadiah rangka rumah pertama, jual alat Tukang, Blueprint (simpan / share desain, bukan gating). | Alun-alun |
+| Mak Sari | Warung Mak Sari. Beli olahan 100%. Narator tutorial. Sebelum Dapur terbuka hanya menampilkan baris sapaan. Selama Tutorial 1, ikut blok Bab 16.3 kecuali saat jadi target langkah FTUE. | Alun-alun |
 | Nek Ani | Pos Ronda. Quest Kerja Bakti, info cuaca (tanda hujan, bukan ramalan). | Alun-alun |
 | Bang Jali (x8) | Satu di depan setiap lahan. Beli semua barang 90%, tidak menjual apa pun. | Depan lahan |
 | Pedagang Tamu | Rotasi 6 NPC, beli 1 jenis barang acak +50%, max 10 per player per malam (Pasar Malam). | Alun-alun |
@@ -619,6 +654,7 @@ Nama lama yang dilarang: Bu Wati, Mbak Arsi, Bang Tarno, Pak RT, Bu Sari, Mbah K
 | Gerobak Kaget | Beli bibit varian / hewan varian / dekor | Lihat Bab 13.1 | Max 3 per slot per restock |
 
 - Pasar Harian & Kualitas & Super dikali di semua penjual.
+- Jual pertama di FTUE tidak lewat interaksi bebas — lewat cutscene proximity Bab 16.4, tetap buka GUI Jual Pak Udin yang sama.
 - Lapak Tetangga DIHAPUS. Tidak ada pajak Lapak 5%.
 
 ### 10.3 Sumber Semua Item (Audit — LOCKED)
@@ -751,6 +787,7 @@ Lihat Bab 8.7. Like +20 Koin max 10 per hari. Galeri Kampung 5 lahan dengan like
 - Surat Kakek: 30 surat, 1 per hari login, kumulatif, retensi emosional.
 - Side Quest: 10 contoh rilis, bisa diulang? Tidak, sekali saja.
 - Agenda Harian: 5 tugas per hari, 150-400 Koin per tugas.
+- Order Villager: Daily 3 + Weekly 1, permintaan NPC setor barang, reward x1,5 / x3. Lihat Bab 14.7. Beda dari Agenda.
 
 ### 14.2 Main Quest (MQ1-MQ12)
 
@@ -812,6 +849,17 @@ Bundel adalah proyek Blueprint. Kerangka kosong muncul di level bukanya. Biaya, 
 - Catatan: Lumbung lama minta 1 hasil Mutasi, diganti 1 hasil Prima (Kualitas, bukan Mutasi).
 - Bundel Kakek tidak mengubah total sink (biaya sama). Hadiah lahan bersih 200 Koin dihapus.
 
+### 14.7 Order Villager — Permintaan NPC Setor Barang — LOCKED
+
+- **Beda dari Agenda.** Agenda (Bab 14.5) = tugas sistem (contoh: Panen 5 tanaman, Mancing 3 ikan), tidak perlu setor barang. Order Villager = permintaan NPC spesifik setor barang (contoh: "Bawakan 5 Kangkung Bagus ke Pak Udin", "Bawakan 3 Ikan Mid ke Kak Fajar").
+- **Jumlah:** Daily 3 + Weekly 1. Reset 05:00 WIB sama seperti Agenda.
+- **Pemberi:** Pak Udin, Kak Fajar, Pak Amran, Mak Sari, Nek Ani (NPC v7.2, bukan nama lama). Order muncul di papan / HUD Order, player ambil lalu setor barang ke NPC yang minta.
+- **Reward:** Nilai jual barang yang disetor x1,5 (Daily) / x3 (Weekly). Contoh: Setor barang yang kalau dijual ke Pak Udin 200 Koin, reward Order Daily = 300 Koin, Weekly = 600 Koin. Lebih untung dari jual biasa, karena player setor barang.
+- **Hadiah = Koin + XP saja.** Tidak ada Bunga dari Order, sama seperti Agenda. Bunga hanya dari Login / Album / Season / dll (Bab 4.1, Bab 18.2).
+- **Reroll:** 2 Bunga per Order, max 1x reroll per Order per hari. Reroll ganti permintaan jadi permintaan acak lain dengan tier yang sama. Tidak bisa reroll gratis.
+- **Tidak ada dekor dari Order Weekly.** Weekly hanya reward x3 Koin + XP. Dekor hanya dari Craft / Gerobak / Season / Bundel.
+- **Quest tidak gagal karena waktu.** Order yang tidak selesai hari itu hilang saat reset 05:00, tidak ada hukuman. Sama seperti prinsip Bab 1: Quest tidak gagal karena waktu.
+
 ---
 
 ## 15. HADIAH & PROGRESI JANGKA PANJANG
@@ -838,31 +886,70 @@ Bundel adalah proyek Blueprint. Kerangka kosong muncul di level bukanya. Biaya, 
 
 ## 16. TUTORIAL & FTUE
 
+> **P2-8 Doc Fix (v7.4) — BUKAN FTUE baru.** FTUE lama dipertahankan persis seperti yang sudah jalan di game (cutscene + coachmark yang sudah works di commit sebelum P2-8). Yang diubah hanya 4 hal di bawah, tidak ada rebuild FTUE, tidak ada naskah baru. Kalau ada yang tidak disebut di sini, FTUE lama yang berlaku.
+
 ### 16.1 FTUE Rules (LOCKED)
 
 - FTUE adalah state machine berbasis kondisi game. Langkah selesai saat kondisinya terpenuhi, atau saat kondisi langkah SESUDAHNYA terpenuhi (panen menyelesaikan Siram). Siram opsional: menyiram ATAU panen.
-- Tombol Lewati: `Lewati langkah` (tanpa konfirmasi) dan `Lewati panduan` (sekali konfirmasi). Keduanya divalidasi server, hadiah langkah dan hadiah Kakek Fajar tetap diberikan.
-- Cutscene + Coachmark: satu aturan saja. Cutscene bisa di-skip, coachmark bisa di-skip.
+- **FTUE lama dipertahankan.** Alur, dialog, cutscene, coachmark, dan urutan langkah yang sudah ada di game tidak diganti. Dokumen ini hanya menyesuaikan alur lama ke dokumen terbaru (hapus Kolam, tambah blok NPC, tambah cutscene jual pertama).
+- **No-skip (LOCKED, keputusan final).** Tidak ada tombol `Lewati`, `Lewati langkah`, `Lewati panduan`, `Lewati dialog`, atau skip cutscene / coachmark / dialog tutorial. FTUE / coachmark / cutscene / dialog tutorial tidak bisa di-skip sama sekali. P2-8 hanya menghapus tombol Lewati, bukan membangun ulang FTUE.
+- Cutscene + Coachmark: satu aturan saja. Cutscene dan coachmark tidak bisa di-skip.
 
-### 16.2 FTUE Steps (10 Menit)
+### 16.2 FTUE Steps (10 Menit) — Alur Lama, Disesuaikan ke Dokumen Terbaru
 
-| Waktu | Langkah | Hadiah |
-|-------|---------|--------|
-| 0:00 | Masuk pertama, Mak Sari datang, dialog Kakek | - |
-| 0:30 | Tanam Kangkung (4 Bibit gratis) | - |
-| 0:50 | Panen pertama (dijamin Super) | 20 XP |
-| 1:30 | Siram / Panen (opsional) | 20 XP |
-| 2:00 | Mancing: Kak Fajar kasih Joran Bambu. Lempar → gigitan (dijamin) → tarik (ikan Early pelan) → Wader Cakul. Kartu `IKAN BARU!` | 20 XP |
-| 3:00 | Jual ke Pak Udin | 20 XP |
-| 4:00 | Beli Bibit Bayam, tanam | - |
-| 5:00 | Nambang: pukul 1 node Kayu | 20 XP |
-| 6:00 | Hias: pasang 1 Pagar Bambu | - |
-| 8:00 | Buka Surat Kakek #1 | - |
-| 10:00 | FTUE selesai, buka Agenda + Gerobak Kaget | 100 Koin |
+| Waktu | Langkah | Hadiah | Catatan P2-8 |
+|-------|---------|--------|--------------|
+| 0:00 | Masuk pertama, Mak Sari datang, dialog Kakek | - | FTUE lama. Mak Sari = narator + target langkah ini saja. NPC lain diblok (Bab 16.3). |
+| 0:30 | Tanam Kangkung (4 Bibit gratis) | - | FTUE lama. |
+| 0:50 | Panen pertama (dijamin Super) | 20 XP | FTUE lama. |
+| 1:30 | Siram / Panen (opsional) | 20 XP | FTUE lama. |
+| 2:00 | Mancing: Kak Fajar kasih Joran Bambu. Lempar → gigitan (dijamin) → tarik (ikan Early pelan) → Wader Cakul. Kartu `IKAN BARU!` | 20 XP | FTUE lama. Mancing hanya di dermaga Kanal (bukan kolam). Lihat Bab 16.5. |
+| 3:00 | Jual hasil panen pertama ke Pak Udin — **via cutscene proximity (BARU)** | 20 XP | **Bukan interaksi bebas.** Mendekati Pak Udin = trigger cutscene jual pertama (Bab 16.4). Cutscene buka GUI Jual yang sama seperti biasa. |
+| 4:00 | Beli Bibit Bayam, tanam | - | FTUE lama. |
+| 5:00 | Nambang: pukul 1 node Kayu | 20 XP | FTUE lama, demo FTUE saja. Bukan buka full Hutan Nambang (Bab 8.1, Lv 4). |
+| 6:00 | Hias: pasang 1 Pagar Bambu | - | FTUE lama, demo FTUE saja. |
+| 8:00 | Buka Surat Kakek #1 | - | FTUE lama. |
+| 10:00 | FTUE selesai, buka Agenda + Gerobak Kaget | 100 Koin | Setelah ini blok NPC (Bab 16.3) dibuka, interaksi NPC normal. |
 
-- Joran Bambu ikut tampil di Tas. Tombol Mancing muncul saat dekat dermaga atau kolam setelah Joran Bambu diberikan.
+- Joran Bambu ikut tampil di Tas. Tombol Mancing muncul saat dekat **dermaga** setelah Joran Bambu diberikan. **Selama Tutorial 1, tombol Mancing TIDAK muncul di kolam** karena Kolam belum ada di Tutorial 1.
 - Ikon Tas per kategori. Label harga Pak Udin diambil dari config (100%), bukan teks tetap 90%.
 - Garap: kotak yang dicek hanya terrain. Tap ke kotak tidak valid pindah ke kotak valid terdekat.
+- **Tidak ada langkah Kolam di FTUE.** Lihat Bab 16.5.
+
+### 16.3 Blok NPC Selama Tutorial 1 (LOCKED — BARU, P2-8)
+
+- **Kapan aktif:** Dari Masuk pertama (0:00) sampai FTUE selesai (10:00). Setelah FTUE selesai, blok dibuka dan interaksi NPC normal (Bab 10).
+- **Aturan:** Selama Tutorial 1, player **tidak bisa interaksi bebas dengan NPC**.
+- **Yang diblok:** Toko / Beli / Jual bebas, dialog bebas, Quest, Order Villager, Kirim Hadiah, Bantu, dan semua GUI NPC — kecuali NPC yang jadi target langkah FTUE yang sedang berjalan, dan hanya lewat cara langkah itu (dialog FTUE / cutscene jual pertama).
+- **Cara blok:** ProximityPrompt / tombol interaksi NPC di luar langkah aktif disembunyikan / nonaktif. Player yang mencoba mendekat / klik NPC di luar langkah aktif tidak membuka toko / dialog / GUI apa pun.
+- **Jawaban NPC yang diblok (LOCKED, satu kalimat saja):** NPC menampilkan bubble / dialog singkat:
+  > `Selesaikan tutorial dulu`
+  Tidak ada dialog lain, tidak ada toko, tidak ada quest. Setelah bubble itu hilang, player kembali ke langkah FTUE yang sedang berjalan (coachmark / panah tetap menunjuk target langkah aktif).
+- **Pengecualian:** Mak Sari di langkah 0:00, Kak Fajar di langkah Mancing (2:00), dan Pak Udin di langkah Jual Pertama (3:00, via cutscene Bab 16.4) adalah target langkah — mereka tidak diblok saat langkahnya aktif. Di luar langkahnya, mereka ikut diblok dengan kalimat yang sama.
+- **Tidak ada pengecualian lain.** Nek Ani, Pak Amran, Bang Jali, Pedagang Tamu, Tamu Event — semuanya diblok selama Tutorial 1 dengan kalimat yang sama.
+
+### 16.4 Cutscene Jual Pertama — Proximity-Triggered (LOCKED — BARU, P2-8)
+
+> Ini adalah **edit** dari langkah Jual yang sudah ada di FTUE lama, bukan cutscene / FTUE baru. Tidak ada naskah baru yang dibuat di dokumen ini. Dialog cutscene memakai dialog jual Pak Udin yang sudah ada di game.
+
+- **Trigger:** Proximity, bukan klik / ProximityPrompt. Saat player yang sedang di langkah Jual Pertama (3:00) mendekati Pak Udin sampai jarak trigger (jarak dekat NPC, sama seperti jarak interaksi NPC normal), cutscene jual pertama langsung mulai. Player tidak perlu klik NPC.
+- **Alur cutscene:**
+  1. Player mendekati Pak Udin → cutscene mulai, kontrol player dikunci, kamera ke Pak Udin.
+  2. NPC ngobrol (dialog jual Pak Udin yang sudah ada di game — tidak ada naskah baru).
+  3. **GUI Jual tetap dibuka.** Cutscene tidak menggantikan GUI Jual. GUI Jual yang dibuka adalah GUI Jual Pak Udin yang sama seperti jual biasa (bukan GUI baru).
+  4. Player jual hasil panen pertama lewat GUI Jual itu (jual seperti biasa).
+  5. GUI Jual ditutup → cutscene ditutup → kontrol player balik → langkah Jual selesai (20 XP) → FTUE lanjut ke langkah berikutnya (Beli Bibit Bayam).
+- **Yang TIDAK boleh:** Cutscene tidak boleh jual otomatis tanpa GUI. Player harus tetap jual lewat GUI. Cutscene tidak boleh menambah / mengubah harga (tetap 100% Pak Udin, Bab 10.2). Cutscene tidak bisa di-skip (Bab 16.1).
+- **Jika player menjauh sebelum trigger:** Tidak ada cutscene, tidak ada jual. Coachmark / panah tetap menunjuk Pak Udin sampai player mendekat.
+- **Jika player mendekati Pak Udin di luar langkah Jual Pertama** (misal masih di langkah Tanam / Mancing): Berlaku blok Bab 16.3 — NPC jawab `Selesaikan tutorial dulu`, tidak ada cutscene, tidak ada GUI Jual.
+
+### 16.5 Kolam — Bukan di Tutorial 1 (LOCKED — P2-8 Takeout)
+
+- **Kolam DIHAPUS dari Tutorial 1 / FTUE.** Tidak ada langkah Buat Kolam, tidak ada langkah Simpan Ikan ke Kolam, tidak ada coachmark Kolam, tidak ada prompt Kolam, tidak ada tombol Kolam, tidak ada dialog Kolam di FTUE.
+- **Alasan:** Di dokumen terbaru, Kolam dibuat nanti. Kolam pertama = **Kolam Kakek** (Bab 7.2, Bab 14.2 MQ4, Bab 14.6 Bundel Kakek): **Lv 3, Mak Sari datang, setoran 10 Batu + 5 Kayu + 3 ikan Early**. Kolam Tanah yang bisa dibeli juga **Lv 3** (Bab 7.2). FTUE (Lv 1, 10 menit) tidak boleh mengajarkan Kolam.
+- **Mancing di FTUE:** Hanya di dermaga Kanal. Bukan di kolam. Kalimat lama `Tombol Mancing muncul saat dekat dermaga atau kolam` **tidak berlaku** selama Tutorial 1.
+- **Setelah FTUE:** Kolam baru dikenalkan lewat MQ4 / Bundel Kakek (Lv 3), bukan lewat FTUE. Tutorial Kolam (jika ada) adalah tutorial MQ4, bukan Tutorial 1.
+- **Yang harus dihapus dari FTUE lama:** Semua referensi Kolam di langkah FTUE, coachmark ke Kolam, dan prompt / GUI Kolam yang muncul selama Tutorial 1. Kode / sistem Kolam di luar FTUE (Bab 7.2, MQ4, Bundel) tidak dihapus — hanya takeout dari FTUE.
 
 ---
 
@@ -961,6 +1048,7 @@ Target porsi Koin player inti: Nanem 30% | Mancing 25% | Ternak+Kolam+Bubu 15% |
 
 - Bunga = kenyamanan & gaya, bukan kekuatan. Tidak ada Robux → Koin.
 - Semua konten bisa dicapai F2P. Premium Roblox tidak memberi pengali Koin apa pun (termasuk hadiah pesanan).
+- **Tidak ada Backpack Pass. Tas tanpa cap slot.** Tas pakai stack (contoh: Daun Pisang stack 99). Tidak ada Tas yang terkunci di balik Pass.
 
 ### 18.2 Sumber Bunga F2P
 
@@ -1102,7 +1190,7 @@ PlayerData: Level, XP, SP, Koin, Bunga, Tas (items + kualitas), Lahan (Petak, Ch
 
 ## 29. LARANGAN KERAS — Build Gagal Jika Dilanggar
 
-- Tidak ada Mutasi, Pelangi, Greenhouse, Rak Pajangan, Papan Pamer, RW sebagai sistem, Pasar antar-player, Ramalan Cuaca, Antrean Dapur, Reputasi Warung, Kasih Minum Ternak, Pupuk, Hama, Stamina, Fail, Loot Box, Iklan, Robux → Koin, Premium → Koin, Bunga → Koin / XP / Level / Bahan Mentah / Hewan, Streak Reset, Hadiah >60 Menit, Salju, Daging, Hewan Mati, Tanaman Mati, Bangunan Roboh, Quest Gagal karena Waktu, Nama NPC Lama (Bu Wati, Mbak Arsi, Bang Tarno, Pak RT, Bu Sari, Mbah Karto, Mas Yudi, Dik Rara), Gestur Joget / Tunjuk / Hug, Jual Legenda di Warung / Hadiah, Masak Legenda, Instant Bubu pakai Bunga, Bunga dari Level-Up, Bunga dari Like.
+- Tidak ada Mutasi, Pelangi, Greenhouse, Rak Pajangan, Papan Pamer, RW sebagai sistem, Pasar antar-player, Ramalan Cuaca, Antrean Dapur, Reputasi Warung, Kasih Minum Ternak, Pupuk, Hama, Stamina, Fail, Loot Box, Iklan, Robux → Koin, Premium → Koin, Bunga → Koin / XP / Level / Bahan Mentah / Hewan, Streak Reset, Hadiah >60 Menit, Salju, Daging, Hewan Mati, Tanaman Mati, Bangunan Roboh, Quest Gagal karena Waktu, Nama NPC Lama (Bu Wati, Mbak Arsi, Bang Tarno, Pak RT, Bu Sari, Mbah Karto, Mas Yudi, Dik Rara), Gestur Joget / Tunjuk / Hug, Jual Legenda di Warung / Hadiah, Masak Legenda, Instant Bubu pakai Bunga, Bunga dari Level-Up, Bunga dari Like, **Bibit Unggul (+10% tumbuh, x1,5 harga), Backpack Pass (+40 slot), Blueprint gating (dekor terkunci di balik beli Blueprint), Buff Pasif (buff untuk Ternak / Kolam / Dapur / Bubu / Warung).**
 - Jika ada yang melanggar, build gagal.
 
 ---
@@ -1112,9 +1200,13 @@ PlayerData: Level, XP, SP, Koin, Bunga, Tas (items + kualitas), Lahan (Petak, Ch
 ### 30.1 FTUE & Tutorial (WAJIB)
 
 - [ ] FTUE selesai dalam 10 menit, tidak macet.
-- [ ] Tombol Lewati bekerja, hadiah tetap diberikan.
+- [ ] FTUE lama dipertahankan — tidak ada FTUE baru, tidak ada naskah baru.
+- [ ] No-skip: tidak ada tombol Lewati / Lewati langkah / Lewati panduan / Lewati dialog / skip cutscene / skip coachmark.
 - [ ] Panen pertama dijamin Super.
-- [ ] Joran Bambu tampil di Tas, tombol Mancing muncul di dermaga.
+- [ ] Joran Bambu tampil di Tas, tombol Mancing muncul di dermaga (bukan kolam) selama Tutorial 1.
+- [ ] Tidak ada langkah / coachmark / prompt / tombol Kolam di Tutorial 1. Kolam pertama hanya lewat MQ4 / Bundel Kakek Lv 3.
+- [ ] Selama Tutorial 1, NPC di luar langkah aktif diblok — ProximityPrompt nonaktif, NPC jawab `Selesaikan tutorial dulu`, tidak ada toko / dialog / GUI.
+- [ ] Jual pertama: mendekati Pak Udin langsung trigger cutscene, NPC ngobrol, GUI Jual Pak Udin yang sama tetap dibuka, player jual lewat GUI, baru cutscene tutup.
 
 ### 30.2 Core Loop (WAJIB)
 
@@ -1150,9 +1242,9 @@ PlayerData: Level, XP, SP, Koin, Bunga, Tas (items + kualitas), Lahan (Petak, Ch
 
 ---
 
-## Penutup — Pesan untuk Claude Code
+## Penutup — Pesan untuk Muse / Claude Code
 
-Dokumen ini adalah Single Source of Truth. Ikuti angka di sini, jangan ngarang angka baru. Kalau ada yang tidak ada di dokumen ini, tanya owner, jangan isi sendiri. Yang tidak dibahas = LOCKED. Format dokumen ini adalah v6.2.3, bukan format template. Jangan pakai format file829. Jangan bahas map — map sudah ada di Roblox Studio.
+Dokumen ini adalah Single Source of Truth v7.3. Ikuti angka di sini, jangan ngarang angka baru. Kalau ada yang tidak ada di dokumen ini, tanya owner, jangan isi sendiri. Yang tidak dibahas = LOCKED. Format dokumen ini adalah v6.2.3, bukan format template. Jangan pakai format file829. Jangan bahas map — map sudah ada di Roblox Studio. Perhatikan Bab 9.4 (Buff Olahan) dan Bab 14.7 (Order Villager) yang baru di v7.3, dan larangan baru di Bab 29 (Bibit Unggul, Backpack Pass, Blueprint gating, Buff Pasif).
 
 ---
 
@@ -1179,6 +1271,11 @@ Dokumen ini adalah Single Source of Truth. Ikuti angka di sini, jangan ngarang a
 - Album 254 (v6) → 214 GUI (v7.2). Alasan: tanpa Mutasi, dengan Kualitas.
 - Map → tidak dibahas. Alasan: map sudah ada di Roblox Studio.
 - Format file829 → format v6.2.3. Alasan: dokumen desain harus pakai format v6.2.3, bukan format implementasi.
+- Order Villager (karangan di audit) → sistem LOCKED v7.3 Bab 14.7. Alasan: kelewat di v7.2, masih perlu. Beda dari Agenda.
+- Buff Olahan → sistem LOCKED v7.3 Bab 9.4. Alasan: Olahan bisa dimakan sendiri, buff hanya untuk aktif (Nanem / Mancing / Nambang / Nebang).
+- Bibit Unggul (+10% / x1,5) → dihapus. Alasan: karangan, pasif, nabrak Skill + Buff.
+- Backpack Pass (+40 slot) → dihapus. Alasan: karangan, Tas tanpa cap slot.
+- Blueprint gating → dihapus. Alasan: Blueprint bukan gating, hanya simpan / share desain.
 
 ## Lampiran C — Nilai Harapan Koin per Panen & Hitungan Kualitas / Mood Hujan
 
