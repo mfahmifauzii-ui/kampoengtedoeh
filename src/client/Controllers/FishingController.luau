@@ -100,6 +100,8 @@ local function buildUi()
 	statusLabel.Position = UDim2.fromOffset(38, 4)
 	statusLabel.Size = UDim2.new(1, -72, 0, 22) -- B-4: room for the X button at the right
 	statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+	-- Bug 10: the text stops before the X button (and never runs under the rod icon, which ends at x = 32): truncated, not drawn over.
+	statusLabel.TextTruncate = Enum.TextTruncate.AtEnd
 
 	-- B-4: X button, top right of the fishing status (cancels the fishing; the server then sends the idle state).
 	local cancel = UiKit.button(statusFrame, "Cancel", "✕", UiKit.BUTTON_MUTED)

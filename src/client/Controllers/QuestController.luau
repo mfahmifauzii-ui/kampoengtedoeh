@@ -562,6 +562,12 @@ function refresh()
 		point.ZIndex = 3
 		point.Parent = topRow
 		local topName: string = topRow.Name
+		-- Bug 10: the step and title text stop before the Tunjukkan button (74 px + 8 px gap), so they never run under it.
+		for _, label in topRow:GetChildren() do
+			if label:IsA("TextLabel") then
+				label.Size = UDim2.new(1, -82, 0, label.Size.Y.Offset)
+			end
+		end
 		point.Activated:Connect(function()
 			pointAt(topName)
 		end)
