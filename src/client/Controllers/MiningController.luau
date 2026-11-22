@@ -229,7 +229,7 @@ local function buildUi()
 	gui.Name = "MiningUI"
 	gui.ResetOnSpawn = false
 	gui.IgnoreGuiInset = true -- the craft button is placed with WorldToViewportPoint, which uses the full screen
-	gui.DisplayOrder = 6
+	gui.DisplayOrder = UiKit.LAYER.ACTION
 	gui.Parent = playerGui
 
 	local aksi = UiKit.button(gui, "MineAksiButton", Locale.t("prompt.mine"), UiKit.BUTTON)

@@ -1193,7 +1193,7 @@ function GuideController.Init()
 	gui.Name = "GuideUI"
 	gui.ResetOnSpawn = false
 	gui.IgnoreGuiInset = true
-	gui.DisplayOrder = -2 -- under the HUD and every panel
+	gui.DisplayOrder = UiKit.LAYER.WORLD_BACK -- under the HUD and every panel
 	gui:SetAttribute("NoScale", true) -- real pixels (UiKit.autoScale must not scale it)
 
 	-- The parchment chip is the frame (UiKit.parchmentBox: rounded ends, bamboo skin); the text is a label on top of it.

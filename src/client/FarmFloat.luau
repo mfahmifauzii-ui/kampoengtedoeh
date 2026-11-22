@@ -331,7 +331,7 @@ function FarmFloat.Init(options: { onAction: (part: BasePart, kind: string) -> (
 	gui.Name = "FarmFloat"
 	gui.ResetOnSpawn = false
 	gui.IgnoreGuiInset = true
-	gui.DisplayOrder = -1 -- under panels and the HUD
+	gui.DisplayOrder = UiKit.LAYER.WORLD -- under panels and the HUD
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.Parent = player:WaitForChild("PlayerGui")
 	for _ = 1, MAX_PILLS do

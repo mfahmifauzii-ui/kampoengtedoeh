@@ -245,7 +245,7 @@ function LandController.Init()
 	marks.ResetOnSpawn = false
 	marks.IgnoreGuiInset = true -- the projected points are viewport coordinates
 	marks:SetAttribute("NoScale", true) -- UiKit.autoScale must not scale it: offsets here are real pixels
-	marks.DisplayOrder = -1 -- under the HUD and the popups
+	marks.DisplayOrder = UiKit.LAYER.WORLD -- under the HUD and the popups
 	marks.Parent = playerGui
 end
 

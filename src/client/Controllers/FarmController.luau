@@ -508,7 +508,7 @@ local function buildGemborButton()
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "Gembor"
 	gui.ResetOnSpawn = false
-	gui.DisplayOrder = 5
+	gui.DisplayOrder = UiKit.LAYER.ACTION
 	gui.Parent = playerGui
 	local button = UiKit.button(gui, "GemborButton", Locale.t("ui.gembor_off"))
 	button.Size = UDim2.fromOffset(190, UiKit.TOUCH)
@@ -637,7 +637,7 @@ local function buildBedMenu(): ScreenGui
 	gui.Name = "BedMenu"
 	gui.ResetOnSpawn = false
 	gui.IgnoreGuiInset = true
-	gui.DisplayOrder = 45 -- above the HUD and the floating pills, below the confirm modal
+	gui.DisplayOrder = UiKit.LAYER.PANEL -- above the HUD and the floating pills, below the confirm modal
 	gui:SetAttribute("NoScale", true) -- real pixels: the card sits on the bed
 	gui.Enabled = false
 	local backdrop = Instance.new("TextButton")
@@ -843,7 +843,7 @@ local function buildPopup()
 	gui.Name = "SeedPopup"
 	gui.ResetOnSpawn = false
 	gui.IgnoreGuiInset = true
-	gui.DisplayOrder = -1 -- under every panel and the HUD: when any menu opens, these seed rings lose (owner, 2026-11-22)
+	gui.DisplayOrder = UiKit.LAYER.WORLD -- under every panel and the HUD: when any menu opens, these seed rings lose (owner, 2026-11-22)
 	gui:SetAttribute("NoScale", true)
 	gui.Enabled = false
 	gui.Parent = player:WaitForChild("PlayerGui")
@@ -1144,7 +1144,7 @@ local function buildHarvestAllButton()
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "HarvestAll"
 	gui.ResetOnSpawn = false
-	gui.DisplayOrder = 5
+	gui.DisplayOrder = UiKit.LAYER.ACTION
 	gui.Parent = playerGui
 	local button = UiKit.button(gui, "HarvestAllButton", Locale.t("ui.harvest_all"))
 	button.Size = UDim2.fromOffset(190, UiKit.TOUCH)

@@ -42,6 +42,7 @@ local Items = require(RS.Shared.Modules.Items)
 local Npcs = require(RS.Shared.Config.Npcs)
 local Onboarding = require(RS.Shared.Config.Onboarding)
 local Cutscene = require(script.Parent:WaitForChild("Cutscene"))
+local UiKit = require(script.Parent:WaitForChild("UiKit"))
 local FadeManager = require(script.Parent:WaitForChild("FadeManager"))
 
 local GHOST_NAME = "MakSari_T1_Local"
@@ -698,7 +699,7 @@ local function buildIntroUi(): Intro
 	gui.Name = "T1Cutscene"
 	gui.ResetOnSpawn = false
 	gui.IgnoreGuiInset = true
-	gui.DisplayOrder = 110
+	gui.DisplayOrder = UiKit.LAYER.CUTSCENE
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 	-- Black cover: hidden until PLAY, then 0.5 s of pure black and a slow fade in.

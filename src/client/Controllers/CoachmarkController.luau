@@ -87,7 +87,7 @@ function CoachmarkController.Init()
 	overlayGui.Name = "CoachOverlay"
 	overlayGui.ResetOnSpawn = false
 	overlayGui.IgnoreGuiInset = true
-	overlayGui.DisplayOrder = 25
+	overlayGui.DisplayOrder = UiKit.LAYER.COACH
 	overlayGui:SetAttribute("NoScale", true) -- real pixels: the hole must line up with AbsolutePosition (UiKit.autoScale skips this)
 	overlayGui.Enabled = false
 	overlayGui.Parent = player:WaitForChild("PlayerGui")
@@ -118,7 +118,7 @@ function CoachmarkController.Init()
 	topGui.Name = "CoachTop"
 	topGui.ResetOnSpawn = false
 	topGui.IgnoreGuiInset = true
-	topGui.DisplayOrder = 60
+	topGui.DisplayOrder = UiKit.LAYER.TOAST
 	topGui:SetAttribute("NoScale", true)
 	topGui.Enabled = false
 	topGui.Parent = player:WaitForChild("PlayerGui")

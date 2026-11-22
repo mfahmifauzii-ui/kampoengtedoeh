@@ -142,7 +142,7 @@ function RanchController.Init()
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "RanchUI"
 	gui.ResetOnSpawn = false
-	gui.DisplayOrder = 6
+	gui.DisplayOrder = UiKit.LAYER.ACTION
 	gui.Parent = playerGui
 
 	local kelola = UiKit.button(gui, "RanchAksiButton", Locale.t("ranch.manage"), UiKit.BUTTON_MUTED)

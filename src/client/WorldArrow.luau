@@ -18,7 +18,7 @@ function WorldArrow.new(name: string, studsAbove: number)
 	local gui = Instance.new("ScreenGui")
 	gui.Name = name
 	gui.ResetOnSpawn = false
-	gui.DisplayOrder = 30
+	gui.DisplayOrder = UiKit.LAYER.GUIDE
 	gui.IgnoreGuiInset = true
 	gui.Enabled = false
 	gui.Parent = player:WaitForChild("PlayerGui")

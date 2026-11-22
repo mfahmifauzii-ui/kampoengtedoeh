@@ -282,7 +282,7 @@ local function openDecorMenu(model: Model, item: Item)
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "DecorMenu"
 	gui.ResetOnSpawn = false
-	gui.DisplayOrder = 20
+	gui.DisplayOrder = UiKit.LAYER.PANEL
 	gui.Parent = player:WaitForChild("PlayerGui")
 	menuGui = gui
 

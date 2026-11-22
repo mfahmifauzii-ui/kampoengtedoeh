@@ -36,6 +36,12 @@ UiKit.LAYER = {
 	MODAL = 100,
 	DIALOG = 120,
 	FADE = 150,
+	-- Added in Q-4 layer closure (Lampiran D #29): layers the GUI table does not name yet, each used by one file.
+	WORLD_BACK = -2, -- GuideUI: under the world marks (WORLD -1), so the guide rings sit below land marks
+	CUTSCENE = 110, -- T1Cutscene cover: above the HUD and the panels, below the dialog box (DIALOG 120)
+	MENU = 200, -- start menu (GUI table "Menu awal 200+"): covers everything, including the HUD
+	MENU_PANEL = 210, -- start-menu panel, above the start menu's own screen
+	COVER = 250, -- loading / fade cover of the start menu, above the start menu panel
 }
 
 -- Every ScreenGui made by UiKit.panel, so other UI can ask "is a panel open?" (B-2 like button).

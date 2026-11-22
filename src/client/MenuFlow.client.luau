@@ -226,7 +226,7 @@ gui.Name = "KTMenu"
 gui.ResetOnSpawn = false
 gui.IgnoreGuiInset = true
 gui.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
-gui.DisplayOrder = 200
+gui.DisplayOrder = UiKit.LAYER.MENU
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = playerGui
 
@@ -390,7 +390,7 @@ UiKit.plate(settingsButton, 58, "atur") -- the same round wooden plate + gear as
 -- Pengaturan popup (UiKit.panel) ------------------------------------------------------------------------------------------
 
 local panel = UiKit.panel("KTSettings", Locale.t("menu.settings_title"), function() end)
-panel.gui.DisplayOrder = 210
+panel.gui.DisplayOrder = UiKit.LAYER.MENU_PANEL
 local panelFrame = panel.gui:FindFirstChild("Panel") :: Frame
 
 local function rowCard(order: number, labelText: string, height: number): Frame
@@ -817,7 +817,7 @@ local function leaveMenu()
 	coverGui.Name = "KTMenuCover"
 	coverGui.ResetOnSpawn = false
 	coverGui.IgnoreGuiInset = true
-	coverGui.DisplayOrder = 250
+	coverGui.DisplayOrder = UiKit.LAYER.COVER
 	coverGui.Parent = playerGui
 	local cover = Instance.new("Frame")
 	cover.Size = UDim2.fromScale(1, 1)

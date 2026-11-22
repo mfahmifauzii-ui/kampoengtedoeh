@@ -244,7 +244,7 @@ function PondController.Init()
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "PondUI"
 	gui.ResetOnSpawn = false
-	gui.DisplayOrder = 6
+	gui.DisplayOrder = UiKit.LAYER.ACTION
 	gui.Parent = playerGui
 
 	local aksi = UiKit.button(gui, "PondAksiButton", Locale.t("pond.breed_title"), UiKit.BUTTON_MUTED)

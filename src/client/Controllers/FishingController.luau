@@ -427,7 +427,7 @@ local function buildAksi()
 	aksiGui = Instance.new("ScreenGui")
 	aksiGui.Name = "FishAksi"
 	aksiGui.ResetOnSpawn = false
-	aksiGui.DisplayOrder = 6
+	aksiGui.DisplayOrder = UiKit.LAYER.ACTION
 	aksiGui.Parent = player:WaitForChild("PlayerGui")
 
 	-- Round, with the rod icon (owner, 2026-11-22: "button bulat pakai icon joran, posisi yang gue tandai"). Same bamboo
