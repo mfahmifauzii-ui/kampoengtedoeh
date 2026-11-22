@@ -7,6 +7,7 @@ local KSP = game:GetService("KeyframeSequenceProvider")
 local TweenService = game:GetService("TweenService")
 local Sfx = require(RS.Shared.Sfx)
 local Vfx = require(RS.Shared.Vfx)
+local Farm = require(RS.Shared.Config.Farm)
 
 local FarmFx = {}
 local player = Players.LocalPlayer
@@ -26,16 +27,21 @@ local function registerIds()
 	if ids then return end
 	ids = {}
 	local anims = RS:FindFirstChild("CustomAnims")
-	if not anims then return end
 	for name, action in pairs(ACTIONS) do
-		local seq = anims:FindFirstChild(action.clip)
-		if seq then
-			-- Studio only (see RodAnimController): on a live server the animation is skipped, the effect still runs.
-			local ok, id = pcall(function()
-				return KSP:RegisterKeyframeSequence(seq)
-			end)
-			if ok then
-				ids[name] = id
+		-- Roadmap §12.4: ID permanen dari Config/Farm.ANIMS (sudah di-publish) dipakai dulu, jadi jalan di server live.
+		local permanent = Farm.ANIMS[action.clip]
+		if permanent and permanent ~= "" then
+			ids[name] = permanent
+		else
+			local seq = if anims then anims:FindFirstChild(action.clip) else nil
+			if seq then
+				-- Studio only (see RodAnimController): on a live server the animation is skipped, the effect still runs.
+				local ok, id = pcall(function()
+					return KSP:RegisterKeyframeSequence(seq)
+				end)
+				if ok then
+					ids[name] = id
+				end
 			end
 		end
 	end

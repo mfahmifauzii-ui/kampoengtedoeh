@@ -54,7 +54,12 @@ return {
 
 	-- Animasi joran (B-5, Roadmap §12.4): ID Animation PERMANEN (Publish to Roblox), BUKAN hash sementara Studio.
 	-- Kosong = belum ada: server tidak memutar animasi, joran tetap pose statis. Isi setelah owner publish.
-	ANIMS = { FishingIdle = "", FishingCast = "", FishingReel = "", FishingCatch = "" } :: { [string]: string },
+	ANIMS = {
+		FishingIdle = "rbxassetid://129209607577233",
+		FishingCast = "rbxassetid://125111359649938",
+		FishingReel = "rbxassetid://71161306862981",
+		FishingCatch = "rbxassetid://119260434073900",
+	} :: { [string]: string },
 
 	LOCATIONS = {
 		sungai_lahan = { unlockLevel = 1 }, -- Sungai lahan (Update owner 2026-11-22): 32 spot di 4 sungai sumbu, Early saja

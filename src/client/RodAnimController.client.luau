@@ -3,22 +3,29 @@ local RS = game:GetService("ReplicatedStorage")
 local KSP = game:GetService("KeyframeSequenceProvider")
 local Net = require(RS.Shared.Modules.Net)
 local FishingTutorial = require(RS.Shared.Modules.FishingTutorial)
+local Fishing = require(RS.Shared.Config.Fishing)
 local State = require(script.Parent.State)
 local anims = RS:WaitForChild("CustomAnims")
 local template = workspace:WaitForChild("FishingRod")
 local player = Players.LocalPlayer
 
--- RegisterKeyframeSequence only works in Studio; on a live server it errors. Without it the rod plays no keyframe
--- animation (the game still runs), so a failure is logged once and skipped instead of stopping this whole script.
+-- Roadmap §12.4: ID permanen dari Config/Fishing.ANIMS (sudah di-publish) dipakai dulu, jadi jalan juga di server live.
+-- Kalau kosong: RegisterKeyframeSequence (hanya Studio; di server live error). Tanpa itu joran tetap tampil tanpa animasi;
+-- kegagalan dicatat sekali dan dilewati supaya skrip ini tidak berhenti.
 local ids = {}
 for _, name in ipairs({"FishingIdle", "FishingCast", "FishingReel", "FishingCatch"}) do
-	local ok, id = pcall(function()
-		return KSP:RegisterKeyframeSequence(anims:WaitForChild(name))
-	end)
-	if ok then
-		ids[name] = id
+	local permanent = Fishing.ANIMS[name]
+	if permanent and permanent ~= "" then
+		ids[name] = permanent
 	else
-		warn(`[RodAnim] keyframe {name} not registered: {id}`)
+		local ok, id = pcall(function()
+			return KSP:RegisterKeyframeSequence(anims:WaitForChild(name))
+		end)
+		if ok then
+			ids[name] = id
+		else
+			warn(`[RodAnim] keyframe {name} not registered: {id}`)
+		end
 	end
 end
 

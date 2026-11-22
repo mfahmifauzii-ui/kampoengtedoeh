@@ -71,4 +71,11 @@ return {
 
 	SOIL_DRY = Color3.fromRGB(150, 100, 58), -- terrain material "Ground" (warm furrow brown)
 	SOIL_WET = Color3.fromRGB(96, 62, 38), -- terrain material "Mud"
+
+	-- Animasi tanam/siram (Roadmap §12.4 pola sama dengan Fishing.ANIMS): ID Animation PERMANEN hasil Publish to Roblox.
+	-- Kosong = pakai sequence dari ReplicatedStorage.CustomAnims (hanya jalan di Studio).
+	ANIMS = {
+		FarmPlant = "rbxassetid://72416432910267",
+		FarmWater = "rbxassetid://106687765397165",
+	} :: { [string]: string },
 }
