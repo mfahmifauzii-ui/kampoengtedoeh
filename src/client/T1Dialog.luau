@@ -388,11 +388,13 @@ local function setAvatar(model: Model?)
 	end
 end
 
--- Minimize / restore (GUI doc Bab 5.1, owner rule): the box shrinks toward the NPC's avatar and grows back from that same
--- point. Used when an instruction line swaps its text (the turn is kept) and when it closes or reopens with Next.
-local MINIMIZE_SECONDS = 0.18 -- Quad In
-local RESTORE_SECONDS = 0.22 -- Back Out for the scale, Quad Out for the fade
-local MINIMIZED_SCALE = 0.2
+-- Minimize / restore (GUI doc Bab 5.1, owner rule), Windows-style: Minimize drops the box down to the bottom edge (the pivot is
+-- its bottom centre), shrinking and fading it. Restore rises it back from the bottom edge to its place, growing and fading in.
+-- The box's final position and layout never change: Show always sets the rest position.
+local MINIMIZE_SECONDS = 0.2 -- Quad In
+local RESTORE_SECONDS = 0.25 -- Back Out for the scale (a small overshoot), Quad Out for the fade
+local MINIMIZED_SCALE = 0.3
+local BOTTOM_EDGE = UDim2.fromScale(0.5, 1) -- bottom middle of the screen: the box drops to it and rises from it
 local animations: { Tween } = {}
 
 local function stopAnimations()
@@ -400,24 +402,6 @@ local function stopAnimations()
 		tween:Cancel()
 	end
 	table.clear(animations)
-end
-
--- The NPC's avatar on screen, in pixels from the top left (the screen ignores the inset). Nil if it is not drawn.
-local function avatarOffset(npcId: string?): UDim2?
-	if not npcId then
-		return nil
-	end
-	local model = T1Dialog.NpcModel(npcId)
-	local head = model and model:FindFirstChild("Head")
-	local camera = Workspace.CurrentCamera
-	if not head or not head:IsA("BasePart") or not camera then
-		return nil
-	end
-	local point = camera:WorldToViewportPoint(head.Position)
-	if point.Z <= 0 then
-		return nil
-	end
-	return UDim2.fromOffset(point.X, point.Y)
 end
 
 -- Shows (or updates) the dialog. Non-blocking: with showNext, onNext fires when the player presses Next.
@@ -496,16 +480,15 @@ function T1Dialog.Show(opts: Options)
 	screen.Enabled = player:GetAttribute("FishingActive") ~= true
 end
 
--- Shrinks the box toward the NPC's avatar (or down to the bottom middle) and fades it. Yields until the animation is over.
+-- Drops the box down to the bottom edge (scale to MINIMIZED_SCALE, fade out). Yields until the animation is over.
 -- The box keeps its turn (the caller decides what follows). Does nothing when no box is on screen.
-function T1Dialog.Minimize(npcId: string?)
+function T1Dialog.Minimize()
 	if not box or not boxScale or not dialogWanted then
 		return
 	end
 	stopAnimations()
-	local target = avatarOffset(npcId) or UDim2.fromScale(0.5, 1)
 	local info = TweenInfo.new(MINIMIZE_SECONDS, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-	local move = TweenService:Create(box, info, { Position = target, GroupTransparency = 1 })
+	local move = TweenService:Create(box, info, { Position = BOTTOM_EDGE, GroupTransparency = 1 })
 	local shrink = TweenService:Create(boxScale, info, { Scale = MINIMIZED_SCALE })
 	table.insert(animations, move)
 	table.insert(animations, shrink)
@@ -514,14 +497,14 @@ function T1Dialog.Minimize(npcId: string?)
 	task.wait(MINIMIZE_SECONDS) -- timed, not Completed: a cancelled tween (Hide) must not leave this waiting forever
 end
 
--- Sets the content (Show) and grows the box back from the NPC's avatar point. Non-blocking.
-function T1Dialog.Restore(opts: Options, npcId: string?)
+-- Sets the content (Show), then rises from the bottom edge back to its place while growing and fading in. Non-blocking.
+function T1Dialog.Restore(opts: Options)
 	T1Dialog.Show(opts)
 	if not box or not boxScale then
 		return
 	end
 	local rest = box.Position
-	box.Position = avatarOffset(npcId) or UDim2.fromScale(0.5, 1)
+	box.Position = BOTTOM_EDGE
 	boxScale.Scale = MINIMIZED_SCALE
 	box.GroupTransparency = 1
 	stopAnimations()

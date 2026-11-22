@@ -521,21 +521,18 @@ end
 -- and the instruction restores afterwards with the current step's text, unless the player closed it for that step.
 local instrRelease: (() -> boolean)? = nil -- the box turn the instruction holds (on screen, or swapping)
 local instrKey: string? = nil -- the sink key of the instruction on screen or waiting for the box
-local instrNpc: string? = nil -- the speaker's NPC id: the point the box minimizes to and restores from
 
 -- Closes the instruction: the box minimizes toward the speaker, then the turn goes back and the box hides. Yields during the
 -- minimize, so call it from a task (task.spawn when the caller must not yield). forgetLine also forgets the line (step over).
 local function closeInstruction(forgetLine: boolean)
 	local release = instrRelease
-	local npc = instrNpc
 	instrRelease = nil
 	instrKey = nil
-	instrNpc = nil
 	if forgetLine then
 		lastLine = nil
 	end
 	if release then
-		T1Dialog.Minimize(npc)
+		T1Dialog.Minimize()
 		if release() then
 			T1Dialog.Hide()
 		end
@@ -561,18 +558,15 @@ end
 -- The step changed while the instruction holds the box: minimize toward the old speaker, then restore with the new text.
 -- The turn is kept, so no queued line can take the box in between.
 local function swapInstruction(line: Line, key: string)
-	local previous = instrNpc
-	local speaker = SPEAKERS[line.who] or SPEAKERS.mak_sari
 	instrKey = key
-	instrNpc = speaker.npc
 	lastLine = line
 	lineDismissed = false
 	task.spawn(function()
-		T1Dialog.Minimize(previous)
+		T1Dialog.Minimize()
 		if instrRelease == nil or instrKey ~= key then
 			return -- closed meanwhile
 		end
-		T1Dialog.Restore(instructionOpts(line), speaker.npc)
+		T1Dialog.Restore(instructionOpts(line))
 	end)
 end
 
@@ -589,7 +583,6 @@ local function showInstruction(line: Line, key: string)
 	end
 	local speaker = SPEAKERS[line.who] or SPEAKERS.mak_sari
 	instrKey = key
-	instrNpc = speaker.npc
 	task.spawn(function()
 		local release = T1Dialog.Acquire(speaker.npc, T1Dialog.AMBIENT, function()
 			return sinkKey ~= key or dialogBusy or activeStepId(guideData()) ~= step
@@ -597,12 +590,11 @@ local function showInstruction(line: Line, key: string)
 		if not release then
 			if instrKey == key then
 				instrKey = nil
-				instrNpc = nil
 			end
 			return
 		end
 		instrRelease = release
-		T1Dialog.Restore(instructionOpts(line), speaker.npc)
+		T1Dialog.Restore(instructionOpts(line))
 	end)
 end
 
