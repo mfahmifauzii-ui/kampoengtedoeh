@@ -296,8 +296,9 @@ Aturan: satu bug = satu commit, dengan Cara Cek (selene, rojo build, grep / file
 
 ### 12.4 Rencana B-5 (status: kode selesai, belum diuji di Studio)
 
-**Catatan belum bisa dibenerin (per 2026-11-22):**
-- **Animasi memancing dan tanam (B-5).** ID permanen sudah dimasukkan (commit `1ce551c`, belum diuji di Studio): memancing di `Config/Fishing.ANIMS` (FishingIdle, FishingCast, FishingReel, FishingCatch), tanam/siram di `Config/Farm.ANIMS` (FarmPlant, FarmWater). `FarmFx` dan `RodAnimController` memakai ID ini dulu dan kembali ke sequence `CustomAnims` hanya bila ID kosong.
+**Animasi (B-5, belum diuji di Studio):** ID permanen ada di commit `1ce551c`: memancing di `Config/Fishing.ANIMS` (FishingIdle, FishingCast, FishingReel, FishingCatch), tanam/siram di `Config/Farm.ANIMS` (FarmPlant, FarmWater). `FarmFx` dan `RodAnimController` memakai ID ini dulu dan kembali ke sequence `CustomAnims` hanya bila ID kosong. Checklist playtest ada di bawah.
+
+**Catatan terbuka di luar B-5 (per 2026-11-22):**
 - **Bag tanpa kapasitas (B-3).** `InventoryService.CanAdd` hanya cek item valid, jadi "tas penuh" tidak pernah terjadi. Perlu keputusan owner: beri kapasitas tas atau hapus syarat "tas penuh" dari playtest.
 - **B-1 belum diukur di Studio.** Target < 0.3 dtk hanya bisa dicek dengan log `[beat-timing]` di Output.
 - **Feature gate (Q-2)**: server selesai (`494f65f`), klien sebagian (Q-2b, lihat §10). **Q-3..Q-5** belum dikerjakan; B-3 (gate kolam) sudah ada gerbang klien di tombol Kolam.
