@@ -1498,6 +1498,30 @@ UiKit.TOAST_WIDTH_SHARE = 0.5 -- at most half the screen wide
 UiKit.TOAST_LEFT = UiKit.HUD.MARGIN + UiKit.HUD.TRACKER_W + UiKit.HUD.GAP -- right of the quest tracker
 UiKit.TOAST_RIGHT = UiKit.HUD.MENU_W + UiKit.HUD.MARGIN + UiKit.HUD.GAP -- left of the right menu column
 
+-- B-2: ONE toast component for every feature (level up, unlock, reward, quest, errors, collection, fishing).
+-- Anchor: exactly centred on the screen (X scale 0.5), below the currency bar (read from the bar, not hard-coded), and never
+-- wider than the room between the quest tracker and the right menu column. When that room is narrower than the tracker
+-- (narrow portrait), the stack drops under the quest tracker instead, with the tracker's width.
+-- Chips stack downwards, newest at the bottom, at most TOAST_MAX_VISIBLE on screen (HudController queues the rest). Each chip
+-- fades in and out (CanvasGroup GroupTransparency, TOAST_FADE).
+UiKit.TOAST_FADE = 0.25 -- seconds: fade in and out of one chip (UI motion, Lampiran D #48)
+UiKit.TOAST_PAD_X = 14 -- px: inside a chip, left and right
+UiKit.TOAST_PAD_Y = 8 -- px: inside a chip, top and bottom
+UiKit.TOAST_MIN_H = 40 -- px: the smallest chip (one line)
+local toastOrder = 0
+
+-- The toast width for a viewport: centred, at most TOAST_WIDTH_SHARE of the screen, and no wider than the room between the
+-- quest tracker and the menu column. Too narrow for that room (narrow portrait): the tracker's width (the stack drops below
+-- the tracker, see toastStack). Used by the anchor and by the chip's text measure, so both agree.
+function UiKit.toastWidth(viewWidth: number): number
+	local half = viewWidth / 2 - math.max(UiKit.TOAST_LEFT, UiKit.TOAST_RIGHT)
+	local room = math.min(viewWidth * UiKit.TOAST_WIDTH_SHARE, 2 * half)
+	if room < UiKit.HUD.TRACKER_W then
+		return UiKit.HUD.TRACKER_W
+	end
+	return room
+end
+
 function UiKit.toastStack(screenGui: ScreenGui): Frame
 	local existing = screenGui:FindFirstChild("ToastStack")
 	if existing and existing:IsA("Frame") then
@@ -1521,16 +1545,27 @@ function UiKit.toastStack(screenGui: ScreenGui): Frame
 			return
 		end
 		local view = camera.ViewportSize
-		local left = UiKit.TOAST_LEFT
-		local right = view.X - UiKit.TOAST_RIGHT
-		local width = math.max(0, math.min(view.X * UiKit.TOAST_WIDTH_SHARE, right - left))
 		local bar = screenGui:FindFirstChild("CurrencyBar")
 		local top = 0
 		if bar and bar:IsA("GuiObject") then
 			top = bar.AbsolutePosition.Y + bar.AbsoluteSize.Y + UiKit.TOAST_GAP
 		end
-		stack.Position = UDim2.fromOffset((left + right) / 2, top)
-		stack.Size = UDim2.fromOffset(width, 0)
+		-- Room between the tracker's right edge (TOAST_LEFT) and the menu column (TOAST_RIGHT), centred on the screen.
+		local width = UiKit.toastWidth(view.X)
+		if width <= UiKit.HUD.TRACKER_W then
+			-- Narrow portrait: under the quest tracker, in its column.
+			local playerGui = screenGui.Parent
+			local questUi = if playerGui then playerGui:FindFirstChild("QuestUI") else nil
+			local tracker = if questUi then questUi:FindFirstChild("Tracker") else nil
+			if tracker and tracker:IsA("GuiObject") and tracker.Visible then
+				top = tracker.AbsolutePosition.Y + tracker.AbsoluteSize.Y + UiKit.TOAST_GAP
+			end
+			stack.Position = UDim2.fromOffset(UiKit.HUD.MARGIN + UiKit.HUD.TRACKER_W / 2, top)
+			stack.Size = UDim2.fromOffset(UiKit.HUD.TRACKER_W, 0)
+		else
+			stack.Position = UDim2.new(0.5, 0, 0, top)
+			stack.Size = UDim2.fromOffset(width, 0)
+		end
 	end)
 	stack.Destroying:Connect(function()
 		connection:Disconnect()
@@ -1538,35 +1573,53 @@ function UiKit.toastStack(screenGui: ScreenGui): Frame
 	return stack
 end
 
--- One toast chip in the anchor: a parchment box with wrapped text (no overflow; it grows downwards).
-function UiKit.toastChip(stack: Frame, text: string): Frame
-	local chip = Instance.new("Frame")
+-- One toast chip in the stack. Its height comes from the measured wrapped text (no clipping, no squeezed bar).
+function UiKit.toastChip(stack: Frame, text: string): CanvasGroup
+	local chip = Instance.new("CanvasGroup")
 	chip.Name = "Toast"
-	chip.Size = UDim2.new(1, 0, 0, 0)
-	chip.AutomaticSize = Enum.AutomaticSize.Y
+	chip.GroupTransparency = 1 -- fades in
+	chip.Size = UDim2.new(1, 0, 0, UiKit.TOAST_MIN_H)
 	chip.ZIndex = 6
+	toastOrder += 1
+	chip.LayoutOrder = toastOrder -- newest at the bottom
 	chip.Parent = stack
 	UiKit.parchmentBox(chip)
-	local pad = Instance.new("UIPadding")
-	pad.PaddingLeft = UDim.new(0, 14)
-	pad.PaddingRight = UDim.new(0, 14)
-	pad.PaddingTop = UDim.new(0, 8)
-	pad.PaddingBottom = UDim.new(0, 8)
-	pad.Parent = chip
 	local label = Instance.new("TextLabel")
 	label.Name = "Text"
 	label.BackgroundTransparency = 1
-	label.Size = UDim2.new(1, 0, 0, 0)
-	label.AutomaticSize = Enum.AutomaticSize.Y
+	label.Position = UDim2.fromOffset(UiKit.TOAST_PAD_X, UiKit.TOAST_PAD_Y)
+	label.Size = UDim2.new(1, -2 * UiKit.TOAST_PAD_X, 1, -2 * UiKit.TOAST_PAD_Y)
 	label.Font = UiKit.FONT
 	label.TextSize = UiKit.TEXT_SMALL
 	label.TextColor3 = UiKit.TEXT
 	label.TextWrapped = true
 	label.TextXAlignment = Enum.TextXAlignment.Center
+	label.TextYAlignment = Enum.TextYAlignment.Center
 	label.Text = text
 	label.ZIndex = 7
 	label.Parent = chip
+	-- Height from the text: measure at the chip's real text width (the stack width is set by the anchor each frame).
+	local camera = workspace.CurrentCamera
+	local viewWidth = if camera then camera.ViewportSize.X else 800
+	local width = UiKit.toastWidth(viewWidth)
+	local textWidth = math.max(1, width - 2 * UiKit.TOAST_PAD_X)
+	local ok, measured = pcall(function()
+		return game:GetService("TextService"):GetTextSize(text, UiKit.TEXT_SMALL, Enum.Font.FredokaOne, Vector2.new(textWidth, 1000))
+	end)
+	local textHeight = if ok then (measured :: Vector2).Y else UiKit.TEXT_SMALL
+	chip.Size = UDim2.new(1, 0, 0, math.max(UiKit.TOAST_MIN_H, textHeight + 2 * UiKit.TOAST_PAD_Y))
+	TweenService:Create(chip, TweenInfo.new(UiKit.TOAST_FADE), { GroupTransparency = 0 }):Play() -- fade in
 	return chip
+end
+
+-- Fades a toast chip out, then removes it and calls onDone (HudController frees a slot and shows the next one).
+function UiKit.toastFadeOut(chip: CanvasGroup, onDone: () -> ())
+	local tween = TweenService:Create(chip, TweenInfo.new(UiKit.TOAST_FADE), { GroupTransparency = 1 })
+	tween.Completed:Connect(function()
+		chip:Destroy()
+		onDone()
+	end)
+	tween:Play()
 end
 
 function UiKit.parchmentBox(frame: GuiObject, _radius: number?)

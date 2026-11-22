@@ -422,9 +422,10 @@ local function pumpToasts()
 		visibleToasts += 1
 		local chip = UiKit.toastChip(stack, text)
 		task.delay(TOAST_SECONDS, function()
-			chip:Destroy()
-			visibleToasts -= 1
-			pumpToasts()
+			UiKit.toastFadeOut(chip, function()
+				visibleToasts -= 1
+				pumpToasts()
+			end)
 		end)
 	end
 end
