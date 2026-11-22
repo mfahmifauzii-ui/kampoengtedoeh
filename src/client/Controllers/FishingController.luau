@@ -25,6 +25,7 @@ local UiAssets = require(ReplicatedStorage.Shared.Config.UiAssets)
 local UiKit = require(script.Parent.Parent.UiKit)
 local PlayerLock = require(script.Parent.Parent.PlayerLock)
 local State = require(script.Parent.Parent.State)
+local FeatureClient = require(script.Parent.Parent.FeatureClient)
 
 local REEL_ACTION = "FishingReel"
 local ZONE_WIDTH = 0.3
@@ -449,6 +450,10 @@ local function buildAksi()
 	aksiButton = button
 end
 
+-- Q-2 gates per spot Location, the same map as FishService.SPOT_FEATURE (server). A spot whose feature is closed
+-- gives no button: sungai = kanal_barat, empang = empang, kolam = kolam.
+local SPOT_GATE: { [string]: string } = { sungai = "kanal_barat", empang = "empang", kolam = "kolam" }
+
 local function nearSpot(): boolean
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
@@ -457,7 +462,11 @@ local function nearSpot(): boolean
 	end
 	for _, spot in CollectionService:GetTagged("FishingSpot") do
 		if spot:IsA("BasePart") and (spot.Position - root.Position).Magnitude <= REACH then
-			return true
+			local loc = spot:GetAttribute("Location")
+			local feature = if typeof(loc) == "string" then SPOT_GATE[loc] else nil
+			if feature == nil or FeatureClient.IsOpen(feature) then
+				return true
+			end
 		end
 	end
 	return false

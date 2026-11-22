@@ -11,6 +11,7 @@ local Locale = require(ReplicatedStorage.Shared.Locale)
 local Quests = require(ReplicatedStorage.Shared.Config.Quests)
 local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local State = require(script.Parent.Parent.State)
+local FeatureClient = require(script.Parent.Parent.FeatureClient)
 local UiKit = require(script.Parent.Parent.UiKit)
 
 local player = Players.LocalPlayer
@@ -243,7 +244,8 @@ local function refresh()
 		order = addSlotRows(order, quests.harian and quests.harian.slots, Quests.HARIAN, "quest_harian", TimeKeys.day(os.time() - Quests.DAILY_RESET_HOUR * 3600), quests.harian and quests.harian.day or "")
 		order = addSlotRows(order, quests.mingguan and quests.mingguan.slots, Quests.MINGGUAN, "quest_mingguan", TimeKeys.week(os.time() - Quests.DAILY_RESET_HOUR * 3600), quests.mingguan and quests.mingguan.week or "")
 		local surat = quests.surat
-		if surat and surat.n > 0 then
+		-- Q-2 gate "surat" (client only: the server has no FeatureGate check for surat): row not built while closed.
+		if surat and surat.n > 0 and FeatureClient.IsOpen("surat") then
 			order += 1
 			local row = Instance.new("Frame")
 			row.Name = "surat"

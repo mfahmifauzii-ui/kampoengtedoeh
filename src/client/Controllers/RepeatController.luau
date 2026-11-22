@@ -15,6 +15,7 @@ local Repeat = require(ReplicatedStorage.Shared.Config.Repeat)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local State = require(script.Parent.Parent.State)
+local FeatureClient = require(script.Parent.Parent.FeatureClient)
 local UiKit = require(script.Parent.Parent.UiKit)
 
 local player = Players.LocalPlayer
@@ -215,12 +216,19 @@ local function render()
 		return
 	end
 	local order = 1
-	local bar = UiKit.tabs(panel.list, {
-		{ id = "gerobak", text = Locale.t("repeat.tab.gerobak") },
-		{ id = "pasar", text = Locale.t("repeat.tab.pasar") },
-		{ id = "tamu", text = Locale.t("repeat.tab.tamu") },
-		{ id = "acara", text = Locale.t("repeat.tab.acara") },
-	}, tab, function(id)
+	-- Q-2 gate "gerobak": the Gerobak tab is not built while closed (no tab, no greyed tab); Pasar opens instead.
+	local gerobakOpen = FeatureClient.IsOpen("gerobak")
+	if not gerobakOpen and tab == "gerobak" then
+		tab = "pasar"
+	end
+	local tabs = {}
+	if gerobakOpen then
+		table.insert(tabs, { id = "gerobak", text = Locale.t("repeat.tab.gerobak") })
+	end
+	table.insert(tabs, { id = "pasar", text = Locale.t("repeat.tab.pasar") })
+	table.insert(tabs, { id = "tamu", text = Locale.t("repeat.tab.tamu") })
+	table.insert(tabs, { id = "acara", text = Locale.t("repeat.tab.acara") })
+	local bar = UiKit.tabs(panel.list, tabs, tab, function(id)
 		tab = id
 		render()
 	end)

@@ -16,8 +16,15 @@
 -- Rollback: delete this module and the calls in DialogueController.
 
 local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Signal = require(ReplicatedStorage.Shared.Modules.Signal)
 
 local PromptGate = {}
+
+-- Fired after Show() has restored the prompts, so a system that skipped its own prompt changes while the
+-- conversation was open (FeatureClient, Q-2c) can apply them now.
+PromptGate.Released = Signal.new()
 
 type Entry = { prompt: ProximityPrompt, connection: RBXScriptConnection, changedByOthers: boolean }
 
@@ -54,6 +61,7 @@ function PromptGate.Show()
 		end
 	end
 	table.clear(held)
+	PromptGate.Released:Fire()
 end
 
 function PromptGate.IsHidden(): boolean

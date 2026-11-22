@@ -66,6 +66,10 @@ local function nodePart(nodeId: string): BasePart?
 end
 
 local function nearestNode(): (string?, BasePart?)
+	-- Q-2 gate "hutan" (server MiningService.onHit): no node to hit while the feature is closed.
+	if not FeatureClient.IsOpen("hutan") then
+		return nil, nil
+	end
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	if not root or not root:IsA("BasePart") then

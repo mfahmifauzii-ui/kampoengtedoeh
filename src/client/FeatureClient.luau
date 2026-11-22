@@ -29,6 +29,8 @@ function FeatureClient.IsOpen(id: string): boolean
 	return state == "introduced" or state == "open"
 end
 
+-- While a conversation holds the prompts (PromptGate), nothing is written here. PromptGate.Released re-applies every
+-- prompt once the conversation ends, so a feature that opened during the dialogue shows its prompt right after it.
 local function applyPrompt(prompt: ProximityPrompt)
 	if PromptGate.IsHidden() or not prompt.Parent then
 		return
@@ -96,6 +98,7 @@ function FeatureClient.StartPrompts()
 	end
 	Workspace.DescendantAdded:Connect(track)
 	State.Changed:Connect(applyAllPrompts)
+	PromptGate.Released:Connect(applyAllPrompts)
 end
 
 return FeatureClient

@@ -139,6 +139,10 @@ local function rebuild()
 		UiKit.header(list, "—", order)
 	end
 
+	-- Warung (Q-2 gate "warung"): not built in this panel while the feature is closed; the block is last in rebuild().
+	if not FeatureClient.IsOpen("warung") then
+		return
+	end
 	-- Warung.
 	order += 1
 	if not warung.spot then
