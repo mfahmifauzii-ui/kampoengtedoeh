@@ -68,18 +68,7 @@ local list: { Bundel } = {
 		rewardKoin = 0,
 		rewardFreePond = true,
 	},
-	{
-		id = "kolam_kakek",
-		unlockLevel = 3,
-		size = "6x6",
-		needs = {
-			{ need = "batu", count = 10 },
-			{ need = "kayu", count = 5 },
-			{ need = "early:any", count = 3 },
-		},
-		rewardKoin = 0,
-		rewardKakek = true, -- Kolam Tanah gratis (kolam pertama setelah unlock) + breeding 10% lebih cepat
-	},
+	-- Kolam Kakek dipindah ke Quest M3 "Kolam Kakek" (Quest v0.3 Bab 4.1; Config/Quests m3_kolam_kakek).
 }
 
 local byId: { [string]: Bundel } = {}

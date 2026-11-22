@@ -450,7 +450,7 @@ local function onPlant(player: Player, uid: any, cropId: any)
 	AnalyticsHooks.Step(player, "first_plant")
 	-- Stage 7 quest reports: Misi Utama counts Kangkung only, the Daily counts any planting.
 	QuestService.Report(player, "plant")
-	QuestService.Report(player, `plant_{crop.id}`) -- Starter chain: "plant_bayam" (Config/Quests starter_bayam)
+	QuestService.Report(player, `plant_{crop.id}`) -- Quest S1 Bibit Kedua: "plant_bayam" (Config/Quests s1_bibit)
 	if crop.id == "kangkung" then
 		QuestService.Report(player, "plant_kangkung")
 	end
@@ -623,6 +623,7 @@ function FarmService.HarvestFor(owner: Player, data: Types.PlayerData, tile: Typ
 		BookService.RecordCrop(owner, crop.id, quality) -- Album Ladang: entri per Kualitas (Bab 11)
 	end
 	QuestService.Report(owner, "harvest")
+	QuestService.Report(owner, `harvest_{crop.id}`) -- Quest S7 Sawah: "harvest_padi"
 	return true
 end
 

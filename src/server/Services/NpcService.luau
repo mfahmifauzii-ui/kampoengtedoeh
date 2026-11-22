@@ -15,6 +15,7 @@ local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local MapService = require(script.Parent.MapService)
 local TutorialService = require(script.Parent.TutorialService)
+local QuestService = require(script.Parent.QuestService)
 
 local NpcService = {}
 
@@ -68,6 +69,7 @@ local function adopt(npc: Npcs.Npc): boolean
 				return
 			end
 			Net.Fire("NpcTalk", player, npc.id)
+			QuestService.Report(player, `talk_{npc.id}`) -- Quest S4 "talk_pak_amran", quest giver progress
 		end)
 	end
 	return true
@@ -220,6 +222,7 @@ local function build(npc: Npcs.Npc)
 			return
 		end
 		Net.Fire("NpcTalk", player, npc.id)
+		QuestService.Report(player, `talk_{npc.id}`)
 	end)
 end
 

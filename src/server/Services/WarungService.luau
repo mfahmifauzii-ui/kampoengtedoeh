@@ -184,6 +184,7 @@ local function onBuild(player: Player)
 	end
 	InventoryService.Sync(player)
 	Net.Fire("Notify", player, "warung.built")
+	QuestService.Report(player, "warung_place") -- Quest M7 langkah 1: Pasang Warung
 end
 
 -- Pajang 1 jenis olahan (semua unit yang dipunyai). Hanya olahan, bukan mentah (Bab 9.3).

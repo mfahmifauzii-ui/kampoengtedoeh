@@ -198,6 +198,7 @@ local function onCraft(player: Player, recipeId: any, times: any)
 		return
 	end
 	Net.Fire("Notify", player, "mine.crafted", { n = times, item = `item.{recipe.itemId}` })
+	QuestService.Report(player, `craft_{recipe.id}`, times :: number) -- Quest M2: "craft_papan"
 end
 
 -- Node parts ------------------------------------------------------------------

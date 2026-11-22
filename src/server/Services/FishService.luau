@@ -349,6 +349,14 @@ local function onReel(player: Player, score: any)
 		if size == "Jumbo" then
 			QuestService.Report(player, "catch_jumbo") -- Side Ikan Jumbo (Bab 14.4)
 		end
+		-- Quest S5 (kanal barat, ikan Mid = rarity U) dan S9 (Empang). Lokasi spot = Config/Fishing "sungai" / "empang".
+		local spotLocation = session.spot:GetAttribute("Location")
+		if spotLocation == "sungai" and fish.rarity == "U" then
+			QuestService.Report(player, "catch_mid_kanal")
+		end
+		if spotLocation == "empang" then
+			QuestService.Report(player, "catch_empang")
+		end
 		if session.spot:GetAttribute("Location") == "kolam" then
 			QuestService.Report(player, "catch_pond")
 		end

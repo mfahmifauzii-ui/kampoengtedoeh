@@ -121,7 +121,8 @@ local function onGive(player: Player, bundelId: any, itemId: any, count: any)
 		end
 		InventoryService.Sync(player)
 		Net.Fire("Notify", player, "bundel.done", { bundel = `bundel.{def.id}` })
-		QuestService.Report(player, "bundel_done") -- MQ10 Bundel Pertama
+		QuestService.Report(player, "bundel_done")
+		QuestService.Report(player, `bundel_{def.id}`) -- Quest M9: "bundel_sumur_tua"
 	end
 	InventoryService.Sync(player)
 end

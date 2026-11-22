@@ -528,6 +528,7 @@ local function onEat(player: Player, itemId: any)
 	publishBuff(player, buffId, dur, endsAt)
 	InventoryService.Sync(player)
 	Net.Fire("Notify", player, "dapur.buff", { buff = `buff.{buffId}` })
+	QuestService.Report(player, "eat") -- Quest M6 langkah 3: Makan 1 olahan
 end
 
 function DapurService.Init()

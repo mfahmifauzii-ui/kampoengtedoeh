@@ -279,6 +279,11 @@ local function canTouch(player: Player, data: Types.PlayerData, hewanId: string?
 end
 
 -- Bangun (tier 1) / upgrade (tier 2) kandang.
+-- Lazy require: QuestService requires this module, so a top-level require here would be a cycle.
+local function reportQuest(player: Player, event: string, amount: number?)
+	require(script.Parent.QuestService).Report(player, event, amount)
+end
+
 local function onKandang(player: Player, hewanId: any, tier: any)
 	if typeof(hewanId) ~= "string" or (tier ~= 1 and tier ~= 2) then
 		return
@@ -319,6 +324,7 @@ local function onKandang(player: Player, hewanId: any, tier: any)
 		buildOne(plot, player, hewanId, data.ranch.kandang[hewanId])
 		InventoryService.Sync(player)
 		Net.Fire("Notify", player, "ranch.built", { item = `hewan.{hewanId}` })
+		reportQuest(player, `kandang_{hewanId}`) -- Quest S8 (kandang_bebek), M5 (kandang_ayam) bila dibangun
 	else
 		if not entry or entry.tier ~= 1 then
 			return
@@ -369,6 +375,7 @@ local function onHewan(player: Player, hewanId: any)
 	table.insert(entry.animals, { feed = 0, prod = 0, last = os.time() })
 	InventoryService.Sync(player)
 	Net.Fire("Notify", player, "ranch.bought", { item = `hewan.{hewanId}` })
+	reportQuest(player, `beli_{hewanId}`) -- Quest S8 langkah 2: "beli_bebek"
 end
 
 -- Isi pakan penuh 1 kandang: "koin" (semua ekor, bayar per jatah), "jagung" (ayam saja,
@@ -464,6 +471,7 @@ local function onPakan(player: Player, hewanId: any, kind: any)
 		local added = fillHungriest(entry, take, maxFeed)
 		InventoryService.Sync(player)
 		Net.Fire("Notify", player, "ranch.pakan", { n = added })
+		reportQuest(player, "feed_animal") -- Quest M5 langkah 1 (pakan jagung)
 		return
 	end
 	local maxFeed = feedMax(data)
@@ -488,6 +496,7 @@ local function onPakan(player: Player, hewanId: any, kind: any)
 	end
 	InventoryService.Sync(player)
 	Net.Fire("Notify", player, "ranch.fed", { n = missing })
+	reportQuest(player, "feed_animal") -- Quest M5 langkah 1: Isi pakan ayam
 end
 
 -- Ambil semua produk 1 kandang (1 tombol di depan kandang / panel). XP per produk (CABANG DIHAPUS, P2-4).
@@ -525,6 +534,9 @@ function RanchService.Collect(player: Player, hewanId: string)
 		ProgressionService.AddXp(player, xp, `ranch:{hewanId}`)
 	end
 	Net.Fire("Notify", player, "ranch.collected", { n = count, item = `item.{hewan.product.item}` })
+	if hewan.product.item == "telur_ayam" or hewan.product.item == "telur_bebek" then
+		reportQuest(player, "collect_egg", count) -- Quest M5 langkah 2: Ambil 1 telur
+	end
 	-- Mood Hujan: produk yang diambil di window +10% Koin (Bab 7.1, LOCKED).
 	if RanchService.MoodActive(data) then
 		local bonus = math.floor(count * hewan.product.sell * Ranch.MOOD_KOIN_MULT + 0.5)

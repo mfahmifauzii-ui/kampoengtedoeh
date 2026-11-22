@@ -28,6 +28,8 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 
 	StateSync = "Event", -- S->C (snapshot: items, slots, tiers, rods) — see InventoryService
 	StateRequest = "Event", -- C->S () ask for a fresh snapshot
+	QuestReport = "Event", -- C->S (event: string) UI-only quest events: agenda_open, gerobak_view, surat_read (QuestService whitelist)
+	KakekSetor = "Event", -- C->S () setor 10 Batu + 5 Kayu + 3 ikan Early untuk Kolam Kakek (Quest M3 langkah 1; server cek barang)
 	NpcTalk = "Event", -- S->C (npcId: string) the player pressed "Ngobrol": open the dialogue
 	Sell = "Event", -- C->S (npcId: string, itemId: string | "all", amount: number?)
 	ShopBuy = "Event", -- C->S (npcId: string, kind: "rod"|"bait"|"upgrade"|"seed"|"fish"|"tool", id: string, amount: number?)

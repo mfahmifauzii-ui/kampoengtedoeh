@@ -190,7 +190,7 @@ local TUTORIALS: { Tutorial } = {
 				-- XP top-up so the tutorial ends just under Lv 2 (230 XP, Config/Progression xpToNext(1)). Tutorial XP before
 				-- this step: 1+1+1 (cangkul/tanam/siram) + 20 (panen_jual) + 20 (mancing) = 43. Free seeds: 6 x kangkung (12 XP
 				-- each) = 72. 230 - 72 - 43 = 115. After the tutorial the player is at 158 + the 1st harvest (12) = 170, and
-				-- harvesting the 5 seeds left (5 x 12 = 60) reaches 230 -> Lv 2 -> the Kolam quest (Config/Quests kolam_pertama).
+				-- harvesting the 5 seeds left (5 x 12 = 60) reaches 230 -> Lv 2 -> the Kolam quest (Config/Quests m3_kolam_kakek).
 				reward = { xp = 115 },
 			},
 		},

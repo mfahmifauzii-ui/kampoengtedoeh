@@ -1,12 +1,12 @@
 --!strict
--- Default save for a NEW player (version 72, Kampoeng_Tedoeh_v7.3 Bab 28). ProfileStore:Reconcile()
+-- Default save for a NEW player (version 73, Quest v0.3 Q-1; Kampoeng_Tedoeh_v7.3 Bab 28). ProfileStore:Reconcile()
 -- adds missing keys. No migration code: the game is unreleased, a changed shape means a new DATA_STAGE in DataService.
 
 local Economy = require(script.Parent.Economy)
 local Types = require(script.Parent.Parent.Types)
 
 local template: Types.PlayerData = {
-	version = 72,
+	version = 73,
 
 	koin = Economy.START_KOIN,
 	bunga = Economy.START_BUNGA,

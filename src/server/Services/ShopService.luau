@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Crops = require(ReplicatedStorage.Shared.Config.Crops)
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local Farm = require(ReplicatedStorage.Shared.Config.Farm)
+local QuestService = require(script.Parent.QuestService)
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
 local Npcs = require(ReplicatedStorage.Shared.Config.Npcs)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
@@ -157,6 +158,8 @@ local function onSell(player: Player, npcId: any, target: any, amount: any)
 		end
 		EconomyService.Add(player, "koin", total, if target == "all" then "sell:all" else `sell:{target}`)
 		Net.Fire("Notify", player, "sell.sold", { n = total }) -- (AnalyticsHooks logs first_sell from the Koin gain)
+		-- Quest S3 Tetangga di Depan: "sell_bang_jali". Bang Jali punya beberapa lapak (bang_jali_1..N), id-nya dibuang angkanya.
+		QuestService.Report(player, "sell_" .. string.gsub(npc.id, "_%d+$", ""))
 		InventoryService.Sync(player)
 		if firstSale then
 			data.guide.saleCutscene = true
@@ -301,6 +304,7 @@ local function buySeed(player: Player, data: Types.PlayerData, cropId: string, a
 	end
 	InventoryService.Add(player, itemId, amount)
 	Net.Fire("Notify", player, "shop.bought_seed", { n = amount, crop = `crop.{crop.id}` })
+	QuestService.Report(player, "buy_seed", amount) -- Quest S1 Bibit Kedua
 	return true
 end
 

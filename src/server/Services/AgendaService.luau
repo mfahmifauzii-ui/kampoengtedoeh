@@ -26,7 +26,8 @@ local function rollAgenda(data: Types.PlayerData, now: number)
 	data.quests.daily = { day = day, kind = pick.id, progress = 0, claimed = false }
 end
 
-local function reportAgenda(player: Player, data: Types.PlayerData, event: string, add: number)
+-- Returns true when this report completed (claimed) one Agenda task; QuestService turns that into "agenda_done".
+local function reportAgenda(player: Player, data: Types.PlayerData, event: string, add: number): boolean
 	rollAgenda(data, os.time())
 	local daily = data.quests.daily
 	local def = nil
@@ -37,31 +38,40 @@ local function reportAgenda(player: Player, data: Types.PlayerData, event: strin
 		end
 	end
 	if not def or def.event ~= event or daily.claimed then
-		return
+		return false
 	end
 	daily.progress = math.min(daily.progress + add, def.count)
 	if daily.progress >= def.count then
 		daily.claimed = true
 		ProgressionService.Grant(player, def.reward, `agenda:{def.id}`)
 		Net.Fire("Notify", player, "quest.done", { title = `agenda.{def.id}.title` })
+		InventoryService.Sync(player)
+		return true
 	end
 	InventoryService.Sync(player)
+	return false
+end
+
+-- Agenda terbuka saat quest M1 "Kampung Hari Ini" mulai atau sudah selesai (Quest v0.3 Bab 5: Tombol Agenda = M1).
+-- M1 sendiri punya langkah "Buka Agenda", jadi gate-nya tidak boleh menunggu M1 selesai.
+function AgendaService.IsOpen(data: Types.PlayerData): boolean
+	return data.quests.done.m1_kampung == true or data.quests.active.m1_kampung ~= nil
 end
 
 function AgendaService.Roll(data: Types.PlayerData, now: number)
-	-- Agenda terbuka setelah Starter Quest Chain selesai (Update owner 2026-11-22, Task 1; Config/Quests starter_pagar).
-	if data.quests.done.starter_pagar ~= true then
+	if not AgendaService.IsOpen(data) then
 		return
 	end
 	rollAgenda(data, now)
 end
 
-function AgendaService.Report(player: Player, event: string, add: number)
+-- Returns true if this report completed an Agenda task.
+function AgendaService.Report(player: Player, event: string, add: number): boolean
 	local data = DataService.Get(player)
-	if not data then
-		return
+	if not data or not AgendaService.IsOpen(data) then
+		return false
 	end
-	reportAgenda(player, data, event, add)
+	return reportAgenda(player, data, event, add)
 end
 
 function AgendaService.Init()

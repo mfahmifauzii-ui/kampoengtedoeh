@@ -1,14 +1,16 @@
 --!strict
--- General quest system (definitions: Config/Quests). Saved in data.quests: `active` quests with their current
--- step and count, `done` quests. Quests start by themselves when the player's level (and any `after` quest)
--- allows. Services report what happened with QuestService.Report(player, event, amount); the matching step
--- advances, and finishing the last step pays the reward through ProgressionService.Grant.
--- The client reads data.quests from the normal state snapshot (InventoryService) and shows the tracker.
+-- General quest system (definitions: Config/Quests, Quest v0.3). Saved in data.quests: `active` quests with their current
+-- step and count, `done` quests. Quests start by themselves when the player's level (and any `after` quest) allows.
+-- Services report what happened with QuestService.Report(player, event, amount); the matching step advances, and
+-- finishing the last step pays the reward through ProgressionService.Grant.
+-- Item steps (`items`) are checked on every report and on join: they complete when the player holds the items
+-- (`consume` takes them). The client reads data.quests from the normal state snapshot (InventoryService).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Quests = require(ReplicatedStorage.Shared.Config.Quests)
+local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local Types = require(ReplicatedStorage.Shared.Types)
 local AgendaService = require(script.Parent.AgendaService)
@@ -22,23 +24,86 @@ local TutorialService = require(script.Parent.TutorialService)
 
 local QuestService = {}
 
--- Selesaikan 1 quest: grant + hook (hewan/kakek/dekor) + notify. Dipakai auto + langkah terakhir + anyOf.
+-- Event yang dikirim klien (dialog / panel yang hanya ada di UI). Selain daftar ini ditolak.
+-- Catatan: server tidak bisa melihat panel ini dibuka; anggap event ini tidak sekuat event server.
+local UI_EVENTS: { [string]: boolean } = {
+	agenda_open = true,
+	gerobak_view = true,
+	surat_read = true,
+}
+
+-- Jumlah barang yang dipegang untuk satu kebutuhan. "early:any" = semua ikan Early (rarity C) apa pun ukurannya.
+local function countNeed(data: Types.PlayerData, need: string): number
+	if need ~= "early:any" then
+		return data.inventory[need] or 0
+	end
+	local total = 0
+	for itemId, n in data.inventory do
+		local fishId = itemId:match("^(.+)@.+$")
+		local fish = fishId and FishConfig.byId[fishId]
+		if fish and fish.rarity == "C" then
+			total += n
+		end
+	end
+	return total
+end
+
+local function holds(data: Types.PlayerData, items: { [string]: number }): boolean
+	for need, n in items do
+		if countNeed(data, need) < n then
+			return false
+		end
+	end
+	return true
+end
+
+-- Ambil `n` barang untuk kebutuhan (dipanggil hanya setelah holds() true).
+local function takeNeed(player: Player, data: Types.PlayerData, need: string, n: number)
+	if need ~= "early:any" then
+		InventoryService.Remove(player, need, n)
+		return
+	end
+	local left = n
+	for itemId, have in data.inventory do
+		local fishId = itemId:match("^(.+)@.+$")
+		local fish = fishId and FishConfig.byId[fishId]
+		if fish and fish.rarity == "C" and left > 0 then
+			local take = math.min(have, left)
+			InventoryService.Remove(player, itemId, take)
+			left -= take
+		end
+	end
+end
+
+local function takeItems(player: Player, data: Types.PlayerData, items: { [string]: number })
+	for need, n in items do
+		takeNeed(player, data, need, n)
+	end
+end
+
+-- Selesaikan 1 quest: grant + hook (kolam/kakek) + notify.
 local function finishQuest(player: Player, data: Types.PlayerData, quest: Quests.Quest)
 	data.quests.active[quest.id] = nil
 	data.quests.done[quest.id] = true
 	ProgressionService.Grant(player, quest.reward, `quest:{quest.id}`)
-	if quest.bonusDecor then
-		data.decor.stock[quest.bonusDecor] = (data.decor.stock[quest.bonusDecor] or 0) + 1
+	if quest.freePond == true then
+		data.pond.freeBuilds += 1
 	end
-	if quest.giveHewan then
-		if not RanchService.Give(player, quest.giveHewan) then
-			return -- kandang penuh / belum ada plot: coba lagi di evaluate berikut (quest tetap aktif)
-		end
-	end
-	if quest.unlockKakek then
+	if quest.unlockKakek == true then
 		data.pond.kakekUnlocked = true
 	end
 	Net.Fire("Notify", player, "quest.done", { title = `quest.{quest.id}.title` })
+end
+
+-- Starts the quest: pemberi memberi hewan (M5) dulu; kalau gagal (kandang penuh / belum ada plot) quest tidak mulai
+-- dan dicoba lagi di evaluate berikut.
+local function startQuest(player: Player, data: Types.PlayerData, quest: Quests.Quest): boolean
+	if quest.giveHewan and not RanchService.Give(player, quest.giveHewan) then
+		return false
+	end
+	data.quests.active[quest.id] = { step = 1, count = 0 }
+	Net.Fire("Notify", player, "quest.new", { title = `quest.{quest.id}.title` })
+	return true
 end
 
 -- No quest at all until the player has finished the tutorial that ends with the fish sale (t1b_kolam, "jual ikan ke Kak Fajar").
@@ -51,33 +116,26 @@ local function startAvailable(player: Player, data: Types.PlayerData): boolean
 	end
 	for _, quest in Quests.list do
 		if
-			data.quests.done[quest.id] == nil
+			quest.blocked == nil
+			and data.quests.done[quest.id] == nil
 			and data.quests.active[quest.id] == nil
 			and data.level >= quest.unlockLevel
 			and (quest.after == nil or data.quests.done[quest.after] == true)
-			and (quest.requireTutorial ~= true or data.guide.done.t1_awal == true)
-			and (quest.requireKakek ~= true or data.pond.kakekUnlocked == true)
 			and (quest.requireAlbum == nil or BookService.AlbumPercent(player) >= quest.requireAlbum)
 		then
 			if quest.auto == true then
-				-- MQ1/MQ4/MQ6, Side Kolektor: selesai saat mulai. Give dulu (gagal = coba lagi
-				-- di evaluate berikut, tanpa active entry supaya tidak macet).
-				if not quest.giveHewan or RanchService.Give(player, quest.giveHewan) then
-					data.quests.active[quest.id] = { step = 1, count = 0 }
+				-- Selesai saat mulai (MQ12, Side Kolektor). Give hewan (kalau ada) dulu; gagal = coba lagi berikutnya.
+				if startQuest(player, data, quest) then
 					started = true
-					Net.Fire("Notify", player, "quest.new", { title = `quest.{quest.id}.title` })
 					finishQuest(player, data, quest)
 				end
-			else
-				data.quests.active[quest.id] = { step = 1, count = 0 }
+			elseif startQuest(player, data, quest) then
 				started = true
-				Net.Fire("Notify", player, "quest.new", { title = `quest.{quest.id}.title` })
 			end
 		end
 	end
 	return started
 end
-
 
 -- Agenda (Bab 14.5): 5 tugas dipilih player, reset 05:00 WIB. Logika di AgendaService (P2-7);
 -- QuestService.Report meneruskannya. Roll awal dilakukan AgendaService saat join.
@@ -140,7 +198,48 @@ local function reportSlots(player: Player, slots: { any }, pool: { any }, label:
 	end
 end
 
-function QuestService.Report(player: Player, event: string, amount: number?)
+-- Maju selama langkah aktif sudah selesai (event tercapai DAN barang ada). Langkah tanpa event selesai begitu barang ada.
+-- Mengembalikan true kalau ada perubahan. Quest selesai di langkah terakhir.
+local function advance(player: Player, data: Types.PlayerData, quest: Quests.Quest, progress: { step: number, count: number }): boolean
+	local changed = false
+	while true do
+		local step = quest.steps[progress.step]
+		if not step then
+			return changed
+		end
+		local eventDone = step.event == nil or progress.count >= step.count
+		local itemsOk = step.items == nil or holds(data, step.items)
+		if not (eventDone and itemsOk) or (step.event == nil and step.items == nil) then
+			return changed
+		end
+		if step.items and step.consume == true then
+			takeItems(player, data, step.items)
+		end
+		changed = true
+		if progress.step >= #quest.steps then
+			finishQuest(player, data, quest)
+			return true
+		end
+		progress.step += 1
+		progress.count = 0
+		Net.Fire("Notify", player, "quest.step", { title = `quest.{quest.id}.title` })
+	end
+end
+
+-- Quest anyOf (MQ11): langkah mana pun yang cocok dihitung; selesai saat salah satunya tuntas.
+local function reportAnyOf(player: Player, data: Types.PlayerData, quest: Quests.Quest, progress: { step: number, count: number }, event: string, add: number)
+	for _, alt in quest.steps do
+		if alt.event == event then
+			progress.count += add
+			if progress.count >= alt.count then
+				finishQuest(player, data, quest)
+			end
+			return
+		end
+	end
+end
+
+local function reportEvent(player: Player, event: string, amount: number?)
 	local data = DataService.Get(player)
 	if not data then
 		return
@@ -149,7 +248,9 @@ function QuestService.Report(player: Player, event: string, amount: number?)
 		return -- Playtest 7: nothing is counted while the tutorial runs (no quest, Agenda, Harian, Mingguan, Surat)
 	end
 	local add = amount or 1
-	AgendaService.Report(player, event, add) -- Agenda 5 tugas (P2-7)
+	if AgendaService.Report(player, event, add) then -- Agenda 5 tugas (P2-7); true = satu tugas selesai
+		QuestService.Report(player, "agenda_done")
+	end
 	SuratService.Report(player, event, add) -- Surat Kakek 30 (P2-7-fix)
 	rollHarian(data, os.time())
 	rollMingguan(data, os.time())
@@ -159,33 +260,18 @@ function QuestService.Report(player: Player, event: string, amount: number?)
 
 	for questId, progress in data.quests.active do
 		local quest = Quests.byId[questId]
-		if quest and not quest.auto then
+		if quest then
 			if quest.anyOf == true then
-				-- MQ11: langkah mana pun yang cocok dihitung; selesai saat salah satunya tuntas.
-				for _, alt in quest.steps do
-					if alt.event == event then
-						changed = true
-						progress.count += add
-						if progress.count >= alt.count then
-							finishQuest(player, data, quest)
-						end
-						break
-					end
-				end
+				changed = true
+				reportAnyOf(player, data, quest, progress, event, add)
 			else
 				local step = quest.steps[progress.step]
 				if step and step.event == event then
 					changed = true
 					progress.count += add
-					if progress.count >= step.count then
-						if progress.step >= #quest.steps then
-							finishQuest(player, data, quest) -- langkah terakhir
-						else
-							progress.step += 1
-							progress.count = 0
-							Net.Fire("Notify", player, "quest.step", { title = `quest.{questId}.title` })
-						end
-					end
+				end
+				if advance(player, data, quest, progress) then
+					changed = true
 				end
 			end
 		end
@@ -197,7 +283,19 @@ function QuestService.Report(player: Player, event: string, amount: number?)
 	end
 end
 
--- On join: rolls today's Daily (Stage 7) and starts any quest the player now qualifies for.
+function QuestService.Report(player: Player, event: string, amount: number?)
+	reportEvent(player, event, amount)
+end
+
+-- Event dari klien untuk UI yang tidak punya remote sendiri (buka Agenda, lihat Gerobak, baca Surat).
+local function onUiReport(player: Player, event: any)
+	if typeof(event) ~= "string" or UI_EVENTS[event] ~= true then
+		return
+	end
+	reportEvent(player, event, 1)
+end
+
+-- On join: rolls today's Daily and starts any quest the player now qualifies for.
 local function evaluate(player: Player)
 	local data = DataService.Get(player)
 	if not data then
@@ -217,10 +315,26 @@ local function evaluate(player: Player)
 		rollMingguan(data, os.time())
 	end
 	startAvailable(player, data)
+	for questId, progress in data.quests.active do
+		local quest = Quests.byId[questId]
+		if not quest then
+			data.quests.active[questId] = nil -- quest yang sudah dihapus dari Config (save lama)
+		elseif quest.anyOf ~= true then
+			advance(player, data, quest, progress) -- langkah barang (tanpa event) bisa sudah terpenuhi
+		end
+	end
+	startAvailable(player, data)
 	InventoryService.Sync(player)
 end
 
+-- Setor Kolam Kakek: hanya berpengaruh bila M3 sedang di langkah 1 dan barangnya ada (cek di advance()).
+local function onKakekSetor(player: Player)
+	reportEvent(player, "kakek_setor", 1)
+end
+
 function QuestService.Init()
+	Net.On("QuestReport", onUiReport, { rate = 4, burst = 8 })
+	Net.On("KakekSetor", onKakekSetor, { rate = 2, burst = 4 })
 	DataService.Loaded:Connect(evaluate)
 	ProgressionService.LevelUp:Connect(evaluate)
 	TutorialService.Finished:Connect(function(player: Player, tutorialId: string)
