@@ -1125,6 +1125,15 @@ end
 -- guide flag from the server), says the lines and ends.
 local SALE_BEAT_DISTANCE = Onboarding.SALE_BEAT_RADIUS -- studs (flat) between the player and the NPC when the beat starts; the server sell range is Shop.NPC_DISTANCE
 
+-- B-1 timing log: os.clock() when the trigger fires (tryStartBeat), then each milestone of the beat. Set false to silence.
+local BEAT_TIMING_LOG = true
+local beatEnteredAt: number? = nil
+local function beatLog(label: string)
+	if BEAT_TIMING_LOG and beatEnteredAt then
+		print(`[beat-timing] {label} +{string.format("%.3f", os.clock() - beatEnteredAt)}s`)
+	end
+end
+
 type Beat = {
 	step: string, -- the tutorial step that is live
 	npc: string, -- Config/Npcs id
@@ -1328,20 +1337,20 @@ local function runGiftBeat(beat: Beat, _guide: any)
 	-- 22): otherwise the player can press it while he is still walking in. Shown again in restore().
 	PromptGate.Hide()
 
-	-- 1. Walk up in front of him (normal camera), then the talk camera (same as Pak Udin's and Mak Sari's).
+	-- 1. B-1 (playtest 2026-11-22): the beat starts on the trigger frame. The old walk (MoveTo a stand point 5 studs away,
+	-- then up to 6 s of polling before Cutscene.Begin) was the delay. The player is already inside SALE_BEAT_RADIUS
+	-- (dueBeat), so the hold starts now; only a player outside the radius is moved (PivotTo, as in runSaleBeat).
 	local facing = npcRig:GetPivot().LookVector
 	local front = Vector3.new(facing.X, 0, facing.Z).Unit
 	local npcPos = head.Position
 	local stand = npcPos + front * 5
-	humanoid.WalkSpeed = 16
-	humanoid:MoveTo(Vector3.new(stand.X, root.Position.Y, stand.Z))
-	local waited = 0
-	while waited < 6 and (Vector3.new(root.Position.X, 0, root.Position.Z) - Vector3.new(stand.X, 0, stand.Z)).Magnitude > 3 do
-		task.wait(0.1)
-		waited += 0.1
-	end
 	humanoid:MoveTo(root.Position)
 	endCutscene = Cutscene.Begin(npcRig, head, true)
+	beatLog("gift: Cutscene.Begin")
+	local flatNow = (Vector3.new(root.Position.X, 0, root.Position.Z) - Vector3.new(npcPos.X, 0, npcPos.Z)).Magnitude
+	if flatNow > SALE_BEAT_DISTANCE and character then
+		character:PivotTo(CFrame.lookAt(Vector3.new(stand.X, root.Position.Y, stand.Z), Vector3.new(npcPos.X, root.Position.Y, npcPos.Z)))
+	end
 	task.wait(0.9)
 
 	-- 2. He turns to the player, then the gift bubble (one button).
@@ -1419,6 +1428,7 @@ local function runBeat(beat: Beat, guide: any)
 	local npcPos = head.Position
 	local stand = npcPos + front * 5
 	local endCutscene = Cutscene.Begin(npcRig, head, true)
+	beatLog("sale: Cutscene.Begin")
 	local flatDistance = (Vector3.new(root.Position.X, 0, root.Position.Z) - Vector3.new(npcPos.X, 0, npcPos.Z)).Magnitude
 	if flatDistance > Onboarding.SALE_BEAT_RADIUS then
 		character:PivotTo(CFrame.lookAt(Vector3.new(stand.X, root.Position.Y, stand.Z), Vector3.new(npcPos.X, root.Position.Y, npcPos.Z)))
@@ -1547,6 +1557,7 @@ local function tryStartBeat()
 	local due = if guideModule then dueBeat() else nil
 	if due then
 		beatRan[due.step] = true
+		beatEnteredAt = os.clock() -- B-1: trigger frame (player inside SALE_BEAT_RADIUS)
 		local guideRef = guideModule
 		task.spawn(function()
 			local ok, err = pcall(if due.kind == "gift" then runGiftBeat else runBeat, due, guideRef)

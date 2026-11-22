@@ -25,7 +25,7 @@ local player = Players.LocalPlayer
 local NPC_ID = "kak_fajar"
 local COPY_NAME = "KakFajar_Tutorial_Local" -- T1Dialog.NpcModel looks this name up for "kak_fajar"
 local IDLE_ANIMATION = "rbxassetid://507766666" -- same idle as NpcService (town NPCs)
-local CHECK_SECONDS = 0.25
+local CHECK_SECONDS = 0.1 -- B-1: 0.25 -> 0.1 s, so the copy exists within 0.1 s of the step going live (beat trigger reads it)
 
 -- Ground rules (Playtest 8, item 1). A point is ground when a collidable, non-foliage part (or terrain) with a floor-like
 -- normal is hit. Trees, bushes and characters are never ground. The bank is the first ground point that sits within
