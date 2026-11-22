@@ -190,6 +190,8 @@ return {
 	["fish.caught"] = "Dapat {item} ({size})!",
 	["fish.locked"] = "Terbuka di Level {level}",
 	["fish.bait_back"] = "Umpan kembali!",
+	["fish.bait_none"] = "Tanpa umpan",
+	["fish.bait_out"] = "Umpan habis",
 	["fish.lepas"] = "Ikan lepas!",
 	["fish.firasat"] = "Airnya lagi tenang banget... firasatku bagus.",
 	["fish.none_here"] = "Belum ada ikan di sini sekarang",

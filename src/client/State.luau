@@ -8,6 +8,7 @@ local Signal = require(ReplicatedStorage.Shared.Modules.Signal)
 
 export type Snapshot = {
 	items: { [string]: number },
+	bait: { id: string, count: number }?, -- F-3: the bait a cast uses now (server: InventoryService.ActiveBait); nil = none
 	features: { [string]: string }?, -- Q-2 feature gate: "introduced" | "open" per fitur quest (FeatureClient reads this)
 	playtime: { day: string, seconds: number, claimed: number }, -- Hadiah playtime (seconds is live via the "PlaytimeSec" attribute)
 	pondTier: number,

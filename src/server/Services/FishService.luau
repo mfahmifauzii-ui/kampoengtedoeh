@@ -599,11 +599,9 @@ local function startCast(player: Player, spot: BasePart)
 	end
 	-- Umpan (Bab 6.3): yang pertama dipunyai dari urutan BAITS. Jangkrik = gigitan 30% lebih cepat.
 	local usedBait: Fishing.Bait? = nil
-	for _, bait in Fishing.BAITS do
-		if InventoryService.Remove(player, bait.id, 1) then
-			usedBait = bait
-			break
-		end
+	local activeBait = InventoryService.ActiveBait(data)
+	if activeBait and InventoryService.Remove(player, activeBait.id, 1) then
+		usedBait = activeBait
 	end
 	-- Pity Legenda (Bab 6.5, LOCKED, P2-4): counter per player per jenis Legenda, naik hanya saat
 	-- lemparan di kondisi yang cocok. Lemparan ke-200 dijamin (dikurangi skill Firasat, min 150).

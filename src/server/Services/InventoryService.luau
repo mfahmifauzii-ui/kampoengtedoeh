@@ -73,6 +73,18 @@ local function pondStateFor(data: Types.PlayerData)
 	return out
 end
 
+-- F-3: the bait a cast uses (Fishing.BAITS order, the first one the player owns) and its count. nil when none is owned.
+-- FishService.cast uses the same rule, so the chip and the cast never disagree.
+function InventoryService.ActiveBait(data: Types.PlayerData): (Fishing.Bait?, number)
+	for _, bait in Fishing.BAITS do
+		local count = data.inventory[bait.id] or 0
+		if count > 0 then
+			return bait, count
+		end
+	end
+	return nil, 0
+end
+
 local function buildSnapshot(player: Player, data: Types.PlayerData)
 	local passes = {}
 	for _, pass in Monetization.PASSES do
@@ -80,6 +92,10 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 	end
 	return {
 		items = table.clone(data.inventory),
+		bait = (function()
+			local bait, count = InventoryService.ActiveBait(data)
+			return if bait then { id = bait.id, count = count } else nil
+		end)(),
 		pondTier = Upgrades.tier(data, "pond"),
 		ponds = pondCells(data),
 		pondState = pondStateFor(data), -- breeding per kolam (uid, tier, kakek, breed) untuk UI

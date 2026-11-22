@@ -25,6 +25,7 @@ local UiAssets = require(ReplicatedStorage.Shared.Config.UiAssets)
 local UiKit = require(script.Parent.Parent.UiKit)
 local PlayerLock = require(script.Parent.Parent.PlayerLock)
 local State = require(script.Parent.Parent.State)
+local TweenService = game:GetService("TweenService")
 local FeatureClient = require(script.Parent.Parent.FeatureClient)
 
 local REEL_ACTION = "FishingReel"
@@ -425,6 +426,104 @@ local REACH = 10 -- studs from the player to a spot for the button to show (clie
 local aksiGui: ScreenGui? = nil
 local aksiButton: TextButton? = nil
 
+-- F-3: the bait chip above the rod button. The server decides the bait and the count (snapshot.bait); this only renders.
+local baitChip: Frame? = nil
+local baitLabel: TextLabel? = nil
+local baitScale: UIScale? = nil
+local shownBait: { id: string, count: number }? = nil -- the bait the chip showed last (to see a -1)
+local baitOut = false -- the last bait was used up: "Umpan habis" until a new bait shows up
+
+-- The "-1" that floats up from the chip and a short pulse, on every cast that used one bait.
+local function pulseBait()
+	if not baitChip or not baitScale then
+		return
+	end
+	local pop = Instance.new("TextLabel")
+	pop.AnchorPoint = Vector2.new(0.5, 1)
+	pop.Position = UDim2.new(0.5, 0, 0, 0)
+	pop.Size = UDim2.fromOffset(40, 22)
+	pop.BackgroundTransparency = 1
+	pop.Font = UiKit.FONT
+	pop.TextSize = UiKit.TEXT_BODY
+	pop.TextColor3 = UiKit.RED_TEXT
+	pop.Text = "-1"
+	pop.ZIndex = 6
+	pop.Parent = baitChip
+	local info = TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	TweenService:Create(pop, info, { Position = UDim2.new(0.5, 0, 0, -26), TextTransparency = 1 }):Play()
+	task.delay(0.6, function()
+		pop:Destroy()
+	end)
+	baitScale.Scale = 1.12
+	TweenService:Create(baitScale, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+end
+
+local function renderBait()
+	if not baitChip or not baitLabel then
+		return
+	end
+	local snap = State.current :: any
+	local bait = if snap then snap.bait else nil
+	if bait then
+		baitOut = false
+		local name = Locale.t(`item.{bait.id}`)
+		baitLabel.Text = `{name} x{bait.count}`
+		if shownBait and shownBait.id == bait.id and bait.count < shownBait.count then
+			pulseBait()
+		end
+		shownBait = { id = bait.id, count = bait.count }
+	else
+		if shownBait then
+			baitOut = true -- the last one was used up on the last cast
+		end
+		shownBait = nil
+		baitLabel.Text = if baitOut then Locale.t("fish.bait_out") else Locale.t("fish.bait_none")
+	end
+end
+
+local function makeBaitChip(parent: Instance)
+	local chip = Instance.new("Frame")
+	chip.Name = "BaitChip"
+	chip.AnchorPoint = Vector2.new(0.5, 1)
+	chip.Position = UDim2.new(0.8, 0, 0.67, -50) -- above the rod button (84 px, centred at 0.67 of the screen)
+	chip.Size = UDim2.fromOffset(0, 30)
+	chip.AutomaticSize = Enum.AutomaticSize.X
+	chip.Visible = false
+	chip.ZIndex = 4
+	chip.Parent = parent
+	UiKit.parchmentBox(chip)
+	local scale = Instance.new("UIScale")
+	scale.Parent = chip
+	baitScale = scale
+	local layout = Instance.new("UIListLayout")
+	layout.FillDirection = Enum.FillDirection.Horizontal
+	layout.VerticalAlignment = Enum.VerticalAlignment.Center
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Padding = UDim.new(0, 6)
+	layout.Parent = chip
+	local pad = Instance.new("UIPadding")
+	pad.PaddingLeft = UDim.new(0, 10)
+	pad.PaddingRight = UDim.new(0, 10)
+	pad.Parent = chip
+	-- Placeholder icon: no bait icon asset exists yet (Lampiran D #43).
+	local icon = UiKit.icon(chip, "tas", 20)
+	if icon then
+		icon.LayoutOrder = 1
+	end
+	local baitText = Instance.new("TextLabel")
+	baitText.Name = "Text"
+	baitText.LayoutOrder = 2
+	baitText.BackgroundTransparency = 1
+	baitText.AutomaticSize = Enum.AutomaticSize.X
+	baitText.Size = UDim2.fromOffset(0, 22)
+	baitText.Font = UiKit.FONT
+	baitText.TextSize = UiKit.TEXT_SMALL
+	baitText.TextColor3 = UiKit.TEXT
+	baitText.Parent = chip
+	baitChip = chip
+	baitLabel = baitText
+end
+
 local function buildAksi()
 	aksiGui = Instance.new("ScreenGui")
 	aksiGui.Name = "FishAksi"
@@ -446,6 +545,7 @@ local function buildAksi()
 	button.Parent = aksiGui
 	-- Same round plate as the other round buttons (HUD menu, dock): cream disc, bamboo ring, rod icon.
 	UiKit.plate(button, 84, "pancing")
+	makeBaitChip(aksiGui)
 	button.Activated:Connect(function()
 		Net.Send("FishCast")
 	end)
@@ -482,6 +582,9 @@ local function refreshAksi()
 	local gifted = snap ~= nil and snap.guide ~= nil and snap.guide.rodGift == true
 	local fishing = player:GetAttribute("FishingActive") == true
 	aksiButton.Visible = gifted and not fishing and nearSpot()
+	if baitChip then
+		baitChip.Visible = aksiButton.Visible
+	end
 end
 
 function FishingController.Init()
@@ -490,6 +593,8 @@ function FishingController.Init()
 end
 
 function FishingController.Start()
+	State.Changed:Connect(renderBait)
+	renderBait()
 	Net.Listen("FishState", function(state: any, spot: any)
 		if state == "waiting" and typeof(spot) == "Instance" and spot:IsA("BasePart") then
 			reelFrame.Visible = false
