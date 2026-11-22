@@ -214,9 +214,8 @@ local function scan()
 	for _, child in fishing:GetChildren() do
 		if child:IsA("BasePart") then
 			local location = child:GetAttribute("Location")
-			if location == "sungai" or location == "empang" then
-				track(child, location)
-			elseif location == "kolam" and child:GetAttribute("Owner") == player.UserId then
+			-- Dermaga (kanal barat, sungai lahan, kanal timur) selalu; kolam hanya milik sendiri.
+			if location == "sungai" or location == "sungai_lahan" or location == "empang" or (location == "kolam" and child:GetAttribute("Owner") == player.UserId) then
 				track(child, location)
 			end
 		end

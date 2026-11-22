@@ -52,8 +52,9 @@ return {
 	CAST_DISTANCE = 18, -- studs, server-checked
 
 	LOCATIONS = {
-		sungai = { unlockLevel = 1 }, -- Basic Mancing (dermaga, Lv 1: the tutorial gate is guide.fishingUnlocked, not the level)
-		empang = { unlockLevel = 10 }, -- Pro Mancing
+		sungai_lahan = { unlockLevel = 1 }, -- Sungai lahan (Update owner 2026-11-22): 32 spot di 4 sungai sumbu, Early saja
+		sungai = { unlockLevel = 5 }, -- Kanal barat (dermaga), Lv 5: Mid + Belut Emas (Config/Fish). Mancing tutorial: lihat Onboarding
+		empang = { unlockLevel = 10 }, -- Pro Mancing (kanal timur)
 		kolam = { unlockLevel = 1 }, -- building a kolam (Garap > Kolam) and fishing in it
 	} :: { [string]: { unlockLevel: number } },
 

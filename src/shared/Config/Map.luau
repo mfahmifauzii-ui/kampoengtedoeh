@@ -59,7 +59,7 @@ for slot = 1, 8 do
 end
 
 -- Fishing docks: both banks of the canal, 8 angles each (degrees from +X toward +Z), away from the bridges.
--- West half of the canal = Sungai (Basic Mancing, Lv2), east half = Empang (Pro Mancing, Lv10): same water, same docks; only the fishing
+-- West half of the canal = Sungai (kanal barat, Lv5), east half = Empang (Pro Mancing, Lv10): same water, same docks; only the fishing
 -- location differs.
 local DOCKS: { { angle: number, bank: string, location: string } } = {}
 for _, bank in { "outer", "inner" } do

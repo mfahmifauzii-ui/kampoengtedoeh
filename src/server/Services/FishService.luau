@@ -468,7 +468,7 @@ local function setupSpot(spot: BasePart)
 	local location = spot:GetAttribute("Location")
 	-- Dermaga (sungai / empang): no proximity prompt. The round Mancing button (client AksiButton) casts from them.
 	-- Kolam keeps its own prompt.
-	if location == "sungai" or location == "empang" then
+	if location == "sungai" or location == "sungai_lahan" or location == "empang" then
 		CollectionService:AddTag(spot, SPOT_TAG)
 		return
 	end
@@ -604,7 +604,7 @@ local function buildRiverSpots(fishing: Folder)
 				spot.CanCollide = false
 				spot.CanQuery = false
 				spot.CanTouch = false
-				spot:SetAttribute("Location", "sungai")
+				spot:SetAttribute("Location", "sungai_lahan")
 				spot:SetAttribute("Dir", dir)
 				spot.Parent = fishing
 			end

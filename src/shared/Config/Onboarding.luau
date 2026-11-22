@@ -175,7 +175,7 @@ local TUTORIALS: { Tutorial } = {
 				coach = "tut.coach.mancing", -- A3: the Mancing button (AksiButton) is ringed; cast, then pull, then the first fish
 				highlight = "AksiButton",
 				done = { kind = "fish" },
-				target = { spot = "sungai" }, -- the arrow to the dock (nearest fishing spot of that Location)
+				target = { spot = "sungai_lahan" }, -- the arrow to the nearest river spot (sungai lahan, Lv 1; Task 1 moves it to the plot's own spot)
 				arrive = 6,
 				reward = { xp = 20 }, -- the same 20 XP as the warung step (paid once on the first fish)
 			},

@@ -651,10 +651,12 @@ return {
 	["level.up"] = "Naik ke Level {level}!",
 	["level.up_unlocks"] = "Level {level}! Terbuka: {unlocks}",
 	["location.sungai"] = "Sungai",
+	["location.sungai_lahan"] = "Sungai Lahan",
 	["location.empang"] = "Empang",
 	["location.kolam"] = "Kolam",
 	-- Nama spot mancing (papan di dermaga dan teks prompt). Sungai = Basic, Empang = Pro.
 	["spot.sungai"] = "Basic Mancing",
+	["spot.sungai_lahan"] = "Sungai Lahan",
 	["spot.empang"] = "Pro Mancing",
 	["spot.open"] = "Terbuka",
 	["spot.need"] = "Butuh Lv {level}",
