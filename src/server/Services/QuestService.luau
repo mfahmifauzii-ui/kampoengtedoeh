@@ -43,14 +43,10 @@ end
 
 -- No quest at all until the player has finished the tutorial that ends with the fish sale (t1b_kolam, "jual ikan ke Kak Fajar").
 -- Old saves that never got t1b_kolam stay locked until they finish it, so a quest can never appear in the middle of a tutorial.
-local function tutorialFinished(data: Types.PlayerData): boolean
-	return data.guide.done.t1b_kolam == true or data.guide.skipped.t1b_kolam == true
-end
-
 -- Starts every quest the player now qualifies for. Returns true if something started.
 local function startAvailable(player: Player, data: Types.PlayerData): boolean
 	local started = false
-	if not tutorialFinished(data) then
+	if not TutorialService.KolamDone(data) then
 		return false
 	end
 	for _, quest in Quests.list do
@@ -149,6 +145,9 @@ function QuestService.Report(player: Player, event: string, amount: number?)
 	if not data then
 		return
 	end
+	if not TutorialService.KolamDone(data) then
+		return -- Playtest 7: nothing is counted while the tutorial runs (no quest, Agenda, Harian, Mingguan, Surat)
+	end
 	local add = amount or 1
 	AgendaService.Report(player, event, add) -- Agenda 5 tugas (P2-7)
 	SuratService.Report(player, event, add) -- Surat Kakek 30 (P2-7-fix)
@@ -212,9 +211,11 @@ local function evaluate(player: Player)
 			data.level = wanted
 		end
 	end
-	AgendaService.Roll(data, os.time())
-	rollHarian(data, os.time())
-	rollMingguan(data, os.time())
+	if TutorialService.KolamDone(data) then
+		AgendaService.Roll(data, os.time())
+		rollHarian(data, os.time())
+		rollMingguan(data, os.time())
+	end
 	startAvailable(player, data)
 	InventoryService.Sync(player)
 end
@@ -224,6 +225,13 @@ function QuestService.Init()
 	ProgressionService.LevelUp:Connect(evaluate)
 	TutorialService.Finished:Connect(function(player: Player, tutorialId: string)
 		if tutorialId == "t1b_kolam" then
+			-- Playtest 7: Harian/Mingguan/Agenda start fresh now (progress 0, nothing from the tutorial counted).
+			local data = DataService.Get(player)
+			if data then
+				data.quests.harian = { day = "", slots = {} }
+				data.quests.mingguan = { week = "", slots = {} }
+				data.quests.daily = { day = "", kind = "", progress = 0, claimed = false }
+			end
 			evaluate(player) -- the first quests start the moment the fish-sale tutorial is done
 		end
 	end)

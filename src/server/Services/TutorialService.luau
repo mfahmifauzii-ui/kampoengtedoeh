@@ -17,6 +17,7 @@ local Npcs = require(ReplicatedStorage.Shared.Config.Npcs)
 local Onboarding = require(ReplicatedStorage.Shared.Config.Onboarding)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Signal = require(ReplicatedStorage.Shared.Modules.Signal)
+local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
 local InventoryService = require(script.Parent.InventoryService)
@@ -224,6 +225,12 @@ function TutorialService.NextStep(player: Player): (string?, Onboarding.Step?)
 		return nil, nil
 	end
 	return tutorial.id, tutorial.steps[data.guide.step.n + 1]
+end
+
+-- Tutorial 1 (kolam, ends with the fish sale to Kak Fajar) is finished, or skipped. Until then no quest,
+-- Agenda, Quest Harian/Mingguan, Surat or Order is assigned or counted (Playtest 7, item 1).
+function TutorialService.KolamDone(data: Types.PlayerData): boolean
+	return data.guide.done.t1b_kolam == true or data.guide.skipped.t1b_kolam == true
 end
 
 function TutorialService.NpcBlocked(player: Player, npcId: string?): boolean

@@ -170,6 +170,12 @@ end
 -- the pond for real.
 local KOLAM_QUEST = "kolam_pertama"
 
+-- Playtest 7: no quest UI (tracker, Harian/Mingguan rows, Agenda, Surat) until the tutorial is finished or skipped.
+local function tutorialDone(snapshot: any): boolean
+	local guide = snapshot and snapshot.guide
+	return guide ~= nil and (guide.done.t1b_kolam == true or guide.skipped.t1b_kolam == true)
+end
+
 local function kolamCardWanted(snapshot: any): boolean
 	local step = snapshot and snapshot.guide and snapshot.guide.step
 	return not (step and step.id == "t1b_kolam")
@@ -200,6 +206,10 @@ local function refresh()
 		end
 	end
 	local snapshot = State.current :: any
+	if not tutorialDone(snapshot) then
+		tracker.Visible = false
+		return
+	end
 	local active = snapshot and snapshot.quests and snapshot.quests.active
 	local order = 0
 	-- Stable order: follow the definition list, not pairs() order.

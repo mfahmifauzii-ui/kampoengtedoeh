@@ -80,13 +80,29 @@ local function addOrderRow(order: any, items: { [string]: number }, order_: numb
 	end
 end
 
+-- Playtest 7: the Orders button and panel stay hidden until the tutorial (t1b_kolam) is finished or skipped.
+local function tutorialDone(snapshot: any): boolean
+	local guide = snapshot and snapshot.guide
+	return guide ~= nil and (guide.done.t1b_kolam == true or guide.skipped.t1b_kolam == true)
+end
+
+local function syncButton()
+	local gui = player:FindFirstChild("PlayerGui")
+	local hud = gui and gui:FindFirstChild("HUD")
+	local button = hud and hud:FindFirstChild("OrdersButton", true)
+	if button and button:IsA("GuiObject") then
+		button.Visible = tutorialDone(State.current)
+	end
+end
+
 local function render()
 	if not panel.gui.Enabled then
 		return
 	end
 	UiKit.clear(panel.list)
 	local snapshot = State.current :: any
-	if not snapshot or not snapshot.orders then
+	if not snapshot or not snapshot.orders or not tutorialDone(snapshot) then
+		panel.gui.Enabled = false
 		return
 	end
 	local items = snapshot.items
@@ -197,13 +213,24 @@ end
 
 function OrdersController.Start()
 	State.Changed:Connect(function()
+		syncButton()
 		render()
 		updateGoal()
 	end)
 	player:GetAttributeChangedSignal("XP"):Connect(updateGoal)
 	task.spawn(UiKit.hudButton, "OrdersButton", Locale.t("ui.orders"), 3, function()
+		if not tutorialDone(State.current) then
+			return
+		end
 		panel.gui.Enabled = not panel.gui.Enabled
 		render()
+	end)
+	task.spawn(function()
+		-- the HUD button can be created after the first snapshot: keep its visibility in step with the tutorial
+		while true do
+			syncButton()
+			task.wait(0.5)
+		end
 	end)
 	updateGoal()
 end

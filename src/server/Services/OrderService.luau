@@ -92,6 +92,9 @@ end
 -- Replaces stale daily/weekly sets. Returns true if anything changed.
 local function refresh(data: Types.PlayerData): boolean
 	local changed = false
+	if not TutorialService.KolamDone(data) then
+		return false -- Playtest 7: no Order (daily/weekly) before the tutorial is finished
+	end
 	local today, thisWeek = TimeKeys.day(), TimeKeys.week()
 	if data.orders.day ~= today then
 		data.orders.day = today
@@ -228,6 +231,18 @@ end
 function OrderService.Init()
 	DataService.Loaded:Connect(function(_player: Player, data: Types.PlayerData)
 		refresh(data) -- before the first StateSync goes out
+	end)
+	TutorialService.Finished:Connect(function(player: Player, tutorialId: string)
+		if tutorialId ~= "t1b_kolam" then
+			return
+		end
+		local data = DataService.Get(player)
+		if data then
+			data.orders.day = "" -- force a fresh set of Orders for the first day after the tutorial
+			data.orders.week = ""
+			refresh(data)
+			InventoryService.Sync(player)
+		end
 	end)
 end
 
