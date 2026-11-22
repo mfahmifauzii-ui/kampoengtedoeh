@@ -1,6 +1,6 @@
 # Roadmap Kampoeng Tedoeh — Implementasi v7.5
 
-> Sumber kebenaran: `docs/Kampoeng_Tedoeh_v7.5.md` (v7.4 tetap disimpan sebagai arsip). File ini rencana kerja, bukan dokumen desain. Jangan ubah angka di v7.5 dari file ini.
+> Sumber kebenaran: `docs/Kampoeng_Tedoeh_v7.6.md` (v7.5 dan v7.4 disimpan sebagai arsip). File ini rencana kerja, bukan dokumen desain. Jangan ubah angka di v7.5 dari file ini.
 > Detail file per tugas yang sudah DONE ada di pesan commit (`git log --oneline main..feat/v.7`), tidak diulang di sini.
 
 ## 1. Status Ringkasan (2026-11-22)
@@ -80,7 +80,7 @@ Dokumen v7.5 mencatat perubahan kode dan GUI yang sudah dikerjakan (Bab 0.3.2) s
 
 ## 4. P2 — Sisa (urut, jangan dibalik)
 
-### P2-8. FTUE v7.5 — Bab 16.1-16.5 (BUKAN rebuild FTUE)
+### P2-8. FTUE v7.5 — Bab 16.1-16.5 (BUKAN rebuild FTUE) — **DONE** (owner accepted 2026-11-22)
 
 Prinsip v7.4: FTUE lama (`Config/Onboarding.luau` T1 `t1_awal` + T1b `t1b_kolam`, `T1Ghost.client.luau`, `GuideController.luau`) dipertahankan. Hanya 4 hal di bawah.
 
@@ -194,3 +194,28 @@ Semua di bawah sudah jalan di kode sebagai USULAN interim; final ikut playtest B
 - `rojo build default.project.json` — sukses, tidak ada require hilang.
 - `grep -rni "mutasi|pelangi|greenhouse|rak pajangan|instant_grow|bibit unggul|backpack pass|blueprint gating" src/` — hanya komentar DIHAPUS.
 - Playtest checklist Bab 30 v7.4 (termasuk 4 baris FTUE baru).
+
+## 9. Task Owner 2026-11-22 (Task 1–7, di branch `feat/v.7`)
+
+Dokumen acuan: `docs/Kampoeng_Tedoeh_v7.6.md` (Changelog 0.3.3). Aturan: satu task = satu commit, ada "Cara Cek", tidak mengubah map fisik di Studio, angka tidak dikarang (yang belum ada masuk Lampiran D).
+
+| Task | Commit | Status | Cara Cek (hasil) | Playtest USER |
+|------|--------|--------|------------------|---------------|
+| P2-8 pending + sesi ini | `e34e7fc` | Kode jadi | selene: 0 error di file yang disentuh | Lihat FTUE sampai jual ikan |
+| 4. Mini-game tarik (dokumen) | `4fb87e2` | Dokumen | `grep FILL_GAIN src/client/Controllers/FishingController.luau` = 0.28, cocok dengan Bab 6.2 | Tidak perlu, nilai sudah diterima |
+| 5. Quest tracker | `27ccb1f` | Kode jadi | selene 0 error; `grep MAX_ROWS`, `quest.more` ada | Cek tracker tidak menimpa kartu XP di kiri bawah pada layar landscape pendek |
+| 3. Super dihapus, kualitas cap | `c0a69b0` | Kode jadi | selene 0 error; `grep -i super src` tinggal komentar dan `ftue_super` (sengaja, agar save tidak berubah) | Panen Bagus / Prima dan Buff Tani +10% |
+| 2. Sungai lahan, kanal barat Lv 5, kanal timur Lv 10 | `faba897` | Kode jadi | selene 0 error; `grep "sungai_lahan"` di Config/Fish dan Fishing | Naik Lv 5 untuk mancing di kanal barat; spot sungai lahan terbuka di Lv 1 |
+| 6. Peti / Title / Season | `efdebdc` | Kode jadi | selene 0 error; Title dari kode; Season Premium `PREMIUM_OPEN = false` | Cek peti dari Title, Album 25/50/75/100%, dan Season hari 30 |
+| 7. Docs v7.6 | `1025e46` | Sebagian | Lampiran D ditutup / dibuka; Changelog 0.3.3 | Baca Changelog 0.3.3 |
+| 1. FTUE klien (Kak Fajar di sungai lahan, NPC klien-only, validasi jual, starter chain) | — | **BELUM DIKERJAKAN** | Lihat Lampiran D #23 | Setelah dikerjakan |
+
+Verifikasi build: `rojo build default.project.json` berhasil (exit 0). `selene src`: 4 error, semuanya sudah ada sebelum sesi ini (FarmFloat x2, SettingsService, MapService).
+
+### Sisa untuk dikerjakan (Task 1, belum di kode)
+- Kak Fajar tutorial sebagai NPC klien di sungai lahan terdekat (klon dari ReplicatedStorage), sembunyikan Kak Fajar server untuk pemain itu saja.
+- Aturan global: bicara dengan NPC dan NPC menoleh pemain = klien-only.
+- Validasi jual ikan di server (langkah `jual_ikan` + dekat sungai lahan milik pemain, posisi dihitung di server).
+- Event starter chain: tanam Bayam, buka Surat #1. Agenda + Gerobak setelah chain.
+- Pak Udin: baris dialog bahwa Kak Fajar ada di sungai dekat lahan.
+- Panah tutorial ke sungai lahan terdekat (Lampiran D #4).
