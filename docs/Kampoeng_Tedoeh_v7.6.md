@@ -1,5 +1,7 @@
-# KAMPOENG TEDOEH — Dokumen Gameplay v7.5
+# KAMPOENG TEDOEH — Dokumen Gameplay v7.6
 ## Single Source of Truth (revisi konsistensi)
+
+> v7.6 = v7.5 + Changelog 0.3.3 (keputusan owner 2026-11-22). v7.5 tetap disimpan sebagai arsip (docs/Kampoeng_Tedoeh_v7.5.md). Lampiran D = daftar keputusan yang masih terbuka.
 
 > Dokumen ini menggantikan SEMUA versi sebelumnya (v1.0 sampai v7.2), termasuk `00_Design_Doc.md` (v0.3) dan `Audit_v6.1.md`. `Roadmap.md`, `TODO.md`, dan dokumen teknis hanya catatan status dan tidak boleh mengubah angka di sini. Daftar status dokumen dan konflik yang sudah diselesaikan ada di Lampiran A dan B.
 > Aturan revisi: setiap aturan hanya ditulis di SATU bab. Bab lain cukup merujuk (`lihat Bab X`). Tidak ada lagi aturan yang ditulis ulang di 3 tempat dengan angka beda.
@@ -41,6 +43,21 @@ Tagline tim: `Kampung lo, rumah lo, panen lo — tiap hujan bisa jadi panen Prim
 | 4 | **Backpack Pass DIHAPUS total** | Karangan di kode (+40 slot). Tas di v7.2 / v7.3 tanpa cap slot (stack 99). Pass menyelesaikan masalah yang tidak ada, dan jadi pay-to-not-annoying, tidak cozy. |
 | 5 | **Blueprint gating DIHAPUS total** | Blueprint BUKAN gating. Dekor bisa langsung di-craft pakai bahan tanpa beli Blueprint. Blueprint hanya simpan desain (3 slot gratis) + bagikan kode. Lihat Bab 8.7. |
 | 6 | **Yang tidak dibahas = LOCKED** | Semua angka yang tidak dibahas di revisi ini tetap sama seperti v7.2, tidak diubah. |
+
+### 0.3.3 Changelog v7.5 → v7.6 (Keputusan owner 2026-11-22, Task 1–7)
+
+Revisi ini mengikuti aturan "angka baru wajib nomor baru". Setiap perubahan di bawah ada di kode (commit `feat/v.7`), kecuali yang ditandai BELUM.
+
+| # | Perubahan | Bab Terkait | Status |
+|---|-----------|-------------|--------|
+| 1 | **FTUE berakhir di jual ikan ke Kak Fajar** (`jual_ikan`). Tidak ada langkah FTUE baru. Langkah lama (Bayam, Nambang, Hias, Surat #1, Agenda + Gerobak) jadi Starter Quest Chain. | 16.2, 14.8 | BELUM (chain dan Kak Fajar klien). Lampiran D #23 |
+| 2 | **Sungai lahan** (32 spot, Early saja, Lv 1). **Kanal barat** (dermaga) Lv 5: Mid + Belut Emas. **Kanal timur** (dermaga) Lv 10 tetap. Late dipindah dari kanal barat ke kanal timur. | 3.1, 4.4, 6.4 | Kode jadi (Task 2). Lampiran D #24 |
+| 3 | **Super dihapus.** Kualitas: **Bagus max 50%, Prima max 20%**, Biasa sisanya, setelah semua bonus. Buff Tani = +10% absolut ke Bagus. Panen pertama FTUE = Bagus. | 5.4, 9.4 | Kode jadi (Task 3) |
+| 4 | **Nilai mini-game tarik** ditulis di Bab 6.2 (`FILL_GAIN 0.28`, `FILL_DRAIN 0.06`, `ZONE_SPEED 0.9`, `ZONE_SPEED_LEFT 0.55`). Coachmark tarik tetap dihapus. | 6.2, 16.2 | Dokumen (Task 4) |
+| 5 | **Quest tracker**: tinggi maks min(200 px, 25% tinggi layar), maks 3 baris + "+N lainnya". | 14, 23 | Kode jadi, cek kartu XP di Studio (Task 5) |
+| 6 | **Peti Bunga 25 Bunga** dari Title, Album milestone p25/50/75/100, Season F2P hari 30. Event belum (Lampiran D #21). **Login 10 Bunga/minggu** (Bab 18.2 = ~40/bulan, total ~240). **Season F2P** pakai hadiah tiap 5 hari (USULAN, #20). **Season Premium Segera hadir.** | 15.3, 15.4, 18.2, 19 | Kode jadi (Task 6), USULAN ditandai |
+| 7 | **Galeri**: pemilik offline = lahan kosong, tanpa toast, tanpa snapshot. | 8.7, 12.7 | Kode jadi (v7.5) |
+| 8 | **Kolam bisa dibangun di Lv 2** (`Fishing.POND.UNLOCK_LEVEL`). | 16.5, 14.1 | Kode jadi (v7.5) |
 
 ### 0.3.2 Changelog v7.4 → v7.5 (Perubahan Kode & GUI, 2026-11-22)
 
@@ -164,7 +181,7 @@ Isi di bawah adalah perubahan yang sudah ada di kode (`feat/v.7`) dan disetujui 
 | Grid | Petak tanam 8x8 stud (`Land.TILE`). Hias: struktur snap 2 stud, furniture & dekor snap 1 stud. Rotasi 0/90/180/270. |
 | Lahan Awal | BERSIH sepenuhnya. Tidak ada ilalang, semak, batu kecil, tunggul, atau bangunan rusak. Chunk yang dibeli juga bersih. |
 | Hutan Nambang | Area bersama (bukan map terpisah), node bahan per-player (tidak rebutan). |
-| Perairan | Spot 1 Kanal (Early), Spot 2 Danau (Mid), Spot 3 Sungai (Mid/Late), Spot 4 Sungai Malam (ujung sungai, buka Lv 18, Bab 4.4). Empat spot mancing. |
+| Perairan | **Sungai Lahan** (32 spot di 4 sungai sumbu, Early saja, Lv 1), **Kanal Barat** (dermaga, Lv 5: Mid + Belut Emas), **Kanal Timur** (dermaga, Pro Mancing, Lv 10: Late + Legenda). Danau dan Spot 4 belum ada di Studio (Lampiran D). (Update owner 2026-11-22, Task 2.) |
 
 ### 3.2 Hari Game (LOCKED)
 
@@ -209,7 +226,7 @@ Isi di bawah adalah perubahan yang sudah ada di kode (`feat/v.7`) dan disetujui 
 | **Bunga** | Login Mingguan, Peti, Pencapaian, Album, Season, Event, Bundel | Alat Bunga (QoL), kosmetik, dekor, instant Kolam, slot Blueprint ekstra | Tidak ke Koin, XP, level, bahan mentah, hewan |
 | **Bahan** | Nambang, panen tertentu (Padi → Jerami, Pisang → Daun Pisang) | Craft piece hias, alat, kandang | Tidak dijual di toko mana pun |
 
-Bunga F2P ~220/bulan. Lihat Bab 18 untuk rincian.
+Bunga F2P ~240/bulan (Login 40, Pencapaian 40, Album 30, Season 30, Event 30, Bundel 10, Peti 60; Update owner 2026-11-22). Lihat Bab 18 untuk rincian.
 
 ### 4.2 Level Player
 
@@ -227,13 +244,13 @@ Bunga F2P ~220/bulan. Lihat Bab 18 untuk rincian.
 
 | Lv | Buka |
 |----|------|
-| 1 | Kangkung, Bayam, Wader, Betok, Sepat, Joran Bambu |
+| 1 | Kangkung, Bayam, Wader, Betok, Joran Bambu, Sungai Lahan (spot Early) |
 | 2 | Tomat, Sawi, Lele |
 | 3 | Jagung, Ubi Jalar, Kolam Tanah, Pakan Jagung |
-| 5 | Ayam, Mujair, Nila |
+| 5 | Ayam, Mujair, Nila, Kanal Barat (Mid + Belut Emas) |
 | 6 | Singkong, Dapur Tier 1, Bubu Bambu |
 | 8 | Cabai, Padi, Gurame, Patin |
-| 10 | Bebek, Gabus, Baung |
+| 10 | Bebek, Gabus, Baung, Kanal Timur (Pro Mancing) |
 | 12 | Stroberi |
 | 15 | Pisang, Tebu, Dapur Tier 2, Jelawat, Kolam Semen |
 | 18 | Toman, Tapah, Spot 4 |
@@ -312,7 +329,7 @@ Aturan harga: Bibit ≈ 30% harga jual. Late harus 30-50x Early karena waktu tun
 | 15 | Teh | Late | 6 jam | 260 | 850 | 280 | 25 |
 | 16 | Melati | Mid | 30 mnt | 40 | 130 | 50 | 30 |
 | 17 | Mangga | Late | 8 jam | 320 | 1.100 | 360 | 35 |
-| 18 | Durian | Late | 8 jam | 380 | 1.300 | 400 | 45 |
+| 18 | Durian | Late |8 jam| 380 | 1.300 | 400 | 45 |
 
 - Padi juga memberi 2 Jerami per panen (bahan). Pisang juga memberi 2 Daun Pisang per panen (bahan Dapur, hanya untuk Pepes). Jagung bisa jadi pakan ayam di Dapur (Bab 9).
 - **Super DIHAPUS (Update owner 2026-11-22):** tidak ada lagi Super, tidak ada pengali Koin / XP tambahan. Yang ada hanya Kualitas (Bab 5.4): Bagus dan Prima, dengan batas akhir **Bagus max 50%, Prima max 20%**, Biasa sisanya. Batas dihitung setelah semua bonus (Mata Kualitas, Buff Tani).
@@ -400,26 +417,26 @@ Berat di-roll per tangkapan: Kecil x0,8 (40%), Sedang x1,0 (40%), Besar x1,2 (15
 
 | # | Ikan | Tier | Spot | Waktu | Jual | XP | Buka Lv |
 |---|------|------|------|-------|------|----|---------|
-| 1 | Wader Cakul | Early | Kanal | Kapan saja | 20 | 10 | 1 |
-| 2 | Betok | Early | Kanal | Kapan saja | 26 | 12 | 1 |
-| 3 | Sepat | Early | Kanal | Kapan saja | 30 | 14 | 2 |
-| 4 | Lele | Early | Kanal | Malam | 45 | 18 | 2 |
-| 5 | Mujair | Mid | Danau | Kapan saja | 70 | 26 | 5 |
-| 6 | Nila | Mid | Danau | Kapan saja | 90 | 32 | 5 |
-| 7 | Tawes | Mid | Danau | Siang | 110 | 38 | 6 |
-| 8 | Gurame | Mid | Danau | Kapan saja | 160 | 50 | 8 |
-| 9 | Patin | Mid | Sungai | Kapan saja | 180 | 55 | 10 |
-| 10 | Gabus | Mid | Sungai | Hujan | 200 | 60 | 10 |
-| 11 | Baung | Mid | Sungai | Malam | 220 | 65 | 12 |
-| 12 | Jelawat | Late | Sungai | Kapan saja | 350 | 95 | 15 |
-| 13 | Toman | Late | Sungai | Sore/Malam | 420 | 110 | 18 |
-| 14 | Tapah | Late | Spot 4 | Malam | 600 | 150 | 18 |
-| 15 | Sidat | Late | Spot 4 | Malam + Hujan | 650 | 160 | 22 |
-| 16 | Semah | Late | Danau | Pagi | 520 | 130 | 25 |
-| 17 | Belida | Late | Spot 4 | Kapan saja | 700 | 170 | 30 |
-| 18 | **Gurame Raja** | Legenda | Danau | Pagi | 2.200 | 550 | 15 |
-| 19 | **Belut Emas** | Legenda | Kanal | Hujan Petir | 2.000 | 500 | 20 |
-| 20 | **Ikan Dewa** | Legenda | Spot 4 | Malam | 2.500 | 600 | 30 |
+| 1 | Wader Cakul | Early | Sungai Lahan | Kapan saja | 20 | 10 | 1 |
+| 2 | Betok | Early | Sungai Lahan | Kapan saja | 26 | 12 | 1 |
+| 3 | Sepat | Early | Sungai Lahan | Kapan saja | 30 | 14 | 2 |
+| 4 | Lele | Early | Sungai Lahan | Malam | 45 | 18 | 2 |
+| 5 | Mujair | Mid | Kanal Barat | Kapan saja | 70 | 26 | 5 |
+| 6 | Nila | Mid | Kanal Barat | Kapan saja | 90 | 32 | 5 |
+| 7 | Tawes | Mid | Kanal Barat | Siang | 110 | 38 | 6 |
+| 8 | Gurame | Mid | Kanal Barat | Kapan saja | 160 | 50 | 8 |
+| 9 | Patin | Mid | Kanal Barat | Kapan saja | 180 | 55 | 10 |
+| 10 | Gabus | Mid | Kanal Barat | Hujan | 200 | 60 | 10 |
+| 11 | Baung | Mid | Kanal Barat | Malam | 220 | 65 | 12 |
+| 12 | Jelawat | Late | Kanal Timur | Kapan saja | 350 | 95 | 15 |
+| 13 | Toman | Late | Kanal Timur | Sore/Malam | 420 | 110 | 18 |
+| 14 | Tapah | Late | Kanal Timur (Spot 4 belum ada) | Malam | 600 | 150 | 18 |
+| 15 | Sidat | Late | Kanal Timur (Spot 4 belum ada) | Malam + Hujan | 650 | 160 | 22 |
+| 16 | Semah | Late | Kanal Timur | Pagi | 520 | 130 | 25 |
+| 17 | Belida | Late | Kanal Timur (Spot 4 belum ada) | Kapan saja | 700 | 170 | 30 |
+| 18 | **Gurame Raja** | Legenda | Kanal Timur | Pagi | 2.200 | 550 | 15 |
+| 19 | **Belut Emas** | Legenda | Kanal Barat | Hujan Petir | 2.000 | 500 | 20 |
+| 20 | **Ikan Dewa** | Legenda | Kanal Timur (Spot 4 belum ada) | Malam | 2.500 | 600 | 30 |
 
 ### 6.5 Ikan Legenda — Per-Player + Pity (LOCKED)
 
@@ -893,6 +910,16 @@ Bundel adalah proyek Blueprint. Kerangka kosong muncul di level bukanya. Biaya, 
 
 ---
 
+### 14.8 Starter Quest Chain (Update owner 2026-11-22, Task 1 — USULAN, belum dikerjakan di kode)
+
+Dimulai tepat setelah `t1b_kolam` (jual ikan ke Kak Fajar) selesai. Hadiah sama seperti FTUE lama:
+
+1. Beli Bibit Bayam, lalu tanam 1 Bayam. (Event tanam Bayam belum ada di kode, Lampiran D #23.)
+2. Nambang: pukul 1 node Kayu. Hadiah 20 XP.
+3. Hias: pasang 1 Pagar Bambu.
+4. Buka Surat Kakek #1 (Event buka surat belum ada di kode, Lampiran D #23).
+5. Selesai chain: buka Agenda Harian + Gerobak Kaget. Hadiah 100 Koin. Agenda dan Gerobak baru terbuka di langkah ini.
+
 ## 15. HADIAH & PROGRESI JANGKA PANJANG
 
 ### 15.1 Login Mingguan (Kumulatif, Bukan Streak) — LOCKED
@@ -906,14 +933,25 @@ Bundel adalah proyek Blueprint. Kerangka kosong muncul di level bukanya. Biaya, 
 ### 15.3 Peti Bunga & Pencapaian
 
 - Peti Bunga: dari Login Mingguan, Pencapaian, Album, Season, Event, Bundel Kakek (10 Bunga tiap bangunan pulih), Robux.
-- **Isi 1 Peti Bunga = 25 Bunga** (Update owner 2026-11-22, Lampiran D #16). **Sumber yang sudah jalan di P2-9:** tiap Title baru = 1 peti, sekali per Title. Sumber lain (Login, Pencapaian, Album, Season, Event, Bundel, Robux) belum dihubungkan dan perlu keputusan.
+- **Isi 1 Peti Bunga = 25 Bunga** (Update owner 2026-11-22, Lampiran D #16). **Sumber peti yang sudah dihubungkan di kode (P2-9):** (1) tiap Title yang dimiliki, sekali per title; (2) tiap Album milestone 25 / 50 / 75 / 100% yang sudah diklaim, sekali per milestone; (3) Season F2P hari 30, sekali per season. **Belum dihubungkan:** Login, Pencapaian, Event (belum ada definisi "completion" di kode, Lampiran D #21), Bundel Kakek, Robux.
 - Pencapaian: Album, Quest, Kerja Bakti, Koleksi, dll. Hadiah Bunga + Title.
 
 ### 15.4 Title (Dari Pencapaian Permanen) — LOCKED
 
 - Title dari pencapaian permanen, bukan dari beli. Contoh: Kolektor (Album 50%), Warga Kampoeng Tedoeh (MQ12), Penyayang Kucing (Side Quest Kucing), Legenda Kampung (Album 100%).
 - Title tidak memberi stat, kecuali yang tercantum di Bab 17.6 (max +25% per jenis stat, termasuk Title).
-- **Daftar Title P2-9 (usulan, Lampiran D #17):** Kolektor (Album 50%), Legenda Kampung (Album 100%), Warga Kampoeng Tedoeh (MQ12), Penakluk Legenda (MQ11), Dinding Spesial, Raja Jumbo, Pekerja Bakti, Warga Teladan, Juragan Pondok, Kebun Favorit. Tiap title yang dimiliki memberi **1 Peti Bunga (25 Bunga)**, sekali per title. Title tetap tanpa stat. Penakluk Legenda / Dinding Spesial / Raja Jumbo / Pekerja Bakti / Warga Teladan / Juragan Pondok / Kebun Favorit didapat dari misi atau sistem lain yang sudah ada di kode.
+- **Syarat tiap Title (diambil dari kode, Update owner 2026-11-22; Lampiran D #17 + #22):**
+  - Kolektor: Album 50%, lalu klaim milestone `p50` (Config/Book).
+  - Legenda Kampung: Album 100%, lalu klaim milestone `p100` (Config/Book).
+  - Warga Kampoeng Tedoeh: quest MQ12 `mq12_warga` (MQ11 selesai + Album 50%).
+  - Penakluk Legenda: quest MQ11 `mq11_legenda` (1 ikan Legenda + 1 Panen Prima Late).
+  - Dinding Spesial: quest `side_rumah_rapi` (pasang 20 piece dekor).
+  - Raja Jumbo: quest `side_jumbo` (1 ikan Jumbo).
+  - Pekerja Bakti: quest `side_kerjabakti` (ikut 10 Kerja Bakti).
+  - Juragan Pondok: kategori Album rumah lengkap, lalu klaim (Config/Book CATEGORY_REWARDS).
+  - Kebun Favorit: 200 like (Config/Social LIKE_MILESTONES).
+  - Warga Teladan: TIDAK ADA sumber di kode, tidak masuk daftar (Lampiran D #22).
+  - Setiap title yang dimiliki memberi 1 Peti Bunga, sekali per title. Title tetap tanpa stat.
 
 ---
 
@@ -936,13 +974,13 @@ Bundel adalah proyek Blueprint. Kerangka kosong muncul di level bukanya. Biaya, 
 | 0:30 | Tanam Kangkung (4 Bibit gratis) | - | FTUE lama. |
 | 0:50 | Panen pertama (dijamin Bagus) | 20 XP | FTUE lama. |
 | 1:30 | Siram / Panen (opsional) | 20 XP | FTUE lama. |
-| 2:00 | Mancing: Kak Fajar kasih Joran Bambu. Lempar → gigitan (dijamin) → tarik (ikan Early pelan) → Wader Cakul. Kartu `IKAN BARU!` | 20 XP | FTUE lama. Mancing hanya di dermaga Kanal (bukan kolam). Lihat Bab 16.5. |
+| 2:00 | Mancing: Kak Fajar kasih Joran Bambu. Lempar → gigitan (dijamin) → tarik (ikan Early pelan) → Wader Cakul. Kartu `IKAN BARU!` | 20 XP | FTUE lama. Mancing di **sungai lahan** terdekat dari lahanmu (bukan dermaga Kanal; Update owner 2026-11-22, Task 1). Lihat Bab 16.5. |
 | 3:00 | Jual hasil panen pertama ke Pak Udin — **via cutscene proximity (BARU)** | 20 XP | **Bukan interaksi bebas.** Mendekati Pak Udin = trigger cutscene jual pertama (Bab 16.4). Cutscene buka GUI Jual yang sama seperti biasa. |
-| 4:00 | Beli Bibit Bayam, tanam | - | FTUE lama. |
-| 5:00 | Nambang: pukul 1 node Kayu | 20 XP | FTUE lama, demo FTUE saja. Bukan buka full Hutan Nambang (Bab 8.1, Lv 4). |
-| 6:00 | Hias: pasang 1 Pagar Bambu | - | FTUE lama, demo FTUE saja. |
-| 8:00 | Buka Surat Kakek #1 | - | FTUE lama. |
-| 10:00 | FTUE selesai, buka Agenda + Gerobak Kaget | 100 Koin | Setelah ini blok NPC (Bab 16.3) dibuka, interaksi NPC normal. |
+
+
+
+
+| 3:30+ | **Akhir FTUE = jual ikan ke Kak Fajar (`jual_ikan`).** Langkah lama (Bayam, Nambang, Hias, Surat #1, Agenda + Gerobak) jadi Starter Quest Chain (Bab 14.8). | 100 Koin di akhir chain | Update owner 2026-11-22 (Task 1). |
 
 - Joran Bambu ikut tampil di Tas. Tombol Mancing muncul saat dekat **dermaga** setelah Joran Bambu diberikan. **Selama Tutorial 1, tombol Mancing TIDAK muncul di kolam** karena Kolam belum ada di Tutorial 1.
 - Ikon Tas per kategori. Label harga Pak Udin diambil dari config (100%), bukan teks tetap 90%.
@@ -982,11 +1020,20 @@ Bundel adalah proyek Blueprint. Kerangka kosong muncul di level bukanya. Biaya, 
 
 - **Kolam DIHAPUS dari Tutorial 1 / FTUE.** Tidak ada langkah Buat Kolam, tidak ada langkah Simpan Ikan ke Kolam, tidak ada coachmark Kolam, tidak ada prompt Kolam, tidak ada tombol Kolam, tidak ada dialog Kolam di FTUE.
 - **Alasan:** Di dokumen terbaru, Kolam dibuat nanti. Kolam pertama = **Kolam Kakek** (Bab 7.2, Bab 14.2 MQ4, Bab 14.6 Bundel Kakek): **Lv 3, Mak Sari datang, setoran 10 Batu + 5 Kayu + 3 ikan Early**. Kolam Tanah yang bisa dibeli juga **Lv 3** (Bab 7.2). FTUE (Lv 1, 10 menit) tidak boleh mengajarkan Kolam.
-- **Mancing di FTUE:** Hanya di dermaga Kanal. Bukan di kolam. Kalimat lama `Tombol Mancing muncul saat dekat dermaga atau kolam` **tidak berlaku** selama Tutorial 1.
+- **Mancing di FTUE:** di sungai lahan terdekat dari lahanmu (`sungai_lahan`, Early Lv 1). Bukan di kolam. Kanal barat (Lv 5) dan kanal timur (Lv 10) tidak dipakai di FTUE. Kalimat lama `Tombol Mancing muncul saat dekat dermaga atau kolam` **tidak berlaku** selama Tutorial 1.
 - **Setelah FTUE:** Kolam baru dikenalkan lewat MQ4 / Bundel Kakek (Lv 3), bukan lewat FTUE. Tutorial Kolam (jika ada) adalah tutorial MQ4, bukan Tutorial 1.
 - **Yang harus dihapus dari FTUE lama:** Semua referensi Kolam di langkah FTUE, coachmark ke Kolam, dan prompt / GUI Kolam yang muncul selama Tutorial 1. Kode / sistem Kolam di luar FTUE (Bab 7.2, MQ4, Bundel) tidak dihapus — hanya takeout dari FTUE.
 
 ---
+
+### 16.6 Tutorial dan NPC Sisi Klien (Update owner 2026-11-22, Task 1 — BELUM DIKERJAKAN)
+
+- Tutorial (Kak Fajar pemancing, NPC tutorial, dialog, bubble, cutscene, panah) sepenuhnya di sisi klien dan hanya untuk pemain itu.
+- Kak Fajar tutorial = NPC klien yang muncul di sungai lahan terdekat dari lahan pemain. Kak Fajar server disembunyikan untuk pemain itu saja.
+- Aturan global: bicara dengan NPC (dialog, bubble) dan NPC menoleh/menghadap pemain = sisi klien, hanya untuk pemain itu.
+- Aksi pemain (jalan, lempar, joran, pelampung, tangkapan) tetap direplikasi.
+- Server tetap pegang hadiah dan ekonomi: jual ikan ke Kak Fajar tutorial hanya diterima bila langkah = `jual_ikan` dan pemain dekat sungai lahan miliknya (posisi dihitung di server dari plot pemain, bukan dari posisi klien).
+- Lampiran D #23 mencatat apa yang belum dikerjakan.
 
 ## 17. EKONOMI
 
@@ -1089,14 +1136,14 @@ Target porsi Koin player inti: Nanem 30% | Mancing 25% | Ternak+Kolam+Bubu 15% |
 
 | Sumber | Bunga / Bulan (Bulan 2+) |
 |--------|--------------------------|
-| Login Mingguan | 20 (catatan: Bab 15.1 memberi 10 Bunga per minggu = ~40/bulan, perlu keputusan, Lampiran D #18) |
+| Login Mingguan | 40 (10 Bunga per minggu, Bab 15.1; Update owner 2026-11-22) |
 | Pencapaian | 40 |
 | Album | 30 |
 | Season (F2P track) | 30 |
 | Event | 30 |
 | Bundel Kakek | 10 |
-| Peti Bunga | 60 (catatan: 1 peti = 25 Bunga, dan P2-9 hanya memberi peti dari Title, belum 60/bulan, Lampiran D #16) |
-| **Total** | **~220** |
+| Peti Bunga | 60 (2-3 peti per bulan, 1 peti = 25 Bunga; sumber lihat Bab 15.3) |
+| **Total** | **~240** |
 
 ### 18.3 Alat Bunga (QoL, Bukan Kekuatan)
 
@@ -1127,8 +1174,8 @@ Target porsi Koin player inti: Nanem 30% | Mancing 25% | Ternak+Kolam+Bubu 15% |
 - Season Premium tetap laku walau Bunga-nya < Pesta Bunga: kosmetik eksklusif season tidak akan dijual lagi (satu-satunya barang terbatas di game, dan itu kosmetik).
 - Istilah Season Premium dipakai untuk paket Season, supaya tidak bentrok dengan Premium Roblox.
 - **Aturan P2-9 (usulan, Lampiran D #18):** Season 1 mulai 1 Desember 2026 (WIB, reset 05:00). Setelah 30 hari, season berikutnya mulai otomatis dengan hadiah yang sama. Hari yang sudah lewat bisa diambil sekali; hari yang belum tiba belum bisa diambil.
-- **F2P (gratis):** 50 Koin tiap hari. Bunga: hari 7 = 5, hari 14 = 5, hari 21 = 10, hari 30 = 10 (total 30 Bunga). Bahan dan dekor belum dimasukkan (menunggu daftar dari owner).
-- **Premium:** beli 150 Bunga per season. Setelah itu track Premium aktif: 40 Koin tiap hari. Bunga ekstra: hari 10 = 10, hari 20 = 20, hari 30 = 30 (total 60 Bunga, jadi harga 150 tetap lebih besar dari yang kembali). Kosmetik eksklusif belum dimasukkan.
+- **F2P (gratis):** hadiah tiap 5 hari (hari 5, 10, 15, 20, 25, 30), USULAN (Update owner 2026-11-22; Lampiran D #20): hari 5 = 10 Bambu; hari 10 = 5 Bunga + 10 Kayu; hari 15 = 5 Batu; hari 20 = 10 Bunga + 5 Ijuk; hari 25 = 15 Bambu + 10 Kayu; hari 30 = 15 Bunga + 2 Atap Ijuk + 1 Dekor Rumpun Bambu + 1 Peti Bunga. Total Bunga F2P = 30. Bahan dan dekor di atas memakai id item yang sudah ada di kode.
+- **Premium: SEGERA HADIR (Update owner 2026-11-22).** Belum bisa dibeli sampai kosmetik eksklusif season ada (`Rewards.SEASON.PREMIUM_OPEN = false`). Angka Premium di kode (40 Koin per hari, Bunga ekstra 60) masih usulan.
 
 ---
 
@@ -1322,25 +1369,30 @@ Daftar ini wajib dibaca sebelum playtest. Setiap butir adalah tempat kode TIDAK 
 
 | # | Bab | Teks dokumen | Kode sekarang | Keputusan |
 |---|-----|--------------|---------------|-----------|
-| 1 | 4 (Perairan) | "Empat spot mancing" (Kanal, Danau, Sungai, Spot 4) | +32 spot sungai (8 × 4 sungai sumbu) di `FishService.buildRiverSpots`, angka di `Config/Map.RIVER_SPOTS`. Owner setuju 8 per sungai (2026-11-22). | BUTUH KEPUTUSAN: 32 spot tambahan diterima, atau dokumen direvisi (jumlah spot dan lokasi). |
-| 2 | 6.2 (Mini-game) | Ikan di kotak +15%/detik, di luar kotak -10%/detik | `FILL_GAIN = 0.28`, `FILL_DRAIN = 0.06`, `ZONE_SPEED = 0.9` (kanan), `ZONE_SPEED_LEFT = 0.55` (kiri) di `FishingController` | Nilai kode masih tebakan, belum dites main. Angka dokumen perlu diganti atau kode dikembalikan. |
-| 3 | 16.2 (FTUE) / coachmark | Coachmark "tarik" dipakai di FTUE mancing (Kak Fajar, Wader Cakul) | Frame coachmark "Tahan Tarik! Jaga ikan…" dihapus, `fishPending` ikut dihapus | **DITUTUP (owner 2026-11-22): coachmark tarik tetap dihapus, dan dihapus juga dari Bab 16.2 (v7.6).** |
-| 4 | 16.2 (FTUE) | "Mancing hanya di dermaga Kanal" | Panah tutorial mencari spot `sungai` terdekat (`GuideController`). Spot sungai baru ikut terpilih bila pemain dekat sungai. | Belum dites. Kemungkinan panah tutorial mengarah ke spot sungai, bukan dermaga Kanal. Perlu dicek di Studio. |
+| 1 | 4 (Perairan) | "Empat spot mancing" (Kanal, Danau, Sungai, Spot 4) | +32 spot sungai (8 × 4 sungai sumbu) di `FishService.buildRiverSpots`, angka di `Config/Map.RIVER_SPOTS`. Owner setuju 8 per sungai (2026-11-22). |  DITUTUP (Update owner 2026-11-22, Task 2): 32 spot sungai lahan diterima sebagai lokasi Early Lv 1 (`sungai_lahan`). Tidak ada Mid, Late, atau Legenda di sana. |
+| 2 | 6.2 (Mini-game) | Ikan di kotak +15%/detik, di luar kotak -10%/detik | `FILL_GAIN = 0.28`, `FILL_DRAIN = 0.06`, `ZONE_SPEED = 0.9` (kanan), `ZONE_SPEED_LEFT = 0.55` (kiri) di `FishingController` |  DITUTUP (Update owner 2026-11-22, Task 4): nilai `FILL_GAIN 0.28`, `FILL_DRAIN 0.06`, `ZONE_SPEED 0.9`, `ZONE_SPEED_LEFT 0.55` ditulis di Bab 6.2. |
+| 3 | 16.2 (FTUE) / coachmark | Coachmark "tarik" dipakai di FTUE mancing (Kak Fajar, Wader Cakul) | Frame coachmark "Tahan Tarik! Jaga ikan…" dihapus, `fishPending` ikut dihapus |  DITUTUP (Update owner 2026-11-22, Task 4): coachmark tarik tetap dihapus, dan dihapus juga dari Bab 16.2. |
+| 4 | 16.2 (FTUE) | "Mancing hanya di dermaga Kanal" | Panah tutorial mencari spot `sungai` terdekat (`GuideController`). Spot sungai baru ikut terpilih bila pemain dekat sungai. |  BELUM DIKERJAKAN (Task 1): panah tutorial akan menunjuk spot sungai lahan terdekat dari lahan pemain (dihitung di server). Saat ini masih menunjuk spot sungai lahan terdekat secara umum. |
 | 5 | 6.1 / 23 (Mancing) | "Tombol Mancing (saat dekat spot)" | Prompt dermaga dihapus; tombol bulat jadi satu-satunya cara cast di dermaga. Kolam tetap prompt. | Sesuai secara makna. Perlu dicek bahwa prompt kolam juga tidak dibutuhkan. |
 | 6 | Roadmap §2 | "Jangan ubah map" | Spot sungai dibuat lewat kode (`FishService.Init`), bukan di Studio. `Config/Map.luau` ditambah `RIVER_SPOTS`. | Catat. Map fisik di Studio tidak diubah. |
 | 7 | 8.2 (Meja Crafting) | Craft olahan di Meja Crafting | Tombol Craft mencari objek Workspace bernama "Meja Crafting". Objek itu belum ada di Studio. | BUTUH: buat/beri nama objek meja di Studio. Tanpa itu tombol Craft tidak pernah muncul. |
-| 8 | 23 (GUI) | Tidak diatur | Batas tinggi quest tracker 200 px tetap, tidak dihitung dari tinggi layar. Pada layar pendek bisa menimpa area di bawahnya. | Perlu keputusan layout (tracker menyesuaikan layar, atau posisi tombol berubah). |
+| 8 | 23 (GUI) | Tidak diatur | Batas tinggi quest tracker 200 px tetap, tidak dihitung dari tinggi layar. Pada layar pendek bisa menimpa area di bawahnya. |  DITUTUP (Update owner 2026-11-22, Task 5): tinggi maks tracker = min(200 px, 25% tinggi layar), dihitung ulang saat viewport berubah, maks 3 baris + "+N lainnya". Cek tumpang tindih dengan kartu XP di kiri bawah: perlu dicek di Studio. |
 | 9 | 23 (GUI) | Tidak diatur font | Semua GUI FredokaOne. Dulu campuran Gotham. | Konsistensi. Perlu dicek apakah teks panjang (dialog) masih nyaman dibaca. |
 | 10 | 10.1 (NPC) | Bang Jali di depan lahan | Rig Bang Jali menghadap sisi lain (membelakangi warung mini). | Sesuai. Tidak perlu keputusan. |
-| 11 | 16.2 (FTUE) / 4.3 (XP) | Tabel 16.2: XP per langkah FTUE 20 + 20 + 20 (+ 1 per langkah awal), total tutorial sekitar 43 XP | `Config/Onboarding` langkah `jual_ikan` menambah `reward = { xp = 115 }`, sehingga tutorial membawa player ke 158 XP. Dengan 6 bibit gratis (kangkung 12 XP) habis dipanen, total 230 = Lv 2. | DIPUTUSKAN owner 2026-11-22: 115 diterima, dengan syarat level awal tidak terasa sulit. Pace ideal (6 bed, 1 panen per bed tiap 5 menit, ±972 XP/jam): Lv 2 = 230 XP total (±14 menit), Lv 5 = 1.100 XP total (±68 menit). Hambatan awal ada di Koin untuk petak (petak 7 = 1.050 Koin), bukan di XP. Cek lagi di playtest. |
-| 12 | 14 (Quest) | Quest muncul sesuai level dan syarat (tidak menyebut tutorial) | Semua quest menunggu tutorial jual ikan (`t1b_kolam`) selesai. `QuestService.startAvailable` + `TutorialService.Finished`. Save lama yang belum pernah menjalankan `t1b_kolam` tetap terkunci sampai tutorial itu selesai. | DIPUTUSKAN owner 2026-11-22: diterima. Semua quest baru muncul dan progresnya dihitung setelah tutorial jual ikan (`t1b_kolam`) selesai. Sebelum itu tidak ada GUI quest. |
-| 13 | 14.2 (Kolam) / 16.5 | Quest Kolam pertama: Lv 2, syarat Kolam Kakek pulih | `kolam_pertama` tanpa `requireKakek`: quest mulai di Lv 2, langkah "bangun kolam" menunggu Kolam Kakek (Lv 3, MQ4/Bundel). `PondBuild` tetap butuh `kakekUnlocked`. | DIPUTUSKAN owner 2026-11-22: langkah bangun kolam terbuka di Lv 2 (`Fishing.POND.UNLOCK_LEVEL`). Kolam Kakek tetap jalur lain. |
-| 14 | 5.2 (Petak) | Tidak menyebut refund petak; beli petak dengan harga n x 150 | Hapus Petak = refund 50% dari harga petak yang dibeli (`Farm.TILE_REFUND_RATE`). Petak gratis tidak ada refund. Harga per petak disimpan (`paid`). | DIPUTUSKAN owner 2026-11-22: 50% diterima, ditulis di Bab 5.2. |
-| 15 | 15.1 (Login) | 7 hari kumulatif, tanpa keterangan ulang | Login Mingguan diulang tiap minggu (Senin 05:00 WIB). `Config/Rewards.LOGIN`, `RewardsService`. | DIPUTUSKAN owner 2026-11-22: berulang tiap minggu. |
-| 16 | 15.3 / 18.2 (Peti Bunga) | Isi peti tidak disebut. Sumber: Login, Pencapaian, Album, Season, Event, Bundel, Robux. Tabel 18.2: 60 Bunga/bulan dari peti | 1 peti = 25 Bunga (owner). P2-9 hanya memberi peti dari Title baru (1 per title), sekali. Total ~25–250 Bunga sekali jalan, belum 60/bulan. | BUTUH KEPUTUSAN: sumber peti lain (Login, Album, Season) mau dihubungkan? Tabel 18.2 disesuaikan? |
-| 17 | 15.4 (Title) | Title hanya contoh | 10 title di `Config/Rewards.TITLES`. Kolektor (Album 50%) dan Legenda Kampung (Album 100%) otomatis dari % Album. Tiap title = 1 peti. | USULAN: daftar dan syarat perlu dikonfirmasi owner. |
-| 18 | 19 (Season) / 18.2 (Login) | Season 30 hari; F2P: Koin, bahan, 30 Bunga, dekor; Premium 150 Bunga. Login 20 Bunga/bulan di tabel 18.2 | Season 1 mulai 1 Des 2026 (WIB). F2P: 50 Koin/hari + 30 Bunga. Premium: 40 Koin/hari + 60 Bunga ekstra. Bahan, dekor, kosmetik belum ada. Login 10 Bunga/minggu (~40/bulan) melebihi tabel 18.2. | BUTUH KEPUTUSAN: angka Season, angka Login di tabel 18.2, dan daftar bahan / dekor / kosmetik. |
-| 19 | 8.7 / 12.7 (Galeri) | Pemilik offline: rumah snapshot read-only | DIHAPUS. Pemilik offline = lahan kosong, tidak ada toast, tidak ada rumah snapshot. | DIPUTUSKAN owner 2026-11-22. |
+| 11 | 16.2 (FTUE) / 4.3 (XP) | Tabel 16.2: XP per langkah FTUE 20 + 20 + 20 (+ 1 per langkah awal), total tutorial sekitar 43 XP | `Config/Onboarding` langkah `jual_ikan` menambah `reward = { xp = 115 }`, sehingga tutorial membawa player ke 158 XP. Dengan 6 bibit gratis (kangkung 12 XP) habis dipanen, total 230 = Lv 2. |  DIPUTUSKAN owner (2026-11-22): 115 XP diterima. Pace ideal (6 bed, 1 panen per bed tiap 5 menit, ±972 XP/jam): Lv 2 = 230 XP total (±14 menit), Lv 5 = 1.100 XP total (±68 menit). Hambatan awal ada di Koin petak (petak 7 = 1.050 Koin), bukan XP. Verifikasi di playtest. |
+| 12 | 14 (Quest) | Quest muncul sesuai level dan syarat (tidak menyebut tutorial) | Semua quest menunggu tutorial jual ikan (`t1b_kolam`) selesai. `QuestService.startAvailable` + `TutorialService.Finished`. Save lama yang belum pernah menjalankan `t1b_kolam` tetap terkunci sampai tutorial itu selesai. |  DIPUTUSKAN owner (2026-11-22): semua quest menunggu `t1b_kolam` selesai. Sebelum itu tidak ada GUI quest dan progres tidak dihitung. |
+| 13 | 14.2 (Kolam) / 16.5 | Quest Kolam pertama: Lv 2, syarat Kolam Kakek pulih | `kolam_pertama` tanpa `requireKakek`: quest mulai di Lv 2, langkah "bangun kolam" menunggu Kolam Kakek (Lv 3, MQ4/Bundel). `PondBuild` tetap butuh `kakekUnlocked`. |  DIPUTUSKAN owner (2026-11-22): langkah bangun kolam terbuka di Lv 2 (`Fishing.POND.UNLOCK_LEVEL`). Kolam Kakek tetap jalur lain. |
+| 14 | 5.2 (Petak) | Tidak menyebut refund petak; beli petak dengan harga n x 150 | Hapus Petak = refund 50% dari harga petak yang dibeli (`Farm.TILE_REFUND_RATE`). Petak gratis tidak ada refund. Harga per petak disimpan (`paid`). |  DIPUTUSKAN owner (2026-11-22): refund 50% untuk petak berbayar, ditulis di Bab 5.2. |
+| 15 | 15.1 (Login) | 7 hari kumulatif, tanpa keterangan ulang | Login Mingguan diulang tiap minggu (Senin 05:00 WIB). `Config/Rewards.LOGIN`, `RewardsService`. |  DIPUTUSKAN owner (2026-11-22): Login Mingguan diulang tiap minggu, 10 Bunga per minggu. |
+| 16 | 15.3 / 18.2 (Peti Bunga) | Isi peti tidak disebut. Sumber: Login, Pencapaian, Album, Season, Event, Bundel, Robux. Tabel 18.2: 60 Bunga/bulan dari peti | 1 peti = 25 Bunga (owner). P2-9 hanya memberi peti dari Title baru (1 per title), sekali. Total ~25–250 Bunga sekali jalan, belum 60/bulan. |  SEBAGIAN (Update owner 2026-11-22, Task 6): sudah dihubungkan: Title, Album milestone p25/50/75/100, Season F2P hari 30. Event completion BELUM ada definisinya di kode, lihat #21. |
+| 17 | 15.4 (Title) | Title hanya contoh | 10 title di `Config/Rewards.TITLES`. Kolektor (Album 50%) dan Legenda Kampung (Album 100%) otomatis dari % Album. Tiap title = 1 peti. |  DIPUTUSKAN di kode (Update owner 2026-11-22, Task 6): syarat tiap title diambil dari kode (Bab 15.4). Warga Teladan tidak ada sumbernya, lihat #22. |
+| 18 | 19 (Season) / 18.2 (Login) | Season 30 hari; F2P: Koin, bahan, 30 Bunga, dekor; Premium 150 Bunga. Login 20 Bunga/bulan di tabel 18.2 | Season 1 mulai 1 Des 2026 (WIB). F2P: 50 Koin/hari + 30 Bunga. Premium: 40 Koin/hari + 60 Bunga ekstra. Bahan, dekor, kosmetik belum ada. Login 10 Bunga/minggu (~40/bulan) melebihi tabel 18.2. |  SEBAGIAN (Update owner 2026-11-22, Task 6): F2P pakai hadiah tiap 5 hari (USULAN, #20). Premium ditunda (Segera hadir). Login 40 Bunga/bulan sudah masuk Bab 18.2. |
+| 19 | 8.7 / 12.7 (Galeri) | Pemilik offline: rumah snapshot read-only | DIHAPUS. Pemilik offline = lahan kosong, tidak ada toast, tidak ada rumah snapshot. |  DIPUTUSKAN owner (2026-11-22): pemilik offline = lahan kosong. Toast dan rumah snapshot dihapus. |
+| 20 | 19 (Season) | F2P: 50 Koin tiap hari, lalu hadiah tiap 5 hari (USULAN P2-9) | USULAN, belum final: hari 5 = 10 Bambu; hari 10 = 5 Bunga + 10 Kayu; hari 15 = 5 Batu; hari 20 = 10 Bunga + 5 Ijuk; hari 25 = 15 Bambu + 10 Kayu; hari 30 = 15 Bunga + 2 Atap Ijuk + 1 Dekor Rumpun Bambu + 1 Peti Bunga. Total Bunga F2P 30. Bahan / dekor / kosmetik lain belum ada. | BUTUH KEPUTUSAN: setujui daftar dan jumlah di atas, atau ganti. |
+| 21 | 15.3 (Peti Bunga) | Event selesai = 1 peti (Update owner 2026-11-22) | Di kode belum ada definisi "completion" untuk Event (EventService hanya kalender). Tidak dihubungkan. | BUTUH KEPUTUSAN: definisi event selesai (misal: semua tugas event selesai, atau event tertentu). |
+| 22 | 15.4 (Title) | Warga Teladan disebut sebagai title (contoh) | Tidak ada sumber di kode (tidak ada grant). Dikeluarkan dari daftar title. | BUTUH KEPUTUSAN: sumber Warga Teladan, atau hapus dari dokumen. |
+| 23 | 16.2 / 16.6 / 14.8 (Task 1) | FTUE sampai jual ikan; Kak Fajar tutorial klien di sungai lahan; NPC bicara dan menoleh klien-only; starter quest chain | BELUM DIKERJAKAN di kode: (a) Kak Fajar tutorial klien (klon ReplicatedStorage) + sembunyikan Kak Fajar server untuk pemain itu; (b) aturan global NPC klien-only; (c) validasi jual ikan di server (langkah `jual_ikan` + dekat sungai lahan milik pemain); (d) event starter chain belum ada: tanam Bayam, buka Surat #1; (e) Agenda + Gerobak baru terbuka setelah chain. | BUTUH IMPLEMENTASI (bertahap, lihat Roadmap Task 1). |
+| 24 | 4.4 / 6.4 (Perairan) | Kanal Barat dan Kanal Timur di Bab 4.4 dan 6.4 | Kanal barat (`sungai`) Lv 5: Mid + Belut Emas, Late dipindah ke kanal timur (`empang`, Lv 10). Ini konsekuensi Task 2 (owner: "Mid pool"). | BUTUH KONFIRMASI owner: Late di kanal timur saja, atau tetap di kanal barat. |
 
 ## Lampiran C — Nilai Harapan Koin per Panen & Hitungan Kualitas / Mood Hujan
 
