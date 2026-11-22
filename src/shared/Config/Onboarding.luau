@@ -98,7 +98,7 @@ local TUTORIALS: { Tutorial } = {
 			{
 				-- Sapaan: a welcome modal (Mulai only, no skip). It completes only when the player taps Mulai (kind "ack").
 				id = "sapa",
-				text = "tut.t1.intro",
+				text = "tut.t1.intro.1",
 				done = { kind = "ack", id = "sapa" },
 				modal = { title = "tut.t1.sapa_title", body = "tut.t1.sapa_body" },
 			},
@@ -132,7 +132,7 @@ local TUTORIALS: { Tutorial } = {
 				text = "tut.t1.s4",
 				coach = "tut.coach.panen",
 				block = false, -- after Panen the player must reach Pak Udin (outside the hole): no overlay here
-				greet = "tut.t1.s4_greet", -- Pak Udin's sapaan at the first sale (the cutscene, T1Ghost runWarung)
+				greet = "tut.t1.jual.1", -- Pak Udin's sapaan at the first sale (naskah 1.3)
 				done = { kind = "sells", n = 1 },
 				target = { npc = "pak_udin" },
 				highlight = "PanenButton",

@@ -86,46 +86,35 @@ local SPEAKERS: { [string]: Speaker } = {
 	kak_fajar = { name = "Kak Fajar", npc = "kak_fajar" },
 }
 
-local INTRO = {
-	"Nak... akhirnya kamu pulang juga. Mak kangen!",
-	"Ini lahan peninggalan kakekmu. Sudah lama nggak ada yang merawat.",
-	"Kakekmu dulu rajin sekali di sini. Sekarang giliranmu yang merawatnya, ya?",
-	"Tenang, Mak temenin. Kita mulai pelan-pelan aja.",
-}
+-- All tutorial speech is in Locale (Naskah Dialog v0.1, bagian 1). Lines here are KEYS, read with Locale.t when shown.
+-- Intro, Mak Sari (Next after every line).
+local INTRO = { "tut.t1.intro.1", "tut.t1.intro.2", "tut.t1.intro.3", "tut.t1.intro.4" }
 
--- T1b, the first beat (Pak Udin, at the warung, right after the sale): Next after every line.
-local WARUNG = {
-	"Wah, hasil panenmu bagus ya, kalau ada lagi nanti jangan lupa mampir kesini ya!",
-	"Kak Fajar lagi mancing di sungai dekat lahanmu. Dia punya joran dan umpan buat kamu. Ikuti panah di tanah ya.",
-}
+-- Pak Udin after the first sale: lines 3 and 4 (line 1 = greet and 2 = the sale question are the beat's own).
+local WARUNG = { "tut.t1.jual.3", "tut.t1.jual.4" }
 
 -- What is said for each tutorial step (key = GuideController's step key; "<key>_ground" while Garap mode is open, "<key>_stuck"
--- after a long wait). No line for a key = the old text GUI teaches that step.
-type Line = { who: string, text: string }
+-- after a long wait). No line for a key = the old text GUI teaches that step. The first fish has no step line: its
+-- sequence is the jual_ikan beat (BEATS), so no other line speaks in between.
+type Line = { who: string, key: string }
 local STEP_LINES: { [string]: Line } = {
 	-- T1 (Mak Sari, at the gate)
-	cangkul = { who = "mak_sari", text = "Coba garap tanah ini dulu, Nak. Ketuk tombol Cangkul yang menyala." },
-	cangkul_ground = { who = "mak_sari", text = "Nah, ketuk rumput yang menyala itu buat bikin petak tanah." },
-	tanam = {
-		who = "mak_sari",
-		text = "Sekarang tanam Kangkungnya. Dekati petak kosong, lalu ketuk tombol Tanam yang menyala.",
-	},
-	tanam_stuck = { who = "mak_sari", text = "Bibit awal ini cepat tumbuhnya, Nak. Ditunggu sebentar ya." },
-	siram = { who = "mak_sari", text = "Tanamannya haus, Nak. Ketuk petaknya, lalu ketuk Siram yang menyala." },
-	panen_wait = { who = "mak_sari", text = "Sabar ya, Nak. Tunggu Kangkungnya matang dulu." },
-	panen_harvest = { who = "mak_sari", text = "Nah, sudah matang! Ketuk tombol Panen yang menyala." },
-	panen_sell = { who = "mak_sari", text = "Hasil panennya jual ke Pak Udin di warung. Ikuti panah di tanah ya." },
+	cangkul = { who = "mak_sari", key = "tut.t1.cangkul.1" },
+	cangkul_ground = { who = "mak_sari", key = "tut.t1.cangkul_ground.1" },
+	tanam = { who = "mak_sari", key = "tut.t1.tanam.1" },
+	tanam_stuck = { who = "mak_sari", key = "tut.t1.tanam_stuck.1" },
+	siram = { who = "mak_sari", key = "tut.t1.siram.1" },
+	panen_wait = { who = "mak_sari", key = "tut.t1.panen_wait.1" },
+	panen_harvest = { who = "mak_sari", key = "tut.t1.panen_harvest.1" },
+	panen_sell = { who = "mak_sari", key = "tut.t1.panen_sell.1" },
 	-- T1b
-	kak_fajar = {
-		who = "pak_udin",
-		text = "Ikuti panah ke sungai dekat lahanmu. Kak Fajar punya joran dan umpan buat kamu.",
-	},
-	mancing = {
-		who = "kak_fajar",
-		text = "Joran bambumu sudah siap, gratis. Ke dermaga di sungai, ketuk Mancing, dan dapatkan 1 ikan.",
-	},
-	jual_ikan = { who = "kak_fajar", text = "Ikannya bagus! Jual ke aku di sini, ikuti panah ya." },
+	kak_fajar = { who = "pak_udin", key = "tut.t1b.kak_fajar.1" },
+	mancing = { who = "kak_fajar", key = "tut.t1b.mancing.1" },
 }
+
+local function lineText(line: Line): string
+	return Locale.t(line.key)
+end
 -- Steps that are dialogs of the intro (T1Ghost plays them itself): the sink says "handled" without showing a line.
 local NARRATIVE: { [string]: boolean } = { sapa = true, warung = true }
 
@@ -535,11 +524,11 @@ local function ensureSink()
 		if not line then
 			return false -- no line for this step: the text GUI teaches instead
 		end
-		if not dialogBusy and menuDone() and lastSpoken ~= line.text then
-			lastSpoken = line.text
+		if not dialogBusy and menuDone() and lastSpoken ~= line.key then
+			lastSpoken = line.key
 			lastLine = line
 			lineDismissed = false
-			showLine(line.who, line.text, true, TUTORIAL_BOTTOM, function()
+			showLine(line.who, lineText(line), true, TUTORIAL_BOTTOM, function()
 				lineDismissed = true
 				T1Dialog.Hide() -- Next closes the line: a line never stays on screen without a way out
 			end, function()
@@ -895,7 +884,7 @@ local function runIntro()
 	end
 	local intro = math.floor(camera.ViewportSize.Y * BAR_HEIGHT) + INTRO_BOTTOM
 	for _, line in INTRO do
-		if not waitNext("mak_sari", line, intro, alive) then
+		if not waitNext("mak_sari", Locale.t(line), intro, alive) then
 			return
 		end
 	end
@@ -976,7 +965,7 @@ local function runWarung(guide: any)
 	end
 
 	for _, line in WARUNG do
-		if not waitNext("pak_udin", line, TUTORIAL_BOTTOM, alive) then
+		if not waitNext("pak_udin", Locale.t(line), TUTORIAL_BOTTOM, alive) then
 			leave()
 			return
 		end
@@ -1045,7 +1034,8 @@ local BEATS: { Beat } = {
 		sold = function(guide: any): boolean
 			return guide.rodGift == true
 		end,
-		ask = "npc.kak_fajar.gift",
+		greet = "tut.t1b.hadiah.1", -- naskah 1.4: line 1 (Next), then line 2 with the one button
+		ask = "tut.t1b.hadiah.2",
 		after = {},
 	},
 	{
@@ -1055,8 +1045,8 @@ local BEATS: { Beat } = {
 		sold = function(guide: any): boolean
 			return guide.saleCutscene == true
 		end,
-		ask = "tut.t1.s4_sell_ask",
-		greet = "tut.t1.s4_greet",
+		greet = "tut.t1.jual.1", -- naskah 1.3: 1 (Next), 2 = the sale question (Jual semua), then 3 and 4 (WARUNG)
+		ask = "tut.t1.jual.2",
 		after = WARUNG,
 		ackStep = "warung",
 	},
@@ -1067,9 +1057,10 @@ local BEATS: { Beat } = {
 		sold = function(guide: any): boolean
 			return guide.fishSold == true
 		end,
-		ask = "tut.t1b.jual_ask",
-		after = {},
-		afterChoice = "tut.t1b.jual_done", -- the closing bubble after the sale: "Ok, Kak Fajar" ends the tutorial part 1
+		greet = "tut.t1b.jual_ikan.1", -- naskah 1.5: one sequence, 1 (Next) -> 2 sale (Jual semua) -> 3 (Next) -> 4 (Ok)
+		ask = "tut.t1b.jual_ikan.2",
+		after = { "tut.t1b.jual_ikan.3" },
+		afterChoice = "tut.t1b.jual_ikan.4", -- the closing bubble after the sale: "Ok, Kak Fajar" ends the tutorial part 1
 		afterOk = "tut.t1b.ok_fajar",
 		ackStep = "jual_ikan", -- the step is an ack: pressing Ok completes it (so Selesai comes after the button)
 	},
@@ -1161,6 +1152,29 @@ local function beatChoice(name: string, npcRig: Model, text: string, label: stri
 	release()
 end
 
+-- One beat line with Next: waits for its turn at the box, then until the player presses Next.
+local function lineNext(name: string, npcRig: Model, text: string)
+	local pressed = false
+	local release = T1Dialog.Acquire(name, T1Dialog.BEAT)
+	if not release then
+		return
+	end
+	T1Dialog.Show({
+		name = Locale.t(name),
+		text = text,
+		avatar = npcRig,
+		showNext = true,
+		bottom = TUTORIAL_BOTTOM,
+		onNext = function()
+			pressed = true
+		end,
+	})
+	while not pressed do
+		task.wait(0.05)
+	end
+	release()
+end
+
 -- Kak Fajar's first visit (playtest 2026-11-22): walking up to him starts the beat, no prompt. The gift bubble has ONE
 -- button (Terima Hadiah); then the gift is given and a fade ends the beat (no bubble after it).
 local function runGiftBeat(beat: Beat, _guide: any)
@@ -1219,6 +1233,10 @@ local function runGiftBeat(beat: Beat, _guide: any)
 	for step = 1, 8 do
 		npcRig:PivotTo(from:Lerp(turnTo, step / 8))
 		task.wait(0.04)
+	end
+	-- Naskah 1.4: line 1 (Next), then line 2 with the one button (Terima Hadiah).
+	if beat.greet then
+		lineNext(beat.name, npcRig, Locale.t(beat.greet, { name = player.DisplayName }))
 	end
 	beatChoice(beat.name, npcRig, Locale.t(beat.ask, { name = player.DisplayName }), Locale.t("dialog.receive_gift"))
 
@@ -1372,7 +1390,7 @@ local function runBeat(beat: Beat, guide: any)
 
 	-- 6. The lines after the sale (Next after each; none for the fish), then the fade and the controls back.
 	for _, line in beat.after do
-		say(line)
+		say(Locale.t(line))
 	end
 	if beat.afterChoice then
 		beatChoice(beat.name, npcRig, Locale.t(beat.afterChoice), Locale.t(beat.afterOk or "tut.t1b.ok_fajar"))
@@ -1481,7 +1499,7 @@ task.spawn(function()
 								T1Dialog.Hide()
 							end
 						elseif not T1Dialog.IsShown() then
-							showLine(lastLine.who, lastLine.text, true, TUTORIAL_BOTTOM, function()
+							showLine(lastLine.who, lineText(lastLine), true, TUTORIAL_BOTTOM, function()
 								lineDismissed = true
 								T1Dialog.Hide() -- Next closes it: a re-shown line is dismissable too
 							end)

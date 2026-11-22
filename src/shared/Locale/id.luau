@@ -451,7 +451,6 @@ return {
 	["npc.pak_udin.meet"] = "Halo, {name}! Saya Pak Udin, pengepul hasil panen di warung ini. Mau jual panen atau beli bibit?",
 	["npc.kak_fajar"] = "Kak Fajar",
 	["npc.kak_fajar.role"] = "Joran & umpan",
-	["npc.kak_fajar.after_catch"] = "Selamat, kamu berhasil dapat ikan! Ikan ini bisa kamu jual ke Pak Udin di warung.",
 	["npc.kak_fajar.greet"] = "Mau mancing? Joran dan umpan ada di sini.",
 	["npc.kak_fajar.gift"] = "Kamu mau mancing? Ini, Kak Fajar kasih hadiah joran dan umpan buat kamu.",
 	["npc.kak_fajar.meet"] = "Halo, {name}! Saya Kak Fajar, penjual alat pancing di sini. Mau belajar mancing? Saya kasih Joran Bambu gratis buat kamu, lengkap dengan pelet untuk umpan. Terima hadiahnya ya!",
@@ -583,7 +582,36 @@ return {
 	["tut.dev_test.s3"] = "Ikuti panah ke Pak Udin",
 	-- T1 (Config/Onboarding): step text max 45 characters
 	["tut.t1.title"] = "Panduan Dasar",
-	["tut.t1.intro"] = "Mak Sari: Lhooo... Gede banget sekarang kamu! Lahan Kakek nunggu kamu.", -- Bab 16.3 0:10
+	-- Naskah Dialog v0.1, bagian 1 (tutorial): satu kunci = satu kotak dialog. Jangan ditulis di kode.
+	-- 1.1 Intro, Mak Sari
+	["tut.t1.intro.1"] = "Nak... akhirnya kamu pulang juga. Mak kangen!",
+	["tut.t1.intro.2"] = "Ini lahan peninggalan Kakek Daeng. Sudah lama nggak ada yang ngurus.",
+	["tut.t1.intro.3"] = "Dulu kakekmu rajin sekali di sini. Sekarang giliranmu, ya?",
+	["tut.t1.intro.4"] = "Tenang, Mak temenin. Kita mulai pelan-pelan aja.",
+	-- 1.2 Langkah T1, Mak Sari
+	["tut.t1.cangkul.1"] = "Garap tanahnya dulu, Nak. Ketuk tombol Cangkul yang menyala.",
+	["tut.t1.cangkul_ground.1"] = "Nah, ketuk rumput yang menyala buat bikin petak.",
+	["tut.t1.tanam.1"] = "Sekarang tanam Kangkungnya. Dekati petaknya, lalu ketuk Tanam.",
+	["tut.t1.tanam_stuck.1"] = "Bibit awal ini cepat tumbuhnya, Nak. Ditunggu sebentar ya.",
+	["tut.t1.siram.1"] = "Tanamannya haus. Ketuk petaknya, lalu ketuk Siram.",
+	["tut.t1.panen_wait.1"] = "Sabar ya, Kangkung ini cepat kok matangnya.",
+	["tut.t1.panen_harvest.1"] = "Sudah matang! Ketuk Panen.",
+	["tut.t1.panen_sell.1"] = "Bawa hasil panenmu ke Pak Udin di warung alun-alun. Ikuti panah di tanah, ya.",
+	-- 1.3 Jual pertama, Pak Udin (baris 2 = tombol Jual semua, lihat tut.t1.s4_sell_all)
+	["tut.t1.jual.1"] = "Halo, {name}! Kamu cucunya Kakek Daeng, ya? Wah, sudah besar sekarang.",
+	["tut.t1.jual.2"] = "Itu Kangkung dari lahanmu? Sini, Pak Udin beli.",
+	["tut.t1.jual.3"] = "Bagus panenmu! Kalau ada lagi, bawa ke sini. Bibit juga Pak Udin jual.",
+	["tut.t1.jual.4"] = "Oh iya, Kak Fajar lagi mancing di sungai dekat lahanmu. Samperin, katanya ada titipan buat kamu.",
+	["tut.t1b.kak_fajar.1"] = "Kak Fajar ada di sungai dekat lahanmu. Ikuti panah di tanah, ya.",
+	-- 1.4 Hadiah joran, Kak Fajar (baris 2 = tombol Terima Hadiah)
+	["tut.t1b.hadiah.1"] = "Halo, {name}! Aku Fajar. Kata Pak Udin kamu baru pulang, ya?",
+	["tut.t1b.hadiah.2"] = "Nih, joran bambu sama umpan buat kamu. Anggap aja hadiah selamat datang.",
+	["tut.t1b.mancing.1"] = "Coba lempar ke riak air itu. Ketuk tombol Mancing yang menyala.",
+	-- 1.5 Ikan pertama + jual, Kak Fajar (satu rangkaian)
+	["tut.t1b.jual_ikan.1"] = "Wah, dapat! Lumayan buat percobaan pertama.",
+	["tut.t1b.jual_ikan.2"] = "Mau dijual? Aku beli ikan di sini.",
+	["tut.t1b.jual_ikan.3"] = "Sungai ini dekat lahanmu, jadi bisa mancing sambil nunggu panen.",
+	["tut.t1b.jual_ikan.4"] = "Aku balik ke lapak dulu. Butuh umpan atau mau jual ikan, cari aku di pinggir kanal alun-alun.",
 	["tut.t1.sapa_title"] = "Mak Sari",
 	["tut.t1.sapa_body"] = "Lhooo... Gede banget sekarang kamu! Lahan Kakek nunggu kamu.",
 	["tut.t1.s2_stuck"] = "Bibit awal tumbuh cepat, ditunggu ya",
@@ -600,7 +628,6 @@ return {
 	["tut.t1.s4_wait"] = "Tunggu tanamannya matang",
 	["tut.t1.s4_harvest"] = "Tap Panen",
 	["tut.t1.s4_sell"] = "Jual hasil panen ke Pak Udin",
-	["tut.t1.s4_sell_ask"] = "Ada hasil panen yang mau dijual?",
 	["tut.t1.s4_sell_all"] = "Jual semua",
 	["tut.arrow.tanam"] = "Tanam di sini",
 	["tut.arrow.siram"] = "Siram di sini",
@@ -611,7 +638,6 @@ return {
 	["tut.t1.s2"] = "Pilih bibit, tap petak kosong",
 	["tut.t1.s3"] = "Tap petak, lalu Siram",
 	["tut.t1.s4"] = "Panen, lalu jual ke Pak Udin",
-	["tut.t1.s4_greet"] = "Halo, {name}! Senang kamu datang ke warungku. Kak Fajar lagi mancing di sungai dekat lahanmu, temui dia di sana.",
 	-- T1b (Config/Onboarding): the lines Mak Sari / Pak Udin / Kak Fajar actually say live in T1Ghost.client; these are
 	-- the Panduan list title and the plain fallback when nobody can speak.
 	["tut.t1b.title"] = "Joran dan Mancing",
@@ -619,10 +645,8 @@ return {
 	["tut.t1b.kolam_demo"] = "Buka Kolam di dock",
 	["tut.t1b.kak_fajar"] = "Temui Kak Fajar di sungai dekat lahanmu",
 	["tut.t1b.jual_ikan"] = "Jual ikanmu ke Kak Fajar",
-	["tut.t1b.jual_ask"] = "Hebat juga kamu langsung dapat ikan, sini Kak Fajar beli!",
-	["tut.t1b.jual_done"] = "Kamu juga bisa mancing di sungai sebelah lahanmu, biar tidak perlu jauh jalan ke alun-alun.",
 	["tut.t1b.ok_fajar"] = "Ok, Kak Fajar",
-	["tut.t1b.mancing"] = "Mancing 1 ikan di dermaga",
+	["tut.t1b.mancing"] = "Mancing 1 ikan di sungai",
 	["tut.coach.mancing"] = "Ketuk Mancing, lalu tarik saat ikan menggigit",
 	["tut.coach.tarik"] = "Tahan Tarik! Jaga ikan tetap di zona hijau",
 
