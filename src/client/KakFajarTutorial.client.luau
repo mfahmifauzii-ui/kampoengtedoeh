@@ -25,8 +25,8 @@ local STAND_OFFSET = 3 -- studs from the spot onto the bank (away from the water
 local CHECK_SECONDS = 0.25
 
 local copy: Model? = nil
-local hiddenServerParts: { BasePart } = {}
-local hiddenPrompt: ProximityPrompt? = nil
+
+
 
 -- Steps of the fishing segment that Kak Fajar is part of (Update owner playtest, item 3): from the step right after the Pak Udin
 -- sale (receiving the rod) through the fish sale. The copy exists for the WHOLE segment.
@@ -135,34 +135,69 @@ local function placeCopy(rig: Model, spot: BasePart)
 	rig:PivotTo(CFrame.lookAt(at, at + outward)) -- faces the water, so the player coming from the bank sees his face
 end
 
+-- Hiding the server Kak Fajar FOR THIS PLAYER (playtest item 5): every part and decal is made invisible locally, the name
+-- tags (BillboardGui / SurfaceGui) and prompts are off, and the parts stop colliding, touching and being queried. The
+-- original values are remembered and put back exactly. Re-applied on every check, so a streamed-in or rebuilt rig is hidden too.
+local saved: { [Instance]: { [string]: any } } = {}
+
+local function remember(inst: Instance, prop: string, value: any)
+	local props = saved[inst]
+	if not props then
+		props = {}
+		saved[inst] = props
+	end
+	if props[prop] == nil then
+		props[prop] = value
+	end
+end
+
+local function hideOne(inst: Instance)
+	if inst:IsA("BasePart") then
+		remember(inst, "LocalTransparencyModifier", inst.LocalTransparencyModifier)
+		remember(inst, "CanCollide", inst.CanCollide)
+		remember(inst, "CanTouch", inst.CanTouch)
+		remember(inst, "CanQuery", inst.CanQuery)
+		inst.LocalTransparencyModifier = 1
+		inst.CanCollide = false
+		inst.CanTouch = false
+		inst.CanQuery = false
+	elseif inst:IsA("Decal") or inst:IsA("Texture") then
+		remember(inst, "Transparency", inst.Transparency)
+		inst.Transparency = 1
+	elseif inst:IsA("BillboardGui") or inst:IsA("SurfaceGui") or inst:IsA("ProximityPrompt") then
+		remember(inst, "Enabled", inst.Enabled)
+		inst.Enabled = false
+	end
+end
+
+local function hideRig(rig: Model)
+	for _, descendant in rig:GetDescendants() do
+		if saved[descendant] == nil then
+			hideOne(descendant)
+		end
+	end
+end
+
+local function restoreAll()
+	for inst, props in saved do
+		for prop, value in props do
+			pcall(function()
+				(inst :: any)[prop] = value
+			end)
+		end
+	end
+	table.clear(saved)
+end
+
 local function hideServerFajar(hide: boolean)
 	if not hide then
-		for _, part in hiddenServerParts do
-			part.LocalTransparencyModifier = 0
-		end
-		table.clear(hiddenServerParts)
-		if hiddenPrompt then
-			hiddenPrompt.Enabled = true
-			hiddenPrompt = nil
-		end
-		return
-	end
-	if #hiddenServerParts > 0 then
+		restoreAll()
 		return
 	end
 	local npcs = Workspace:FindFirstChild("Npcs")
 	local serverRig = npcs and npcs:FindFirstChild(NPC_ID)
-	if not serverRig or not serverRig:IsA("Model") then
-		return
-	end
-	for _, descendant in serverRig:GetDescendants() do
-		if descendant:IsA("BasePart") then
-			descendant.LocalTransparencyModifier = 1
-			table.insert(hiddenServerParts, descendant)
-		elseif descendant:IsA("ProximityPrompt") and descendant.Name == "TalkPrompt" then
-			descendant.Enabled = false
-			hiddenPrompt = descendant
-		end
+	if serverRig and serverRig:IsA("Model") then
+		hideRig(serverRig)
 	end
 end
 
