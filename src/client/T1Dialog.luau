@@ -456,7 +456,8 @@ local function layoutFor(opts: Options)
 	if choices then
 		height = math.max(m.minH, m.textTop + textHeight + 10 + m.choiceH + 16)
 	else
-		height = math.min(m.maxH, math.max(m.minH, m.textTop + textHeight + m.bottomPad))
+		-- Never clip: the box grows to the measured text. maxH is the target for a short line, not a cut-off (Bug: 3rd line cut).
+		height = math.max(m.minH, m.textTop + textHeight + m.bottomPad)
 	end
 	if box then
 		box.Size = UDim2.fromOffset(boxWidth, height)
