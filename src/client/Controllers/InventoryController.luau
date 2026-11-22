@@ -89,7 +89,7 @@ local function render()
 		local info = Items.info(itemId)
 		local count = snapshot.items[itemId]
 		if info then
-			-- Icon by category, never a specific icon for another category. A harvest (Super, Kualitas) uses its crop's model
+			-- Icon by category, never a specific icon for another category. A harvest (Kualitas) uses its crop's model
 			-- and the harvest icon; bait and anything without its own icon uses the generic bag icon (Tas).
 			local isCrop = info.kind == "crop"
 			local isFish = info.kind == "fish"

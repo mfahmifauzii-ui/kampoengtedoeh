@@ -294,7 +294,7 @@ local routeKey = ""
 --   "sell"    the harvest is in the Tas: text "Jual ke Pak Udin", arrow to Pak Udin (only now)
 local function t1Phase(): string
 	local snap = snapshot()
-	-- The harvest is stored under its variant id (Items.cropItemId: "super_kangkung" for the guaranteed first Super, or
+	-- The harvest is stored under its variant id (Items.cropItemId: "bagus_kangkung" for the guaranteed first Bagus, or
 	-- "<quality>_kangkung"), not the plain "kangkung". Count every kangkung crop item, but never the seed "seed_kangkung".
 	local inBag = 0
 	if snap and snap.items then

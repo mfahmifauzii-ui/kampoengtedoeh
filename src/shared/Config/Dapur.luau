@@ -133,7 +133,7 @@ return {
 
 	FISH_CAT = { early = "C", mid = "U", late = "R" }, -- kategori resep -> rarity ikan (Legenda tidak bisa dimasak)
 	BUFF_DURATION = { biasa = 600, bagus = 720, prima = 900 }, -- detik, real-time (Bab 9.4)
-	BUFF_TANI_SUPER = 0.1, -- +10% peluang Super saat panen
+	BUFF_TANI_BAGUS = 0.1, -- Update owner 2026-11-22: +10% absolut ke peluang Bagus saat panen (Super dihapus)
 	BUFF_PANCING_BITE = 0.8, -- gigitan 20% lebih cepat (x waktu tunggu)
 	BUFF_PANCING_BOX = 1.1, -- Kotak tarik +10% lebih lebar
 	BUFF_CRIT_WINDOW = 1.25, -- jendela Critical +25% lebih lebar (client)

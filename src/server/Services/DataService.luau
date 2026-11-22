@@ -9,6 +9,7 @@ local RunService = game:GetService("RunService")
 
 local ProfileStore = require(script.Parent.Parent.Packages.ProfileStore)
 local DataTemplate = require(ReplicatedStorage.Shared.Config.DataTemplate)
+local Items = require(ReplicatedStorage.Shared.Modules.Items)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Signal = require(ReplicatedStorage.Shared.Modules.Signal)
 local Types = require(ReplicatedStorage.Shared.Types)
@@ -70,6 +71,20 @@ local function onPlayerAdded(player: Player)
 	end
 	data.stats.lastLogin = now
 	data.stats.sessions += 1
+
+	-- Super DIHAPUS (Update owner 2026-11-22, Task 3): item "super_*" di save lama dipindah ke id Kualitas/Biasa tanpa prefix.
+	local inventory = data.inventory :: any
+	local renamed: { [string]: string } = {}
+	for itemId in inventory do
+		local newId = Items.legacyId(itemId)
+		if newId ~= itemId then
+			renamed[itemId] = newId
+		end
+	end
+	for oldId, newId in renamed do -- collected first: the table is not changed while it is being read
+		inventory[newId] = (inventory[newId] or 0) + inventory[oldId]
+		inventory[oldId] = nil
+	end
 
 	profiles[player] = profile
 	player:SetAttribute("Level", data.level)

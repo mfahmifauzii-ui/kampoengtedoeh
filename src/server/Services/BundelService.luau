@@ -42,7 +42,7 @@ local function matches(need: string, itemId: string): boolean
 		local info = Items.info(itemId)
 		return info ~= nil and info.kind == "olahan"
 	elseif need == "prima:any" then
-		local base = itemId:match("^super_(.+)$") or itemId
+		local base = itemId
 		return base:match("^prima_") ~= nil
 	elseif need == "early:any" or need == "jumbo:any" then
 		local fishId, size = itemId:match("^(.+)@(.+)$")

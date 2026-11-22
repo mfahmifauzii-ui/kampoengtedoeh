@@ -1,7 +1,7 @@
 --!strict
 -- Kualitas Panen (Kampoeng_Tedoeh_v7.3 Bab 5.4, LOCKED). Kualitas ditentukan saat panen, dari timing + siram.
 -- Nil (Biasa) = panen biasa, tidak ada prefix di id item. Bagus / Prima jadi prefix: "bagus_<crop>" / "prima_<crop>".
--- Super menumpuk di depan: "super_bagus_<crop>" / "super_prima_<crop>". Harga = sellPrice x mult (Bab 17.7).
+-- Super DIHAPUS (Update owner 2026-11-22). Harga = sellPrice x mult (Bab 17.7).
 --
 -- timely: panen <=5 menit setelah matang (TIMELY_WINDOW_SECONDS). wet: petak Basah (tile.watered).
 --   timely && wet  : Biasa 50% / Bagus 35% / Prima 15%
@@ -19,6 +19,11 @@ local list: { Quality } = {
 	{ id = "bagus", mult = 1.1, nameKey = "kualitas.bagus", announce = false },
 	{ id = "prima", mult = 1.25, nameKey = "kualitas.prima", announce = true },
 }
+
+-- Batas akhir peluang (Update owner 2026-11-22, Task 3), dihitung SETELAH semua bonus (Mata Kualitas + Buff Tani):
+--   Bagus max 50%, Prima max 20%. Biasa = sisanya.
+local CAP_BAGUS = 0.50
+local CAP_PRIMA = 0.20
 
 -- Panen tepat waktu: <=5 menit setelah matang.
 local TIMELY_WINDOW_SECONDS = 300
@@ -43,8 +48,8 @@ local function pick(timely: boolean, wet: boolean, roll: number, bonusBagus: num
 	local dist = if timely and wet then DISTRIBUTION.timelyWet
 		elseif timely or wet then DISTRIBUTION.oneOf
 		else DISTRIBUTION.lateDry
-	local bagus = dist.bagus + (bonusBagus or 0)
-	local prima = dist.prima + (bonusPrima or 0)
+	local bagus = math.min(dist.bagus + (bonusBagus or 0), CAP_BAGUS)
+	local prima = math.min(dist.prima + (bonusPrima or 0), CAP_PRIMA)
 	if roll < bagus then
 		return "bagus"
 	elseif roll < bagus + prima then
@@ -57,6 +62,8 @@ return {
 	list = list,
 	byId = byId,
 	TIMELY_WINDOW_SECONDS = TIMELY_WINDOW_SECONDS,
+	CAP_BAGUS = CAP_BAGUS,
+	CAP_PRIMA = CAP_PRIMA,
 	ANNOUNCE_MIN_GROW_SECONDS = ANNOUNCE_MIN_GROW_SECONDS,
 	pick = pick,
 }

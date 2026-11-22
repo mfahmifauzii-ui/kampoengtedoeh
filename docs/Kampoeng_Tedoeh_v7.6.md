@@ -130,7 +130,7 @@ Isi di bawah adalah perubahan yang sudah ada di kode (`feat/v.7`) dan disetujui 
 | **Player Santai** | 16-18 | 30-45 menit/hari, HP sendiri | Cozy, gampang, cerita | Tutorial cepat, hewan, Kualitas, Gestur |
 | **Player Dekorator** | 16-20 | 1-2 jam/hari | Rumah cantik, foto, like | Hias, Blueprint, Galeri Kampung |
 | **Player Kolektor** | 16+ | 2+ jam/hari | Lengkap 100%, langka | Album 214, Ikan Legenda, Kualitas Prima, Level Cap |
-| **Player Roblox Umum** | 16+ | Coba 5 menit dulu | Ada yang seru di menit pertama | FTUE Bab 16, panen pertama dijamin Super |
+| **Player Roblox Umum** | 16+ | Coba 5 menit dulu | Ada yang seru di menit pertama | FTUE Bab 16, panen pertama dijamin Bagus |
 
 ### 2.2 Bentuk Sesi 30 Menit (Contoh, Bukan Paksaan)
 
@@ -272,7 +272,7 @@ Skill di luar cap Dekor (max +10% per jenis). Lihat Bab 17.6.
 
 ### 5.1 Loop
 
-Pilih petak kosong → Tanam bibit (bayar bibit) → Tumbuh (jalan walau offline) → Siram opsional → Panen (Koin + XP + roll Super + tentukan Kualitas) → Petak kosong, tanam lagi.
+Pilih petak kosong → Tanam bibit (bayar bibit) → Tumbuh (jalan walau offline) → Siram opsional → Panen (Koin + XP + tentukan Kualitas (Biasa / Bagus / Prima)) → Petak kosong, tanam lagi.
 
 - Satu aksi tanam / panen ≈ 1 detik aktif per petak. 12 petak ≈ 30 detik.
 - **Siram:** mengurangi sisa waktu tumbuh 15% (sekali per fase tumbuh, max 1x per tanaman per siklus) + menandai tanaman `Basah` (dibutuhkan Kualitas Bagus / Prima, Bab 5.4). Hujan otomatis menyiram semua tanaman luar 1x.
@@ -315,7 +315,7 @@ Aturan harga: Bibit ≈ 30% harga jual. Late harus 30-50x Early karena waktu tun
 | 18 | Durian | Late | 8 jam | 380 | 1.300 | 400 | 45 |
 
 - Padi juga memberi 2 Jerami per panen (bahan). Pisang juga memberi 2 Daun Pisang per panen (bahan Dapur, hanya untuk Pepes). Jagung bisa jadi pakan ayam di Dapur (Bab 9).
-- **Super Panen:** base 5%, +5% jika Basah. Super = 2x Koin + 50% XP.
+- **Super DIHAPUS (Update owner 2026-11-22):** tidak ada lagi Super, tidak ada pengali Koin / XP tambahan. Yang ada hanya Kualitas (Bab 5.4): Bagus dan Prima, dengan batas akhir **Bagus max 50%, Prima max 20%**, Biasa sisanya. Batas dihitung setelah semua bonus (Mata Kualitas, Buff Tani).
 
 ### 5.4 Kualitas Panen (Pengganti Mutasi) — LOCKED
 
@@ -329,6 +329,8 @@ Mutasi DIHAPUS. Tidak ada Embun, Petir, Emas, Pelangi sebagai Mutasi. Penggantin
 | **Biasa** | Base | x1,0 | Normal |
 | **Bagus** | Panen tepat waktu + Basah menaikkan peluang | x1,1 (+10%) | Daun lebih segar, kilau lembut |
 | **Prima** | Panen tepat waktu + Basah menaikkan peluang (lebih kecil dari Bagus) | x1,25 (+25%) | Kilau emas lembut, partikel kecil |
+
+**Batas peluang (Update owner 2026-11-22, Task 3):** dihitung SETELAH semua bonus (Skill Mata Kualitas + Buff Tani). **Bagus maksimal 50%, Prima maksimal 20%.** Biasa mengambil sisanya. Buff Tani = +10% absolut ke peluang Bagus (`Dapur.BUFF_TANI_BAGUS`). Panen pertama FTUE selalu Bagus (Bab 16.2). Super DIHAPUS: tidak ada lagi item atau pengali Super.
 
 Distribusi peluang (LOCKED):
 
@@ -349,7 +351,7 @@ Distribusi peluang (LOCKED):
 |-------|--------|
 | Pasar Harian | 2 tanaman +30% per hari WIB (1 Early, 1 Mid/Late). Berlaku di semua penjual. Ikon koin kecil di atas petak yang laku. |
 | Rotasi | Tanam beda dari siklus lalu di petak yang sama: +5% XP. Tidak ada hukuman jika sama. |
-| Orang-orangan Sawah | Dekor Berkah, +3% Super radius 5 petak. |
+| Orang-orangan Sawah | Dekor Berkah, +3% peluang Bagus radius 5 petak. |
 | Bantu Tetangga | Siram & panen di lahan teman, lihat Bab 12.2. |
 
 ---
@@ -520,7 +522,7 @@ Kumpul bahan → Buka Menu Hias → Pilih piece → Warna (12) + Material (4) �
 
 - Dari 80 piece rilis, **30 adalah Dekor Berkah** (ditandai ikon daun kecil di katalog). 50 lainnya murni visual.
 - 1 Dekor Berkah = 1 stat. Duplikat tidak stack (stat dihitung 1x per jenis). Tidak ada popup; panel Stats yang berubah.
-- Contoh stat: `+3% Koin Nanem`, `+3% XP Mancing`, `+3% Bahan Nambang`, `+5% Super Panen`, `-3% Cooldown Ternak`.
+- Contoh stat: `+3% Koin Nanem`, `+3% XP Mancing`, `+3% Bahan Nambang`, `+5% peluang Bagus`, `-3% Cooldown Ternak`.
 - Dekor Bunga (Bab 18.3) = Dekor Berkah dengan 2 stat.
 
 ### 8.5 Set Dekor
@@ -644,13 +646,13 @@ Pakan Jagung adalah pakan Ayam, bukan Olahan untuk player. Pakan Jagung tidak bi
 
 | Buff | Dari resep apa | Efek selama buff |
 |---|---|---|
-| **Buff Tani (Nanem)** | Olahan sayur / buah: Tumis Kangkung, Tumis Bayam, Sambal Tomat, Sup Ubi, Salad Sawi, Nasi Goreng Spesial, Nasi Padang Mini, Salad Buah | Panen +10% peluang Super. Tidak ngaruh ke waktu tumbuh (itu pasif). |
+| **Buff Tani (Nanem)** | Olahan sayur / buah: Tumis Kangkung, Tumis Bayam, Sambal Tomat, Sup Ubi, Salad Sawi, Nasi Goreng Spesial, Nasi Padang Mini, Salad Buah | Panen +10% peluang Bagus (absolut). Tidak ngaruh ke waktu tumbuh (itu pasif). |
 | **Buff Pancing (Mancing)** | Olahan ikan: Ikan Early Goreng, Pepes Ikan Mid, Ikan Late Bakar | Gigitan 20% lebih cepat + Kotak tarik +10% lebih lebar |
 | **Buff Tukang (Nambang)** | Olahan energi: Jus Jagung, Keripik Singkong, Gulai Telur, Kue Pisang, Selai Stroberi, Es Tebu, Es Krim Durian, Durian Goreng | Jendela Critical +25% lebih lebar + +1 bahan saat Critical. Berlaku untuk Batu / Tanah Liat / Pasir / Bambu / Ijuk |
 | **Buff Tebang (Nebang Pohon)** | Olahan kopi / teh / telur: Kopi Tubruk, Teh Melati, Kopi Susu Gula Aren, Telur Asin | Jendela Critical +25% lebih lebar + +1 Kayu saat Critical. Berlaku hanya untuk Pohon (Kayu) |
 
-- Contoh: Makan Tumis Kangkung Prima = Buff Tani 15 menit. Selama 15 menit, setiap Panen punya +10% peluang Super. Setelah 15 menit habis, buff hilang.
-- Buff + Skill stack (contoh: Skill Tangan Hijau + Buff Tani), tapi peluang Super tetap dibatasi cap di Bab 17.6 / Bab 5.4.
+- Contoh: Makan Tumis Kangkung Prima = Buff Tani 15 menit. Selama 15 menit, setiap Panen punya +10% peluang Bagus (absolut). Setelah 15 menit habis, buff hilang.
+- Buff + Skill stack (contoh: Skill Tangan Hijau + Buff Tani), tapi peluang Bagus tetap dibatasi cap Bagus max 50%, Prima max 20% (Bab 5.4).
 
 ---
 
@@ -682,7 +684,7 @@ Nama lama yang dilarang: Bu Wati, Mbak Arsi, Bang Tarno, Pak RT, Bu Sari, Mbah K
 | Warung Player | Olahan (ke NPC pengunjung) | Base x Kualitas | Max 5 offline per login |
 | Gerobak Kaget | Beli bibit varian / hewan varian / dekor | Lihat Bab 13.1 | Max 3 per slot per restock |
 
-- Pasar Harian & Kualitas & Super dikali di semua penjual.
+- Pasar Harian & Kualitas dikali di semua penjual.
 - Jual pertama di FTUE tidak lewat interaksi bebas — lewat cutscene proximity Bab 16.4, tetap buka GUI Jual Pak Udin yang sama.
 - Lapak Tetangga DIHAPUS. Tidak ada pajak Lapak 5%.
 
@@ -824,7 +826,7 @@ Lihat Bab 8.7. Like +20 Koin max 10 per hari. Galeri Kampung 5 lahan dengan like
 |----|--------|--------|
 | MQ1 Pulang Kampung | Masuk pertama | 100 Koin + 4 Bibit Kangkung |
 | MQ2 Siram Pertama | Siram 1 tanaman | 50 Koin + 20 XP |
-| MQ3 Panen Pertama | Panen 1 tanaman (dijamin Super) | 100 Koin + 30 XP |
+| MQ3 Panen Pertama | Panen 1 tanaman (dijamin Bagus) | 100 Koin + 30 XP |
 | MQ4 Kolam Kakek | Lv 3, Mak Sari datang | Kolam Kakek (Blueprint) |
 | MQ5 Bubu Pertama | Lv 6, Bubu | 1 Bubu Bambu |
 | MQ6 Kokok Pertama | Lv 5, Pak Udin | Ayam gratis → isi pakan → ambil telur |
@@ -932,7 +934,7 @@ Bundel adalah proyek Blueprint. Kerangka kosong muncul di level bukanya. Biaya, 
 |-------|---------|--------|--------------|
 | 0:00 | Masuk pertama, Mak Sari datang, dialog Kakek | - | FTUE lama. Mak Sari = narator + target langkah ini saja. NPC lain diblok (Bab 16.3). |
 | 0:30 | Tanam Kangkung (4 Bibit gratis) | - | FTUE lama. |
-| 0:50 | Panen pertama (dijamin Super) | 20 XP | FTUE lama. |
+| 0:50 | Panen pertama (dijamin Bagus) | 20 XP | FTUE lama. |
 | 1:30 | Siram / Panen (opsional) | 20 XP | FTUE lama. |
 | 2:00 | Mancing: Kak Fajar kasih Joran Bambu. Lempar → gigitan (dijamin) → tarik (ikan Early pelan) → Wader Cakul. Kartu `IKAN BARU!` | 20 XP | FTUE lama. Mancing hanya di dermaga Kanal (bukan kolam). Lihat Bab 16.5. |
 | 3:00 | Jual hasil panen pertama ke Pak Udin — **via cutscene proximity (BARU)** | 20 XP | **Bukan interaksi bebas.** Mendekati Pak Udin = trigger cutscene jual pertama (Bab 16.4). Cutscene buka GUI Jual yang sama seperti biasa. |
@@ -1059,8 +1061,8 @@ Target porsi Koin player inti: Nanem 30% | Mancing 25% | Ternak+Kolam+Bubu 15% |
 ### 17.7 Harga Lain
 
 - Pasar Harian: +30%, 2 barang, semua penjual.
-- Super: 2x Koin + 50% XP.
-- Kualitas: Bagus +10%, Prima +25% (bukan Mutasi x1,5 / x3 / x5 / x10). Kualitas menumpuk dengan Super: Durian Prima + Super = 1.300 x 1,25 x 2 = 3.250 Koin. Ini jackpot cozy yang sengaja ada, bukan jackpot judi 13.000.
+- Super DIHAPUS: tidak ada pengali Koin / XP.
+- Kualitas: Bagus +10%, Prima +25% (bukan Mutasi x1,5 / x3 / x5 / x10). Kualitas: Durian Prima = 1.300 x 1,25 = 1.625 Koin (Super dihapus, Update owner 2026-11-22).
 - Agenda: 150-400 Koin per tugas.
 
 ### 17.8 Validasi Ekonomi (Wajib Saat Playtest)
@@ -1132,7 +1134,7 @@ Target porsi Koin player inti: Nanem 30% | Mancing 25% | Ternak+Kolam+Bubu 15% |
 
 ## 20. EXPERIENCE — Game Feel, Suara, Haptic
 
-- Game Feel: Panen Super + Prima = partikel emas lembut + suara `pop` + haptic kecil. Legenda = fanfare kecil + banner.
+- Game Feel: Panen Prima = partikel emas lembut + suara `pop` + haptic kecil. Legenda = fanfare kecil + banner.
 - Suara: Ayam berkokok Pagi, jangkrik Sore, kunang-kunang Malam, tik-tik Gerimis, gemuruh Deres, petir jauh Petir.
 - Haptic: Panen, Critical Nambang, Tarik sukses, Legenda. Bisa dimatikan di Settings.
 - Tidak ada suara keras / jumpscare. Semua suara cozy.
@@ -1193,7 +1195,7 @@ Target porsi Koin player inti: Nanem 30% | Mancing 25% | Ternak+Kolam+Bubu 15% |
 
 ### 25.2 Event Analytics (Wajib Log)
 
-Plant, Water, Harvest (Kualitas, Super), Cast, Bite, PullSuccess, Fish (Tier, Size), Feed, Collect, Cook (Recipe, Kualitas), WarungSale, Bantu, KerjaBakti, Quest, Surat, Album, Login, Playtime, GerobakKaget, PasarMalam.
+Plant, Water, Harvest (Kualitas), Cast, Bite, PullSuccess, Fish (Tier, Size), Feed, Collect, Cook (Recipe, Kualitas), WarungSale, Bantu, KerjaBakti, Quest, Surat, Album, Login, Playtime, GerobakKaget, PasarMalam.
 
 ---
 
@@ -1239,7 +1241,7 @@ PlayerData: Level, XP, SP, Koin, Bunga, Tas (items + kualitas), Lahan (Petak, Ch
 - [ ] FTUE selesai dalam 10 menit, tidak macet.
 - [ ] FTUE lama dipertahankan — tidak ada FTUE baru, tidak ada naskah baru.
 - [ ] No-skip: tidak ada tombol Lewati / Lewati langkah / Lewati panduan / Lewati dialog / skip cutscene / skip coachmark.
-- [ ] Panen pertama dijamin Super.
+- [ ] Panen pertama dijamin Bagus.
 - [ ] Joran Bambu tampil di Tas, tombol Mancing muncul di dermaga (bukan kolam) selama Tutorial 1.
 - [ ] Tidak ada langkah / coachmark / prompt / tombol Kolam di Tutorial 1. Kolam pertama hanya lewat MQ4 / Bundel Kakek Lv 3.
 - [ ] Selama Tutorial 1, NPC di luar langkah aktif diblok — ProximityPrompt nonaktif, NPC jawab `Selesaikan tutorial dulu`, tidak ada toko / dialog / GUI.
@@ -1354,7 +1356,7 @@ Player jago (Biasa 50% / Bagus 35% / Prima 15%):
 
 Kesimpulan: +10% / +25% menaikkan Nanem hanya +5,5% rata-rata, +7,25% untuk jago. Aman. +20% / +50% menaikkan Nanem +11% rata-rata, +14,5% untuk jago, terlalu besar dan bikin Kualitas mendominasi.
 
-Jackpot cozy: Durian Prima + Super = 1.300 x 1,25 x 2 = 3.250 Koin (vs Durian Emas + Super 13.000 dulu).
+Durian Prima = 1.300 x 1,25 = 1.625 Koin (Super dihapus, Update owner 2026-11-22).
 
 ### C.2 Mood Hujan — Hitungan Hujan vs Siklus Ternak
 

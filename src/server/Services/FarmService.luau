@@ -522,35 +522,32 @@ end
 
 -- Kualitas roll (Bab 5.4 v7.3, Config/Kualitas). Server only.
 --   timely: panen <=5 menit setelah matang. wet: petak Basah. Mutasi DIHAPUS total (Bab 29).
-local function rollQuality(tile: Types.FarmTile, now: number, mataLv: number): string?
+-- buffBagus: Buff Tani (Dapur.BUFF_TANI_BAGUS, +10% absolut ke peluang Bagus). Batas akhir ada di Kualitas.pick.
+local function rollQuality(tile: Types.FarmTile, now: number, mataLv: number, buffBagus: number): string?
 	local readyAt = tile.readyAt
 	local timely = readyAt ~= nil and now - readyAt <= Kualitas.TIMELY_WINDOW_SECONDS
 	local wet = tile.watered == true
 	-- Skill Mata Kualitas (Bab 4.5, P2-4): Bagus +2%/lv, Prima +0,5%/lv, additive.
-	return Kualitas.pick(timely, wet, random:NextNumber(), 0.02 * mataLv, 0.005 * mataLv)
+	return Kualitas.pick(timely, wet, random:NextNumber(), 0.02 * mataLv + buffBagus, 0.005 * mataLv)
 end
 
--- Harvest roll (Bab 5.3 Super, Bab 5.4 Kualitas). Server only.
---   Super: base 5%, +5% if the tile is Basah. Fase 1 forces it for the FTUE first harvest (forceSuper).
---   Buff Tani (Bab 9.4): +10% peluang Super (superBonus). Tidak ngaruh ke waktu tumbuh.
---   Kualitas: timing + Basah roll (rollQuality). Returns (super, qualityId?).
-local function rollHarvest(tile: Types.FarmTile, now: number, forceSuper: boolean, superBonus: number, mataLv: number): (boolean, string?)
-	local super = forceSuper
-	if not super then
-		local chance = Farm.SUPER_CHANCE + (if tile.watered == true then Farm.SUPER_WET_BONUS else 0) + superBonus
-		super = random:NextNumber() < chance
+-- Harvest roll (Bab 5.4 Kualitas). Server only. Super DIHAPUS (Update owner 2026-11-22, Task 3).
+--   guaranteed (panen pertama FTUE) = selalu Bagus. Selain itu: rollQuality (timing + Basah + Buff Tani + Mata Kualitas).
+local function rollHarvest(tile: Types.FarmTile, now: number, guaranteed: boolean, buffBagus: number, mataLv: number): string?
+	if guaranteed then
+		return "bagus"
 	end
-	return super, rollQuality(tile, now, mataLv)
+	return rollQuality(tile, now, mataLv, buffBagus)
 end
 
--- The FTUE first harvest of a new save is always Super (Bab 16.3 0:50). Once per save:
--- guide.done.ftue_super, set after a successful Add. Skipping T1 turns the guarantee off.
+-- The FTUE first harvest of a new save is always Bagus (Bab 16.3 0:50). Once per save:
+-- guide.done.ftue_super (nama field lama, dibiarkan agar save tidak berubah), set after a successful Add. Skipping T1 turns the guarantee off.
 local function takeFirstHarvestGuarantee(data: Types.PlayerData): boolean
 	local guide = data.guide
 	if guide.done.ftue_super == true or guide.done.t1_awal == true or guide.skipped.t1_awal == true then
 		return false
 	end
-	return Onboarding.FTUE_FIRST_SUPER
+	return Onboarding.FTUE_FIRST_BAGUS
 end
 
 local function onHarvest(player: Player, uid: any)
@@ -567,15 +564,15 @@ local function onHarvest(player: Player, uid: any)
 		return
 	end
 	local guaranteed = takeFirstHarvestGuarantee(data)
-	local taniBonus = if Buffs.active(data.buff, "tani", now) then Dapur.BUFF_TANI_SUPER else 0
-	local super, quality = rollHarvest(tile, now, guaranteed, taniBonus, data.skill.mata_kualitas or 0)
-	FarmService.HarvestFor(player, data, tile, crop, now, guaranteed, super, quality)
+	local taniBonus = if Buffs.active(data.buff, "tani", now) then Dapur.BUFF_TANI_BAGUS else 0
+	local quality = rollHarvest(tile, now, guaranteed, taniBonus, data.skill.mata_kualitas or 0)
+	FarmService.HarvestFor(player, data, tile, crop, now, guaranteed, quality)
 end
 
 -- Panen untuk pemilik petak (dipakai onHarvest + Bantu Panen P2-5). Semua hasil, XP, buku,
 -- quest "harvest" dan notif masuk ke pemilik (owner). Kembalikan false bila tas penuh.
-function FarmService.HarvestFor(owner: Player, data: Types.PlayerData, tile: Types.FarmTile, crop: Crops.Crop, now: number, guaranteed: boolean, super: boolean, quality: string?): boolean
-	local itemId = Items.cropItemId(crop.id, super, quality)
+function FarmService.HarvestFor(owner: Player, data: Types.PlayerData, tile: Types.FarmTile, crop: Crops.Crop, now: number, guaranteed: boolean, quality: string?): boolean
+	local itemId = Items.cropItemId(crop.id, quality)
 	if not InventoryService.Add(owner, itemId, crop.yield) then
 		return false
 	end
@@ -604,9 +601,6 @@ function FarmService.HarvestFor(owner: Player, data: Types.PlayerData, tile: Typ
 	end
 	sync(owner, tile)
 	Net.Fire("Notify", owner, "farm.harvested", { n = crop.yield, item = `crop.{crop.id}` })
-	if super then
-		Net.Fire("Notify", owner, "farm.super")
-	end
 	if quality then
 		Net.Fire("Notify", owner, "farm.kualitas", { quality = `kualitas.{quality}` })
 	end
@@ -620,8 +614,7 @@ function FarmService.HarvestFor(owner: Player, data: Types.PlayerData, tile: Typ
 	if quality and Kualitas.byId[quality].announce and crop.growSeconds >= Kualitas.ANNOUNCE_MIN_GROW_SECONDS then
 		Net.FireAll("KualitasBanner", owner.Name, crop.id, quality)
 	end
-	local xp = math.floor(crop.xp * (if super then Farm.SUPER_XP_MULT else 1) + 0.5)
-	ProgressionService.AddXp(owner, xp, `harvest:{crop.id}`)
+	ProgressionService.AddXp(owner, crop.xp, `harvest:{crop.id}`)
 	AnalyticsHooks.Step(owner, "first_harvest")
 	if crop.varian then
 		BookService.RecordVarian(owner, crop.id) -- Album Varian: id polos (Bab 11/13.1)
@@ -639,9 +632,9 @@ function FarmService.HarvestRipeFor(owner: Player, data: Types.PlayerData): (num
 		if tile.crop ~= nil and tile.readyAt ~= nil and now >= tile.readyAt then
 			local crop = Crops.byId[tile.crop]
 			if crop then
-				local taniBonus = if Buffs.active(data.buff, "tani", now) then Dapur.BUFF_TANI_SUPER else 0
-				local super, quality = rollHarvest(tile, now, false, taniBonus, data.skill.mata_kualitas or 0)
-				if FarmService.HarvestFor(owner, data, tile, crop, now, false, super, quality) then
+				local taniBonus = if Buffs.active(data.buff, "tani", now) then Dapur.BUFF_TANI_BAGUS else 0
+				local quality = rollHarvest(tile, now, false, taniBonus, data.skill.mata_kualitas or 0)
+				if FarmService.HarvestFor(owner, data, tile, crop, now, false, quality) then
 					return tile.uid, crop.id
 				end
 				return nil, nil -- tas pemilik penuh: berhenti, jangan lanjut ke petak lain

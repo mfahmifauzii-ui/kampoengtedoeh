@@ -66,15 +66,10 @@ local function takeInputs(player: Player, data: Types.PlayerData, recipe: Dapur.
 		if not crop then
 			return false
 		end
-		-- Super TIDAK ditolak: Super diabaikan, Kualitas base yang dipakai (P2-3-fix).
-		-- Contoh: kangkung@Prima+Super -> bisa dimasak jadi Olahan Prima, Super hilang.
 		local variants: { { id: string, quality: string } } = {
 			{ id = cropId, quality = "biasa" },
 			{ id = `bagus_{cropId}`, quality = "bagus" },
 			{ id = `prima_{cropId}`, quality = "prima" },
-			{ id = `super_{cropId}`, quality = "biasa" },
-			{ id = `super_bagus_{cropId}`, quality = "bagus" },
-			{ id = `super_prima_{cropId}`, quality = "prima" },
 		}
 		local have = 0
 		for _, variant in variants do

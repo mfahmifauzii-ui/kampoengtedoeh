@@ -22,7 +22,7 @@ export type Buff = {
 }
 
 local SLOTS = {
-	-- Nanem: Panen +10% peluang Super. Tidak ngaruh ke waktu tumbuh.
+	-- Nanem: Panen +10% peluang Bagus. Tidak ngaruh ke waktu tumbuh.
 	{ id = "tani", icon = "bibit", nameKey = "buff.tani", descKey = "buff.tani.desc", food = { "tumis_kangkung", "tumis_bayam", "sambal_tomat", "sup_ubi", "salad_sawi", "nasi_goreng_spesial", "nasi_padang_mini", "salad_buah" } },
 	-- Mancing: Gigitan 20% lebih cepat + Kotak tarik +10% lebih lebar.
 	{ id = "pancing", icon = "pancing", nameKey = "buff.pancing", descKey = "buff.pancing.desc", food = { "ikan_early_goreng", "pepes_ikan_mid", "ikan_late_bakar" } },

@@ -62,11 +62,6 @@ return {
 	BED_COLOR_DRY = Color3.fromRGB(150, 102, 62), -- slab color (Sand material, no override)
 	BED_COLOR_WET = Color3.fromRGB(94, 64, 40), -- after watering
 	WATER_REDUCTION = 0.15, -- Siram: cuts remaining grow time by 15%, once per growth (Bab 5.1 v6.2)
-	-- Super Panen (Bab 5.3): base chance, +bonus if the tile is Basah at harvest. Super = 2x Koin + 50% XP.
-	SUPER_CHANCE = 0.05,
-	SUPER_WET_BONUS = 0.05,
-	SUPER_KOIN_MULT = 2,
-	SUPER_XP_MULT = 1.5,
 	-- Telat panen (Bab 5.1): a ripe crop left unharvested for OVERDUE_AFTER_SECONDS grows to OVERDUE_SCALE. It never wilts or
 	-- disappears. OVERDUE_AFTER_SECONDS = 600 is a TEAM NUMBER (the doc gives no threshold): change it in Config only.
 	OVERDUE_AFTER_SECONDS = 600,
