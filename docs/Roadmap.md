@@ -327,3 +327,11 @@ Yang sudah ada di server: roll ikan saat lempar (`startCast`), gigitan dengan `t
 ### 12.3 Keputusan yang dibutuhkan (B-3, B-5)
 
 1. B-3: timer "Ambil Ikan" dihapus (ikan kolam hanya dari setoran), atau tetap ada sebagai hasil ekstra?
+
+## 13. Skill Tree (acuan: `Skill_Tree_Kampoeng_Tedoeh_v7.7.md`)
+
+Aturan: satu tugas = satu commit, dengan Cara Cek (selene 4 error pra-ada, rojo build exit 0). Tidak ada reset skill. Angka tidak dikarang (gap ke Lampiran D).
+
+| Tugas | Commit | Cek AI | Playtest USER |
+|-------|--------|--------|---------------|
+| [x] ST-1 Dokumen: Bab 4.5 jadi rujukan, sink 240.000 vs 177.000 (Bab 17.4), Lv N = Player Lv (Bab 6.3, 17.5), Kapak Bunga alternatif (Bab 18.3), GUI Bab 9 #1 dijawab | lihat git log | Tidak ada kode. v7.6 tidak diubah (`git diff` kosong). Rasio: 442.000 / 560.000 ≈ 79 % (Lv 60), 81 % dengan Kualitas + Mood Hujan. | Tidak ada (dokumen). |

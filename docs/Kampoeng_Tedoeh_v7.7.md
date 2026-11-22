@@ -284,24 +284,7 @@ Bunga F2P ~240/bulan (Login 40, Pencapaian 40, Album 30, Season 30, Event 30, Bu
 
 ### 4.5 Skills (16 skills)
 
-| Cabang | Skill | Efek per Lv (max Lv 5) |
-|--------|-------|------------------------|
-| Bertani | Tangan Hijau | Tumbuh +2%/lv |
-| Bertani | Bibit Hemat | 4%/lv bibit kembali saat panen |
-| Bertani | Mata Kualitas | Peluang Bagus +2%/lv, Prima +0,5%/lv |
-| Bertani | Panen Raya | +2% Koin Nanem/lv (di luar cap Dekor) |
-| Mancing | Joran Kuat | Kotak tarik +2%/lv |
-| Mancing | Firasat | Pity -10/ lv (min 150) |
-| Mancing | Umpan Hemat | 5%/lv umpan kembali saat lepas |
-| Mancing | Ikan Besar | Peluang Besar/Jumbo +2%/lv |
-| Ternak | Tempat Pakan Besar | Max jatah 3 → 5 |
-| Ternak | Telur Cepat | Cooldown -2%/lv |
-| Ternak | Susu Melimpah | +2% Koin Ternak/lv |
-| Tukang | Tukang Cepat | +1 bahan per node di Lv 3, +2 di Lv 5 |
-| Tukang | Kayu Kuat | +2% bahan Nambang/lv |
-| Masak | Koki Cepat | Waktu olah -3%/lv |
-| Masak | Rasa Prima | Peluang Olahan Prima +1%/lv |
-| Sosial | Tetangga Baik | +1 lahan Bantu/hari di Lv 3 |
+Daftar 16 skill, cabang, efek, prasyarat, dan biaya dipindah ke dokumen terpisah: **`docs/Skill_Tree_Kampoeng_Tedoeh_v7.7.md`** (Bab 2 pohon dan prasyarat, Bab 1 aturan beli, Bab 6 keputusan owner). Bab ini tidak lagi menyalin tabelnya (aturan 1 aturan 1 tempat).
 
 Skill di luar cap Dekor (max +10% per jenis). Lihat Bab 17.6.
 
@@ -416,6 +399,8 @@ Pergi ke spot → Pilih umpan → Lempar (0,6 detik) → Tunggu gigitan (3-6 det
 - **Mode Bantu (Settings, default OFF):** kotak +10% lebar & ikan 15% lebih lambat, untuk aksesibilitas. Tidak ada pengurangan hadiah.
 
 ### 6.3 Joran & Umpan
+
+> "Mancing Lv N", "Bertani Lv N", "Tukang Lv N" di tabel ini dan Bab 17.5 berarti **Player Lv N**, bukan level cabang atau level skill (Skill Tree Bab 5).
 
 | Joran | Harga | Kotak | Syarat |
 |-------|-------|-------|--------|
@@ -1101,12 +1086,14 @@ Target porsi Koin player inti: Nanem 30% | Mancing 25% | Ternak+Kolam+Bubu 15% |
 | Hewan (max slot) | 21.800 | 10 Ayam + 8 Bebek + 4 Sapi |
 | Kolam (4, sampai Keramik) | 39.000 | 3 Kolam Tanah baru + 4 upgrade Semen + 4 upgrade Keramik |
 | Bubu (3 sampai Besi) | 17.700 | Bab 6.6 |
-| Skill (16 x 15.000) | 240.000 | Bab 4.5 |
+| Skill (16 x 15.000, semua max) | 240.000 | Skill Tree Bab 1 dan 4 |
 | **Total** | **~623.000** | |
 
-**442.000 / 623.000 ≈ 71%.** Dengan Kualitas + Mood Hujan, ~455.000 / 623.000 ≈ 73%. Sink kecil berulang (Gerobak Kaget, Garam, pakan ekstra) tidak dihitung, berfungsi sebagai rem inflasi.
+**Angka skill untuk dua keadaan (Skill Tree Bab 4):** semua skill max = **240.000 Koin** (80 SP, tercapai Lv 81). Sampai **Lv 60** (59 SP) skill paling banyak menyerap **177.000 Koin**, jadi sink efektif Lv 60 ≈ 623.000 − 240.000 + 177.000 = **560.000**. **Faucet Lv 60 ≈ 442.000 → 442.000 / 560.000 ≈ 79%.** Dengan Kualitas + Mood Hujan, ~455.000 / 560.000 ≈ **81%**. Validasi 65-80% (Bab 17.8) mepet batas atas, lihat Bab 17.8. Sink kecil berulang (Gerobak Kaget, Garam, pakan ekstra) tidak dihitung, berfungsi sebagai rem inflasi.
 
 ### 17.5 Alat Koin (Versi F2P dari Alat Bunga)
+
+> "Bertani Lv N", "Tukang Lv N" di tabel ini berarti **Player Lv N** (Skill Tree Bab 5), bukan level skill.
 
 | Alat | Harga | Syarat | Efek |
 |------|-------|--------|------|
@@ -1171,7 +1158,7 @@ Target porsi Koin player inti: Nanem 30% | Mancing 25% | Ternak+Kolam+Bubu 15% |
 
 - Gembor Bunga: Siram 5 petak (garis), 100 Bunga.
 - Sabit Bunga: Panen 5 petak (garis), 100 Bunga.
-- Kapak Bunga: +1 bahan per node, 100 Bunga.
+- Kapak Bunga: +1 bahan per node, 100 Bunga. Ini **alternatif Kapak Besi** (bayar Bunga, bukan Koin), bukan tier di atas Kapak Baja. Hanya kapak terbaik yang dihitung, tidak ditumpuk dengan kapak lain dan tidak ditumpuk dengan Tukang Cepat selain lewat batas +4 per node (Skill Tree Bab 6 keputusan 2).
 - Dekor Bunga: Dekor Berkah dengan 2 stat, 50-150 Bunga per piece.
 
 ### 18.4 Robux
