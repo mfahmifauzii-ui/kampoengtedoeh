@@ -29,7 +29,7 @@ local offers: { string } = {}
 local accepting: { [string]: boolean } = {} -- accepted here, waiting for the server's next QuestOffers
 local playing = false -- the start dialog is on screen
 local token = 0 -- bumped by Cancel(): a running start dialog stops at its next Next
-local markers: { [string]: BillboardGui } = {} -- npc id -> "!" marker
+local markers: { [string]: GuiObject } = {} -- npc id -> "!" marker (a child of the NPC name billboard)
 local seenDone: { [string]: boolean } = {}
 local doneSeeded = false
 
@@ -53,15 +53,31 @@ local function tutorialRunning(): boolean
 	return snapshot ~= nil and snapshot.guide ~= nil and snapshot.guide.step ~= nil and snapshot.guide.step.id ~= ""
 end
 
--- The "!" marker: a small parchment pill with a bamboo "!" over the giver's head.
-local function makeMarker(head: BasePart): BillboardGui
-	local gui = Instance.new("BillboardGui")
+-- The "!" marker: a small parchment pill with a bamboo "!" above the giver's overhead name label. The marker is a child of
+-- that label's BillboardGui and sits ABOVE it in pixels (Bug 2: it used to cover the name). Without a label it falls back to
+-- its own billboard on the head.
+local function makeMarker(head: BasePart): GuiObject
+	local overhead = head:FindFirstChildOfClass("BillboardGui")
+	local gui: GuiObject
+	if overhead then
+		local frame = Instance.new("Frame")
+		frame.AnchorPoint = Vector2.new(0.5, 1)
+		frame.Position = UDim2.new(0.5, 0, 0, -6) -- 6 px above the name label's top edge
+		frame.Size = UDim2.fromOffset(34, 40)
+		frame.BackgroundTransparency = 1
+		frame.ZIndex = 5
+		frame.Parent = overhead
+		gui = frame
+	else
+		local billboard = Instance.new("BillboardGui")
+		billboard.Adornee = head
+		billboard.Size = UDim2.fromOffset(34, 40)
+		billboard.StudsOffset = Vector3.new(0, 3.2, 0)
+		billboard.AlwaysOnTop = true
+		billboard.Parent = head
+		gui = billboard
+	end
 	gui.Name = "QuestMarker"
-	gui.Adornee = head
-	gui.Size = UDim2.fromOffset(34, 40)
-	gui.StudsOffset = Vector3.new(0, 3.2, 0)
-	gui.AlwaysOnTop = true
-	gui.Parent = head
 	local label = Instance.new("TextLabel")
 	label.Name = "Bang"
 	label.Size = UDim2.fromScale(1, 1)
@@ -88,7 +104,7 @@ local function refreshMarkers()
 		end
 	end
 	for npcId, gui in markers do
-		if not wanted[npcId] or gui.Adornee == nil or gui.Adornee.Parent == nil then
+		if not wanted[npcId] or not gui:IsDescendantOf(game) then
 			gui:Destroy()
 			markers[npcId] = nil
 		end
