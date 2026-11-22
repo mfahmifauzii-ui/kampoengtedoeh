@@ -378,6 +378,45 @@ export type Panel = {
 }
 
 -- Removes a panel that is no longer needed (Quest Log closes this way): it is not kept as an invisible instance.
+-- Bug 7: one central hide / restore for the rest of the GUI while a banner shows (BannerController). Counter-based: two
+-- banners that overlap keep the GUI hidden until the LAST one ends. Only the ScreenGuis that were ON are turned off, and only
+-- those are turned back on, so a GUI that was already off stays off. A GUI created during the hide is not touched.
+local hideCount = 0
+local hiddenByUs: { [ScreenGui]: boolean } = {}
+
+function UiKit.hideOthers(keep: ScreenGui?)
+	hideCount += 1
+	if hideCount > 1 then
+		return
+	end
+	local playerGui = Players.LocalPlayer:FindFirstChildOfClass("PlayerGui")
+	if not playerGui then
+		return
+	end
+	for _, child in playerGui:GetChildren() do
+		if child:IsA("ScreenGui") and child ~= keep and child.Enabled then
+			hiddenByUs[child] = true
+			child.Enabled = false
+		end
+	end
+end
+
+function UiKit.restoreOthers()
+	if hideCount == 0 then
+		return
+	end
+	hideCount -= 1
+	if hideCount > 0 then
+		return
+	end
+	for gui in hiddenByUs do
+		if gui.Parent and not gui.Enabled then
+			gui.Enabled = true
+		end
+	end
+	table.clear(hiddenByUs)
+end
+
 function UiKit.closePanel(gui: ScreenGui)
 	for index, other in panelGuis do
 		if other == gui then

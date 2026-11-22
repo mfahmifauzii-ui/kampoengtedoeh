@@ -101,6 +101,7 @@ local function playOne(entry: { title: string, subtitle: string })
 	title.Text = entry.title
 	subtitle.Text = entry.subtitle
 	gui.Enabled = true
+	UiKit.hideOthers(gui) -- Bug 7: the HUD, tracker, buttons and bubbles go away while the banner shows
 	PlayerLock.Set(true)
 
 	tweenTo(top, { Position = UDim2.fromScale(0, 0) }, BAR_SECONDS)
@@ -117,6 +118,7 @@ local function playOne(entry: { title: string, subtitle: string })
 	tweenTo(bottom, { Position = UDim2.fromScale(0, 1) }, BAR_SECONDS)
 	task.wait(BAR_SECONDS)
 	PlayerLock.Set(false)
+	UiKit.restoreOthers() -- exactly what was on before (counter: the last banner in a queue restores)
 	gui:Destroy()
 end
 
