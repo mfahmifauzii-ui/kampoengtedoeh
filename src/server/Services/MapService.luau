@@ -510,7 +510,7 @@ local function addSignText(sign: Part, text: string)
 	label.Size = UDim2.fromScale(1, 1)
 	label.BackgroundTransparency = 1
 	label.TextColor3 = C.CREAM
-	label.Font = Enum.Font.GothamBold
+	label.Font = Enum.Font.FredokaOne
 	label.TextScaled = true
 	label.Text = text
 	label.Parent = gui

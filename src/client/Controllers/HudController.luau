@@ -306,7 +306,7 @@ local function buildPlaceholder(): ScreenGui
 	toast.Size = UDim2.new(1, -28, 1, 0)
 	toast.Position = UDim2.fromOffset(14, 0)
 	toast.TextColor3 = UiKit.TEXT -- dark brown ink on parchment
-	toast.Font = Enum.Font.GothamBlack -- heavier weight so the ink reads on the parchment
+	toast.Font = Enum.Font.FredokaOne -- heavier weight so the ink reads on the parchment
 	toast.TextSize = 14
 	toast.TextWrapped = true
 	toast.TextXAlignment = Enum.TextXAlignment.Center

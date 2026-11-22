@@ -432,7 +432,7 @@ local function buildUi()
 	hintLabel.BackgroundColor3 = UiKit.BG
 	hintLabel.BackgroundTransparency = 0.2
 	hintLabel.TextColor3 = UiKit.TEXT
-	hintLabel.Font = Enum.Font.GothamMedium
+	hintLabel.Font = Enum.Font.FredokaOne
 	hintLabel.TextSize = 14
 	hintLabel.TextWrapped = true
 	hintLabel.Text = Locale.t("decor.hint")
@@ -463,7 +463,7 @@ local function buildUi()
 	countLabel.Size = UDim2.new(1, -24, 0, 20)
 	countLabel.TextXAlignment = Enum.TextXAlignment.Left
 	countLabel.TextColor3 = UiKit.TEXT
-	countLabel.Font = Enum.Font.Gotham
+	countLabel.Font = Enum.Font.FredokaOne
 	countLabel.TextSize = 13
 	countLabel.Parent = bottom
 

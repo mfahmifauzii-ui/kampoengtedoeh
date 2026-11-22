@@ -1185,7 +1185,7 @@ function GuideController.Init()
 	hintText.Size = UDim2.fromScale(1, 1)
 	hintText.ZIndex = 2 -- above the parchment skin
 	hintText.TextColor3 = UiKit.TEXT -- dark brown ink
-	hintText.Font = Enum.Font.GothamBlack -- heavier weight so the ink reads on the parchment
+	hintText.Font = Enum.Font.FredokaOne -- heavier weight so the ink reads on the parchment
 	hintText.TextSize = 14
 	hintText.TextWrapped = true
 	hintText.Parent = hint

@@ -149,7 +149,7 @@ local function makePill(): Pill
 	sub.Position = UDim2.fromOffset(38, 21)
 	sub.Size = UDim2.new(1, -42, 0, 13)
 	sub.TextXAlignment = Enum.TextXAlignment.Left
-	sub.Font = Enum.Font.GothamBold
+	sub.Font = Enum.Font.FredokaOne
 	sub.TextSize = 10
 	sub.TextColor3 = UiKit.CREAM
 	sub.TextTransparency = 0.12

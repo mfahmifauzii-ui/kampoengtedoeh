@@ -543,7 +543,11 @@ local function clearSink()
 	sinkSet = false
 	lastSpoken = ""
 	lastLine = nil
-	T1Dialog.Hide()
+	-- The poll calls this every tick once the tutorial is done. The dialog box is shared with town NPC talks
+	-- (DialogueController), so only hide it when no conversation owns it: otherwise the NPC's bubble vanishes at once.
+	if player:GetAttribute("NpcTalkOpen") ~= true then
+		T1Dialog.Hide()
+	end
 end
 
 -- The intro --------------------------------------------------------------------------------------------------------

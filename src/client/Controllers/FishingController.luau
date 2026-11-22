@@ -20,6 +20,7 @@ local Dapur = require(ReplicatedStorage.Shared.Config.Dapur)
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
+local UiAssets = require(ReplicatedStorage.Shared.Config.UiAssets)
 local UiKit = require(script.Parent.Parent.UiKit)
 local State = require(script.Parent.Parent.State)
 
@@ -64,7 +65,7 @@ end
 local function label(parent: Instance, text: string, size: number, color: Color3?): TextLabel
 	local l = Instance.new("TextLabel")
 	l.BackgroundTransparency = 1
-	l.Font = Enum.Font.GothamBold
+	l.Font = Enum.Font.FredokaOne
 	l.TextSize = size
 	l.TextColor3 = color or UiKit.CREAM
 	l.Text = text
@@ -74,14 +75,6 @@ end
 
 -- Two small bamboo-brown cards at the bottom centre: STATUS (waiting / bite, with Batal) and REEL (the mini-game). Only one is
 -- visible at a time. The reel bar is a wide, thick track so the fish and the zone read at a glance on a phone.
-local pullCoach: Frame? = nil
-
--- The first fish of the save is still to come (the tutorial's mancing step). Client snapshot, read-only.
-local function fishPending(): boolean
-	local snap = State.current :: any
-	return snap == nil or snap.guide == nil or snap.guide.fishCaught ~= true
-end
-
 local function buildUi()
 	gui = Instance.new("ScreenGui")
 	gui.Name = "FishingUI"
@@ -118,48 +111,36 @@ local function buildUi()
 	reelFrame.Name = "Reel"
 	reelFrame.AnchorPoint = Vector2.new(0.5, 1)
 	reelFrame.Position = UDim2.new(0.5, 0, 1, -92)
-	reelFrame.Size = UDim2.fromOffset(330, 150)
+	reelFrame.Size = UDim2.fromOffset(260, 104) -- compact: it must not cover the player (owner, 2026-11-22)
 	reelFrame.Visible = false
 	reelFrame.Parent = gui
-
-	-- The pull coachmark (v6.2.3 playtest, T-45 rules). Shown only while the first fish is still pending (guide.fishCaught),
-	-- it follows the reel's visibility. It changes no state (the step completes on the fish).
-	pullCoach = Instance.new("Frame")
-	pullCoach.Name = "PullCoach"
-	pullCoach.AnchorPoint = Vector2.new(0.5, 1)
-	pullCoach.Position = UDim2.new(0.5, 0, 1, -256)
-	pullCoach.Size = UDim2.fromOffset(360, 64)
-	pullCoach.BackgroundColor3 = UiKit.DARK
-	pullCoach.BackgroundTransparency = 0.1
-	pullCoach.Visible = false
-	pullCoach.Parent = gui
-	local coachText = label(pullCoach, Locale.t("tut.coach.tarik"), 16, UiKit.CREAM)
-	coachText.Size = UDim2.new(1, -24, 1, -8)
-	coachText.Position = UDim2.fromOffset(12, 4)
-	coachText.TextWrapped = true
-	reelFrame:GetPropertyChangedSignal("Visible"):Connect(function()
-		pullCoach.Visible = reelFrame.Visible and fishPending()
-	end)
 	darkBox(reelFrame, 18)
 
-	local hint = label(reelFrame, Locale.t("fish.reel_hint"), 14)
-	hint.Position = UDim2.fromOffset(12, 8)
-	hint.Size = UDim2.new(1, -24, 0, 20)
-
+	-- The bamboo frame's hollow is x 3.3 .. 96.8 %, y 13.7 .. 86.3 % of the picture: the water track sits exactly inside it,
+	-- so no blue shows outside the bamboo.
+	local holder = Instance.new("Frame")
+	holder.Name = "TrackHolder"
+	holder.Position = UDim2.fromOffset(14, 10)
+	holder.Size = UDim2.new(1, -28, 0, 34)
+	holder.BackgroundTransparency = 1
+	holder.Parent = reelFrame
 	local track = Instance.new("Frame")
 	track.Name = "Track"
-	track.Position = UDim2.fromOffset(16, 36)
-	track.Size = UDim2.new(1, -32, 0, 34)
+	track.Position = UDim2.fromScale(0.033, 0.137)
+	track.Size = UDim2.fromScale(0.935, 0.726)
 	track.BackgroundColor3 = Color3.fromRGB(46, 104, 128) -- water
+	track.BorderSizePixel = 0
 	track.ClipsDescendants = true
-	track.Parent = reelFrame
-	local trackRound = Instance.new("UICorner")
-	trackRound.CornerRadius = UDim.new(0, 12)
-	trackRound.Parent = track
-	local trackBorder = Instance.new("UIStroke")
-	trackBorder.Color = UiKit.BAMBOO_DARK
-	trackBorder.Thickness = 2
-	trackBorder.Parent = track
+	track.Parent = holder
+	-- The bamboo frame of the Loading bar (UiAssets.LOADING_BAR, the same picture as the loading screen), drawn over the track.
+	local trackFrame = Instance.new("ImageLabel")
+	trackFrame.Name = "BambooFrame"
+	trackFrame.BackgroundTransparency = 1
+	trackFrame.Size = UDim2.fromScale(1, 1)
+	trackFrame.Image = UiAssets.LOADING_BAR.image
+	trackFrame.ScaleType = Enum.ScaleType.Stretch
+	trackFrame.ZIndex = 6
+	trackFrame.Parent = holder
 
 	zone = Instance.new("Frame")
 	zone.Name = "Zone"
@@ -170,15 +151,38 @@ local function buildUi()
 	local zoneRound = Instance.new("UICorner")
 	zoneRound.CornerRadius = UDim.new(0, 10)
 	zoneRound.Parent = zone
+	-- Glossy like the loading bar: a light-to-deep green gradient and a soft white sheen over the top half.
+	local zoneShade = Instance.new("UIGradient")
+	zoneShade.Rotation = 90
+	zoneShade.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(190, 236, 150)),
+		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(120, 204, 96)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(64, 136, 50)),
+	})
+	zoneShade.Parent = zone
+	local zoneGloss = Instance.new("Frame")
+	zoneGloss.Name = "Gloss"
+	zoneGloss.Size = UDim2.fromScale(1, 0.5)
+	zoneGloss.BackgroundColor3 = Color3.new(1, 1, 1)
+	zoneGloss.BackgroundTransparency = 0.35
+	zoneGloss.BorderSizePixel = 0
+	zoneGloss.Parent = zone
+	local zoneGlossRound = Instance.new("UICorner")
+	zoneGlossRound.CornerRadius = UDim.new(0, 10)
+	zoneGlossRound.Parent = zoneGloss
+	local zoneGlossFade = Instance.new("UIGradient")
+	zoneGlossFade.Rotation = 90
+	zoneGlossFade.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(1, 1) })
+	zoneGlossFade.Parent = zoneGloss
 
 	marker = Instance.new("Frame")
 	marker.Name = "Fish"
 	marker.AnchorPoint = Vector2.new(0.5, 0.5)
-	marker.Size = UDim2.fromOffset(26, 26)
+	marker.Size = UDim2.fromOffset(22, 22)
 	marker.Position = UDim2.fromScale(0.5, 0.5)
 	marker.BackgroundTransparency = 1
 	marker.Parent = track
-	local fishIcon = UiKit.icon(marker, "ikan", 26)
+	local fishIcon = UiKit.icon(marker, "ikan", 22)
 	if fishIcon then
 		fishIcon.Position = UDim2.fromScale(0, 0)
 	else
@@ -191,8 +195,8 @@ local function buildUi()
 
 	local progress = Instance.new("Frame")
 	progress.Name = "Progress"
-	progress.Position = UDim2.fromOffset(16, 78)
-	progress.Size = UDim2.new(1, -32, 0, 8)
+	progress.Position = UDim2.fromOffset(14, 46)
+	progress.Size = UDim2.new(1, -28, 0, 8)
 	progress.BackgroundColor3 = Color3.fromRGB(40, 28, 18)
 	progress.Parent = reelFrame
 	local progressRound = Instance.new("UICorner")
@@ -201,18 +205,38 @@ local function buildUi()
 
 	progressFill = Instance.new("Frame")
 	progressFill.Size = UDim2.fromScale(0, 1)
-	progressFill.BackgroundColor3 = UiKit.BAMBOO
+	progressFill.BackgroundColor3 = UiKit.BAMBOO -- the bamboo gold as before, now glossy
 	progressFill.BorderSizePixel = 0
+	progressFill.ClipsDescendants = true
 	progressFill.Parent = progress
+	local progressShade = Instance.new("UIGradient")
+	progressShade.Rotation = 90
+	progressShade.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(242, 208, 120)),
+		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(214, 164, 64)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 104, 40)),
+	})
+	progressShade.Parent = progressFill
+	local progressGloss = Instance.new("Frame")
+	progressGloss.Name = "Gloss"
+	progressGloss.Size = UDim2.fromScale(1, 0.5)
+	progressGloss.BackgroundColor3 = Color3.new(1, 1, 1)
+	progressGloss.BackgroundTransparency = 0.35
+	progressGloss.BorderSizePixel = 0
+	progressGloss.Parent = progressFill
+	local glossFade = Instance.new("UIGradient")
+	glossFade.Rotation = 90
+	glossFade.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(1, 1) })
+	glossFade.Parent = progressGloss
 	local fillRound = Instance.new("UICorner")
 	fillRound.CornerRadius = UDim.new(1, 0)
 	fillRound.Parent = progressFill
 
 	local pull = UiKit.button(reelFrame, "Pull", Locale.t("fish.reel_button"), UiKit.BUTTON)
 	pull.AnchorPoint = Vector2.new(0.5, 1)
-	pull.Position = UDim2.new(0.5, 0, 1, -10)
-	pull.Size = UDim2.new(1, -32, 0, 48)
-	pull.TextSize = 22
+	pull.Position = UDim2.new(0.5, 0, 1, -8)
+	pull.Size = UDim2.new(1, -28, 0, 32)
+	pull.TextSize = 16
 	pull.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			holding = true
@@ -397,23 +421,13 @@ local function buildAksi()
 	button.Text = ""
 	button.AutoButtonColor = false
 	button.AnchorPoint = Vector2.new(0.5, 0.5)
-	button.Position = UDim2.fromScale(0.67, 0.69) -- the spot the owner circled on the playtest screenshot
+	button.Position = UDim2.fromScale(0.8, 0.67) -- the spot the owner circled on the playtest screenshot (2026-11-22, red line)
 	button.Size = UDim2.fromOffset(84, 84)
-	button.BackgroundColor3 = UiKit.BUTTON
+	button.BackgroundTransparency = 1
 	button.Visible = false
 	button.Parent = aksiGui
-	local round = Instance.new("UICorner")
-	round.CornerRadius = UDim.new(1, 0)
-	round.Parent = button
-	local ring = Instance.new("UIStroke")
-	ring.Color = UiKit.BAMBOO
-	ring.Thickness = 3
-	ring.Parent = button
-	local rod = UiKit.icon(button, "pancing", 52)
-	if rod then
-		rod.AnchorPoint = Vector2.new(0.5, 0.5)
-		rod.Position = UDim2.fromScale(0.5, 0.5)
-	end
+	-- Same round plate as the other round buttons (HUD menu, dock): cream disc, bamboo ring, rod icon.
+	UiKit.plate(button, 84, "pancing")
 	button.Activated:Connect(function()
 		Net.Send("FishCast")
 	end)

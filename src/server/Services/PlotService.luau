@@ -139,7 +139,7 @@ local function buildPlaceholderPlots(): Folder
 		label.TextColor3 = Color3.fromRGB(250, 240, 214)
 		label.TextWrapped = false
 		label.TextScaled = true
-		label.Font = Enum.Font.GothamBold
+		label.Font = Enum.Font.FredokaOne
 		label.Text = Locale.t("plot.empty")
 		label.Parent = surface
 
@@ -176,7 +176,7 @@ local function setOwnerFloat(plot: Model, text: string?)
 		label.Name = "Text"
 		label.Size = UDim2.fromScale(1, 1)
 		label.BackgroundTransparency = 1
-		label.Font = Enum.Font.GothamBlack
+		label.Font = Enum.Font.FredokaOne
 		label.TextSize = 40
 		label.TextColor3 = Color3.fromRGB(255, 246, 220)
 		label.TextStrokeColor3 = Color3.fromRGB(40, 24, 12)

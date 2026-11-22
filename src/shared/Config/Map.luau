@@ -108,4 +108,9 @@ return {
 	DOCKS = DOCKS,
 	-- Water sound emitters along the canal (degrees from +X toward +Z), at the canal's mid radius.
 	CANAL_SOUND_ANGLES = { 0, 45, 90, 135, 180, 225, 270, 315 },
+
+	-- Fishing spots on the four axis rivers, between the player lands (built by FishService). Per river: 4 spots on each
+	-- bank, facing each other across the water = 8. ALONG = studs from the island centre along the river (the lands start
+	-- at 204 along the axis); BANK = river half width (the river is 12 wide, see MapService RIVER_HALF).
+	RIVER_SPOTS = { ALONG = { 230, 270, 310, 350 }, BANK = 6 },
 }

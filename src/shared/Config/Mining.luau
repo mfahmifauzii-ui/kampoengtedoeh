@@ -61,6 +61,11 @@ return {
 	HIT_MIN_INTERVAL = 0.35, -- detik antar pukulan (anti-spam, di bawah ritme normal)
 	REACH = 12, -- studs, dicek server (client tunjukkan tombol dalam 10)
 	NODES = NODES,
+	-- Meja Crafting (Unlock Lv 4). The craft button shows only once it is unlocked, and only near the table: it floats above
+	-- the Workspace part/model named CRAFT_TABLE (hand-placed in Studio), within CRAFT_REACH studs.
+	CRAFT_UNLOCK = 4,
+	CRAFT_TABLE = "Meja Crafting",
+	CRAFT_REACH = 10,
 	byNode = byNode,
 	RECIPES = RECIPES,
 	byRecipe = byRecipe,

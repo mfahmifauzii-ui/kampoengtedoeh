@@ -386,7 +386,7 @@ function T1Dialog.Show(opts: Options)
 		local viewWidth = if camera then camera.ViewportSize.X else 800
 		local textWidth = math.min(BOX_MAX_WIDTH, viewWidth * 0.92) - (34 + AVATAR + 14 + 34)
 		local ok, measured = pcall(function()
-			return game:GetService("TextService"):GetTextSize(opts.text, 14, Enum.Font.Gotham, Vector2.new(textWidth, 1000))
+			return game:GetService("TextService"):GetTextSize(opts.text, 14, Enum.Font.FredokaOne, Vector2.new(textWidth, 1000))
 		 end)
 		local textHeight = if ok then (measured :: Vector2).Y + 8 else 64
 		local boxHeight = math.max(BOX_HEIGHT, 34 + textHeight + 10 + 40 + 16)

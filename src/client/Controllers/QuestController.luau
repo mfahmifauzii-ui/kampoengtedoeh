@@ -39,15 +39,15 @@ local function addSlotRows(order: number, slots: { any }?, pool: { any }, label:
 				row.Name = `{label}_{def.id}`
 				row.LayoutOrder = order
 				row.BackgroundTransparency = 1
-				row.Size = UDim2.new(1, 0, 0, 46)
+				row.Size = UDim2.new(1, 0, 0, 38)
 				row.Parent = tracker
 
 				local title = Instance.new("TextLabel")
 				title.Name = "Title"
 				title.BackgroundTransparency = 1
-				title.Size = UDim2.new(1, 0, 0, 20)
+				title.Size = UDim2.new(1, 0, 0, 18)
 				title.Font = UiKit.FONT
-				title.TextSize = 14
+				title.TextSize = 13
 				title.TextColor3 = UiKit.TEXT
 				title.TextXAlignment = Enum.TextXAlignment.Left
 				title.Text = Locale.t(`{label}.title`)
@@ -56,10 +56,10 @@ local function addSlotRows(order: number, slots: { any }?, pool: { any }, label:
 				local step = Instance.new("TextLabel")
 				step.Name = "Step"
 				step.BackgroundTransparency = 1
-				step.Position = UDim2.fromOffset(0, 20)
-				step.Size = UDim2.new(1, 0, 0, 20)
+				step.Position = UDim2.fromOffset(0, 18)
+				step.Size = UDim2.new(1, 0, 0, 18)
 				step.Font = UiKit.FONT
-				step.TextSize = 13
+				step.TextSize = 12
 				step.TextColor3 = UiKit.TEXT
 				step.TextXAlignment = Enum.TextXAlignment.Left
 				step.Text = `{Locale.t(`{label}.{def.id}`)}  {slot.progress}/{def.count}`
@@ -94,15 +94,15 @@ local function addDailyRow(order: number)
 	row.Name = "daily"
 	row.LayoutOrder = order
 	row.BackgroundTransparency = 1
-	row.Size = UDim2.new(1, 0, 0, 46)
+	row.Size = UDim2.new(1, 0, 0, 38)
 	row.Parent = tracker
 
 	local title = Instance.new("TextLabel")
 	title.Name = "Title"
 	title.BackgroundTransparency = 1
-	title.Size = UDim2.new(1, 0, 0, 20)
+	title.Size = UDim2.new(1, 0, 0, 18)
 	title.Font = UiKit.FONT
-	title.TextSize = 14
+	title.TextSize = 13
 	title.TextColor3 = UiKit.TEXT
 	title.TextXAlignment = Enum.TextXAlignment.Left
 	title.Text = Locale.t("daily.title")
@@ -111,10 +111,10 @@ local function addDailyRow(order: number)
 	local step = Instance.new("TextLabel")
 	step.Name = "Step"
 	step.BackgroundTransparency = 1
-	step.Position = UDim2.new(0, 0, 0, 20)
-	step.Size = UDim2.new(1, 0, 0, 20)
+	step.Position = UDim2.new(0, 0, 0, 18)
+	step.Size = UDim2.new(1, 0, 0, 18)
 	step.Font = UiKit.FONT
-	step.TextSize = 13
+	step.TextSize = 12
 	step.TextColor3 = UiKit.TEXT
 	step.TextXAlignment = Enum.TextXAlignment.Left
 	step.Text = `{Locale.t("daily." .. def.id)}  {daily.progress}/{def.count}`
@@ -132,32 +132,32 @@ local function addRow(order: number, questId: string, progress: { step: number, 
 	row.Name = questId
 	row.LayoutOrder = order
 	row.BackgroundTransparency = 1
-	row.Size = UDim2.new(1, 0, 0, 46)
+	row.Size = UDim2.new(1, 0, 0, 38)
 	row.Parent = tracker
 
 	local title = Instance.new("TextLabel")
 	title.Name = "Title"
 	title.BackgroundTransparency = 1
-	title.Size = UDim2.new(1, 0, 0, 20)
+	title.Size = UDim2.new(1, 0, 0, 18)
 	title.TextXAlignment = Enum.TextXAlignment.Left
 	title.TextColor3 = UiKit.TEXT
-	title.Font = Enum.Font.GothamBold
-	title.TextSize = 14
+	title.Font = Enum.Font.FredokaOne
+	title.TextSize = 13
 	title.Text = Locale.t(`quest.{questId}.title`)
 	title.Parent = row
 
 	local text = Instance.new("TextLabel")
 	text.Name = "Step"
 	text.BackgroundTransparency = 1
-	text.Position = UDim2.fromOffset(0, 20)
+	text.Position = UDim2.fromOffset(0, 18)
 	text.Size = UDim2.new(1, 0, 0, 24)
 	text.TextXAlignment = Enum.TextXAlignment.Left
 	text.TextYAlignment = Enum.TextYAlignment.Top
 	text.TextWrapped = true
 	text.TextColor3 = UiKit.TEXT
 	text.TextTransparency = 0.15
-	text.Font = Enum.Font.Gotham
-	text.TextSize = 13
+	text.Font = Enum.Font.FredokaOne
+	text.TextSize = 12
 	text.Text = Locale.t(`quest.{questId}.s{progress.step}`, { n = step.count })
 		.. (if step.count > 1 then ` ({progress.count}/{step.count})` else "")
 	text.Parent = row
@@ -179,7 +179,7 @@ local function fitTracker()
 	if tracker then
 		local content = tracker:FindFirstChildOfClass("UIListLayout")
 		local height = if content then content.AbsoluteContentSize.Y + 16 else 0
-		tracker.Size = UDim2.fromOffset(220, math.min(TRACKER_MAX, math.max(height, 0)))
+		tracker.Size = UDim2.fromOffset(200, math.min(TRACKER_MAX, math.max(height, 0)))
 	end
 end
 
@@ -214,14 +214,14 @@ local function refresh()
 			row.Name = "surat"
 			row.LayoutOrder = order
 			row.BackgroundTransparency = 1
-			row.Size = UDim2.new(1, 0, 0, 46)
+			row.Size = UDim2.new(1, 0, 0, 38)
 			row.Parent = tracker
 			local title = Instance.new("TextLabel")
 			title.Name = "Title"
 			title.BackgroundTransparency = 1
-			title.Size = UDim2.new(1, 0, 0, 20)
+			title.Size = UDim2.new(1, 0, 0, 18)
 			title.Font = UiKit.FONT
-			title.TextSize = 14
+			title.TextSize = 13
 			title.TextColor3 = UiKit.TEXT
 			title.TextXAlignment = Enum.TextXAlignment.Left
 			title.Text = `{Locale.t("surat.title")} #{surat.n}`
@@ -229,14 +229,22 @@ local function refresh()
 			local step = Instance.new("TextLabel")
 			step.Name = "Step"
 			step.BackgroundTransparency = 1
-			step.Position = UDim2.fromOffset(0, 20)
-			step.Size = UDim2.new(1, 0, 0, 20)
+			step.Position = UDim2.fromOffset(0, 18)
+			step.Size = UDim2.new(1, 0, 0, 18)
 			step.Font = UiKit.FONT
-			step.TextSize = 13
+			step.TextSize = 12
 			step.TextColor3 = UiKit.TEXT
 			step.TextXAlignment = Enum.TextXAlignment.Left
 			step.Text = `{surat.progress}/{surat.need}`
 			step.Parent = row
+		end
+	end
+	-- Readable without a panel: cream text with a dark outline on every label of the tracker.
+	for _, label in tracker:GetDescendants() do
+		if label:IsA("TextLabel") then
+			label.TextColor3 = UiKit.CREAM
+			label.TextStrokeColor3 = UiKit.DARK
+			label.TextStrokeTransparency = 0
 		end
 	end
 	tracker.Visible = order > 0 or tracker:FindFirstChild("daily") ~= nil
@@ -250,14 +258,14 @@ function QuestController.Init()
 	tracker = Instance.new("Frame")
 	tracker.Name = "Tracker"
 	tracker.Position = UDim2.fromOffset(12, 118) -- under the status row and the goal chip
-	tracker.Size = UDim2.fromOffset(220, 0)
+	tracker.Size = UDim2.fromOffset(200, 0)
 	-- Owner (2026-11-22): the list ran over the Craft button and the XP card. Its height follows the rows (see
 	-- fitTracker) but never goes past TRACKER_MAX, which stops above Craft (Craft sits 200 px up from the bottom); the rest
 	-- is clipped, so nothing draws over the buttons.
 	tracker.AutomaticSize = Enum.AutomaticSize.None
 	tracker.ClipsDescendants = true
 	tracker.BackgroundColor3 = UiKit.BG
-	tracker.BackgroundTransparency = 0.25
+	tracker.BackgroundTransparency = 1 -- no panel: the text reads on its own (cream with a dark outline), like The Forge's quest list
 	tracker.Visible = false
 	tracker.Parent = gui
 	Instance.new("UICorner").Parent = tracker

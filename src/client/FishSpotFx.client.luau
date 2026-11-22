@@ -110,7 +110,7 @@ local function buildSign(part: BasePart): (BillboardGui, TextLabel, Frame)
 	title.Size = UDim2.new(1, -10, 0.5, 0)
 	title.Position = UDim2.fromOffset(5, 2)
 	title.BackgroundTransparency = 1
-	title.Font = Enum.Font.GothamBold
+	title.Font = Enum.Font.FredokaOne
 	title.TextScaled = true
 	title.TextColor3 = CREAM
 	title.TextStrokeTransparency = 0.5
@@ -121,7 +121,7 @@ local function buildSign(part: BasePart): (BillboardGui, TextLabel, Frame)
 	sub.Size = UDim2.new(1, -12, 0.45, 0)
 	sub.Position = UDim2.new(0, 6, 0.52, 0)
 	sub.BackgroundTransparency = 1
-	sub.Font = Enum.Font.GothamMedium
+	sub.Font = Enum.Font.FredokaOne
 	sub.TextScaled = true
 	sub.TextXAlignment = Enum.TextXAlignment.Center
 	sub.Parent = plate

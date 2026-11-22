@@ -40,7 +40,7 @@ UiKit.CREAM = Color3.fromRGB(255, 248, 232)
 UiKit.DARK = Color3.fromRGB(66, 46, 30) -- dark bamboo brown: floating menus, hints and tooltips (cream text on it)
 
 UiKit.FONT = Enum.Font.FredokaOne -- headings, buttons, numbers
-UiKit.FONT_BODY = Enum.Font.GothamMedium
+UiKit.FONT_BODY = Enum.Font.FredokaOne
 
 UiKit.TOUCH = 50 -- minimum touch target, px (thumb-sized)
 UiKit.ROW_HEIGHT = 54

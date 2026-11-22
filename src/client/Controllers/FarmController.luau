@@ -335,7 +335,7 @@ local function buildPicker(): UiKit.Panel
 		status.BackgroundTransparency = 1
 		status.Position = UDim2.fromOffset(4, 126)
 		status.Size = UDim2.new(1, -8, 0, 22)
-		status.Font = Enum.Font.GothamBold
+		status.Font = Enum.Font.FredokaOne
 		status.TextSize = 14
 		status.TextColor3 = UiKit.TEXT
 		status.Parent = button
@@ -562,7 +562,7 @@ local function makeTimerLabel(part: BasePart): TextLabel
 	label.BackgroundColor3 = UiKit.DARK
 	label.BackgroundTransparency = 0.1
 	label.TextColor3 = UiKit.CREAM
-	label.Font = Enum.Font.GothamBold
+	label.Font = Enum.Font.FredokaOne
 	label.TextSize = 16
 	label.Parent = billboard
 	Instance.new("UICorner").Parent = label

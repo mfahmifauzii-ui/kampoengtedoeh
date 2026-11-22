@@ -24,6 +24,7 @@ local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local Ranch = require(ReplicatedStorage.Shared.Config.Ranch)
 local Locale = require(ReplicatedStorage.Shared.Locale)
+local Map = require(ReplicatedStorage.Shared.Config.Map)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local DataService = require(script.Parent.DataService)
 local InventoryService = require(script.Parent.InventoryService)
@@ -465,9 +466,13 @@ end
 
 local function setupSpot(spot: BasePart)
 	local location = spot:GetAttribute("Location")
-	-- Dermaga pancing punya nama sendiri (Basic / Pro Mancing); kolam milik pemain tetap "Mancing".
-	local actionKey = if location == "sungai" or location == "empang" then `spot.{location}` else "prompt.fish"
-	local prompt = makePrompt(spot, "FishPrompt", actionKey, 0)
+	-- Dermaga (sungai / empang): no proximity prompt. The round Mancing button (client AksiButton) casts from them.
+	-- Kolam keeps its own prompt.
+	if location == "sungai" or location == "empang" then
+		CollectionService:AddTag(spot, SPOT_TAG)
+		return
+	end
+	local prompt = makePrompt(spot, "FishPrompt", "prompt.fish", 0)
 	-- Stage 5 (user, 16 Nov): the fishing prompt of EVERY spot (kolam, dermaga sungai, dermaga empang) shows only within
 	-- 4 studs, the same as a bed's proximity. Outside 4 studs there is no button.
 	prompt.MaxActivationDistance = 4
@@ -571,10 +576,54 @@ local function onCastNearest(player: Player)
 	end
 end
 
+-- River spots (2026-11-22): 8 fishing spots on every axis river between the player lands, 4 per bank, facing each other
+-- across the water. Only the invisible spot part: no planks, no posts. The player sees the spot as the fish-mark ripple on
+-- the water (client FishSpotFx, which reads Dir). Built here, not in MapService, so they exist with a hand-built
+-- Workspace.Map too. Runs once (attribute "RiverSpots" on the folder marks it done), before the spot scan below.
+local RIVER_AXES = { Vector3.new(1, 0, 0), Vector3.new(-1, 0, 0), Vector3.new(0, 0, 1), Vector3.new(0, 0, -1) }
+local RIVER_SPOT_REACH = 3 -- studs from the bank's edge to the spot's centre, out over the water
+
+local function buildRiverSpots(fishing: Folder)
+	if fishing:GetAttribute("RiverSpots") == true then
+		return
+	end
+	fishing:SetAttribute("RiverSpots", true)
+	for _, axis in RIVER_AXES do
+		local across = Vector3.new(-axis.Z, 0, axis.X) -- across the river (unit)
+		for _, along in Map.RIVER_SPOTS.ALONG do
+			for _, side in { 1, -1 } do
+				-- origin = the bank's edge; dir = out over the water, toward the opposite bank (the two rows face each other).
+				local origin = axis * along + across * side * Map.RIVER_SPOTS.BANK
+				local dir = -across * side
+				local spot = Instance.new("Part")
+				spot.Name = "Spot_sungai"
+				spot.Anchored = true
+				spot.Size = Vector3.new(2, 1, 2)
+				spot.CFrame = CFrame.new(origin + dir * RIVER_SPOT_REACH + Vector3.new(0, 1, 0))
+				spot.Transparency = 1
+				spot.CanCollide = false
+				spot.CanQuery = false
+				spot.CanTouch = false
+				spot:SetAttribute("Location", "sungai")
+				spot:SetAttribute("Dir", dir)
+				spot.Parent = fishing
+			end
+		end
+	end
+end
+
 function FishService.Init()
 	-- A3 (v6.2.3): the spots are found in ANY workspace "Fishing" folder, not just the first one. The Studio map had an empty
 	-- "Fishing" folder first (and two folders of river sound emitters), so no spot ever got its Location, its FishingSpot tag,
 	-- its prompt, or the tutorial's arrow. With no spot anywhere, the placeholder water and spots are built.
+	local fishing = Workspace:FindFirstChild("Fishing")
+	if not (fishing and fishing:IsA("Folder")) then
+		fishing = Instance.new("Folder")
+		fishing.Name = "Fishing"
+		fishing.Parent = Workspace
+	end
+	buildRiverSpots(fishing :: Folder)
+
 	local spots = 0
 	for _, folder in Workspace:GetChildren() do
 		if folder.Name == "Fishing" then

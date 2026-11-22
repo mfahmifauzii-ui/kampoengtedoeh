@@ -35,6 +35,9 @@ local TARGET_D = 100 -- px diameter zona hijau: tap saat lingkaran luar masuk zo
 local states: { [string]: { hits: number, readyAt: number } } = {}
 
 local aksiButton: TextButton? = nil
+local craftButton: TextButton? = nil -- floats above the Meja Crafting table, only when unlocked and near it
+local craftLookAt = 0 -- os.clock time of the next table search (it is a Workspace search, so not every frame)
+local craftTable: Instance? = nil
 local ringFrame: Frame? = nil
 local ringOuter: Frame? = nil
 local ringTarget: Frame? = nil
@@ -220,6 +223,7 @@ local function buildUi()
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "MiningUI"
 	gui.ResetOnSpawn = false
+	gui.IgnoreGuiInset = true -- the craft button is placed with WorldToViewportPoint, which uses the full screen
 	gui.DisplayOrder = 6
 	gui.Parent = playerGui
 
@@ -233,11 +237,12 @@ local function buildUi()
 	aksiButton = aksi
 
 	local craft = UiKit.button(gui, "CraftButton", Locale.t("mine.craft"), UiKit.BUTTON_MUTED)
-	craft.AnchorPoint = Vector2.new(0, 1)
-	craft.Position = UDim2.new(0, 24, 1, -200)
+	craft.AnchorPoint = Vector2.new(0.5, 1) -- placed over the table each frame (refreshCraft)
+	craft.Position = UDim2.fromOffset(0, 0)
 	craft.Size = UDim2.fromOffset(104, 48)
 	craft.TextSize = 16
-	craft.Visible = true
+	craft.Visible = false
+	craftButton = craft
 	craft.Activated:Connect(function()
 		if panel then
 			panel.gui.Enabled = not panel.gui.Enabled
@@ -287,7 +292,7 @@ local function buildUi()
 	local name = Instance.new("TextLabel")
 	name.Name = "NodeName"
 	name.BackgroundTransparency = 1
-	name.Font = Enum.Font.GothamBold
+	name.Font = Enum.Font.FredokaOne
 	name.TextSize = 16
 	name.TextColor3 = UiKit.CREAM
 	name.Size = UDim2.new(1, 0, 0, 24)
@@ -295,6 +300,50 @@ local function buildUi()
 	name.Text = ""
 	name.Parent = ring
 	nodeLabel = name
+end
+
+-- The Meja Crafting table: a Workspace part or model named Mining.CRAFT_TABLE. Searched once a second.
+local function craftTablePosition(): Vector3?
+	local now = os.clock()
+	if now >= craftLookAt then
+		craftLookAt = now + 1
+		craftTable = Workspace:FindFirstChild(Mining.CRAFT_TABLE, true)
+	end
+	local found = craftTable
+	if found == nil or found.Parent == nil then
+		craftTable = nil
+		return nil
+	end
+	if found:IsA("Model") then
+		return found:GetPivot().Position
+	elseif found:IsA("BasePart") then
+		return found.Position
+	end
+	return nil
+end
+
+-- The craft button shows once Meja Crafting is unlocked (Lv 4) and the player is near the table; it floats just above it.
+local function refreshCraft()
+	if not craftButton then
+		return
+	end
+	local level = player:GetAttribute("Level")
+	local unlocked = typeof(level) == "number" and level >= Mining.CRAFT_UNLOCK
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	local camera = Workspace.CurrentCamera
+	local tablePosition = if unlocked then craftTablePosition() else nil
+	if not tablePosition or not root or not root:IsA("BasePart") or not camera then
+		craftButton.Visible = false
+		return
+	end
+	if (tablePosition - root.Position).Magnitude > Mining.CRAFT_REACH then
+		craftButton.Visible = false
+		return
+	end
+	local screen, onScreen = camera:WorldToViewportPoint(tablePosition + Vector3.new(0, 3.5, 0))
+	craftButton.Visible = onScreen and screen.Z > 0
+	craftButton.Position = UDim2.fromOffset(screen.X, screen.Y)
 end
 
 local function refreshAksi()
@@ -367,6 +416,8 @@ function MiningController.Start()
 			rebuildCraft()
 		end
 	end)
+
+	RunService.RenderStepped:Connect(refreshCraft)
 
 	RunService.RenderStepped:Connect(function(dt)
 		if not ringing or activeNode == nil then

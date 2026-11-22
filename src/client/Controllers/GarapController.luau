@@ -856,7 +856,7 @@ function GarapController.Init()
 	hintLabel.Position = UDim2.new(0.5, 0, 0.12, 0) -- top of the screen, not the middle
 	hintLabel.Size = UDim2.new(0.4, 0, 0, 36) -- at most 40 % of the width
 	hintLabel.TextColor3 = UiKit.CREAM
-	hintLabel.Font = Enum.Font.GothamBold
+	hintLabel.Font = Enum.Font.FredokaOne
 	hintLabel.TextSize = 14
 	hintLabel.TextWrapped = true
 	hintLabel.Visible = false
