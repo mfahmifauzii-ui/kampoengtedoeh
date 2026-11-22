@@ -51,7 +51,7 @@ Isi di bawah adalah perubahan yang sudah ada di kode (`feat/v.7`) dan disetujui 
 | 1 | **Spot mancing sungai**: 8 spot di tiap sungai sumbu antara lahan pemain (4 per tepi, saling berhadapan), 4 sungai = 32 spot, Lv 2 (Basic Mancing). Tanpa platform/dermaga; penanda = riak ikan di air. | 4 (Perairan), 6.1 | Disetujui owner. Bertentangan dengan Bab 4 → Lampiran D #1 |
 | 2 | **Prompt "Basic/Pro Mancing" di dermaga dihapus.** Dermaga sungai/empang hanya lewat tombol Mancing. Prompt kolam pemain tetap. | 6.1, 16.2 | Disetujui owner |
 | 3 | **Tombol Mancing** jadi bulat dengan ikon joran, posisi kanan bawah (0,8 ; 0,67 layar). | 23 (HUD) | Disetujui owner |
-| 4 | **Panel reel dikecilkan** (260×104), frame "Tahan Tarik! Jaga ikan…" dan teks "Tahan Tarik! agar ikan…" dihapus. Track memakai bingkai bambu Loading; zona hijau dan progress glossy. | 6.2 | Disetujui owner. Coachmark tarik dihapus → Lampiran D #3 |
+| 4 | **Panel reel dikecilkan** (260×108), frame "Tahan Tarik! Jaga ikan…" dan teks "Tahan Tarik! agar ikan…" dihapus. Track memakai bingkai bambu Loading; zona hijau dan progress glossy. | 6.2 | Disetujui owner. Coachmark tarik dihapus → Lampiran D #3 |
 | 5 | **Quest tracker tanpa panel**: lebar 200 px, teks krem dengan outline gelap, baris lebih kecil. Batas tinggi 200 px tetap. | 14, 23 | Disetujui owner. Batas tinggi tidak dihitung dari layar → Lampiran D #8 |
 | 6 | **Font semua GUI = FredokaOne** (sebelumnya campuran Gotham / GothamBold / GothamMedium / GothamBlack). | 23 | Disetujui owner. Dokumen belum mengatur font → Lampiran D #9 |
 | 7 | **Tombol Craft** hanya muncul setelah Meja Crafting terbuka (Lv 4) dan pemain dalam 10 stud dari meja; melayang di atas meja. | 8.2, 4.4 (Unlock Lv 4) | Disetujui owner. Butuh objek "Meja Crafting" di Studio → Lampiran D #7 |
@@ -1148,7 +1148,7 @@ Target porsi Koin player inti: Nanem 30% | Mancing 25% | Ternak+Kolam+Bubu 15% |
 - Dapur: GUI Slot 1 / 2 / 3, pilih resep, lihat waktu, ambil olahan.
 - Settings: Mode Bantu (OFF), Suara, Haptic, Notifikasi Gerobak Kaget (ON), Bahasa.
 - Tidak ada GUI Papan Pamer. Tidak ada GUI Rak Pajangan. Tidak ada GUI Ramalan Cuaca. Tidak ada GUI RW.
-- **v7.5 (kode):** Font semua GUI = FredokaOne. Quest tracker tanpa panel (teks krem + outline gelap). Panel reel mancing kecil (260×104) dengan bingkai bambu Loading. Tombol Mancing bulat dengan ikon joran. Tombol Craft muncul hanya dekat Meja Crafting (Lv 4+). Detail dan status di Bab 0.3.2 dan Lampiran D.
+- **v7.5 (kode):** Font semua GUI = FredokaOne. Quest tracker tanpa panel (teks krem + outline gelap). Panel reel mancing kecil (260×108) dengan bingkai bambu Loading. Tombol Mancing bulat dengan ikon joran. Tombol Craft muncul hanya dekat Meja Crafting (Lv 4+). Detail dan status di Bab 0.3.2 dan Lampiran D.
 
 ---
 

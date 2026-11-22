@@ -111,7 +111,7 @@ local function buildUi()
 	reelFrame.Name = "Reel"
 	reelFrame.AnchorPoint = Vector2.new(0.5, 1)
 	reelFrame.Position = UDim2.new(0.5, 0, 1, -92)
-	reelFrame.Size = UDim2.fromOffset(260, 104) -- compact: it must not cover the player (owner, 2026-11-22)
+	reelFrame.Size = UDim2.fromOffset(260, 108) -- 8 px gaps between track, progress and Tarik (layout rule) -- compact: it must not cover the player (owner, 2026-11-22)
 	reelFrame.Visible = false
 	reelFrame.Parent = gui
 	darkBox(reelFrame, 18)
@@ -195,7 +195,7 @@ local function buildUi()
 
 	local progress = Instance.new("Frame")
 	progress.Name = "Progress"
-	progress.Position = UDim2.fromOffset(14, 46)
+	progress.Position = UDim2.fromOffset(14, 52)
 	progress.Size = UDim2.new(1, -28, 0, 8)
 	progress.BackgroundColor3 = Color3.fromRGB(40, 28, 18)
 	progress.Parent = reelFrame

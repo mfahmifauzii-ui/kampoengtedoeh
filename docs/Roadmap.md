@@ -34,7 +34,7 @@ Dokumen v7.5 mencatat perubahan kode dan GUI yang sudah dikerjakan (Bab 0.3.2) s
 |------|-----------|--------|-----|
 | Mancing | 32 spot sungai (8 per sungai sumbu), tanpa platform, penanda riak | Kode jadi, owner setuju jumlah. Bertentangan dengan Bab 4 → Lampiran D #1 | `grep -n "RIVER_SPOTS\|buildRiverSpots" src/` |
 | Mancing | Prompt dermaga dihapus, tombol Mancing bulat + joran, posisi kanan bawah | Kode jadi | `setupSpot` di FishService, `AksiButton` di FishingController |
-| Mancing | Panel reel 260×104, coachmark tarik dihapus, track bingkai bambu, zona & progress glossy | Kode jadi. Nilai balancing belum dites main → Lampiran D #2, #3 | `reelFrame.Size` di FishingController |
+| Mancing | Panel reel 260×108, coachmark tarik dihapus, track bingkai bambu, zona & progress glossy | Kode jadi. Nilai balancing belum dites main → Lampiran D #2, #3 | `reelFrame.Size` di FishingController |
 | Quest | Tracker tanpa panel, lebar 200, teks krem outline gelap | Kode jadi | `tracker.BackgroundTransparency = 1` di QuestController |
 | Font | Semua GUI FredokaOne | Kode jadi (grep `Enum.Font.` = FredokaOne saja) | `grep -rn "Enum.Font\." src/` |
 | Craft | Tombol Craft hanya Lv 4+ dan dekat "Meja Crafting" (10 stud), melayang di atas meja | Kode jadi. Butuh objek meja di Studio → Lampiran D #7 | `refreshCraft` di MiningController, `CRAFT_*` di Config/Mining |
