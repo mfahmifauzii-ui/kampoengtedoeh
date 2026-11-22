@@ -87,6 +87,20 @@ local SPEAKERS: { [string]: Speaker } = {
 	kak_fajar = { name = "Kak Fajar", npc = "kak_fajar" },
 }
 
+-- The tutorial introduces these NPCs itself. The first time a line of theirs plays, the server is told the NPC is met
+-- (HasMet records it), so the first real talk afterwards does not repeat the sapaan (Bug 3, Lampiran D #35).
+local introduced: { [string]: boolean } = {}
+local function speakerFor(who: string): Speaker
+	local speaker = SPEAKERS[who] or SPEAKERS.mak_sari
+	if not introduced[speaker.npc] then
+		introduced[speaker.npc] = true
+		task.spawn(function()
+			pcall(Net.Invoke, "HasMet", speaker.npc)
+		end)
+	end
+	return speaker
+end
+
 -- All tutorial speech is in Locale (Naskah Dialog v0.1, bagian 1). Lines here are KEYS, read with Locale.t when shown.
 -- Intro, Mak Sari (Next after every line).
 local INTRO = { "tut.t1.intro.1", "tut.t1.intro.2", "tut.t1.intro.3", "tut.t1.intro.4" }
@@ -477,7 +491,7 @@ end
 -- A tutorial line is a BEAT (front of the speech queue, see T1Dialog.Acquire): it waits for the box, then shows. `cancelled`
 -- drops it if it is no longer wanted while it waits. Returns at once; the line is drawn when its turn comes.
 local function showLine(who: string, text: string, showNext: boolean, bottom: number, onNext: (() -> ())?, cancelled: (() -> boolean)?)
-	local speaker = SPEAKERS[who] or SPEAKERS.mak_sari
+	local speaker = speakerFor(who)
 	task.spawn(function()
 		local release = T1Dialog.Acquire(speaker.npc, T1Dialog.BEAT, cancelled)
 		if not release then
@@ -542,7 +556,7 @@ end
 
 -- The bubble's content for an instruction line. Next only dismisses it (the close uses the minimize animation).
 local function instructionOpts(line: Line)
-	local speaker = SPEAKERS[line.who] or SPEAKERS.mak_sari
+	local speaker = speakerFor(line.who)
 	return {
 		name = speaker.name,
 		text = lineText(line),
@@ -583,7 +597,7 @@ local function showInstruction(line: Line, key: string)
 		swapInstruction(line, key)
 		return
 	end
-	local speaker = SPEAKERS[line.who] or SPEAKERS.mak_sari
+	local speaker = speakerFor(line.who)
 	instrKey = key
 	task.spawn(function()
 		local release = T1Dialog.Acquire(speaker.npc, T1Dialog.AMBIENT, function()
