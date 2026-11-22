@@ -1,6 +1,10 @@
-# Roadmap Kampoeng Tedoeh — Implementasi v7.5
+# Roadmap Kampoeng Tedoeh — Implementasi v7.6
 
-> Sumber kebenaran: `docs/Kampoeng_Tedoeh_v7.6.md` (v7.5 dan v7.4 disimpan sebagai arsip). File ini rencana kerja, bukan dokumen desain. Jangan ubah angka di v7.5 dari file ini.
+> Sumber kebenaran: `docs/Kampoeng_Tedoeh_v7.6.md` (v7.5 dan v7.4 disimpan sebagai arsip). File ini rencana kerja, bukan dokumen desain. Jangan ubah angka di dokumen gameplay dari file ini.
+> Dokumen pendamping (2026-11-22):
+> - `docs/Quest_Kampoeng_Tedoeh_v0.3.md` — rantai Main / Side Quest + Feature Gate. **Disetujui owner**, jadi acuan quest.
+> - `docs/Naskah_Dialog_Kampoeng_Tedoeh_v0.1.md` — naskah tutorial (sudah di kode) + naskah Main / Side Quest.
+> - `docs/GUI_Kampoeng_Tedoeh_v0.1.md` — aturan & arahan GUI (mobile-first), target sentuh 24 / 32 / 40, bubble dialog, mockup Season & Pohon Skill.
 > Detail file per tugas yang sudah DONE ada di pesan commit (`git log --oneline main..feat/v.7`), tidak diulang di sini.
 
 ## 1. Status Ringkasan (2026-11-22)
@@ -9,7 +13,7 @@
 |-------|--------|------|
 | P0 | Done | Bab 29 kelar + Upgrade Tas Koin dihapus (`ce0a7f4`). |
 | P1 | Done | 10/10 angka persis v7.3 (`c452303` … `3d1fc7b`). |
-| P2 | Jalan | P2-1 s/d P2-7 + fix DONE. P2-8 (FTUE v7.4) kode selesai (a-e), **menunggu playtest kamu** (§4). Lalu P2-9 Login/Season, P2-10 Blueprint/Akuarium/FX/KPI. |
+| P2 | Jalan | P2-1 s/d P2-9 DONE. **Tutorial (FTUE) DONE sampai jual ikan ke Kak Fajar** (owner 2026-11-22). Berikutnya: **Q (Quest, §10)**, lalu **UI (GUI, §11)**, lalu P2-10. |
 | Studio | Belum | §6, tidak ada di `src/`. |
 
 ### 1.1 Delta v7.3 → v7.4 (hasil review 2026-11-22)
@@ -145,8 +149,8 @@ Belum dikerjakan: sisa tumpang tindih GUI di sudut kiri bawah (kartu XP) perlu d
 
 Semua di bawah sudah jalan di kode sebagai USULAN interim; final ikut playtest Bab 17.8 atau keputusan owner.
 
-1. **FTUE v7.4 tabel 16.2 vs FTUE lama di kode** — tabel menyebut Bayam/Nambang/Hias/Surat/Agenda+Gerobak, kode tidak punya. Tetap FTUE lama (default P2-8) atau tambah langkah?
-2. **Cap peluang Super (Bab 9.4 v7.4)** — merujuk cap Bab 17.6 / 5.4, tapi dua bab itu tidak punya angka cap peluang Super. Angka berapa?
+1. ~~FTUE tabel 16.2 vs FTUE lama~~ — **DIPUTUSKAN**: FTUE berhenti di jual ikan ke Kak Fajar; Bayam / Nambang / Hias / Surat / Agenda + Gerobak jadi quest (Quest v0.3).
+2. ~~Cap peluang Super~~ — **DIPUTUSKAN** (`c0a69b0`): Super dihapus, Buff Tani +10% Bagus, cap Bagus 50% / Prima 20%.
 3. Album milestone 25/50/75/100% (USULAN di Bab 11).
 4. Split reward Agenda (Panen 200 / Pancing 250 / Masak 300 / Bantu 150 / Nambang 400; v7.3 cuma kunci 150-400).
 5. XP per pukulan Nambang = 0; suara Critical placeholder (`place_item` pitch-up).
@@ -157,10 +161,12 @@ Semua di bawah sudah jalan di kode sebagai USULAN interim; final ikut playtest B
 10. Chat `/e` diblokir; emote Jempol tanpa anim (TODO aset).
 11. P2-6: harga varian 2x, Gelang 60/30/10, hadiah Tamu, tanggal Lebaran/Festival, QTY Tamu, pool Pasar; `nightCounter` in-memory.
 12. P2-7: Quest Harian 3 + Mingguan 3 + reward Bunga + harga Toko Bunga + syarat Side + hadiah Surat; MQ5/7/8 Bubu/Tungku → Koin 150/200/250; MQ9 slot Warung ke-2 → 200 Koin; Empang = 1 token kolam gratis; Saung buff duduk belum; judul Title MQ11/Side.
-13. **v7.5 — jumlah spot sungai**: 32 spot tambahan (8 per sungai sumbu) bertentangan dengan Bab 4 ("Empat spot mancing"). Diterima sebagai bagian dokumen, atau dokumen direvisi?
-14. **v7.5 — mini-game tarik**: kode pakai isi +28%/detik, kehilangan -6%/detik, kiri 0,55 / kanan 0,9. Dokumen Bab 6.2 bilang +15% / -10%. Nilai mana yang berlaku setelah playtest?
-15. **v7.5 — coachmark tarik**: frame "Tahan Tarik! Jaga ikan…" dihapus atas permintaan owner. Dipasang lagi di FTUE, atau dokumen direvisi?
-16. **v7.5 — layout quest tracker**: batas tinggi 200 px tidak menyesuaikan layar. Tracker menyesuaikan layar, atau tombol Craft/elemen lain yang pindah?
+13. ~~Jumlah spot sungai~~ — **DIPUTUSKAN** (`faba897`): 32 spot sungai lahan Lv 1 (ikan Early), kanal barat Lv 5, kanal timur Lv 10.
+14. ~~Mini-game tarik~~ — **DIPUTUSKAN** (`4fb87e2`): nilai kode berlaku.
+15. ~~Coachmark tarik~~ — **DIPUTUSKAN**: tidak dipasang lagi.
+16. ~~Layout quest tracker~~ — **DIPUTUSKAN** (`27ccb1f`): tinggi menyesuaikan layar, maks 3 baris + "+N lainnya".
+17. **Quest v0.3 Bab 8** — hadiah USULAN (M2, S1, S5, S7–S9) dan asumsi ±1.500 XP/jam: dicek saat playtest Q.
+18. **GUI v0.1 Bab 9** — prasyarat skill, kartu pemain pindah ke kiri atas, tombol HUD Dapur dihapus, aset ikon baru, slot Tombol Aksi untuk Craft. Diputuskan sebelum tahap UI terkait.
 
 ### DEV ONLY — hapus / kunci Studio-only sebelum rilis
 
@@ -208,14 +214,87 @@ Dokumen acuan: `docs/Kampoeng_Tedoeh_v7.6.md` (Changelog 0.3.3). Aturan: satu ta
 | 2. Sungai lahan, kanal barat Lv 5, kanal timur Lv 10 | `faba897` | Kode jadi | selene 0 error; `grep "sungai_lahan"` di Config/Fish dan Fishing | Naik Lv 5 untuk mancing di kanal barat; spot sungai lahan terbuka di Lv 1 |
 | 6. Peti / Title / Season | `efdebdc` | Kode jadi | selene 0 error; Title dari kode; Season Premium `PREMIUM_OPEN = false` | Cek peti dari Title, Album 25/50/75/100%, dan Season hari 30 |
 | 7. Docs v7.6 | `1025e46` | Sebagian | Lampiran D ditutup / dibuka; Changelog 0.3.3 | Baca Changelog 0.3.3 |
-| 1. FTUE klien (Kak Fajar di sungai lahan, NPC klien-only, validasi jual, starter chain) | — | **BELUM DIKERJAKAN** | Lihat Lampiran D #23 | Setelah dikerjakan |
+| 1. FTUE klien (Kak Fajar di sungai lahan, NPC klien-only, validasi jual, starter chain) | `fadd5c2` `4f3500f` + Playtest 1–8 (§9.1) | **DONE** (owner 2026-11-22: tutorial sampai jual ikan ke Kak Fajar diterima; starter chain diganti rantai quest §10) | Spot sungai lahan, validasi jual server, starter chain, Agenda, panah: ada di `fadd5c2`. Kak Fajar klien-only: `4f3500f`, `1dfb78a`, `09f5c61`. Lihat Lampiran D #23 | Playtest 8 item 2 (bubble instruksi) dan ulang FTUE dari awal |
 
 Verifikasi build: `rojo build default.project.json` berhasil (exit 0). `selene src`: 4 error, semuanya sudah ada sebelum sesi ini (FarmFloat x2, SettingsService, MapService).
 
-### Sisa untuk dikerjakan (Task 1, belum di kode)
-- Kak Fajar tutorial sebagai NPC klien di sungai lahan terdekat (klon dari ReplicatedStorage), sembunyikan Kak Fajar server untuk pemain itu saja.
-- Aturan global: bicara dengan NPC dan NPC menoleh pemain = klien-only.
-- Validasi jual ikan di server (langkah `jual_ikan` + dekat sungai lahan milik pemain, posisi dihitung di server).
-- Event starter chain: tanam Bayam, buka Surat #1. Agenda + Gerobak setelah chain.
-- Pak Udin: baris dialog bahwa Kak Fajar ada di sungai dekat lahan.
-- Panah tutorial ke sungai lahan terdekat (Lampiran D #4).
+### 9.1 Status Task 1 (per 2026-11-22)
+
+Sudah di kode (commit `fadd5c2` dan `4f3500f`, lalu Playtest 1–8):
+- Kak Fajar tutorial sebagai salinan klien di sungai lahan terdekat (`ReplicatedStorage.NpcTutorial`); Kak Fajar server disembunyikan untuk pemain itu saja (`4f3500f`, `1dfb78a`, `09f5c61`).
+- Validasi jual ikan di server, dekat spot sungai lahan milik pemain (`fadd5c2`).
+- Starter Quest Chain (bayam, nambang, pagar), Agenda terbuka setelah chain (`fadd5c2`).
+- Baris dialog Pak Udin tentang Kak Fajar di sungai dekat lahan; panah tutorial ke spot itu (`fadd5c2`, `cceb339`).
+
+Belum jelas dan perlu dicek sebelum Task 1 ditutup:
+- Aturan global "bicara dengan NPC dan NPC menoleh pemain = klien-only" (§9 sebelumnya). Tidak ada commit eksplisit untuk ini; belum diverifikasi dari kode di pembaruan ini.
+- Lampiran D #23 belum ditutup.
+- Playtest 8 item 2 (bubble instruksi, `0f1df4c`) belum kamu konfirmasi.
+
+### 9.2 Log Playtest (urut, dari commit di `feat/v.7`)
+
+| Playtest | Commit | Isi |
+|----------|--------|-----|
+| 1 | `485ce04` | Pemicu adegan jual Pak Udin pindah ke Heartbeat (cek jarak tiap frame di klien) |
+| 2 | `f2e62d8` | `SALE_BEAT_RADIUS` 10 (< `Shop.NPC_DISTANCE` 25), pemain dikunci, penjualan ditolak → bubble diulang |
+| 3 | `cceb339` | Salinan Kak Fajar hidup seluruh segmen memancing; panah ke `RiverSpot` |
+| 4 | `1dfb78a` | Model Kak Fajar disalin dari `ServerStorage.NpcModels` ke `ReplicatedStorage.NpcTutorial` saat server start |
+| 5 | `09f5c61` | Kak Fajar alun-alun disembunyikan lengkap untuk pemain itu, dipindai ulang tiap cek |
+| 6 | `5504c5b` | Quest `main`/`side`; banner hanya untuk main; tracker dengan tombol Tunjukkan |
+| 7 | `55d7d92`, `43a5306`, `693ff3e`, `77c4547`, `db2931a`, `b7cb781`, `871559e`, `8df87f6` | Quest UI menunggu tutorial; salinan Kak Fajar tidak T-pose dan berdiri di tepi sungai; antrean dialog satu giliran; naskah tutorial bagian 1 ke Locale; balon sisa dibersihkan; teks Mak Sari tidak jadi toast |
+| 8 | `a633e92`, `8cd0dfe`, `f80847a`, `0f1df4c` | Salinan Kak Fajar tidak di atas pohon; baris instruksi langkah diganti tanpa Next; bubble instruksi bisa minimize/restore |
+
+Catatan: kolom "Playtest" di atas adalah nomor sesi dari pesan commit, bukan hasil tes baru dari AI di Studio.
+
+## 10. Q — Quest setelah Tutorial (acuan: `Quest_Kampoeng_Tedoeh_v0.3.md`, `Naskah_Dialog_Kampoeng_Tedoeh_v0.1.md` Bab 2–3)
+
+Keputusan owner 2026-11-22: rantai quest v0.3 disetujui apa adanya (Warung Lv 7, Bubu Lv 8, Hias Lv 5, Bang Jali Lv 3, Kolam lewat Kolam Kakek Lv 4). Main Quest = buka gameplay baru atau milestone cerita (MQ11, MQ12), pakai banner. Side Quest = lanjutan gameplay yang sudah terbuka, tanpa banner. Satu task = satu commit.
+
+| Task | Isi | Commit | Cek AI | Playtest USER |
+|------|-----|--------|--------|---------------|
+| [x] Q-1 Data quest | M1–M9, MQ11, MQ12, S1–S9 + Side Bab 14.4 di `Config/Quests` (kind, giver, after, steps, reward, reveals); quest lama yang diganti dihapus; Bundel Kolam Kakek digabung ke M3; event Report yang kurang ditambah | `0c087b9` + `456b3e6` (fix count) | selene: 0 error baru (4 pre-existing: FarmFloat x2, SettingsService, MapService); rojo build exit 0. `grep -rn "mq[0-9]_\|starter_\|kolam_pertama" src` hanya komentar di QuestController. M8 `blocked` (sistem Bubu tidak ada). Event baru: `talk_*` (NpcService), `sell_bang_jali` (ShopService), `craft_papan` (MiningService), `eat`, `warung_place`, `catch_mid_kanal` / `catch_empang` (FishService), `kandang_*`, `beli_*`, `feed_animal`, `collect_egg` (RanchService), `bundel_sumur_tua`, `harvest_padi`, `buy_seed`, `agenda_done`; UI lewat remote `QuestReport`; kakek lewat `KakekSetor` (belum ada tombol). | Belum dites di Studio. Akun baru dari akhir tutorial: tracker menunjukkan M1 setelah Lv 2; Agenda terbuka saat M1 mulai; M2 "Kumpulkan 10 Batu dan 9 Kayu" langsung lolos kalau barang sudah ada. |
+| [ ] Q-2 Feature Gate | `PlayerData.features` (introduced / open); tombol & interaksi fitur tidak ada sampai langkah quest-nya; remote ditolak server; level buka fitur diselaraskan (Kolam 4, Bang Jali 3, Warung 7, Bubu 8, Sumur Tua 8, Hias 5) | | | |
+| [ ] Q-3 Alur quest | Tanda `!` di pemberi (klien), dialog mulai / selesai dari Naskah, banner hanya Main, toast untuk Side | | | |
+| [ ] Q-4 Tracker, Quest Log, layer | Tracker Main di atas (baris ±32 px, `Tunjukkan` 24 px), Quest Log (tab Main / Side), `UiKit.LAYER`: panel 40 di atas HUD 20, banner 80 | | | |
+| [ ] Q-5 Docs | Bab 6 Quest v0.3 diterapkan ke dokumen gameplay versi baru + changelog | | | |
+
+## 11. UI — Perbaikan GUI (acuan: `GUI_Kampoeng_Tedoeh_v0.1.md`), setelah Q
+
+| Tahap | Isi | Status |
+|-------|-----|--------|
+| [ ] UI-1 Fondasi | Token warna / teks / radius / layer di UiKit; target sentuh 24 / 32 / 40; bubble dialog ringkas (Bab 5.1) | Bubble instruksi minimize / restore sudah di Playtest 8 (`0f1df4c`), belum dikonfirmasi owner |
+| [ ] UI-2 HUD | Ikon Acara / Skill / Hadiah; kartu pemain keluar dari zona thumbstick; satu slot Tombol Aksi; label tombol baru + tekan lama (`attachTip` masih kosong) | Menunggu keputusan §5 #18 |
+| [ ] UI-3 Hadiah | Tab Harian / Musim / Koleksi; Season Pass lintasan horizontal (mockup Bab 10) | |
+| [ ] UI-4 Skill | Pohon Skill + drawer (mockup Bab 10) | Menunggu keputusan prasyarat skill |
+| [ ] UI-5 Stasiun | Dapur + Warung, Meja Crafting, Kandang, Kolam | |
+| [ ] UI-6 Lainnya | Acara, Pesanan, Quest Log versi penuh | |
+
+## 12. Bug playtest 2026-11-22
+
+Aturan: satu bug = satu commit, dengan Cara Cek (selene, rojo build, grep / file:baris). Quest (Q-1..Q-5) dan map tidak disentuh.
+
+| Bug | Commit | Cek AI | Playtest USER |
+|-----|--------|--------|---------------|
+| [x] B-1 Cutscene Kak Fajar telat saat didekati di sungai | `4f4b95b` | selene 0 error (T1Ghost, KakFajarTutorial). rojo build exit 0. Penyebab di kode: gift beat menunggu jalan ke titik berdiri (MoveTo) dan polling sampai 6 dtk sebelum `Cutscene.Begin` (`T1Ghost.client.luau` runGiftBeat); salinan dibangun tiap 0.25 dtk (`KakFajarTutorial` CHECK_SECONDS). Diganti: beat mulai di frame trigger (`Cutscene.Begin` langsung), salinan 0.1 dtk, log `[beat-timing]` (`beatLog`). **Belum diukur di Studio.** | Jalan ke Kak Fajar, catat waktu dari masuk radius sampai kamera pindah. Target < 0.3 dtk. Lihat log `[beat-timing]` di Output. |
+| [x] B-2 Tombol ♥ muncul di mana-mana di kebun orang lain | `36fec7d` | selene 0 error baru. rojo build exit 0. `SocialController.plotUnderMe` sekarang cek jarak ke `Sign` plot (12 stud, `LIKE_SIGN_RADIUS`), cek tiap 0.2 dtk (`CHECK_SECONDS`). Sembunyi bila `FishingActive`, `UiKit.anyPanelOpen()`, atau `KTBeatBusy`. `LikeUI.DisplayOrder = UiKit.LAYER.ACTION` (10). | Di sungai dan di jalan depan kebun orang: tombol tidak muncul. Dekat papan "Kebun <nama>": muncul. Saat memancing: tidak tumpang tindih "Tarik!". |
+| [ ] B-3 Kolam sendiri tidak bisa memancing dan tidak bisa menaruh / mengambil ikan | — | Belum dikerjakan. Inventaris: tombol "Mancing" di kolam = `FishService.startCast` (jalan, tapi ikan dari tabel global `rollFish("kolam")`, bukan dari stok kolam). "Ambil Ikan" = `FishService.collectPond` (jalan, tapi timer yang membuat ikan baru, bertentangan dengan desain stok). Tidak ada deposit / withdraw sama sekali. | Tunggu keputusan lanjut (lihat catatan). |
+| [x] B-4 Pemain bisa jalan saat memancing | `37f925f` | selene 0 error. rojo build exit 0. `PlayerLock` jadi penghitung hold (`Acquire(reason, humanoidOnly)`), `Set` lama dipertahankan untuk Cutscene / Banner / Fade. `FishingController.holdForFishing` dipasang di status menunggu, dilepas di `showIdle` (semua jalur akhir server kirim `idle`, `FishService.endSession`), tombol X, panel dibuka (loop 0.25 dtk), dan `CharacterRemoving`. Respawn saat memegang: `CharacterAdded` pasang ulang. | Lempar pancing lalu coba jalan dan lompat: tidak bisa. Batal (X), mati, dan buka panel: gerak kembali normal. Kamera tetap bebas. |
+| [ ] B-5 Memancing hanya di klien, pemain lain tidak melihat | — | Belum dikerjakan. Butuh rewrite: state memancing di server (`Fishing` attribute), bobber / joran / tali di server, bite timing di server, validasi hasil klien. Lingkup besar; disarankan sesi terpisah. | Dengan dua akun: joran, tali, pelampung, dan animasi terlihat di akun kedua. |
+
+### 12.1 Catatan B-1 (dengan waktu)
+
+- Penyebab: gift beat (Kak Fajar di sungai) jalan dulu ke titik berdiri 5 stud di depannya, lalu menunggu sampai 6 dtk sebelum kamera pindah. Trigger sendiri (Heartbeat, radius 10 stud) sudah cepat.
+- Penyebab kedua: salinan Kak Fajar dibangun di poll 0.25 dtk. Sebelum itu `T1Dialog.NpcModel` memakai model server yang disembunyikan dan jauh, jadi trigger tertunda.
+- Tidak diukur di Studio dari sesi ini. Angka "< 0.3 dtk" harus dicek dengan log `[beat-timing]`.
+
+### 12.2 Catatan B-3 (dead code vs jalan)
+
+- Jalan: "Mancing" di kolam (`FishService.startCast` lewat `FishPrompt`), "Ambil Ikan" (`collectPond`, timer 600 dtk per ikan, offline).
+- Tidak dipakai dari sisi desain stok: `collectPond` membuat ikan dari waktu, bukan dari stok. Bila stok jadi sumber, timer harus dihapus atau dibatasi.
+- Breeding (`PondController`, `BreedStart/Collect/Instant`) jalan dan tidak terkait stok.
+- Yang belum ada: `Deposit`, `Withdraw`, `Catch` dari stok, sheet "Kolam", event kuis M3 "setor 3 ikan Early" lewat kolam.
+
+### 12.3 Keputusan yang dibutuhkan (B-3, B-5)
+
+1. B-3: timer "Ambil Ikan" dihapus (ikan kolam hanya dari setoran), atau tetap ada sebagai hasil ekstra?
+2. B-5: dikerjakan di sesi terpisah (perubahan besar pada FishService dan sisi klien)?
