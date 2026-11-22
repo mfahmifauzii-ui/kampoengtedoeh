@@ -39,6 +39,35 @@ local list: { Quest } = {
 		},
 		reward = { koin = 300, xp = 60 },
 	},
+	-- Starter Quest Chain (Update owner 2026-11-22, Task 1): dimulai setelah jual ikan ke Kak Fajar (semua quest menunggu t1b_kolam).
+	-- Pengganti langkah FTUE lama (Bayam, Nambang, Hias). Langkah Surat Kakek #1 BELUM ada (Lampiran D #23).
+	-- Agenda Harian + Gerobak Kaget terbuka setelah starter_pagar selesai.
+	{
+		id = "starter_bayam",
+		unlockLevel = 1,
+		steps = {
+			{ event = "plant_bayam", count = 1 }, -- Beli bibit Bayam, tanam 1 (event dikirim FarmService)
+		},
+		reward = {},
+	},
+	{
+		id = "starter_nambang",
+		unlockLevel = 1,
+		after = "starter_bayam",
+		steps = {
+			{ event = "mine", count = 1 }, -- Pukul 1 node Kayu
+		},
+		reward = { xp = 20 },
+	},
+	{
+		id = "starter_pagar",
+		unlockLevel = 1,
+		after = "starter_nambang",
+		steps = {
+			{ event = "decor_placed", count = 1 }, -- Pasang 1 Pagar Bambu
+		},
+		reward = { koin = 100 },
+	},
 	-- Misi Utama (Stage 7) removed 2026-11-22: it repeated the tutorial (tanam, mancing, hiasan). Not a main quest.
 	-- MQ: Main Quest linear, cerita Kakek (Bab 14.2, LOCKED, P2-7-fix). Berurutan via `after`.
 	{

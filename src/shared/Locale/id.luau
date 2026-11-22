@@ -100,6 +100,12 @@ return {
 	["quest.more"] = "+{n} lainnya",
 	["quest.kolam_pertama.title"] = "Kolam Pertamamu",
 	["quest.kolam_pertama.s1"] = "Tap tombol Kolam, tap lahan kosong",
+	["quest.starter_bayam.title"] = "Tanam Bayam",
+	["quest.starter_bayam.s1"] = "Beli bibit Bayam di Pak Udin, lalu tanam 1",
+	["quest.starter_nambang.title"] = "Nambang Kayu",
+	["quest.starter_nambang.s1"] = "Pukul 1 node Kayu di Hutan Nambang",
+	["quest.starter_pagar.title"] = "Hias Pagar Bambu",
+	["quest.starter_pagar.s1"] = "Pasang 1 Pagar Bambu di lahanmu",
 	["quest.kolam_pertama.s2"] = "Pancing ikan di kolammu",
 	["quest.misi_utama.title"] = "Misi Utama",
 	["quest.misi_utama.s1"] = "Tanam 3 Kangkung di lahanmu",
@@ -604,7 +610,7 @@ return {
 	["tut.t1.s2"] = "Pilih bibit, tap petak kosong",
 	["tut.t1.s3"] = "Tap petak, lalu Siram",
 	["tut.t1.s4"] = "Panen, lalu jual ke Pak Udin",
-	["tut.t1.s4_greet"] = "Halo, {name}! Senang kamu datang ke warungku.",
+	["tut.t1.s4_greet"] = "Halo, {name}! Senang kamu datang ke warungku. Kak Fajar lagi mancing di sungai dekat lahanmu, temui dia di sana.",
 	-- T1b (Config/Onboarding): the lines Mak Sari / Pak Udin / Kak Fajar actually say live in T1Ghost.client; these are
 	-- the Panduan list title and the plain fallback when nobody can speak.
 	["tut.t1b.title"] = "Joran dan Mancing",

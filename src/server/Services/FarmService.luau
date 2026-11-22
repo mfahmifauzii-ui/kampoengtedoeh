@@ -450,6 +450,7 @@ local function onPlant(player: Player, uid: any, cropId: any)
 	AnalyticsHooks.Step(player, "first_plant")
 	-- Stage 7 quest reports: Misi Utama counts Kangkung only, the Daily counts any planting.
 	QuestService.Report(player, "plant")
+	QuestService.Report(player, `plant_{crop.id}`) -- Starter chain: "plant_bayam" (Config/Quests starter_bayam)
 	if crop.id == "kangkung" then
 		QuestService.Report(player, "plant_kangkung")
 	end

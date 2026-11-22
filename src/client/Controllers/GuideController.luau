@@ -392,12 +392,14 @@ local function currentGoal(): Goal?
 				return { key = `land:{player.UserId}`, target = center, point = center, radius = radius }
 			end
 		elseif target.spot then
-			-- The nearest fishing spot of that Location (e.g. the river dock "sungai").
+			-- The nearest fishing spot of that Location (e.g. the river dock "sungai"). Sungai lahan (Update owner 2026-11-22, Task 1):
+			-- only the spot the server assigned to this player (attribute "RiverSpot", FishService.AssignedRiverSpot).
 			local here = myRoot()
 			local best: BasePart? = nil
 			local bestDistance = math.huge
+			local assigned = if target.spot == "sungai_lahan" then player:GetAttribute("RiverSpot") else nil
 			for _, part in CollectionService:GetTagged("FishingSpot") do
-				if part:IsA("BasePart") and part:GetAttribute("Location") == target.spot then
+				if part:IsA("BasePart") and part:GetAttribute("Location") == target.spot and (assigned == nil or part.Name == assigned) then
 					local distance = if here then (part.Position - here.Position).Magnitude else 0
 					if distance < bestDistance then
 						best, bestDistance = part, distance

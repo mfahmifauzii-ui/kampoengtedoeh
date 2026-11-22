@@ -49,6 +49,10 @@ local function reportAgenda(player: Player, data: Types.PlayerData, event: strin
 end
 
 function AgendaService.Roll(data: Types.PlayerData, now: number)
+	-- Agenda terbuka setelah Starter Quest Chain selesai (Update owner 2026-11-22, Task 1; Config/Quests starter_pagar).
+	if data.quests.done.starter_pagar ~= true then
+		return
+	end
 	rollAgenda(data, now)
 end
 

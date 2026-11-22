@@ -588,6 +588,7 @@ local function buildRiverSpots(fishing: Folder)
 		return
 	end
 	fishing:SetAttribute("RiverSpots", true)
+	local index = 0
 	for _, axis in RIVER_AXES do
 		local across = Vector3.new(-axis.Z, 0, axis.X) -- across the river (unit)
 		for _, along in Map.RIVER_SPOTS.ALONG do
@@ -596,7 +597,8 @@ local function buildRiverSpots(fishing: Folder)
 				local origin = axis * along + across * side * Map.RIVER_SPOTS.BANK
 				local dir = -across * side
 				local spot = Instance.new("Part")
-				spot.Name = "Spot_sungai"
+				index += 1
+				spot.Name = `Spot_sungai_lahan_{index}` -- unik: tiap pemain diberi satu spot (FishService.AssignedRiverSpot)
 				spot.Anchored = true
 				spot.Size = Vector3.new(2, 1, 2)
 				spot.CFrame = CFrame.new(origin + dir * RIVER_SPOT_REACH + Vector3.new(0, 1, 0))
@@ -610,6 +612,28 @@ local function buildRiverSpots(fishing: Folder)
 			end
 		end
 	end
+end
+
+-- Sungai lahan (Update owner 2026-11-22, Task 1): spot milik pemain = spot sungai lahan TERDEKAT dari lahannya.
+-- Dihitung di server dari posisi plot (deterministik), bukan dari posisi klien. Nil bila belum ada plot atau spot.
+function FishService.AssignedRiverSpot(player: Player): BasePart?
+	local plot = PlotService.GetPlot(player)
+	local origin = plot and plot.PrimaryPart
+	local fishing = Workspace:FindFirstChild("Fishing")
+	if not origin or not (fishing and fishing:IsA("Folder")) then
+		return nil
+	end
+	local best: BasePart? = nil
+	local bestDistance = math.huge
+	for _, part in fishing:GetChildren() do
+		if part:IsA("BasePart") and part:GetAttribute("Location") == "sungai_lahan" then
+			local distance = (part.Position - origin.Position).Magnitude
+			if distance < bestDistance or (distance == bestDistance and best ~= nil and part.Name < best.Name) then
+				best, bestDistance = part, distance
+			end
+		end
+	end
+	return best
 end
 
 function FishService.Init()
@@ -652,6 +676,11 @@ function FishService.Init()
 end
 
 function FishService.Start()
+	-- Panah tutorial: nama spot sungai lahan milik pemain (Task 1). Diset saat plot diberikan.
+	PlotService.Assigned:Connect(function(player: Player)
+		local spot = FishService.AssignedRiverSpot(player)
+		player:SetAttribute("RiverSpot", if spot then spot.Name else nil)
+	end)
 	Net.On("FishReel", onReel, { rate = 2, burst = 3 })
 	Net.On("FishCancel", onCancel, { rate = 2, burst = 3 })
 	Net.On("FishCast", onCastNearest, { rate = 2, burst = 3 })

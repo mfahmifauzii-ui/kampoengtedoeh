@@ -85,8 +85,24 @@ local function onSell(player: Player, npcId: any, target: any, amount: any)
 		end
 		wanted = amount
 	end
-	local npc = npcNear(player, npcId)
 	local data = DataService.Get(player)
+	-- Penjualan ikan tutorial (T1b "jual_ikan", Update owner 2026-11-22): Kak Fajar tutorial berdiri di sungai lahan milik
+	-- pemain, jadi jarak dihitung ke spot itu (server), bukan ke NPC di toko. Hanya saat langkah jual_ikan aktif.
+	local tutorialId, step = TutorialService.NextStep(player)
+	local npc: Npcs.Npc? = nil
+	if npcId == "kak_fajar" and tutorialId == "t1b_kolam" and step and step.id == "jual_ikan" then
+		npc = Npcs.byId.kak_fajar
+		local spot = FishService.AssignedRiverSpot(player)
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		local range = step.arrive or Shop.NPC_DISTANCE
+		if not (spot and root and root:IsA("BasePart") and (root.Position - spot.Position).Magnitude <= range) then
+			Net.Fire("Notify", player, "shop.too_far")
+			return
+		end
+	else
+		npc = npcNear(player, npcId)
+	end
 	if not npc or not data or next(npc.buys) == nil then
 		return
 	end

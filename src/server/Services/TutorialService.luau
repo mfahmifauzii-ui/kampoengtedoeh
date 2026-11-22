@@ -213,6 +213,19 @@ end
 
 -- Blocked = Tutorial 1 runs and this NPC is not the one the live step needs. npcId nil = "any NPC-only service" (orders,
 -- social, repeat events): during Tutorial 1 none of those is a target, so they are all blocked.
+-- The tutorial the player is in and the step they must finish next (nil when none). Used by ShopService for the tutorial sale.
+function TutorialService.NextStep(player: Player): (string?, Onboarding.Step?)
+	local data = DataService.Get(player)
+	if not data or data.guide.step.id == "" then
+		return nil, nil
+	end
+	local tutorial = byId[data.guide.step.id]
+	if not tutorial then
+		return nil, nil
+	end
+	return tutorial.id, tutorial.steps[data.guide.step.n + 1]
+end
+
 function TutorialService.NpcBlocked(player: Player, npcId: string?): boolean
 	if not TutorialService.T1Pending(player) then
 		return false
