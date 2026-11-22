@@ -8,6 +8,7 @@ local ContentProvider = game:GetService("ContentProvider")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local UiAssets = require(ReplicatedStorage.Shared.Config.UiAssets)
@@ -37,7 +38,8 @@ local BAMBOO = Color3.fromRGB(214, 164, 64)
 local player = Players.LocalPlayer
 
 local gui: ScreenGui? = nil
-local box: Frame? = nil
+local box: CanvasGroup? = nil -- a CanvasGroup: the minimize / restore fades the whole box with GroupTransparency
+local boxScale: UIScale? = nil -- the box's scale (minimize / restore, Owner rule: GUI doc Bab 5.1)
 local boxLimit: UISizeConstraint? = nil -- caps the box size; raised for a dialog with choices (the box grows to fit its text)
 local nameLabel: TextLabel? = nil
 local textLabel: TextLabel? = nil
@@ -121,8 +123,9 @@ local function ensure()
 	screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	screen.Enabled = false
 
-	local frame = Instance.new("Frame")
+	local frame = Instance.new("CanvasGroup")
 	frame.Name = "Box"
+	frame.GroupTransparency = 0
 	frame.AnchorPoint = Vector2.new(0.5, 1)
 	frame.Position = UDim2.new(0.5, 0, 1, -16)
 	frame.Size = UDim2.new(0.92, 0, 0, BOX_HEIGHT)
@@ -137,6 +140,10 @@ local function ensure()
 	limit.MinSize = Vector2.new(300, BOX_HEIGHT)
 	limit.Parent = frame
 	boxLimit = limit
+	local scale = Instance.new("UIScale")
+	scale.Scale = 1
+	scale.Parent = frame
+	boxScale = scale
 
 	-- The bamboo background (the existing panel skin). A fixed-size child, never part of a layout.
 	local skin = Instance.new("ImageLabel")
@@ -381,11 +388,49 @@ local function setAvatar(model: Model?)
 	end
 end
 
+-- Minimize / restore (GUI doc Bab 5.1, owner rule): the box shrinks toward the NPC's avatar and grows back from that same
+-- point. Used when an instruction line swaps its text (the turn is kept) and when it closes or reopens with Next.
+local MINIMIZE_SECONDS = 0.18 -- Quad In
+local RESTORE_SECONDS = 0.22 -- Back Out for the scale, Quad Out for the fade
+local MINIMIZED_SCALE = 0.2
+local animations: { Tween } = {}
+
+local function stopAnimations()
+	for _, tween in animations do
+		tween:Cancel()
+	end
+	table.clear(animations)
+end
+
+-- The NPC's avatar on screen, in pixels from the top left (the screen ignores the inset). Nil if it is not drawn.
+local function avatarOffset(npcId: string?): UDim2?
+	if not npcId then
+		return nil
+	end
+	local model = T1Dialog.NpcModel(npcId)
+	local head = model and model:FindFirstChild("Head")
+	local camera = Workspace.CurrentCamera
+	if not head or not head:IsA("BasePart") or not camera then
+		return nil
+	end
+	local point = camera:WorldToViewportPoint(head.Position)
+	if point.Z <= 0 then
+		return nil
+	end
+	return UDim2.fromOffset(point.X, point.Y)
+end
+
 -- Shows (or updates) the dialog. Non-blocking: with showNext, onNext fires when the player presses Next.
 function T1Dialog.Show(opts: Options)
 	ensure()
 	local screen, frame, name, text, next =
-		gui :: ScreenGui, box :: Frame, nameLabel :: TextLabel, textLabel :: TextLabel, nextButton :: TextButton
+		gui :: ScreenGui, box :: CanvasGroup, nameLabel :: TextLabel, textLabel :: TextLabel, nextButton :: TextButton
+	-- A plain show always starts at full size and fully visible: a minimize or restore in progress is stopped here.
+	stopAnimations()
+	if boxScale then
+		boxScale.Scale = 1
+	end
+	frame.GroupTransparency = 0
 	frame.Position = UDim2.new(0.5, 0, 1, -(opts.bottom or 16))
 	name.Text = opts.name
 	text.Text = opts.text
@@ -451,7 +496,50 @@ function T1Dialog.Show(opts: Options)
 	screen.Enabled = player:GetAttribute("FishingActive") ~= true
 end
 
+-- Shrinks the box toward the NPC's avatar (or down to the bottom middle) and fades it. Yields until the animation is over.
+-- The box keeps its turn (the caller decides what follows). Does nothing when no box is on screen.
+function T1Dialog.Minimize(npcId: string?)
+	if not box or not boxScale or not dialogWanted then
+		return
+	end
+	stopAnimations()
+	local target = avatarOffset(npcId) or UDim2.fromScale(0.5, 1)
+	local info = TweenInfo.new(MINIMIZE_SECONDS, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+	local move = TweenService:Create(box, info, { Position = target, GroupTransparency = 1 })
+	local shrink = TweenService:Create(boxScale, info, { Scale = MINIMIZED_SCALE })
+	table.insert(animations, move)
+	table.insert(animations, shrink)
+	move:Play()
+	shrink:Play()
+	task.wait(MINIMIZE_SECONDS) -- timed, not Completed: a cancelled tween (Hide) must not leave this waiting forever
+end
+
+-- Sets the content (Show) and grows the box back from the NPC's avatar point. Non-blocking.
+function T1Dialog.Restore(opts: Options, npcId: string?)
+	T1Dialog.Show(opts)
+	if not box or not boxScale then
+		return
+	end
+	local rest = box.Position
+	box.Position = avatarOffset(npcId) or UDim2.fromScale(0.5, 1)
+	boxScale.Scale = MINIMIZED_SCALE
+	box.GroupTransparency = 1
+	stopAnimations()
+	local back = TweenInfo.new(RESTORE_SECONDS, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+	local fade = TweenInfo.new(RESTORE_SECONDS, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	local tweens = {
+		TweenService:Create(box, back, { Position = rest }),
+		TweenService:Create(boxScale, back, { Scale = 1 }),
+		TweenService:Create(box, fade, { GroupTransparency = 0 }),
+	}
+	for _, tween in tweens do
+		table.insert(animations, tween)
+		tween:Play()
+	end
+end
+
 function T1Dialog.Hide()
+	stopAnimations()
 	dialogWanted = false
 	if gui then
 		gui.Enabled = false
