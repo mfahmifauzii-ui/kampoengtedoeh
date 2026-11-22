@@ -94,6 +94,10 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	WarungTake = "Event", -- C->S () ambil kembali pajangan ke tas
 
 	PlaytimeClaim = "Event", -- C->S (index: number) open playtime peti number index (in order, Config/Progression PLAYTIME)
+	LoginClaim = "Event", -- C->S (day: number 1..7) claim a Login Mingguan day (RewardsService, Config/Rewards)
+	PetiOpen = "Event", -- C->S () open one Peti Bunga (RewardsService)
+	SeasonClaim = "Event", -- C->S (track: "f2p"|"premium", day: number) claim one Season day (RewardsService)
+	SeasonPremium = "Event", -- C->S () buy Season Premium for the current season (150 Bunga)
 	BookClaim = "Event", -- C->S (key: string) claim a Book reward: "cat:<category>" or a milestone id (Config/Book)
 
 	GuideEvent = "Event", -- C->S (action: "start"|"step"|"skip"|"replay", tutorialId: string, n: number?) tutorial engine, see TutorialService

@@ -6,6 +6,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local DecorConfig = require(ReplicatedStorage.Shared.Config.Decor)
 local FarmConfig = require(ReplicatedStorage.Shared.Config.Farm)
+local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
+local RewardsConfig = require(ReplicatedStorage.Shared.Config.Rewards)
 local RepeatConfig = require(ReplicatedStorage.Shared.Config.Repeat)
 local SuratConfig = require(ReplicatedStorage.Shared.Config.Surat)
 local Monetization = require(ReplicatedStorage.Shared.Config.Monetization)
@@ -81,7 +83,7 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		pondTier = Upgrades.tier(data, "pond"),
 		ponds = pondCells(data),
 		pondState = pondStateFor(data), -- breeding per kolam (uid, tier, kakek, breed) untuk UI
-		pondKakek = data.pond.kakekUnlocked == true, -- gate kolam v7.4 Bab 16.5: MQ4/Bundel. Tombol Kolam ikut ini.
+		pondKakek = data.pond.kakekUnlocked == true or data.level >= Fishing.POND.UNLOCK_LEVEL, -- gate kolam: Lv 2 (Fishing.POND.UNLOCK_LEVEL) atau Kolam Kakek pulih. Tombol Kolam ikut ini.
 		ranch = data.ranch, -- kandang + hewan + mood untuk panel Ternak
 		bundel = data.bundel, -- Bundel Kakek (Bab 14.6): [id] = { given, done } + sumur_day (UI mendatang)
 		dapur = { tier = data.dapur.tier, slots = table.clone(data.dapur.slots) },
@@ -121,6 +123,10 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		skills = data.skill, -- level skill per id untuk panel + efek (P2-4)
 		book = data.book,
 		playtime = table.clone(data.playtime),
+		rewards = (function()
+			local seasonId, seasonDay = RewardsConfig.seasonNow(os.time())
+			return { login = table.clone(data.rewards.login), peti = data.rewards.peti, season = table.clone(data.rewards.season), seasonId = seasonId, seasonDay = seasonDay }
+		end)(),
 		titles = data.titles,
 		guideSells = data.guide.sells,
 		guide = {

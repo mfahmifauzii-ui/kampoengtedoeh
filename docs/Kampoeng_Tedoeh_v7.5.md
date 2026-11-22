@@ -57,6 +57,14 @@ Isi di bawah adalah perubahan yang sudah ada di kode (`feat/v.7`) dan disetujui 
 | 7 | **Tombol Craft** hanya muncul setelah Meja Crafting terbuka (Lv 4) dan pemain dalam 10 stud dari meja; melayang di atas meja. | 8.2, 4.4 (Unlock Lv 4) | Disetujui owner. Butuh objek "Meja Crafting" di Studio → Lampiran D #7 |
 | 8 | **Bang Jali (warung mini)** menghadap ke arah lain: membelakangi warung (diputar 180°). | 10.1 | Disetujui owner |
 | 9 | **Bubble dialog NPC hilang setelah tutorial** (bug): kotak dialog tidak lagi ditutup oleh polling tutorial saat percakapan NPC aktif. | 16.3 | Perbaikan bug, tanpa perubahan desain |
+| 10 | **XP top-up di langkah Jual Ikan (`t1b_kolam` / `jual_ikan`) +115 XP**: tutorial sekarang selesai di 158 XP (sebelumnya 43). Dengan 6 bibit gratis (kangkung 12 XP) yang habis dipanen, total 230 XP = Lv 2. | 16.2, 4.3 | Kode jadi, belum playtest. Angka 115 tidak ada di tabel 16.2 → Lampiran D #11 |
+| 11 | **Quest tidak muncul sebelum tutorial jual ikan selesai.** `startAvailable` menunggu `guide.done.t1b_kolam` (atau skipped). Saat tutorial selesai, quest langsung dievaluasi (`TutorialService.Finished`). | 14, 16.3 | Kode jadi, belum playtest → Lampiran D #12 |
+| 12 | **Quest Kolam (`kolam_pertama`) tidak lagi memakai syarat `requireKakek`.** Quest mulai di Lv 2. Langkah "bangun kolam" tetap terkunci sampai Kolam Kakek pulih (Lv 3), karena `PondBuild` masih memeriksa `kakekUnlocked`. | 14.2, 16.5 | Kode jadi → Lampiran D #13 |
+| 13 | **Petak garap berbayar**: Cangkul petak ke-7 dan seterusnya membuka modal konfirmasi berisi harga. Jika koin kurang, harga merah, tombol dikunci, dan modal menulis "Koin kamu belum cukup". Petak gratis (6 pertama) tetap langsung. | 5.2 | Kode jadi, belum playtest |
+| 14 | **Hapus Petak mengembalikan 50% harga, hanya untuk petak yang dibeli** (`paid` disimpan per petak; petak gratis tidak ada refund). Modal Hapus Petak menampilkan jumlah koin yang kembali. Mengikuti aturan refund Kolam (`Fishing.POND.REFUND_RATE`). | 5.2 | Kode jadi → Lampiran D #14 |
+| 15 | **Galeri: pemilik offline = lahan kosong.** Toast "pemilik offline" dan rumah snapshot dihapus (Lampiran D #19). | 8.7, 12.7 | Kode jadi |
+| 16 | **Kolam bisa dibangun mulai Lv 2** (`Fishing.POND.UNLOCK_LEVEL`); Kolam Kakek tetap jalur lain. Kolam Quest bisa dibangun di Lv 2. | 16.5, 14.1 | Kode jadi → Lampiran D #13 |
+| 17 | **P2-9 Hadiah mingguan (Config/Rewards, RewardsService, panel Hadiah):** Login Mingguan diulang tiap minggu; Peti Bunga 25 Bunga (dari Title baru); Title 10 item (Album 50/100 otomatis); Season 30 hari F2P + Premium 150 Bunga. | 15.1, 15.3, 15.4, 19 | Kode jadi, angka usulan → Lampiran D #15–#18 |
 
 ### 0.3.1 Changelog v6.2.3 → v7.2 (Riwayat, tetap LOCKED)
 
@@ -277,6 +285,8 @@ Pilih petak kosong → Tanam bibit (bayar bibit) → Tumbuh (jalan walau offline
 | Petak awal | 6 |
 | Max rilis | 36 |
 | Buka petak ke-n | `n x 150` Koin (petak 7 = 1.050, petak 36 = 5.400). Total petak 7-36 = 96.750 Koin. Syarat: petak 7-12 tanpa level, petak 13-24 butuh Lv 10, petak 25-36 butuh Lv 25. |
+| Hapus petak (refund) | Garap > Hapus Petak mengembalikan **50%** harga petak yang DIBELI (contoh petak 7 = 525 Koin). Petak gratis (6 pertama) tidak ada refund. Harga tiap petak dicatat saat dibeli. Owner setuju 2026-11-22 (Lampiran D #14). |
+| Konfirmasi beli petak | Petak 7 dan seterusnya membuka modal konfirmasi berisi harga. Jika Koin kurang: harga merah, tombol Cangkul dikunci, dan modal menulis "Koin kamu belum cukup". |
 | Ukuran petak | 8x8 stud (`Land.TILE`). Garap (bajak) bebas di mana saja di lahan sendiri; jumlah petak yang dibajak dibatasi baris di atas. |
 
 ### 5.3 Tanaman Rilis (18) — LOCKED
@@ -538,7 +548,7 @@ Kumpul bahan → Buka Menu Hias → Pilih piece → Warna (12) + Material (4) �
 - **Blueprint BUKAN gating.** Dekor bisa langsung di-craft pakai bahan tanpa beli Blueprint. Tidak ada dekor yang terkunci di balik beli Blueprint. Gating yang boleh hanya Level / Koin / Quest (lihat Bab 5 di bawah: Gating). Slot Blueprint ekstra pakai Bunga (lihat Bab 4.1) hanya tambah slot simpan, bukan buka dekor.
 - **Visit:** jalan-jalan, duduk, foto. Tidak bisa bangun/hapus/ambil.
 - **Like:** `👍 Bagus!` 1x per lahan selamanya per player. Pemberi like +20 Koin (max 10 like berhadiah per hari). Like masuk hitungan mingguan.
-- **Galeri Kampung:** papan di Alun-alun berisi 5 lahan dengan like mingguan terbanyak (global, bukan per server). Pencet = visit (teleport ke server pemilik jika online, atau "rumah snapshot" read-only jika offline).
+- **Galeri Kampung:** papan di Alun-alun berisi 5 lahan dengan like mingguan terbanyak (global, bukan per server). Pencet = visit (teleport ke server pemilik jika online). **Pemilik offline: lahannya kosong, tidak ada yang bisa dikunjungi, tidak ada toast, tidak ada rumah snapshot** (Update owner 2026-11-22: sistem rumah snapshot DIHAPUS, Lampiran D #19).
 - **Lomba Hias Bulanan:** tema (contoh: `Kampung 17-an`), juara dipilih dari like + kurasi tim. Hadiah Bunga + dekor eksklusif + title.
 
 ---
@@ -883,7 +893,7 @@ Bundel adalah proyek Blueprint. Kerangka kosong muncul di level bukanya. Biaya, 
 
 ### 15.1 Login Mingguan (Kumulatif, Bukan Streak) — LOCKED
 
-- 7 hari login kumulatif (tidak reset kalau tidak login). Hadiah: Hari 1: 100 Koin, Hari 2: 150 Koin, Hari 3: 200 Koin, Hari 4: 2 Bunga, Hari 5: 300 Koin, Hari 6: 3 Bunga, Hari 7: 500 Koin + 5 Bunga.
+- 7 hari login kumulatif per minggu (tidak reset kalau tidak login di hari lain). **Diulang tiap minggu**: minggu baru mulai Senin 05:00 WIB (Update owner 2026-11-22, Lampiran D #15). Tiap hari WIB yang dibuka saat login = +1 hari; hadiah hari ke-n bisa diambil sekali per minggu. Hadiah: Hari 1: 100 Koin, Hari 2: 150 Koin, Hari 3: 200 Koin, Hari 4: 2 Bunga, Hari 5: 300 Koin, Hari 6: 3 Bunga, Hari 7: 500 Koin + 5 Bunga.
 
 ### 15.2 Hadiah Waktu Bermain (Sehat) — LOCKED
 
@@ -892,12 +902,14 @@ Bundel adalah proyek Blueprint. Kerangka kosong muncul di level bukanya. Biaya, 
 ### 15.3 Peti Bunga & Pencapaian
 
 - Peti Bunga: dari Login Mingguan, Pencapaian, Album, Season, Event, Bundel Kakek (10 Bunga tiap bangunan pulih), Robux.
+- **Isi 1 Peti Bunga = 25 Bunga** (Update owner 2026-11-22, Lampiran D #16). **Sumber yang sudah jalan di P2-9:** tiap Title baru = 1 peti, sekali per Title. Sumber lain (Login, Pencapaian, Album, Season, Event, Bundel, Robux) belum dihubungkan dan perlu keputusan.
 - Pencapaian: Album, Quest, Kerja Bakti, Koleksi, dll. Hadiah Bunga + Title.
 
 ### 15.4 Title (Dari Pencapaian Permanen) — LOCKED
 
 - Title dari pencapaian permanen, bukan dari beli. Contoh: Kolektor (Album 50%), Warga Kampoeng Tedoeh (MQ12), Penyayang Kucing (Side Quest Kucing), Legenda Kampung (Album 100%).
 - Title tidak memberi stat, kecuali yang tercantum di Bab 17.6 (max +25% per jenis stat, termasuk Title).
+- **Daftar Title P2-9 (usulan, Lampiran D #17):** Kolektor (Album 50%), Legenda Kampung (Album 100%), Warga Kampoeng Tedoeh (MQ12), Penakluk Legenda (MQ11), Dinding Spesial, Raja Jumbo, Pekerja Bakti, Warga Teladan, Juragan Pondok, Kebun Favorit. Tiap title yang dimiliki memberi **1 Peti Bunga (25 Bunga)**, sekali per title. Title tetap tanpa stat. Penakluk Legenda / Dinding Spesial / Raja Jumbo / Pekerja Bakti / Warga Teladan / Juragan Pondok / Kebun Favorit didapat dari misi atau sistem lain yang sudah ada di kode.
 
 ---
 
@@ -961,6 +973,8 @@ Bundel adalah proyek Blueprint. Kerangka kosong muncul di level bukanya. Biaya, 
 - **Jika player mendekati Pak Udin di luar langkah Jual Pertama** (misal masih di langkah Tanam / Mancing): Berlaku blok Bab 16.3 — NPC jawab `Selesaikan tutorial dulu`, tidak ada cutscene, tidak ada GUI Jual.
 
 ### 16.5 Kolam — Bukan di Tutorial 1 (LOCKED — P2-8 Takeout)
+
+- **Update owner 2026-11-22 (Lampiran D #13):** di luar Tutorial 1, kolam bisa dibangun mulai **Lv 2** (`Fishing.POND.UNLOCK_LEVEL`). Langkah "bangun kolam" di Quest Kolam (Bab 14.1) ikut terbuka di Lv 2. Kolam Kakek (Lv 3, MQ4 / Bundel) tetap ada dan tetap memberi kolam gratis + breeding 10% lebih cepat. Bagian di bawah ini tentang Tutorial 1 tetap berlaku.
 
 - **Kolam DIHAPUS dari Tutorial 1 / FTUE.** Tidak ada langkah Buat Kolam, tidak ada langkah Simpan Ikan ke Kolam, tidak ada coachmark Kolam, tidak ada prompt Kolam, tidak ada tombol Kolam, tidak ada dialog Kolam di FTUE.
 - **Alasan:** Di dokumen terbaru, Kolam dibuat nanti. Kolam pertama = **Kolam Kakek** (Bab 7.2, Bab 14.2 MQ4, Bab 14.6 Bundel Kakek): **Lv 3, Mak Sari datang, setoran 10 Batu + 5 Kayu + 3 ikan Early**. Kolam Tanah yang bisa dibeli juga **Lv 3** (Bab 7.2). FTUE (Lv 1, 10 menit) tidak boleh mengajarkan Kolam.
@@ -1071,13 +1085,13 @@ Target porsi Koin player inti: Nanem 30% | Mancing 25% | Ternak+Kolam+Bubu 15% |
 
 | Sumber | Bunga / Bulan (Bulan 2+) |
 |--------|--------------------------|
-| Login Mingguan | 20 |
+| Login Mingguan | 20 (catatan: Bab 15.1 memberi 10 Bunga per minggu = ~40/bulan, perlu keputusan, Lampiran D #18) |
 | Pencapaian | 40 |
 | Album | 30 |
 | Season (F2P track) | 30 |
 | Event | 30 |
 | Bundel Kakek | 10 |
-| Peti Bunga | 60 |
+| Peti Bunga | 60 (catatan: 1 peti = 25 Bunga, dan P2-9 hanya memberi peti dari Title, belum 60/bulan, Lampiran D #16) |
 | **Total** | **~220** |
 
 ### 18.3 Alat Bunga (QoL, Bukan Kekuatan)
@@ -1108,6 +1122,9 @@ Target porsi Koin player inti: Nanem 30% | Mancing 25% | Ternak+Kolam+Bubu 15% |
 - Premium track: semua F2P + kosmetik eksklusif season (tidak akan dijual lagi), Bunga ekstra, dekor eksklusif.
 - Season Premium tetap laku walau Bunga-nya < Pesta Bunga: kosmetik eksklusif season tidak akan dijual lagi (satu-satunya barang terbatas di game, dan itu kosmetik).
 - Istilah Season Premium dipakai untuk paket Season, supaya tidak bentrok dengan Premium Roblox.
+- **Aturan P2-9 (usulan, Lampiran D #18):** Season 1 mulai 1 Desember 2026 (WIB, reset 05:00). Setelah 30 hari, season berikutnya mulai otomatis dengan hadiah yang sama. Hari yang sudah lewat bisa diambil sekali; hari yang belum tiba belum bisa diambil.
+- **F2P (gratis):** 50 Koin tiap hari. Bunga: hari 7 = 5, hari 14 = 5, hari 21 = 10, hari 30 = 10 (total 30 Bunga). Bahan dan dekor belum dimasukkan (menunggu daftar dari owner).
+- **Premium:** beli 150 Bunga per season. Setelah itu track Premium aktif: 40 Koin tiap hari. Bunga ekstra: hari 10 = 10, hari 20 = 20, hari 30 = 30 (total 60 Bunga, jadi harga 150 tetap lebih besar dari yang kembali). Kosmetik eksklusif belum dimasukkan.
 
 ---
 
@@ -1311,6 +1328,15 @@ Daftar ini wajib dibaca sebelum playtest. Setiap butir adalah tempat kode TIDAK 
 | 8 | 23 (GUI) | Tidak diatur | Batas tinggi quest tracker 200 px tetap, tidak dihitung dari tinggi layar. Pada layar pendek bisa menimpa area di bawahnya. | Perlu keputusan layout (tracker menyesuaikan layar, atau posisi tombol berubah). |
 | 9 | 23 (GUI) | Tidak diatur font | Semua GUI FredokaOne. Dulu campuran Gotham. | Konsistensi. Perlu dicek apakah teks panjang (dialog) masih nyaman dibaca. |
 | 10 | 10.1 (NPC) | Bang Jali di depan lahan | Rig Bang Jali menghadap sisi lain (membelakangi warung mini). | Sesuai. Tidak perlu keputusan. |
+| 11 | 16.2 (FTUE) / 4.3 (XP) | Tabel 16.2: XP per langkah FTUE 20 + 20 + 20 (+ 1 per langkah awal), total tutorial sekitar 43 XP | `Config/Onboarding` langkah `jual_ikan` menambah `reward = { xp = 115 }`, sehingga tutorial membawa player ke 158 XP. Dengan 6 bibit gratis (kangkung 12 XP) habis dipanen, total 230 = Lv 2. | DIPUTUSKAN owner 2026-11-22: 115 diterima, dengan syarat level awal tidak terasa sulit. Pace ideal (6 bed, 1 panen per bed tiap 5 menit, ±972 XP/jam): Lv 2 = 230 XP total (±14 menit), Lv 5 = 1.100 XP total (±68 menit). Hambatan awal ada di Koin untuk petak (petak 7 = 1.050 Koin), bukan di XP. Cek lagi di playtest. |
+| 12 | 14 (Quest) | Quest muncul sesuai level dan syarat (tidak menyebut tutorial) | Semua quest menunggu tutorial jual ikan (`t1b_kolam`) selesai. `QuestService.startAvailable` + `TutorialService.Finished`. Save lama yang belum pernah menjalankan `t1b_kolam` tetap terkunci sampai tutorial itu selesai. | DIPUTUSKAN owner 2026-11-22: diterima. Semua quest baru muncul dan progresnya dihitung setelah tutorial jual ikan (`t1b_kolam`) selesai. Sebelum itu tidak ada GUI quest. |
+| 13 | 14.2 (Kolam) / 16.5 | Quest Kolam pertama: Lv 2, syarat Kolam Kakek pulih | `kolam_pertama` tanpa `requireKakek`: quest mulai di Lv 2, langkah "bangun kolam" menunggu Kolam Kakek (Lv 3, MQ4/Bundel). `PondBuild` tetap butuh `kakekUnlocked`. | DIPUTUSKAN owner 2026-11-22: langkah bangun kolam terbuka di Lv 2 (`Fishing.POND.UNLOCK_LEVEL`). Kolam Kakek tetap jalur lain. |
+| 14 | 5.2 (Petak) | Tidak menyebut refund petak; beli petak dengan harga n x 150 | Hapus Petak = refund 50% dari harga petak yang dibeli (`Farm.TILE_REFUND_RATE`). Petak gratis tidak ada refund. Harga per petak disimpan (`paid`). | DIPUTUSKAN owner 2026-11-22: 50% diterima, ditulis di Bab 5.2. |
+| 15 | 15.1 (Login) | 7 hari kumulatif, tanpa keterangan ulang | Login Mingguan diulang tiap minggu (Senin 05:00 WIB). `Config/Rewards.LOGIN`, `RewardsService`. | DIPUTUSKAN owner 2026-11-22: berulang tiap minggu. |
+| 16 | 15.3 / 18.2 (Peti Bunga) | Isi peti tidak disebut. Sumber: Login, Pencapaian, Album, Season, Event, Bundel, Robux. Tabel 18.2: 60 Bunga/bulan dari peti | 1 peti = 25 Bunga (owner). P2-9 hanya memberi peti dari Title baru (1 per title), sekali. Total ~25–250 Bunga sekali jalan, belum 60/bulan. | BUTUH KEPUTUSAN: sumber peti lain (Login, Album, Season) mau dihubungkan? Tabel 18.2 disesuaikan? |
+| 17 | 15.4 (Title) | Title hanya contoh | 10 title di `Config/Rewards.TITLES`. Kolektor (Album 50%) dan Legenda Kampung (Album 100%) otomatis dari % Album. Tiap title = 1 peti. | USULAN: daftar dan syarat perlu dikonfirmasi owner. |
+| 18 | 19 (Season) / 18.2 (Login) | Season 30 hari; F2P: Koin, bahan, 30 Bunga, dekor; Premium 150 Bunga. Login 20 Bunga/bulan di tabel 18.2 | Season 1 mulai 1 Des 2026 (WIB). F2P: 50 Koin/hari + 30 Bunga. Premium: 40 Koin/hari + 60 Bunga ekstra. Bahan, dekor, kosmetik belum ada. Login 10 Bunga/minggu (~40/bulan) melebihi tabel 18.2. | BUTUH KEPUTUSAN: angka Season, angka Login di tabel 18.2, dan daftar bahan / dekor / kosmetik. |
+| 19 | 8.7 / 12.7 (Galeri) | Pemilik offline: rumah snapshot read-only | DIHAPUS. Pemilik offline = lahan kosong, tidak ada toast, tidak ada rumah snapshot. | DIPUTUSKAN owner 2026-11-22. |
 
 ## Lampiran C — Nilai Harapan Koin per Panen & Hitungan Kualitas / Mood Hujan
 

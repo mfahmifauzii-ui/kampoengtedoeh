@@ -18,6 +18,7 @@ local InventoryService = require(script.Parent.InventoryService)
 local ProgressionService = require(script.Parent.ProgressionService)
 local RanchService = require(script.Parent.RanchService)
 local SuratService = require(script.Parent.SuratService)
+local TutorialService = require(script.Parent.TutorialService)
 
 local QuestService = {}
 
@@ -40,9 +41,18 @@ local function finishQuest(player: Player, data: Types.PlayerData, quest: Quests
 	Net.Fire("Notify", player, "quest.done", { title = `quest.{quest.id}.title` })
 end
 
+-- No quest at all until the player has finished the tutorial that ends with the fish sale (t1b_kolam, "jual ikan ke Kak Fajar").
+-- Old saves that never got t1b_kolam stay locked until they finish it, so a quest can never appear in the middle of a tutorial.
+local function tutorialFinished(data: Types.PlayerData): boolean
+	return data.guide.done.t1b_kolam == true or data.guide.skipped.t1b_kolam == true
+end
+
 -- Starts every quest the player now qualifies for. Returns true if something started.
 local function startAvailable(player: Player, data: Types.PlayerData): boolean
 	local started = false
+	if not tutorialFinished(data) then
+		return false
+	end
 	for _, quest in Quests.list do
 		if
 			data.quests.done[quest.id] == nil
@@ -212,6 +222,11 @@ end
 function QuestService.Init()
 	DataService.Loaded:Connect(evaluate)
 	ProgressionService.LevelUp:Connect(evaluate)
+	TutorialService.Finished:Connect(function(player: Player, tutorialId: string)
+		if tutorialId == "t1b_kolam" then
+			evaluate(player) -- the first quests start the moment the fish-sale tutorial is done
+		end
+	end)
 end
 
 return QuestService

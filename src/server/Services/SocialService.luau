@@ -103,9 +103,7 @@ local function onVisit(player: Player, ownerUserId: any)
 			if not ok then
 				Net.Fire("Notify", player, "social.server_full")
 			end
-		else
-			-- Pemilik offline: rumah snapshot read-only = P2-5-fix, tanggal 2026-11-28.
-			Net.Fire("Notify", player, "social.offline")
+			-- Pemilik offline: lahannya kosong, tidak ada rumah untuk dikunjungi. Tidak ada toast, tidak ada rumah snapshot.
 		end
 		return
 	end

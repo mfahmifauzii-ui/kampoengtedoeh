@@ -35,6 +35,7 @@ local ORDER = {
 	"SuratService", -- Surat Kakek 30 (P2-7-fix, Bab 14.3): 1/hari login, kumulatif
 	"BundelService", -- Bundel Kakek 5 (P2-7-fix, Bab 14.6): setoran + hadiah + flag
 	"AlbumService", -- Toko Bunga + delegasi klaim Album (P2-7)
+	"RewardsService", -- Login Mingguan, Peti Bunga, Title, Season (P2-9, Config/Rewards): after BookService (Album %)
 	"DecorService",
 	"OrderService",
 	"SocialService",

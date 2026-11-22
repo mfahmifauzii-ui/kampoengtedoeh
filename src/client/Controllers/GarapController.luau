@@ -555,6 +555,31 @@ local function pressFeedback()
 	TweenService:Create(square, TweenInfo.new(0.14, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = base }):Play()
 end
 
+-- Cangkul a new bed. The free beds (Farm.TILE_FREE) go straight through. A paid bed asks first: the confirm modal shows the
+-- price, and when the Koin is not enough the price turns red, the modal says so and Cangkul is locked. The server checks again.
+local function tryTill(cx: number, cz: number)
+	local function doTill()
+		Net.Send("FarmTill", cx, cz)
+		require(script.Parent.Parent.FarmFx).till(false)
+	end
+	local cost = Farm.tileCost(#farmInfo() + 1)
+	if cost <= 0 then
+		doTill()
+		return
+	end
+	local koin = player:GetAttribute("Koin")
+	local affordable = typeof(koin) == "number" and koin >= cost
+	UiKit.confirm({
+		title = Locale.t("farm.buy_title"),
+		body = Locale.t(if affordable then "farm.buy_info" else "farm.buy_short"),
+		totalText = Locale.t("farm.buy_price", { n = Locale.formatNumber(cost) }),
+		totalRed = not affordable,
+		canConfirm = affordable,
+		confirmText = Locale.t("farm.buy_yes"),
+		onConfirm = doTill,
+	})
+end
+
 local function act(ray: Ray)
 	local plot, cx, cz, point = pointerCell(ray)
 	if not plot or not cx or not cz or not point then
@@ -612,8 +637,7 @@ local function act(ray: Ray)
 		end
 	elseif action == "till" then
 		if cellState(plot, cx, cz) == "valid" then
-			Net.Send("FarmTill", cx, cz)
-			require(script.Parent.Parent.FarmFx).till(false)
+			tryTill(cx, cz)
 		end
 	end
 end

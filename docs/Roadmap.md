@@ -40,6 +40,14 @@ Dokumen v7.5 mencatat perubahan kode dan GUI yang sudah dikerjakan (Bab 0.3.2) s
 | Craft | Tombol Craft hanya Lv 4+ dan dekat "Meja Crafting" (10 stud), melayang di atas meja | Kode jadi. Butuh objek meja di Studio → Lampiran D #7 | `refreshCraft` di MiningController, `CRAFT_*` di Config/Mining |
 | NPC | Bang Jali membelakangi warung mini | Kode jadi | `miniStand` di NpcService |
 | Bug | Bubble dialog NPC tidak hilang setelah tutorial | Kode jadi (`clearSink` di T1Ghost) | `NpcTalkOpen` di `clearSink` |
+| XP | XP top-up +115 di langkah `jual_ikan` (tutorial 158 XP, 6 bibit = 230 = Lv 2) | Kode jadi, belum playtest → Lampiran D #11 | `reward = { xp = 115 }` di `Config/Onboarding` |
+| Quest | Quest menunggu `t1b_kolam` selesai; saat selesai langsung dievaluasi | Kode jadi, belum playtest → Lampiran D #12 | `startAvailable` + `TutorialService.Finished` di QuestService |
+| Quest | Quest Kolam tanpa `requireKakek` (mulai Lv 2) | Kode jadi → Lampiran D #13 | `kolam_pertama` di `Config/Quests` |
+| Petak | Cangkul petak ke-7+ pakai modal harga (merah + "koin belum cukup" jika kurang) | Kode jadi, belum playtest | `tryTill` di GarapController |
+| Petak | Hapus Petak refund 50% hanya untuk petak berbayar (`paid`) | Kode jadi → Lampiran D #14 | `TILE_REFUND_RATE` di `Config/Farm`, `onLevel` di FarmService |
+| Galeri | Pemilik offline = lahan kosong; toast dan rumah snapshot dihapus | Kode jadi → Lampiran D #19 | `onVisit` di SocialService |
+| Kolam | Bangun kolam terbuka di Lv 2 (`Fishing.POND.UNLOCK_LEVEL`) | Kode jadi → Lampiran D #13 | `PondService`, `InventoryService` (pondKakek) |
+| P2-9 | Login Mingguan (ulang tiap minggu), Peti Bunga 25, Title (10, auto dari Album), Season 30 hari F2P + Premium 150 Bunga | Kode jadi, belum playtest → Lampiran D #15–#18 | `Config/Rewards`, `RewardsService`, `RewardsController` |
 
 ## 2. Aturan Kerja (LOCKED)
 
@@ -72,7 +80,7 @@ Dokumen v7.5 mencatat perubahan kode dan GUI yang sudah dikerjakan (Bab 0.3.2) s
 
 ## 4. P2 — Sisa (urut, jangan dibalik)
 
-### P2-8. FTUE v7.4 — Bab 16.1-16.5 (BUKAN rebuild FTUE)
+### P2-8. FTUE v7.5 — Bab 16.1-16.5 (BUKAN rebuild FTUE)
 
 Prinsip v7.4: FTUE lama (`Config/Onboarding.luau` T1 `t1_awal` + T1b `t1b_kolam`, `T1Ghost.client.luau`, `GuideController.luau`) dipertahankan. Hanya 4 hal di bawah.
 
@@ -116,7 +124,7 @@ Belum dikerjakan: sisa tumpang tindih GUI di sudut kiri bawah (kartu XP) perlu d
 
 ### P2-9. Login Mingguan + Peti Bunga + Title (Bab 15) + Season (Bab 19)
 
-- [ ] Login 7 hari kumulatif + peti + title + Season 2 track
+- [x] Login 7 hari kumulatif (diulang tiap minggu) + peti + title + Season 2 track — **kode jadi, belum playtest** (angka usulan di Lampiran D #15–#18)
     - File: Service Login/Season baru (`RewardsController` + `ProgressionService` cuma komentar Fase 6; `PlaytimeService` sudah ada).
     - Angka: Login 100/150/200/2B/300/3B/500+5B kumulatif; Peti dari Login/Pencapaian/Album/Season/Event/Bundel (10 Bunga/bangunan)/Robux; Title permanen; Season 30 hari F2P (Koin/bahan/30 Bunga/dekor) + Premium 150 Bunga (kosmetik eksklusif tidak dijual lagi).
     - Cara Cek: klaim Login hari 1-2 + 1 Peti + 1 Title + Season track kebaca di UI.
@@ -131,7 +139,7 @@ Belum dikerjakan: sisa tumpang tindih GUI di sudut kiri bawah (kartu XP) perlu d
 
 ### Due tanggal
 
-- [ ] Galeri: rumah snapshot read-only bila pemilik offline (sekarang toast offline) — due 2026-11-28.
+- [x] Galeri: pemilik offline = lahan kosong, tidak ada toast, tidak ada rumah snapshot. **Dihapus** (keputusan owner 2026-11-22, Lampiran D #19). Tidak ada due date lagi.
 
 ## 5. BUTUH KEPUTUSAN OWNER / USULAN yang belum di-lock
 

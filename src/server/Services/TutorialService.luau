@@ -16,12 +16,14 @@ local RunService = game:GetService("RunService")
 local Npcs = require(ReplicatedStorage.Shared.Config.Npcs)
 local Onboarding = require(ReplicatedStorage.Shared.Config.Onboarding)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
+local Signal = require(ReplicatedStorage.Shared.Modules.Signal)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
 local InventoryService = require(script.Parent.InventoryService)
 local ProgressionService = require(script.Parent.ProgressionService)
 
 local TutorialService = {}
+TutorialService.Finished = Signal.new() -- (player, tutorialId): fired when a tutorial is completed (QuestService waits for t1b_kolam)
 
 local byId: { [string]: Onboarding.Tutorial } = {}
 
@@ -154,6 +156,7 @@ local function onGuideEvent(player: Player, action: any, tutorialId: any, n: any
 				guide.decorUnlocked = true -- decorating opens when the whole second tutorial is finished
 			end
 			logEvent(player, `tut_{tutorialId}_done`, tutorialId)
+			TutorialService.Finished:Fire(player, tutorialId)
 		end
 	elseif action == "replay" then
 		-- No state change and no reward: only the analytics event.

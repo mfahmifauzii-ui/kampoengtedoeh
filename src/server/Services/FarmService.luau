@@ -143,6 +143,7 @@ local function makeTilePart(player: Player, folder: Folder, origin: BasePart, ti
 	part:SetAttribute("Index", tile.uid) -- the client sends this uid back
 	part:SetAttribute("Cx", tile.cx)
 	part:SetAttribute("Cz", tile.cz)
+	part:SetAttribute("Paid", tile.paid or 0) -- koin spent on it (0 = a free bed): the client shows the refund in "Hapus Petak"
 
 	local detector = Instance.new("ClickDetector")
 	detector.MaxActivationDistance = Farm.INTERACT_DISTANCE
@@ -260,7 +261,7 @@ local function onTill(player: Player, cx: any, cz: any)
 		return
 	end
 
-	local tile: Types.FarmTile = { uid = data.farm.nextUid, cx = cx, cz = cz }
+	local tile: Types.FarmTile = { uid = data.farm.nextUid, cx = cx, cz = cz, paid = cost }
 	data.farm.nextUid += 1
 	table.insert(data.farm.tiles, tile)
 	makeTilePart(player, getFarmFolder(plot), origin, tile)
@@ -300,8 +301,17 @@ local function onLevel(player: Player, uid: any)
 		part:Destroy()
 	end
 	paintSoil(origin, tile.cx, tile.cz, "none")
+	-- Only a BOUGHT bed refunds (paid > 0); the free beds (the first TILE_FREE) give nothing back.
+	local refund = math.floor((tile.paid or 0) * Farm.TILE_REFUND_RATE)
+	if refund > 0 then
+		EconomyService.Add(player, "koin", refund, `bed:refund:{uid}`)
+	end
 	InventoryService.Sync(player)
-	Net.Fire("Notify", player, "farm.leveled")
+	if refund > 0 then
+		Net.Fire("Notify", player, "farm.leveled_refund", { n = refund })
+	else
+		Net.Fire("Notify", player, "farm.leveled")
+	end
 end
 
 -- Pindah: an EMPTY bed moves to another free cell of your own land. Nothing is lost; the bed keeps its soil.

@@ -12,6 +12,7 @@ export type FarmTile = {
 	readyAt: number?,
 	watered: boolean?,
 	harvestsLeft: number?,
+	paid: number?, -- koin spent on this bed when it was bought (0 / nil = a free bed). "Hapus Petak" refunds TILE_REFUND_RATE of it.
 }
 
 -- x/z = min-corner grid cell on the plot, r = rotation 0..3 (×90°)
@@ -195,6 +196,12 @@ export type PlayerData = {
 		nextUid: number,
 	},
 	playtime: { day: string, seconds: number, claimed: number },
+	rewards: {
+		login: { week: string, days: number, lastDay: string, claimed: { [string]: boolean } },
+		peti: number,
+		titlePeti: { [string]: boolean },
+		season: { id: string, premium: boolean, f2p: { [string]: boolean }, premiumClaimed: { [string]: boolean } },
+	},
 	book: {
 		ladang: { [string]: boolean }, -- "{crop}:{biasa|bagus|prima}"
 		sungai: { [string]: boolean }, -- "{fish}@{S|M|L|Jumbo}"

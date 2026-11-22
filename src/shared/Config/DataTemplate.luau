@@ -123,6 +123,14 @@ local template: Types.PlayerData = {
 
 	playtime = { day = "", seconds = 0, claimed = 0 }, -- Hadiah playtime: active seconds today, chests opened today (Config/Progression PLAYTIME)
 
+	-- Hadiah mingguan (Config/Rewards, Bab 15 & 19). claimed / f2p / premiumClaimed use string keys "1".."30".
+	rewards = {
+		login = { week = "", days = 0, lastDay = "", claimed = {} }, -- Login Mingguan: hari login minggu ini (max 7)
+		peti = 0, -- Peti Bunga belum dibuka
+		titlePeti = {}, -- [titleId] = true: Peti Bunga untuk title ini sudah diberikan
+		season = { id = "", premium = false, f2p = {}, premiumClaimed = {} },
+	},
+
 	book = {
 		ladang = {}, -- ["{crop}:{biasa|bagus|prima}"] = true
 		sungai = {}, -- ["{fish}@{S|M|L|Jumbo}"] = true

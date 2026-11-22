@@ -428,11 +428,10 @@ local function onBuild(player: Player, cx: any, cz: any)
 	if not data or not plot or not origin then
 		return
 	end
-	-- Kolam Kakek keluar dari tutorial (P2-2, Bab 7.2/14.2/14.6): bangun kolam apa pun butuh
-	-- Kolam Kakek pulih (MQ4/Bundel P2-7 set kakekUnlocked; Studio: !kakek). Kolam 2-4 otomatis
-	-- ikut kegate karena kolam pertama = Kolam Kakek.
-	if data.pond.kakekUnlocked ~= true then
-		Net.Fire("Notify", player, "pond.locked")
+	-- Bangun kolam terbuka di Lv 2 (Fishing.POND.UNLOCK_LEVEL), atau lebih awal bila Kolam Kakek sudah pulih
+	-- (MQ4/Bundel P2-7 set kakekUnlocked; Studio: !kakek).
+	if data.pond.kakekUnlocked ~= true and data.level < Fishing.POND.UNLOCK_LEVEL then
+		Net.Fire("Notify", player, "pond.locked", { level = Fishing.POND.UNLOCK_LEVEL })
 		return
 	end
 	local unlock = Fishing.LOCATIONS.kolam.unlockLevel

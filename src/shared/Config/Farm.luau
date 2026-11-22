@@ -7,6 +7,7 @@
 
 local TILE_FREE = 6
 local TILE_COST = 150
+local TILE_REFUND_RATE = 0.5 -- "Hapus Petak" gives back this share of what a BOUGHT bed cost (free beds: nothing)
 -- { upTo = highest tile number, level = level needed to plow tiles up to it }
 local TILE_STEPS = {
 	{ upTo = 12, level = 1 },
@@ -17,6 +18,7 @@ local TILE_STEPS = {
 return {
 	TILE_FREE = TILE_FREE,
 	TILE_COST = TILE_COST,
+	TILE_REFUND_RATE = TILE_REFUND_RATE,
 
 	-- Highest tile number this level may plow (the farm snapshot sends it as `cap`).
 	tileCap = function(level: number): number

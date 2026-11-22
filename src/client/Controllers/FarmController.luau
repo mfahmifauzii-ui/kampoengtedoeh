@@ -752,9 +752,12 @@ local function openBedMenu(part: BasePart, kind: string)
 			return
 		end
 		closeBedMenu()
+		-- A bought bed refunds TILE_REFUND_RATE of its price (server FarmService.onLevel); a free bed refunds nothing.
+		local paid = part:GetAttribute("Paid")
+		local refund = if typeof(paid) == "number" then math.floor(paid * Farm.TILE_REFUND_RATE) else 0
 		UiKit.confirm({
 			title = Locale.t("bed.remove_title"),
-			body = Locale.t("bed.remove_body"),
+			body = if refund > 0 then Locale.t("bed.remove_body_paid", { n = Locale.formatNumber(refund) }) else Locale.t("bed.remove_body"),
 			confirmText = Locale.t("bed.remove"),
 			cancelText = Locale.t("confirm.no"),
 			confirmColor = BRICK,
