@@ -546,7 +546,7 @@ function UiKit.panel(name: string, titleText: string, onClose: () -> ()): Panel
 
 	local padding = Instance.new("UIPadding")
 	padding.PaddingTop = UDim.new(0, 4)
-	padding.PaddingBottom = UDim.new(0, 6)
+	padding.PaddingBottom = UDim.new(0, 14) -- Bug 8: the last row (Peti 5) clears the footer line when the list is scrolled to its end
 	padding.PaddingRight = UDim.new(0, 6)
 	padding.Parent = list
 	local layout = Instance.new("UIListLayout")
@@ -661,7 +661,10 @@ function UiKit.row(list: ScrollingFrame, order: number, text: string, subText: s
 		button.Size = UDim2.fromOffset(82, 36)
 		button.TextSize = 15
 		button.AutoButtonColor = isEnabled and BUTTON.image == ""
-		button.TextTransparency = if isEnabled then 0 else 0.45
+		-- Bug 8: a disabled button keeps dark ink on the tan (it used to be faded to 45 %, unreadable). Disabled = not tappable,
+		-- not invisible.
+		button.TextColor3 = if isEnabled then UiKit.CREAM else UiKit.TEXT
+		button.TextTransparency = 0
 		if not isEnabled then
 			local plank = button:FindFirstChild("Skin")
 			if plank and plank:IsA("ImageLabel") then
@@ -943,6 +946,9 @@ function UiKit.tabs(parent: Instance, defs: { { id: string, text: string } }, se
 	local frame = Instance.new("Frame")
 	frame.Name = "Tabs"
 	frame.BackgroundTransparency = 1
+	-- Bug 8: the tab row needs a height. Without one the tab buttons (scaled to the frame) collapsed to a few pixels, and their
+	-- text showed as a tiny unreadable line above the section title (Acara, Hadiah). 32 px = the standard touch tier.
+	frame.Size = UDim2.new(1, 0, 0, UiKit.TOUCH)
 	frame.Parent = parent
 	local layout = Instance.new("UIListLayout")
 	layout.FillDirection = Enum.FillDirection.Horizontal
@@ -967,7 +973,7 @@ function UiKit.tabs(parent: Instance, defs: { { id: string, text: string } }, se
 		local button = UiKit.button(frame, `Tab_{def.id}`, def.text, if def.id == selected then UiKit.BUTTON else UiKit.BUTTON_MUTED)
 		button.LayoutOrder = order
 		button.Size = UDim2.new(1 / #defs, -8 * (#defs - 1) / #defs, 1, 0)
-		button.TextSize = 16
+		button.TextSize = UiKit.TEXT_BODY
 		button.Activated:Connect(function()
 			select(def.id)
 			onSelect(def.id)
