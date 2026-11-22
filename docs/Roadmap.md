@@ -1,6 +1,6 @@
-# Roadmap Kampoeng Tedoeh — Implementasi v7.4
+# Roadmap Kampoeng Tedoeh — Implementasi v7.5
 
-> Sumber kebenaran: `docs/Kampoeng_Tedoeh_v7.4.md`. File ini rencana kerja, bukan dokumen desain. Jangan ubah angka di v7.4 dari file ini.
+> Sumber kebenaran: `docs/Kampoeng_Tedoeh_v7.5.md` (v7.4 tetap disimpan sebagai arsip). File ini rencana kerja, bukan dokumen desain. Jangan ubah angka di v7.5 dari file ini.
 > Detail file per tugas yang sudah DONE ada di pesan commit (`git log --oneline main..feat/v.7`), tidak diulang di sini.
 
 ## 1. Status Ringkasan (2026-11-22)
@@ -25,6 +25,21 @@ Angka ekonomi/sistem **tidak ada yang berubah**. v7.4 = v7.3 + doc fix P2-8 untu
 | 16.5 (baru) | **Kolam keluar dari Tutorial 1.** Kolam pertama hanya lewat MQ4 / Bundel Kakek Lv 3. | Sudah di kode (P2-8d, kode selesai). |
 | 9.4 | Buff ditulis ulang (isi sama) + baris baru: "Buff + Skill stack, peluang Super tetap dibatasi cap Bab 17.6 / 5.4". | Bab 17.6/5.4 tidak punya angka cap peluang Super → BUTUH KEPUTUSAN OWNER (§5). |
 | 9.2, 10.1, 14.7, 0.3, 5, 8.3, 29, 31 | Perapihan teks / pindah paragraf. Order Villager tambah "reroll = tier sama". | Reroll tier sama sudah dicek dari kode (P2-8e). |
+
+### 1.2 Delta v7.4 → v7.5 (2026-11-22, sesi playtest 2)
+
+Dokumen v7.5 mencatat perubahan kode dan GUI yang sudah dikerjakan (Bab 0.3.2) serta deviasi yang belum diputuskan (Lampiran D). Angka desain tidak berubah. Belum di-commit saat tabel ini ditulis; lihat `git log` untuk hash.
+
+| Area | Perubahan | Status | Cek |
+|------|-----------|--------|-----|
+| Mancing | 32 spot sungai (8 per sungai sumbu), tanpa platform, penanda riak | Kode jadi, owner setuju jumlah. Bertentangan dengan Bab 4 → Lampiran D #1 | `grep -n "RIVER_SPOTS\|buildRiverSpots" src/` |
+| Mancing | Prompt dermaga dihapus, tombol Mancing bulat + joran, posisi kanan bawah | Kode jadi | `setupSpot` di FishService, `AksiButton` di FishingController |
+| Mancing | Panel reel 260×104, coachmark tarik dihapus, track bingkai bambu, zona & progress glossy | Kode jadi. Nilai balancing belum dites main → Lampiran D #2, #3 | `reelFrame.Size` di FishingController |
+| Quest | Tracker tanpa panel, lebar 200, teks krem outline gelap | Kode jadi | `tracker.BackgroundTransparency = 1` di QuestController |
+| Font | Semua GUI FredokaOne | Kode jadi (grep `Enum.Font.` = FredokaOne saja) | `grep -rn "Enum.Font\." src/` |
+| Craft | Tombol Craft hanya Lv 4+ dan dekat "Meja Crafting" (10 stud), melayang di atas meja | Kode jadi. Butuh objek meja di Studio → Lampiran D #7 | `refreshCraft` di MiningController, `CRAFT_*` di Config/Mining |
+| NPC | Bang Jali membelakangi warung mini | Kode jadi | `miniStand` di NpcService |
+| Bug | Bubble dialog NPC tidak hilang setelah tutorial | Kode jadi (`clearSink` di T1Ghost) | `NpcTalkOpen` di `clearSink` |
 
 ## 2. Aturan Kerja (LOCKED)
 
@@ -134,6 +149,10 @@ Semua di bawah sudah jalan di kode sebagai USULAN interim; final ikut playtest B
 10. Chat `/e` diblokir; emote Jempol tanpa anim (TODO aset).
 11. P2-6: harga varian 2x, Gelang 60/30/10, hadiah Tamu, tanggal Lebaran/Festival, QTY Tamu, pool Pasar; `nightCounter` in-memory.
 12. P2-7: Quest Harian 3 + Mingguan 3 + reward Bunga + harga Toko Bunga + syarat Side + hadiah Surat; MQ5/7/8 Bubu/Tungku → Koin 150/200/250; MQ9 slot Warung ke-2 → 200 Koin; Empang = 1 token kolam gratis; Saung buff duduk belum; judul Title MQ11/Side.
+13. **v7.5 — jumlah spot sungai**: 32 spot tambahan (8 per sungai sumbu) bertentangan dengan Bab 4 ("Empat spot mancing"). Diterima sebagai bagian dokumen, atau dokumen direvisi?
+14. **v7.5 — mini-game tarik**: kode pakai isi +28%/detik, kehilangan -6%/detik, kiri 0,55 / kanan 0,9. Dokumen Bab 6.2 bilang +15% / -10%. Nilai mana yang berlaku setelah playtest?
+15. **v7.5 — coachmark tarik**: frame "Tahan Tarik! Jaga ikan…" dihapus atas permintaan owner. Dipasang lagi di FTUE, atau dokumen direvisi?
+16. **v7.5 — layout quest tracker**: batas tinggi 200 px tidak menyesuaikan layar. Tracker menyesuaikan layar, atau tombol Craft/elemen lain yang pindah?
 
 ### DEV ONLY — hapus / kunci Studio-only sebelum rilis
 
@@ -145,6 +164,8 @@ Semua di bawah sudah jalan di kode sebagai USULAN interim; final ikut playtest B
 - [ ] Model NPC 6 (Pak Udin, Kak Fajar, Pak Amran, Mak Sari, Nek Ani, Bang Jali ×8) — rig + posisi + dialog (`ServerStorage.NpcModels`).
 - [ ] Hutan Nambang: 6 part `Mining` + `NodeId` (ganti fallback DEV ONLY).
 - [ ] Model Akuarium (Lv 25) + Bingkai Album (Lv 15).
+- [ ] Objek **"Meja Crafting"** di Workspace (nama persis, part atau model) — tombol Craft tidak muncul tanpa ini (`CRAFT_TABLE` di Config/Mining).
+- [ ] Spot sungai (32): terlihat dari jarak normal, riak tampil, tidak tertutup pagar lahan. Panah tutorial `sungai` tidak salah arah (Lampiran D #4).
 - [ ] Model Dapur (Tungku + Meja Olah, Tier 1-3) + Warung Player.
 - [ ] Map — SUDAH ADA, JANGAN DIUBAH. Cek saja: alun-alun, 8 lahan simetris, Hutan Nambang, 4 spot (Kanal/Danau/Sungai/Spot 4).
 - [ ] Animasi player + hewan + ikan + NPC (Bab 22).
