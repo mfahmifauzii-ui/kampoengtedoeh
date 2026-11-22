@@ -139,6 +139,7 @@ local lastSpoken = ""
 local lineDismissed = false -- the player pressed Next on the current step line: it stays closed until the step changes
 local sinkKey = "" -- the step key the sink last saw; a new step forgets the old step's line (no re-show of an old line)
 local lastLine: Line? = nil -- the tutorial line on screen (shown again after an NPC conversation hid it)
+local beatStep: string? = nil -- the step whose beat is playing (Playtest 7 item 4): the sink never re-shows its line meanwhile
 local sessionTutorial = false -- this session saw T1 pending: the ghost lives on until T1b is done
 local t1bStartSent = false
 local warungStarted = false
@@ -176,6 +177,27 @@ local function activeStepId(guide: any): string?
 		end
 	end
 	return nil
+end
+
+-- A beat is over for the box only when the server has moved the step on (Playtest 7 item 4). Until then dialogBusy stays
+-- true, so the poll cannot re-show the beat's line. Gives up after 6 s (logged) so the tutorial cannot hang.
+local function waitStepMoved(step: string)
+	local waited = 0
+	while waited < 6 do
+		if activeStepId(guideData()) ~= step then
+			return
+		end
+		task.wait(0.1)
+		waited += 0.1
+	end
+	warn(`[T1Ghost] step {step} did not move on within 6 s`)
+end
+
+-- End of a beat: the box is free again, the sink may speak for the new step, and the banners may follow.
+local function endBeat()
+	beatStep = nil
+	dialogBusy = false
+	player:SetAttribute("KTBeatBusy", false)
 end
 
 -- Known guide state and T1 not finished. Unknown (no snapshot yet) counts as "do not build".
@@ -516,6 +538,9 @@ local function ensureSink()
 			sinkKey = key
 			lastLine = nil -- the old step's line must not come back over the new step (e.g. after the fish dialog)
 			lineDismissed = false
+		end
+		if key == beatStep then
+			return true -- the beat on screen owns this step: its line is never shown again by the poll (Playtest 7 item 4)
 		end
 		if NARRATIVE[key] then
 			return true -- an intro dialog: played by the intro / the warung beat
@@ -972,8 +997,10 @@ local function runWarung(guide: any)
 	end
 	T1Dialog.Hide()
 	lastSpoken = ""
-	leave()
+	-- Playtest 7 item 4: the ack goes first; the box stays busy until the server has moved the step on.
 	guide.AckStep("warung")
+	waitStepMoved("warung")
+	leave()
 end
 
 -- A screen the tutorial line must not cover. (The seed picker and the tile panel are left out: the player needs the line there.)
@@ -1179,13 +1206,17 @@ end
 -- button (Terima Hadiah); then the gift is given and a fade ends the beat (no bubble after it).
 local function runGiftBeat(beat: Beat, _guide: any)
 	dialogBusy = true
+	beatStep = beat.step
+	lastLine = nil
+	lineDismissed = true
+	player:SetAttribute("KTBeatBusy", true)
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 	local head = npcHeadOf(beat.npc)
 	local npc = head and head.Parent
 	if not head or not npc or not npc:IsA("Model") or not root or not root:IsA("BasePart") or not humanoid then
-		dialogBusy = false
+		endBeat()
 		beatRan[beat.step] = false -- not ready: try again on a later poll
 		return
 	end
@@ -1202,8 +1233,7 @@ local function runGiftBeat(beat: Beat, _guide: any)
 		end
 		PromptGate.Show()
 		T1Dialog.Hide()
-		dialogBusy = false
-		saleRestore = nil
+		saleRestore = nil -- dialogBusy stays on: runGiftBeat releases it once the step has moved on
 	end
 	saleRestore = restore
 
@@ -1250,10 +1280,16 @@ local function runGiftBeat(beat: Beat, _guide: any)
 
 	-- 4. The fade is the end of the gift beat. (Where to fish is said after the fish sale, not here.)
 	restore()
+	waitStepMoved(beat.step) -- the server has the gift (rodgift): the box is free only from here on
+	endBeat()
 end
 
 local function runBeat(beat: Beat, guide: any)
 	dialogBusy = true
+	beatStep = beat.step -- Playtest 7 item 4: this step's line is not re-shown while the beat runs or until the step moves on
+	lastLine = nil
+	lineDismissed = true
+	player:SetAttribute("KTBeatBusy", true)
 	if beat.step == "panen_jual" then
 		-- Claimed right away: the sale inside this beat finishes T1 and starts T1b, and the plain warung beat would otherwise
 		-- spawn on top of this one (its step "warung" reaches n == 0 while we are still waiting for the sale).
@@ -1266,7 +1302,7 @@ local function runBeat(beat: Beat, guide: any)
 	local head = npcHeadOf(beat.npc)
 	local npc = head and head.Parent
 	if not head or not npc or not npc:IsA("Model") or not root or not root:IsA("BasePart") or not humanoid then
-		dialogBusy = false
+		endBeat()
 		beatRan[beat.step] = false -- not ready (streaming / respawn): try again on a later poll
 		if beat.step == "panen_jual" then
 			warungStarted = false
@@ -1283,8 +1319,7 @@ local function runBeat(beat: Beat, guide: any)
 		Cutscene.End()
 		PromptGate.Show()
 		T1Dialog.Hide()
-		dialogBusy = false
-		saleRestore = nil
+		saleRestore = nil -- dialogBusy stays on: runBeat releases it once the step has moved on
 	end
 	saleRestore = restore
 
@@ -1397,16 +1432,19 @@ local function runBeat(beat: Beat, guide: any)
 	end
 	T1Dialog.Hide()
 	lastSpoken = ""
-
+	-- Playtest 7 item 4: the ack goes to the server BEFORE the fade, so the fade covers the round trip.
+	if beat.ackStep then
+		guide.AckStep(beat.ackStep)
+	end
 	FadeManager.Play(function()
 		restore()
 	end)
 	while FadeManager.IsPlaying() do
 		task.wait(0.05)
 	end
-	if beat.ackStep then
-		guide.AckStep(beat.ackStep)
-	end
+	-- The box stays busy until the server has moved the step on (no re-show of this beat's line meanwhile).
+	waitStepMoved(beat.step)
+	endBeat()
 end
 
 -- Poll -------------------------------------------------------------------------------------------------------------
@@ -1432,7 +1470,7 @@ local function tryStartBeat()
 					saleRestore() -- camera, GUIs and the lock back, whatever stage it died in
 				end
 				Cutscene.End()
-				dialogBusy = false
+				endBeat()
 			end
 		end)
 	end

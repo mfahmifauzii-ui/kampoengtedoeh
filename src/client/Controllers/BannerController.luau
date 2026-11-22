@@ -14,6 +14,8 @@ local Quests = require(ReplicatedStorage.Shared.Config.Quests)
 local State = require(script.Parent.Parent.State)
 local PlayerLock = require(script.Parent.Parent.PlayerLock)
 local UiKit = require(script.Parent.Parent.UiKit)
+local FadeManager = require(script.Parent.Parent.FadeManager)
+local T1Dialog = require(script.Parent.Parent.T1Dialog)
 
 local player = Players.LocalPlayer
 local HOLD_SECONDS = 2.8 -- how long the player is held and the title stays up
@@ -137,6 +139,19 @@ local function push(title: string, subtitle: string)
 	end)
 end
 
+-- Playtest 7 item 4: "Selesai" waits until the Ok fade is over and the dialog box is empty (the last line of a beat is gone).
+-- Gives up after 20 s so the banner cannot be lost.
+local function pushWhenClear(title: string, subtitle: string)
+	task.spawn(function()
+		local waited = 0
+		while waited < 20 and (player:GetAttribute("KTBeatBusy") == true or FadeManager.IsPlaying() or T1Dialog.IsShown()) do
+			task.wait(0.2)
+			waited += 0.2
+		end
+		push(title, subtitle)
+	end)
+end
+
 local function onSnapshot(snapshot: any)
 	local guide = snapshot and snapshot.guide
 	local quests = snapshot and snapshot.quests
@@ -160,7 +175,7 @@ local function onSnapshot(snapshot: any)
 		-- not after T1 (the harvest sale to Pak Udin is only a step of it).
 		for _, tutorial in Onboarding.TUTORIALS do
 			if tutorial.id == "t1b_kolam" and doneNow[tutorial.id] and not seenDone[tutorial.id] then
-				push(Locale.t("banner.done"), Locale.t(tutorial.title))
+				pushWhenClear(Locale.t("banner.done"), Locale.t(tutorial.title))
 			end
 		end
 		-- A quest that just started: "Dimulai" with its title. Held while a tutorial is running (guide.step.id set): the
