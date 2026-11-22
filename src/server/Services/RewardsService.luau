@@ -10,7 +10,6 @@ local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Rewards = require(ReplicatedStorage.Shared.Config.Rewards)
 local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local Types = require(ReplicatedStorage.Shared.Types)
-local BookService = require(script.Parent.BookService)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
 local InventoryService = require(script.Parent.InventoryService)
@@ -39,18 +38,29 @@ local function roll(data: Types.PlayerData)
 	end
 end
 
--- Title: cek syarat Album, lalu tiap title yang dimiliki (dari sumber mana pun) memberi 1 Peti Bunga sekali.
+-- Peti Bunga dari sumber yang sudah ada di kode (Update owner 2026-11-22). Tiap sumber memberi 1 peti sekali saja,
+-- dicatat di data.rewards.titlePeti (kunci "title:<id>" atau "milestone:<id>"):
+--   * Title yang dimiliki (dari sumber mana pun: klaim milestone Album, misi, kategori Album, Like milestone)
+--   * Album milestone yang sudah diklaim (p25 / p50 / p75 / p100)
+-- Season F2P hari 30 dan Event completion: lihat onSeasonClaim dan Lampiran D (event belum punya definisi).
 local function checkTitles(player: Player, data: Types.PlayerData): boolean
 	local changed = false
-	for _, title in Rewards.TITLES do
-		if title.album and data.titles[title.id] ~= true and BookService.AlbumPercent(player) >= title.album then
-			data.titles[title.id] = true
-		end
-		if data.titles[title.id] == true and data.rewards.titlePeti[title.id] ~= true then
-			data.rewards.titlePeti[title.id] = true
+	local function grant(key: string, message: string, vars: { [string]: any }?)
+		if data.rewards.titlePeti[key] ~= true then
+			data.rewards.titlePeti[key] = true
 			data.rewards.peti += 1
 			changed = true
-			Net.Fire("Notify", player, "title.new", { title = `title.{title.id}` })
+			Net.Fire("Notify", player, message, vars)
+		end
+	end
+	for _, title in Rewards.TITLES do
+		if data.titles[title.id] == true then
+			grant(`title:{title.id}`, "title.new", { title = `title.{title.id}` })
+		end
+	end
+	for _, milestoneId in Rewards.MILESTONE_PETI do
+		if data.book.claimed[milestoneId] == true then
+			grant(`milestone:{milestoneId}`, "peti.new", nil)
 		end
 	end
 	return changed
@@ -116,12 +126,21 @@ local function onSeasonClaim(player: Player, track: any, day: any)
 	end
 	claimed[key] = true
 	ProgressionService.Grant(player, Rewards.seasonReward(track :: Rewards.Track, day), `season:{season.id}:{track}:{day}`)
+	if track == "f2p" and day == Rewards.SEASON.DAYS then
+		-- Season F2P hari terakhir = 1 Peti Bunga, sekali per season (Update owner 2026-11-22).
+		data.rewards.peti += 1
+		Net.Fire("Notify", player, "peti.new", nil)
+	end
 	syncAll(player)
 end
 
 local function onSeasonPremium(player: Player)
 	local data = DataService.Get(player)
 	if not data then
+		return
+	end
+	if not Rewards.SEASON.PREMIUM_OPEN then
+		Net.Fire("Notify", player, "season.premium_soon")
 		return
 	end
 	roll(data)

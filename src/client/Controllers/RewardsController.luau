@@ -108,7 +108,7 @@ local function renderTitles(nextOrder: () -> number, titles: any)
 	UiKit.header(panel.list, Locale.t("rewards.titles"), nextOrder())
 	for _, title in Rewards.TITLES do
 		local got = titles and titles[title.id] == true
-		local sub = if title.album then Locale.t("rewards.title_album", { n = title.album }) else Locale.t("rewards.title_quest")
+		local sub = Locale.t("rewards.title_how")
 		UiKit.row(panel.list, nextOrder(), Locale.t(`title.{title.id}`), sub, if got then Locale.t("rewards.title_got") else Locale.t("rewards.title_no"), false)
 	end
 end
@@ -118,7 +118,8 @@ local function renderSeason(nextOrder: () -> number, rewards: any)
 	local today = rewards.seasonDay or 1
 	UiKit.header(panel.list, Locale.t("rewards.season", { id = rewards.seasonId or "", day = today }), nextOrder())
 	if season.premium ~= true then
-		UiKit.row(panel.list, nextOrder(), Locale.t("rewards.season_premium"), Locale.t("rewards.season_premium_sub"), Locale.t("rewards.season_buy", { n = Rewards.SEASON.PREMIUM_PRICE }), true, function()
+		local soon = not Rewards.SEASON.PREMIUM_OPEN
+		UiKit.row(panel.list, nextOrder(), Locale.t("rewards.season_premium"), Locale.t("rewards.season_premium_sub"), if soon then Locale.t("rewards.season_soon") else Locale.t("rewards.season_buy", { n = Rewards.SEASON.PREMIUM_PRICE }), not soon, function()
 			Net.Send("SeasonPremium")
 		end)
 	end
