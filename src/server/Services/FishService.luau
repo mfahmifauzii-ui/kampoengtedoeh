@@ -180,9 +180,32 @@ local function isNear(player: Player, part: BasePart, distance: number): boolean
 	return root ~= nil and root:IsA("BasePart") and (root.Position - part.Position).Magnitude <= distance
 end
 
+-- Atribut "Fishing" (B-5, 2026-11-22) = state server: Casting (lemparan) -> Waiting (menunggu) -> Bite (gigitan) -> Reeling
+-- (tarikan diterima) -> nil. Klien tetap memakai FishingActive untuk UI; atribut ini untuk pemain lain (visual, animasi).
+local CAST_SECONDS = 1.2 -- sama dengan lama animasi lempar di klien (RodAnimController)
+
 local function endSession(player: Player)
 	sessions[player] = nil
+	player:SetAttribute("Fishing", nil)
 	Net.Fire("FishState", player, "idle")
+end
+
+local function beginCast(player: Player, session: Session)
+	player:SetAttribute("Fishing", "Casting")
+	task.delay(CAST_SECONDS, function()
+		if sessions[player] == session then
+			player:SetAttribute("Fishing", "Waiting")
+		end
+	end)
+end
+
+local function scheduleBite(player: Player, session: Session, biteDelay: number)
+	task.delay(biteDelay, function()
+		if sessions[player] == session then
+			player:SetAttribute("Fishing", "Bite")
+			Net.Fire("FishState", player, "bite")
+		end
+	end)
 end
 
 -- Pond (kolam) helpers: stock, capacity, the part of a pond. Defined before casting, which uses them.
@@ -275,12 +298,9 @@ local function startPondCast(player: Player, spot: BasePart, data: Types.PlayerD
 		pondUid = entry.uid,
 	}
 	sessions[player] = session
+	beginCast(player, session)
 	Net.Fire("FishState", player, "waiting", spot)
-	task.delay(biteDelay, function()
-		if sessions[player] == session then
-			Net.Fire("FishState", player, "bite")
-		end
-	end)
+	scheduleBite(player, session, biteDelay)
 end
 
 local function startCast(player: Player, spot: BasePart)
@@ -391,13 +411,9 @@ local function startCast(player: Player, spot: BasePart)
 	end
 	local session: Session = { spot = spot, fishId = fishId, biteAt = os.clock() + biteDelay, usedBait = usedBait }
 	sessions[player] = session
+	beginCast(player, session)
 	Net.Fire("FishState", player, "waiting", spot)
-
-	task.delay(biteDelay, function()
-		if sessions[player] == session then
-			Net.Fire("FishState", player, "bite")
-		end
-	end)
+	scheduleBite(player, session, biteDelay)
 end
 
 local function onReel(player: Player, score: any)
@@ -410,6 +426,7 @@ local function onReel(player: Player, score: any)
 		return -- too fast to be a real reel; keep the session so a legit reel still lands
 	end
 	-- NO TIMEOUT: the bite never expires, the player can reel in whenever they tap (no fail state).
+	player:SetAttribute("Fishing", "Reeling")
 
 	-- LEPAS (Bab 6.2, P2-4-fix): skor 0 = tidak pernah menahan ikan di kotak = ikan lepas, umpan
 	-- hilang, tanpa hukuman lain. Skor > 0 sekecil apa pun tetap dapat (menjaga "tanpa fail").
@@ -423,8 +440,7 @@ local function onReel(player: Player, score: any)
 			Net.Fire("Notify", player, "fish.lepas")
 		end
 		returnToPond(player, session) -- kolam: ikan lepas kembali ke stok
-		sessions[player] = nil
-		Net.Fire("FishState", player, "idle")
+		endSession(player)
 		return
 	end
 
@@ -473,7 +489,7 @@ local function onReel(player: Player, score: any)
 		returnToPond(player, session)
 		Net.Fire("Notify", player, "pond.bag_full")
 	end
-	Net.Fire("FishState", player, "idle")
+	endSession(player)
 end
 
 local function onCancel(player: Player)
@@ -786,6 +802,7 @@ function FishService.Init()
 			returnToPond(player, session)
 		end
 		sessions[player] = nil
+		player:SetAttribute("Fishing", nil)
 	end)
 end
 
