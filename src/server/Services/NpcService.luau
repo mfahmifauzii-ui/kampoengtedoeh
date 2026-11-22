@@ -314,7 +314,34 @@ local function warnMissingModels()
 	end
 end
 
+-- Model Kak Fajar tutorial (Update owner playtest, item 4): the SAME rig the shop NPC uses (ServerStorage.NpcModels.<model or id>)
+-- is copied to ReplicatedStorage.NpcTutorial.<id> on server start, so the client can clone it for the river copy. Nothing to
+-- set up by hand. Without a source model the client falls back to a colour rig and logs a warning.
+local function publishTutorialModel(npcId: string)
+	local npc = Npcs.byId[npcId]
+	local templates = ServerStorage:FindFirstChild("NpcModels")
+	local source = templates and templates:FindFirstChild(if npc and npc.model then npc.model else npcId)
+	local folderTut = ReplicatedStorage:FindFirstChild("NpcTutorial")
+	if not folderTut then
+		folderTut = Instance.new("Folder")
+		folderTut.Name = "NpcTutorial"
+		folderTut.Parent = ReplicatedStorage
+	end
+	if source and source:IsA("Model") then
+		local copy = source:Clone()
+		copy.Name = npcId
+		local old = folderTut:FindFirstChild(npcId)
+		if old then
+			old:Destroy()
+		end
+		copy.Parent = folderTut
+	else
+		warn(`[NpcService] ServerStorage.NpcModels.{npcId} not found: the tutorial copy of {npcId} will use the colour fallback`)
+	end
+end
+
 function NpcService.Start()
+	publishTutorialModel("kak_fajar")
 	folder = Workspace:FindFirstChild("Npcs") :: Folder? or Instance.new("Folder")
 	folder.Name = "Npcs"
 	folder.Parent = Workspace

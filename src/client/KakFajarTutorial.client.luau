@@ -81,6 +81,7 @@ local function buildCopy(): Model?
 	if designed and designed:IsA("Model") then
 		model = designed:Clone()
 	else
+		warn("[KakFajarTutorial] ReplicatedStorage.NpcTutorial.kak_fajar tidak ada: salinan memakai rig warna (fallback)")
 		local npc = Npcs.byId[NPC_ID]
 		if not npc then
 			return nil
