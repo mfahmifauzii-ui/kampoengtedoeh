@@ -149,6 +149,57 @@ end
 -- Stand on the bank of the spot, facing back toward the bank side (the spot's "Dir" attribute points out over the water).
 -- The rig is set on the ground like a player: the ray hits the floor under the bank, and the rig is lowered until its lowest
 -- point (the feet, whatever the rig's height or HipHeight) sits on that hit point. The root is then anchored, so it stays put.
+-- Playtest 7 (4f3500f) item 1: the bank is found in the world, not assumed. Walking from the spot toward land, the first ray
+-- hit that is land (not water, not under the surface) is the bank edge. Water is NOT ignored here.
+local BANK_SEARCH = 40 -- studs from the spot toward land
+local BANK_STAND = 2 -- studs onto land past the edge where the copy stands
+local bankChecked = false
+
+local function isWater(hit: RaycastResult): boolean
+	return hit.Material == Enum.Material.Water or string.find(string.lower(hit.Instance.Name), "water") ~= nil
+end
+
+-- The bank edge along `landDir` from `spot` (flat), or nil when no land is found within BANK_SEARCH.
+local function findBank(spot: BasePart, landDir: Vector3, ownRig: Model?): Vector3?
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.IgnoreWater = false
+	local ignore: { Instance } = {}
+	if player.Character then
+		table.insert(ignore, player.Character)
+	end
+	if ownRig then
+		table.insert(ignore, ownRig)
+	end
+	params.FilterDescendantsInstances = ignore
+	local surfaceY = spot.Position.Y
+	for step = 1, BANK_SEARCH do
+		local p = spot.Position + landDir * step
+		local hit = Workspace:Raycast(Vector3.new(p.X, surfaceY + 40, p.Z), Vector3.new(0, -80, 0), params)
+		if hit and not isWater(hit) and hit.Position.Y >= surfaceY - 0.5 then
+			return hit.Position
+		end
+	end
+	return nil
+end
+
+-- Logs (does not move) river spots that have no bank within reach on this map. Runs once.
+local function checkSpots(landDir: Vector3)
+	if bankChecked then
+		return
+	end
+	bankChecked = true
+	local fishing = Workspace:FindFirstChild("Fishing")
+	if not fishing then
+		return
+	end
+	for _, spot in fishing:GetChildren() do
+		if spot:IsA("BasePart") and findBank(spot, landDir, nil) == nil then
+			warn(`[KakFajarTutorial] river spot {spot.Name} has no bank within {BANK_SEARCH} studs (check the map)`)
+		end
+	end
+end
+
 local function placeCopy(rig: Model, spot: BasePart)
 	local dir = spot:GetAttribute("Dir")
 	local outward = if typeof(dir) == "Vector3" then Vector3.new(dir.X, 0, dir.Z) else Vector3.new(0, 0, 1)
@@ -156,10 +207,20 @@ local function placeCopy(rig: Model, spot: BasePart)
 		outward = Vector3.new(0, 0, 1)
 	end
 	outward = outward.Unit
-	local bank = spot.Position - outward * STAND_OFFSET
-	local at = Vector3.new(bank.X, spot.Position.Y, bank.Z)
+	local landDir = -outward -- from the water toward the bank
+	checkSpots(landDir)
+	local stand: Vector3
+	local edge = findBank(spot, landDir, rig)
+	if edge then
+		local along = Vector3.new(edge.X - spot.Position.X, 0, edge.Z - spot.Position.Z).Magnitude
+		stand = spot.Position + landDir * (along + BANK_STAND)
+	else
+		warn(`[KakFajarTutorial] no bank found from river spot {spot.Name}: falling back to the fixed offset`)
+		stand = spot.Position - outward * STAND_OFFSET
+	end
+	local at = Vector3.new(stand.X, spot.Position.Y, stand.Z)
 	rig:PivotTo(CFrame.lookAt(at, at + outward)) -- faces the water, so the player coming from the bank sees his face
-	local floorY = groundY(bank.X, bank.Z, spot.Position.Y, rig)
+	local floorY = groundY(stand.X, stand.Z, spot.Position.Y, rig)
 	local boxCFrame, boxSize = rig:GetBoundingBox()
 	local feetY = boxCFrame.Position.Y - boxSize.Y / 2
 	rig:PivotTo(rig:GetPivot() + Vector3.new(0, floorY - feetY, 0))
