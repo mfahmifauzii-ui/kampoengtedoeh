@@ -75,9 +75,39 @@ UiKit.DARK = Color3.fromRGB(66, 46, 30) -- dark bamboo brown: floating menus, hi
 UiKit.FONT = Enum.Font.FredokaOne -- headings, buttons, numbers
 UiKit.FONT_BODY = Enum.Font.FredokaOne
 
-UiKit.TOUCH = 50 -- minimum touch target, px (thumb-sized)
-UiKit.TOUCH_MIN = 24 -- GUI doc 4.4: smallest tap target (close icon, link "Tunjukkan"); never below this
-UiKit.TOUCH_ROW = 32 -- GUI doc 4.4: one row of a list or the quest tracker (tap area of a row)
+-- GUI doc 4.1 colours (UI-1): colours that were written inline before. Use these, not Color3.fromRGB, in controllers.
+UiKit.GOLD = Color3.fromRGB(255, 226, 120) -- ring tutorial, highlight, ready to claim
+UiKit.GOLD_DEEP = Color3.fromRGB(240, 196, 92) -- coin numbers
+UiKit.SHADE = Color3.fromRGB(30, 20, 10) -- panel backdrop, shadows
+UiKit.INK_DARK = Color3.fromRGB(48, 32, 20) -- text on light cream
+UiKit.LOCKED = Color3.fromRGB(150, 150, 150) -- locked node / slot
+UiKit.WATER = Color3.fromRGB(46, 104, 128) -- fishing and pond elements
+
+-- GUI doc 4.2 text sizes (one font, FredokaOne). Sizes 9 and 11 are banned; 13, 15, 17, 19, 20, 22 map to the nearest token.
+UiKit.TEXT_DISPLAY = 36 -- banner titles, big numbers
+UiKit.TEXT_TITLE = 21 -- panel ribbon title
+UiKit.TEXT_HEADING = 18 -- section titles, large card names
+UiKit.TEXT_BODY = 16 -- list rows, buttons
+UiKit.TEXT_SMALL = 14 -- dialog text, descriptions
+UiKit.TEXT_CAPTION = 12 -- sub-text, small labels (the lower limit)
+
+-- GUI doc 4.3 radii (px). R_ROUND is "full round": any value at least half the shape's side.
+UiKit.R_SM = 8 -- chips, badges
+UiKit.R_MD = 14 -- buttons, cards, grid cells
+UiKit.R_LG = 20 -- flat panels, large boxes
+UiKit.R_ROUND = 999 -- plates, avatars, nodes
+
+-- GUI doc 4.4 touch targets (UI-1). Tiers, not one global size:
+--   TOUCH_CTA 40: the single main action on a screen (Panen Semua, Tingkatkan, Ambil Semua)
+--   TOUCH 32: the standard tier: buttons in rows and cards, Next, dialog choices, tabs, steppers
+--   TOUCH_ROW 32: one tappable row (quest tracker row, list row tap area)
+--   TOUCH_MIN 24: the floor for small links and close icons (never smaller)
+--   TOUCH_HUD 50: HUD pills that were already 50 (dock text buttons, column items); GUI doc 4.4 keeps HUD buttons as they are
+UiKit.TOUCH = 32
+UiKit.TOUCH_CTA = 40
+UiKit.TOUCH_ROW = 32
+UiKit.TOUCH_MIN = 24
+UiKit.TOUCH_HUD = 50
 UiKit.ROW_HEIGHT = 54
 UiKit.ROW_ALT = Color3.fromRGB(246, 236, 210) -- the second cream of the zebra (rows alternate ROW / ROW_ALT)
 -- Category colours (docs/UIUX_Spec.md): each kind of thing has ONE colour, used as the card's left stripe and badges.
@@ -262,7 +292,7 @@ function UiKit.button(parent: Instance, name: string, text: string, color: Color
 	button.Name = name
 	button.Text = text
 	button.Font = UiKit.FONT
-	button.TextSize = 19
+	button.TextSize = UiKit.TEXT_HEADING -- was 19: nearest token (GUI doc 4.2)
 	button.AutoButtonColor = true
 	button.Size = UDim2.fromOffset(120, UiKit.TOUCH)
 	button.Parent = parent
@@ -1768,7 +1798,7 @@ function UiKit.menuItem(hud: Instance, name: string, text: string, slot: number)
 		else
 			-- The column is MENU_SIZE wide: a text button in it must not be wider, or its edge hides under the round buttons
 			-- (owner 2026-11-22: "Acara", "Skill", "Dapur" were cut). Dock text buttons keep their own width.
-			item.Size = if dock then UDim2.fromOffset(90, UiKit.TOUCH) else UDim2.fromOffset(MENU_SIZE, UiKit.TOUCH)
+			item.Size = if dock then UDim2.fromOffset(90, UiKit.TOUCH_HUD) else UDim2.fromOffset(MENU_SIZE, UiKit.TOUCH_HUD)
 			item.BackgroundColor3 = UiKit.BG
 			item.Text = text
 			item.TextColor3 = UiKit.TEXT

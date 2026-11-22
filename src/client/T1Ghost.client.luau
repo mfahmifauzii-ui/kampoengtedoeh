@@ -549,6 +549,7 @@ local function instructionOpts(line: Line)
 		avatar = T1Dialog.NpcModel(speaker.npc),
 		showNext = true,
 		bottom = TUTORIAL_BOTTOM,
+		variant = "instruction", -- GUI doc 5.1: compact instruction bubble
 		onNext = function()
 			lineDismissed = true
 			task.spawn(closeInstruction, false)

@@ -25,17 +25,44 @@ export type Options = {
 	bottom: number?, -- px from the bottom of the screen (above the cinematic bar, or above the dock)
 	onNext: (() -> ())?,
 	choices: { Choice }?, -- numbered choices in a row at the bottom of the box (instead of Next); 1-4 / gamepad A X Y B pick one
+	variant: string?, -- "instruction" (tutorial / quest step line, GUI doc 5.1) or nil = "conversation" (NPC talk, Next / choices)
 }
 
-local BOX_HEIGHT = 112
-local BOX_MAX_WIDTH = 520
-local AVATAR = 50
-local INK = Color3.fromRGB(80, 52, 32)
-local LEAF_DARK = Color3.fromRGB(62, 100, 38)
-local PARCHMENT = Color3.fromRGB(250, 240, 214)
-local BAMBOO = Color3.fromRGB(214, 164, 64)
+-- GUI doc 5.1: two variants of ONE component. Text sizes are UiKit token names (uiKit[...] at runtime); the numbers
+-- here are layout in px. Instruction = a tutorial / quest step line (1-2 lines); conversation = an NPC talk (up to 3 lines).
+type Metrics = {
+	avatar: number, -- face (ViewportFrame) diameter
+	ring: number, -- bamboo ring behind the face
+	nameSize: string, -- UiKit token
+	nameTop: number,
+	nameH: number,
+	textTop: number, -- text starts below the name
+	textSize: string, -- UiKit token
+	widthShare: number, -- box width as a share of the screen width
+	maxWidth: number, -- box width cap, px
+	minH: number,
+	maxH: number,
+	nextW: number,
+	nextH: number,
+	choiceH: number,
+	bottomPad: number,
+}
+
+local METRICS: { [string]: Metrics } = {
+	conversation = {
+		avatar = 40, ring = 48, nameSize = "TEXT_SMALL", nameTop = 12, nameH = 18,
+		textTop = 32, textSize = "TEXT_SMALL", widthShare = 0.6, maxWidth = 440,
+		minH = 64, maxH = 96, nextW = 64, nextH = 32, choiceH = 32, bottomPad = 12,
+	},
+	instruction = {
+		avatar = 32, ring = 40, nameSize = "TEXT_CAPTION", nameTop = 8, nameH = 16,
+		textTop = 24, textSize = "TEXT_SMALL", widthShare = 0.55, maxWidth = 400,
+		minH = 48, maxH = 72, nextW = 64, nextH = 32, choiceH = 32, bottomPad = 10,
+	},
+}
 
 local player = Players.LocalPlayer
+local ringImage: ImageLabel? = nil -- the bamboo ring behind the face (resized per variant)
 
 local gui: ScreenGui? = nil
 local box: CanvasGroup? = nil -- a CanvasGroup: the minimize / restore fades the whole box with GroupTransparency
@@ -128,16 +155,16 @@ local function ensure()
 	frame.GroupTransparency = 0
 	frame.AnchorPoint = Vector2.new(0.5, 1)
 	frame.Position = UDim2.new(0.5, 0, 1, -16)
-	frame.Size = UDim2.new(0.92, 0, 0, BOX_HEIGHT)
-	frame.BackgroundColor3 = PARCHMENT -- shown until the bamboo image has loaded
+	frame.Size = UDim2.new(0.92, 0, 0, METRICS.conversation.minH)
+	frame.BackgroundColor3 = uiKit.BG -- shown until the bamboo image has loaded
 	frame.BorderSizePixel = 0
 	frame.Parent = screen
 	local round = Instance.new("UICorner")
 	round.CornerRadius = UDim.new(0, 18)
 	round.Parent = frame
 	local limit = Instance.new("UISizeConstraint")
-	limit.MaxSize = Vector2.new(BOX_MAX_WIDTH, BOX_HEIGHT)
-	limit.MinSize = Vector2.new(300, BOX_HEIGHT)
+	limit.MaxSize = Vector2.new(METRICS.conversation.maxWidth, METRICS.conversation.minH)
+	limit.MinSize = Vector2.new(300, METRICS.conversation.minH)
 	limit.Parent = frame
 	boxLimit = limit
 	local scale = Instance.new("UIScale")
@@ -171,7 +198,7 @@ local function ensure()
 	well.Name = "AvatarWell"
 	well.AnchorPoint = Vector2.new(0, 0.5)
 	well.Position = UDim2.new(0, 34, 0.5, 0)
-	well.Size = UDim2.fromOffset(AVATAR, AVATAR)
+	well.Size = UDim2.fromOffset(METRICS.conversation.avatar, METRICS.conversation.avatar)
 	-- Same face frame as the player's own avatar (HudController's photo): a circle on UiKit.ROW with the bamboo ring behind.
 	well.BackgroundColor3 = UiKit.ROW
 	well.BorderSizePixel = 0
@@ -189,10 +216,11 @@ local function ensure()
 	ring.Image = UiAssets.PLATE.image
 	ring.ScaleType = Enum.ScaleType.Fit
 	ring.AnchorPoint = Vector2.new(0.5, 0.5)
-	ring.Position = UDim2.new(0, 34 + AVATAR / 2, 0.5, 0)
-	ring.Size = UDim2.fromOffset(math.floor(AVATAR * 46 / 32), math.floor(AVATAR * 46 / 32))
+	ring.Position = UDim2.new(0, 34 + METRICS.conversation.avatar / 2, 0.5, 0)
+	ring.Size = UDim2.fromOffset(math.floor(METRICS.conversation.avatar * 46 / 32), math.floor(METRICS.conversation.avatar * 46 / 32))
 	ring.ZIndex = 1
 	ring.Parent = frame
+	ringImage = ring
 	local vp = Instance.new("ViewportFrame")
 	vp.Name = "Face"
 	vp.BackgroundTransparency = 1
@@ -214,27 +242,27 @@ local function ensure()
 	local name = Instance.new("TextLabel")
 	name.Name = "Name"
 	name.BackgroundTransparency = 1
-	name.Position = UDim2.new(0, 34 + AVATAR + 14, 0, 14)
-	name.Size = UDim2.new(1, -(34 + AVATAR + 14 + 34), 0, 20)
+	name.Position = UDim2.new(0, 34 + METRICS.conversation.avatar + 14, 0, 14)
+	name.Size = UDim2.new(1, -(34 + METRICS.conversation.avatar + 14 + 34), 0, 20)
 	name.TextXAlignment = Enum.TextXAlignment.Left
 	name.Font = UiKit.FONT
-	name.TextSize = 15
-	name.TextColor3 = LEAF_DARK
+	name.TextSize = uiKit.TEXT_SMALL
+	name.TextColor3 = uiKit.HEADER_DARK
 	name.ZIndex = 2
 	name.Parent = frame
 
 	local text = Instance.new("TextLabel")
 	text.Name = "Text"
 	text.BackgroundTransparency = 1
-	text.Position = UDim2.new(0, 34 + AVATAR + 14, 0, 34)
+	text.Position = UDim2.new(0, 34 + METRICS.conversation.avatar + 14, 0, 34)
 	-- Three lines high (14 px text), and narrower on the right so the Next button, bottom right, never covers a line.
-	text.Size = UDim2.new(1, -(34 + AVATAR + 14 + 34 + 100), 0, 54)
+	text.Size = UDim2.new(1, -(34 + METRICS.conversation.avatar + 14 + 34 + 100), 0, 54)
 	text.TextXAlignment = Enum.TextXAlignment.Left
 	text.TextYAlignment = Enum.TextYAlignment.Top
 	text.TextWrapped = true
 	text.Font = UiKit.FONT_BODY
-	text.TextSize = 14
-	text.TextColor3 = INK
+	text.TextSize = uiKit.TEXT_SMALL
+	text.TextColor3 = uiKit.TEXT
 	text.ZIndex = 2
 	text.Parent = frame
 
@@ -242,7 +270,7 @@ local function ensure()
 	next.AnchorPoint = Vector2.new(1, 1)
 	next.Position = UDim2.new(1, -34, 1, -16)
 	next.Size = UDim2.fromOffset(92, 34)
-	next.TextSize = 15
+	next.TextSize = uiKit.TEXT_BODY
 	next.ZIndex = 5
 	next.Visible = false
 	next.Activated:Connect(function()
@@ -257,7 +285,7 @@ local function ensure()
 	row.Name = "Choices"
 	row.AnchorPoint = Vector2.new(1, 1)
 	row.Position = UDim2.new(1, -34, 1, -16)
-	row.Size = UDim2.new(1, -(34 + AVATAR + 14 + 34), 0, 40)
+	row.Size = UDim2.new(1, -(34 + METRICS.conversation.avatar + 14 + 34), 0, 40)
 	row.BackgroundTransparency = 1
 	row.ZIndex = 5
 	row.Visible = false
@@ -404,6 +432,64 @@ local function stopAnimations()
 	table.clear(animations)
 end
 
+-- GUI doc 5.1: the geometry of one variant. Face, name and text sizes; the box width (share of the screen, capped) and its
+-- height (the text is measured and the box is clamped to min / max). Called on every Show, so the variant always fits.
+local function layoutFor(opts: Options)
+	local m = if opts.variant == "instruction" then METRICS.instruction else METRICS.conversation
+	local choices = opts.choices ~= nil
+	local camera = Workspace.CurrentCamera
+	local viewWidth = if camera then camera.ViewportSize.X else 800
+	local boxWidth = math.min(m.maxWidth, viewWidth * m.widthShare)
+	local left = 34 + m.avatar + 14 -- the face, then the gap
+	local reserve = if choices then 34 else 34 + 100 -- right side: 34 px, plus the Next column when there is no choice row
+	local textWidth = boxWidth - left - reserve
+	local textSize = uiKit[m.textSize] :: number
+	local measured = 0
+	local ok, size = pcall(function()
+		return game:GetService("TextService"):GetTextSize(opts.text, textSize, Enum.Font.FredokaOne, Vector2.new(textWidth, 1000))
+	end)
+	if ok then
+		measured = (size :: Vector2).Y + 8
+	end
+	local textHeight = math.max(measured, textSize + 6)
+	local height: number
+	if choices then
+		height = math.max(m.minH, m.textTop + textHeight + 10 + m.choiceH + 16)
+	else
+		height = math.min(m.maxH, math.max(m.minH, m.textTop + textHeight + m.bottomPad))
+	end
+	if box then
+		box.Size = UDim2.fromOffset(boxWidth, height)
+	end
+	if boxLimit then
+		boxLimit.MaxSize = Vector2.new(boxWidth, height)
+		boxLimit.MinSize = Vector2.new(math.min(300, boxWidth), height)
+	end
+	if avatarWell then
+		avatarWell.Size = UDim2.fromOffset(m.avatar, m.avatar)
+	end
+	if ringImage then
+		ringImage.Position = UDim2.new(0, 34 + m.avatar / 2, 0.5, 0)
+		ringImage.Size = UDim2.fromOffset(m.ring, m.ring)
+	end
+	if nameLabel then
+		nameLabel.Position = UDim2.new(0, left, 0, m.nameTop)
+		nameLabel.Size = UDim2.new(1, -(left + 34), 0, m.nameH)
+		nameLabel.TextSize = uiKit[m.nameSize]
+	end
+	if textLabel then
+		textLabel.Position = UDim2.new(0, left, 0, m.textTop)
+		textLabel.Size = UDim2.new(1, -(left + reserve), 0, textHeight)
+		textLabel.TextSize = textSize
+	end
+	if nextButton then
+		nextButton.Size = UDim2.fromOffset(m.nextW, m.nextH)
+	end
+	if choicesRow then
+		choicesRow.Size = UDim2.new(1, -(left + 34), 0, m.choiceH)
+	end
+end
+
 -- Shows (or updates) the dialog. Non-blocking: with showNext, onNext fires when the player presses Next.
 function T1Dialog.Show(opts: Options)
 	ensure()
@@ -421,35 +507,7 @@ function T1Dialog.Show(opts: Options)
 	local choices = opts.choices
 	next.Visible = opts.showNext and choices == nil
 	nextHandler = if next.Visible then opts.onNext else nil
-	-- With choices the text is two lines high and the whole width (the choices sit on the bottom row), else three lines and
-	-- narrower on the right (Next sits there).
-	if choices then
-		-- Choices sit on a row at the bottom (under the text). The box grows to fit the whole text above that row, so the
-		-- text is never covered by the buttons, at any screen width.
-		local camera = workspace.CurrentCamera
-		local viewWidth = if camera then camera.ViewportSize.X else 800
-		local textWidth = math.min(BOX_MAX_WIDTH, viewWidth * 0.92) - (34 + AVATAR + 14 + 34)
-		local ok, measured = pcall(function()
-			return game:GetService("TextService"):GetTextSize(opts.text, 14, Enum.Font.FredokaOne, Vector2.new(textWidth, 1000))
-		 end)
-		local textHeight = if ok then (measured :: Vector2).Y + 8 else 64
-		local boxHeight = math.max(BOX_HEIGHT, 34 + textHeight + 10 + 40 + 16)
-		text.Size = UDim2.new(1, -(34 + AVATAR + 14 + 34), 0, textHeight)
-		if box then
-			box.Size = UDim2.new(0.92, 0, 0, boxHeight)
-		end
-		if boxLimit then
-			boxLimit.MaxSize = Vector2.new(BOX_MAX_WIDTH, boxHeight)
-		end
-	else
-		text.Size = UDim2.new(1, -(34 + AVATAR + 14 + 34 + 100), 0, 54)
-		if box then
-			box.Size = UDim2.new(0.92, 0, 0, BOX_HEIGHT)
-		end
-		if boxLimit then
-			boxLimit.MaxSize = Vector2.new(BOX_MAX_WIDTH, BOX_HEIGHT)
-		end
-	end
+	layoutFor(opts) -- GUI doc 5.1: sizes for this variant (instruction or conversation)
 	for _, button in choiceButtons do
 		button:Destroy()
 	end
@@ -466,8 +524,8 @@ function T1Dialog.Show(opts: Options)
 				if index == 1 then uiKit.BUTTON else uiKit.BUTTON_MUTED
 			) :: TextButton
 			button.LayoutOrder = index
-			button.Size = UDim2.fromOffset(math.max(120, #choice.text * 9 + 56), 40)
-			button.TextSize = 16
+			button.Size = UDim2.fromOffset(math.max(120, #choice.text * 9 + 56), uiKit.TOUCH)
+			button.TextSize = uiKit.TEXT_BODY
 			button.ZIndex = 5
 			button.Activated:Connect(function()
 				pick(index)

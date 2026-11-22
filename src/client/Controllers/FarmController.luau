@@ -1147,7 +1147,7 @@ local function buildHarvestAllButton()
 	gui.DisplayOrder = UiKit.LAYER.ACTION
 	gui.Parent = playerGui
 	local button = UiKit.button(gui, "HarvestAllButton", Locale.t("ui.harvest_all"))
-	button.Size = UDim2.fromOffset(190, UiKit.TOUCH)
+	button.Size = UDim2.fromOffset(190, UiKit.TOUCH_CTA)
 	button.AnchorPoint = Vector2.new(0.5, 0)
 	button.Position = UDim2.new(0.5, 0, 0, 124) -- below the hint bar at the top (it was covering the T1 hint, 16 Nov)
 	button.Visible = false
