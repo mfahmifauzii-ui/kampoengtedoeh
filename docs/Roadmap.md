@@ -297,16 +297,21 @@ Aturan: satu bug = satu commit, dengan Cara Cek (selene, rojo build, grep / file
 ### 12.4 Rencana B-5 (status: kode selesai, belum diuji di Studio)
 
 **Catatan belum bisa dibenerin (per 2026-11-22):**
-- **Animasi memancing (B-5).** Owner Publish to Roblox keempat KeyframeSequence di `ReplicatedStorage.CustomAnims` (FishingCast, FishingIdle, FishingReel, FishingCatch), lalu tempel ID `rbxassetid://` ke `Config/Fishing` ANIMS. Sampai itu, joran tampil tanpa animasi untuk pemain lain.
+- **Animasi memancing dan tanam (B-5).** ID permanen sudah dimasukkan (commit `1ce551c`, belum diuji di Studio): memancing di `Config/Fishing.ANIMS` (FishingIdle, FishingCast, FishingReel, FishingCatch), tanam/siram di `Config/Farm.ANIMS` (FarmPlant, FarmWater). `FarmFx` dan `RodAnimController` memakai ID ini dulu dan kembali ke sequence `CustomAnims` hanya bila ID kosong.
 - **Bag tanpa kapasitas (B-3).** `InventoryService.CanAdd` hanya cek item valid, jadi "tas penuh" tidak pernah terjadi. Perlu keputusan owner: beri kapasitas tas atau hapus syarat "tas penuh" dari playtest.
 - **B-1 belum diukur di Studio.** Target < 0.3 dtk hanya bisa dicek dengan log `[beat-timing]` di Output.
 - **Feature gate (Q-2) dan semua Q-3..Q-5** belum dikerjakan; B-3 (gate kolam) menunggu Q-2.
 
 Yang sudah ada di server: roll ikan saat lempar (`startCast`), gigitan dengan `task.delay` (server), validasi reel (`REEL_MIN_SECONDS`, skor 0..1), `endSession` untuk semua jalur akhir, dan `PlayerRemoving` membersihkan sesi.
 
-**Status kode (2026-11-22):** selesai: (a) `0b09e6c`, (b) `ca5e8e2`, (c) `6419190`. Perubahan perilaku: server kini membatalkan pancing bila pemain menjauh lebih dari `Fishing.LEAVE_DISTANCE` (24 stud) dari spot (sebelumnya server tidak mengecek jarak saat memancing). ID animasi di `Config/Fishing.ANIMS` masih kosong: owner harus Publish to Roblox untuk keempat KeyframeSequence, lalu mengisi ID permanennya di sana. Belum ada yang diuji di Studio dari sesi ini.
+**Status kode (2026-11-22):** selesai: (a) `0b09e6c`, (b) `ca5e8e2`, (c) `6419190`. Perubahan perilaku: server kini membatalkan pancing bila pemain menjauh lebih dari `Fishing.LEAVE_DISTANCE` (24 stud) dari spot (sebelumnya server tidak mengecek jarak saat memancing). ID animasi permanen sudah diisi di `Config/Fishing.ANIMS` dan `Config/Farm.ANIMS` (commit `1ce551c`). Belum ada yang diuji di Studio dari sesi ini.
 
-**Status animasi (2026-11-22):** `KeyframeSequenceProvider:RegisterKeyframeSequence` di Studio mengembalikan ID sementara (hash) untuk FishingCast / FishingIdle / FishingReel / FishingCatch. Dokumen Roblox menulis ID ini hanya berlaku di Studio, bukan untuk server live. Asset ID yang permanen harus dibuat dengan Publish ke Roblox (Animation Editor, atau klik kanan KeyframeSequence > Publish to Roblox). Langkah ini belum dilakukan dan butuh tindakan di Studio oleh owner.
+**Status animasi (2026-11-22):** `KeyframeSequenceProvider:RegisterKeyframeSequence` di Studio mengembalikan ID sementara (hash) untuk FishingCast / FishingIdle / FishingReel / FishingCatch. Dokumen Roblox menulis ID ini hanya berlaku di Studio, bukan untuk server live. Asset ID yang permanen harus dibuat dengan Publish ke Roblox (Animation Editor, atau klik kanan KeyframeSequence > Publish to Roblox). **Update (commit `1ce551c`):** owner sudah Publish, dan ID permanen sudah masuk: FishingCast, FishingIdle, FishingReel, FishingCatch (`Config/Fishing.ANIMS`), FarmPlant dan FarmWater (`Config/Farm.ANIMS`, baru). **Belum diuji di Studio.**
+
+**Playtest USER (animasi, belum diuji):**
+- [ ] Tanam: animasi FarmPlant diputar. Siram: animasi FarmWater diputar.
+- [ ] Joran memancing: animasi diputar saat lempar (FishingCast), menunggu (FishingIdle), tarik (FishingReel), dan dapat ikan (FishingCatch).
+- [ ] Dengan dua akun: pemain kedua melihat joran dan animasi memancing pemain pertama.
 
 ### 12.3 Keputusan yang dibutuhkan (B-3, B-5)
 

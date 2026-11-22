@@ -58,6 +58,7 @@ Revisi ini mengikuti aturan "angka baru wajib nomor baru". Setiap perubahan di b
 | 6 | **Peti Bunga 25 Bunga** dari Title, Album milestone p25/50/75/100, Season F2P hari 30. Event belum (Lampiran D #21). **Login 10 Bunga/minggu** (Bab 18.2 = ~40/bulan, total ~240). **Season F2P** pakai hadiah tiap 5 hari (USULAN, #20). **Season Premium Segera hadir.** | 15.3, 15.4, 18.2, 19 | Kode jadi (Task 6), USULAN ditandai |
 | 7 | **Galeri**: pemilik offline = lahan kosong, tanpa toast, tanpa snapshot. | 8.7, 12.7 | Kode jadi (v7.5) |
 | 8 | **Kolam bisa dibangun di Lv 2** (`Fishing.POND.UNLOCK_LEVEL`). | 16.5, 14.1 | Kode jadi (v7.5) |
+| 9 | **ID animasi permanen dimasukkan** (commit `1ce551c`): memancing di `Config/Fishing.ANIMS` (FishingIdle, FishingCast, FishingReel, FishingCatch) dan tanam/siram di `Config/Farm.ANIMS` (FarmPlant, FarmWater, baru). `FarmFx` dan `RodAnimController` memakai ID ini dulu dan kembali ke sequence `CustomAnims` hanya bila ID kosong. | 30.7, 6.1 | Kode jadi (`1ce551c`), **belum diuji di Studio** |
 
 ### 0.3.2 Changelog v7.4 → v7.5 (Perubahan Kode & GUI, 2026-11-22)
 
@@ -1325,6 +1326,12 @@ PlayerData: Level, XP, SP, Koin, Bunga, Tas (items + kualitas), Lahan (Petak, Ch
 - [ ] 8 player, hujan + Kerja Bakti, FPS ≥ 30 di HP 4GB.
 - [ ] Album GUI 214 entri, Bingkai Album menampilkan % Album.
 - [ ] Tas menampilkan Kualitas (Biasa / Bagus / Prima).
+
+### 30.7 Animasi Tanam & Memancing (B-5, belum diuji di Studio)
+
+- [ ] Animasi tanam (FarmPlant) dan siram (FarmWater) diputar saat menanam dan menyiram.
+- [ ] Animasi joran diputar saat lempar (FishingCast), menunggu (FishingIdle), tarik (FishingReel), dan dapat ikan (FishingCatch).
+- [ ] Dengan dua akun: pemain kedua melihat joran dan animasi memancing pemain pertama.
 
 ---
 
