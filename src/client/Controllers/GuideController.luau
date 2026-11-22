@@ -294,8 +294,17 @@ local routeKey = ""
 --   "sell"    the harvest is in the Tas: text "Jual ke Pak Udin", arrow to Pak Udin (only now)
 local function t1Phase(): string
 	local snap = snapshot()
-	local kangkung = if snap and snap.items then snap.items.kangkung else nil
-	if typeof(kangkung) == "number" and kangkung > 0 then
+	-- The harvest is stored under its variant id (Items.cropItemId: "super_kangkung" for the guaranteed first Super, or
+	-- "<quality>_kangkung"), not the plain "kangkung". Count every kangkung crop item, but never the seed "seed_kangkung".
+	local inBag = 0
+	if snap and snap.items then
+		for itemId, count in snap.items do
+			if typeof(count) == "number" and not string.find(itemId, "^seed_") and (itemId == "kangkung" or string.find(itemId, "_kangkung$")) then
+				inBag += count
+			end
+		end
+	end
+	if inBag > 0 then
 		return "sell"
 	end
 	local now = Workspace:GetServerTimeNow()
@@ -647,6 +656,10 @@ local function evalCondition(condition: Onboarding.Condition): boolean
 		-- Kak Fajar's Terima Hadiah was taken (the server gives the rod and the bait once)
 		local snap = snapshot()
 		return snap ~= nil and snap.guide ~= nil and snap.guide.rodGift == true
+	elseif kind == "sellfish" then
+		-- T1b last step: the first fish was sold to Kak Fajar (the server sets guide.fishSold on that sale)
+		local snap = snapshot()
+		return snap ~= nil and snap.guide ~= nil and snap.guide.fishSold == true
 	elseif kind == "ack" then
 		return acked[condition.id or ""] == true
 	elseif kind == "pondmode" then
@@ -833,6 +846,9 @@ function refreshTutorial()
 	-- Waiting for a crop or walking to Pak Udin: no coachmark (its dark overlay hides the bed and the arrow). The hint bar
 	-- carries the text and the ground trail / bed arrow point the way (user, 16 Nov).
 	if phase ~= nil then -- wait / harvest / sell (the T1 panen step)
+		if GarapController.Active then
+			GarapController.Stop() -- Panen is not a Garap step: the bed pills and the Panen button must be visible
+		end
 		CoachmarkController.Hide()
 		clearRing()
 		GarapController.SetHintHidden(true)
@@ -871,7 +887,9 @@ function refreshTutorial()
 	if stepDef.done.kind ~= "ack" then
 		local highlight = stepDef.highlight
 		local kind = stepDef.done.kind
-		local groundKind = kind == "tiles" or kind == "ponds" or kind == "planted" or kind == "watered" or kind == "garap" -- steps done by tapping the ground in Garap mode (planting and watering too)
+		-- Steps done by tapping the ground in Garap mode. Planting and watering are NOT Garap taps (FarmController: an empty bed
+		-- is planted outside Garap mode; the Tanam / Siram buttons do it), so those steps close Garap and show their button.
+		local groundKind = kind == "tiles" or kind == "ponds" or kind == "garap"
 		-- A step pointing AT the Garap tool button is asking the player to OPEN Garap mode: while it is
 		-- still closed the coachmark sits on the button; once it is open the ghost is the target (ground
 		-- mode) and the mode must stay open. Stopping it here trapped the tutorial: tap -> open ->

@@ -130,6 +130,7 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 			fastLeft = data.guide.fastLeft,
 			rodGift = data.guide.rodGift, -- Kak Fajar's Terima Hadiah was taken (the dialog shows it until then)
 			saleCutscene = data.guide.saleCutscene, -- the Jual Pertama beat already played (Bab 16.4): never again
+			fishSold = data.guide.fishSold == true, -- T1b "jual_ikan": the first fish was sold to Kak Fajar
 			-- a save that has not started playing: the "newPlayer" tutorial trigger
 			fresh = #data.farm.tiles == 0 and data.onboarding.first_plant ~= true and data.guide.sells == 0,
 		},

@@ -20,7 +20,6 @@ local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
 local InventoryService = require(script.Parent.InventoryService)
 local ProgressionService = require(script.Parent.ProgressionService)
-local WorldService = require(script.Parent.WorldService)
 
 local TutorialService = {}
 
@@ -134,7 +133,10 @@ local function onGuideEvent(player: Player, action: any, tutorialId: any, n: any
 			if step.done.kind == "rodgift" and guide.rodGift ~= true then
 				return
 			end
-			if (step.done.kind == "fish" or step.id == "after_catch") and guide.fishCaught ~= true then
+			if step.done.kind == "fish" and guide.fishCaught ~= true then
+				return
+			end
+			if step.done.kind == "sellfish" and guide.fishSold ~= true then
 				return
 			end
 		end
@@ -144,10 +146,6 @@ local function onGuideEvent(player: Player, action: any, tutorialId: any, n: any
 			logEvent(player, `tut_{tutorialId}_{step.id}`, tutorialId)
 		end
 		guide.step.n = n
-		if tutorialId == "t1_awal" and n == Onboarding.GERIMIS_AFTER_STEP and guide.done.gerimis_t1 ~= true then
-			guide.done.gerimis_t1 = true -- once per save: FTUE 0:30 Gerimis, waters the first crop so Siram is done by the rain
-			WorldService.TutorialRain(Onboarding.GERIMIS_SECONDS)
-		end
 		if n >= total then
 			guide.done[tutorialId] = true
 			guide.step = { id = "", n = 0 }
@@ -198,7 +196,7 @@ local STEP_NPC: { [string]: string } = {
 	warung = "pak_udin",
 	kak_fajar = "kak_fajar",
 	mancing = "kak_fajar",
-	after_catch = "kak_fajar",
+	jual_ikan = "kak_fajar",
 }
 
 -- True while the player is in Tutorial 1 (T1 "t1_awal" not finished, and not skipped/reset-free).

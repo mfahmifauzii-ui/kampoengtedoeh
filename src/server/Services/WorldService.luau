@@ -132,14 +132,6 @@ function WorldService.Start()
 	end
 end
 
--- Tutorial Gerimis (FTUE 0:30): rain for `seconds`, unless it already rains. Rain waters every crop (FarmService).
--- After it ends the normal cycle goes on (Terik).
-function WorldService.TutorialRain(seconds: number)
-	if not WorldService.IsRaining() then
-		setWeather("gerimis", seconds)
-	end
-end
-
 -- Studio testing only (DevService).
 function WorldService.DevSetPhase(phase: string)
 	local offset = WorldClock.phaseOffset(phase)

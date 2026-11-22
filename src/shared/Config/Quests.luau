@@ -40,19 +40,7 @@ local list: { Quest } = {
 		},
 		reward = { koin = 300, xp = 60 },
 	},
-	-- Stage 7: Misi Utama, the 3 steps after T1. Only these 3 + one Daily per day exist for now.
-	{
-		id = "misi_utama",
-		unlockLevel = 1,
-		requireTutorial = true,
-		steps = {
-			{ event = "plant_kangkung", count = 3 }, -- Tanam 3 Kangkung
-			{ event = "catch", count = 1 }, -- Mancing 1 Ikan
-			{ event = "decor_placed", count = 1 }, -- Taruh 1 Hiasan
-		},
-		reward = { koin = 50 },
-		bonusDecor = "pagar_bambu",
-	},
+	-- Misi Utama (Stage 7) removed 2026-11-22: it repeated the tutorial (tanam, mancing, hiasan). Not a main quest.
 	-- MQ: Main Quest linear, cerita Kakek (Bab 14.2, LOCKED, P2-7-fix). Berurutan via `after`.
 	{
 		id = "mq1_pulang",
@@ -61,28 +49,12 @@ local list: { Quest } = {
 		steps = {},
 		reward = { koin = 100, items = { seed_kangkung = 4 } },
 	},
-	{
-		id = "mq2_siram",
-		unlockLevel = 1,
-		after = "mq1_pulang",
-		steps = {
-			{ event = "water", count = 1 }, -- Siram 1 tanaman
-		},
-		reward = { koin = 50, xp = 20 },
-	},
-	{
-		id = "mq3_panen",
-		unlockLevel = 1,
-		after = "mq2_siram",
-		steps = {
-			{ event = "harvest", count = 1 }, -- Panen 1 tanaman (dijamin Super)
-		},
-		reward = { koin = 100, xp = 30 },
-	},
+	-- Playtest 2026-11-22: MQ2 "Siram Pertama" and MQ3 "Panen Pertama" were the tutorial's own steps (siram, panen) shown
+	-- again as quests. The tutorial is not a main quest, so they are removed; the tutorial ends at the fish sale (T1b).
 	{
 		id = "mq4_kolam",
 		unlockLevel = 3,
-		after = "mq3_panen",
+		after = "mq1_pulang",
 		auto = true, -- Lv 3, Mak Sari datang: Kolam Kakek pulih
 		unlockKakek = true,
 		steps = {},

@@ -19,6 +19,7 @@ local Onboarding = require(game:GetService("ReplicatedStorage").Shared.Config.On
 local FadeManager = require(script.Parent.FadeManager)
 local NpcCamera = require(script.Parent.NpcCamera)
 local PlayerLock = require(script.Parent.PlayerLock)
+local PromptGate = require(script.Parent.PromptGate)
 
 local Cutscene = {}
 
@@ -48,6 +49,8 @@ function Cutscene.Begin(npc: Model, head: BasePart, interactive: boolean?): () -
 	untimed = interactive == true
 	beatStartedAt = os.clock()
 	PlayerLock.Set(true)
+	-- Playtest 2026-11-22: no "Ngobrol" / nameplate prompt over a cutscene. Back on in End().
+	PromptGate.Hide()
 
 	local cf, focusDistance = NpcCamera.Shot(head.Position, character, { npc })
 	savedFov = camera.FieldOfView
@@ -95,6 +98,7 @@ function Cutscene.End()
 	if held then
 		held = false
 		PlayerLock.Set(false)
+		PromptGate.Show()
 	end
 end
 

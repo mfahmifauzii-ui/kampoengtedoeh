@@ -73,6 +73,7 @@ export type Tutorial = {
 --   "pondmode"                Garap is open in its Kolam mode (the player opened the pond tool)
 --   "ponds"                   n or more ponds of mine are built
 --   "fish"                    n or more fish in the bag (any item written <fish>@<size>)
+--   "sellfish"                the first fish was sold to Kak Fajar (snapshot.guide.fishSold, set by ShopService)
 --   "quest"                   the quest named `id` is done (snapshot.quests.done)
 --   "harvested"               the player has harvested at least once (snapshot.onboarding.first_harvest)
 --   "any"                     one of `any` holds (v6.2.3 A1: a step is also done by the state a later step needs)
@@ -179,11 +180,14 @@ local TUTORIALS: { Tutorial } = {
 				reward = { xp = 20 }, -- the same 20 XP as the warung step (paid once on the first fish)
 			},
 			{
-				-- Kak Fajar's dialog after the first fish: "Mengerti" finishes it (last step of T1b). It opens NOTHING:
-				-- the pond is gated by pond.kakekUnlocked (MQ4 / Bundel) alone since v7.4 Bab 16.5.
-				id = "after_catch",
-				text = "npc.kak_fajar.after_catch",
-				done = { kind = "ack", id = "after_catch" },
+				-- Playtest 2026-11-22: the first fish is SOLD to Kak Fajar (walk up = Jual cutscene, like Pak Udin). The step is
+				-- finished by the "Ok, Kak Fajar" button after the sale (T1Ghost beat ackStep), so T1b and its "Selesai" banner
+				-- come after that button. It opens NOTHING: the pond is gated by pond.kakekUnlocked (MQ4 / Bundel) alone.
+				id = "jual_ikan",
+				text = "tut.t1b.jual_ikan",
+				done = { kind = "ack", id = "jual_ikan" },
+				target = { npc = "kak_fajar" },
+				arrive = 14,
 			},
 		},
 	},
@@ -233,10 +237,8 @@ return {
 	REPLAY_MIN_SECONDS = 4, -- replay: each step stays at least this long
 	FAST_PLANTINGS = 6, -- first plantings of a new save on the fast timer
 	FAST_GROW_SECONDS = 20, -- (water -> -15 % of the rest; the first crop is 20 s on the fast timer)
-	-- FTUE Bab 16.3 (0:30): the tutorial's Gerimis. It starts once the first planting is done (step 3 ended) and lasts this long.
-	-- Once per save (guide.done.gerimis_t1). It waters every growing crop of the server (rain rule), so Siram is done by it.
-	GERIMIS_SECONDS = 20,
-	GERIMIS_AFTER_STEP = 3, -- the rain starts when this many T1 steps are done (sapa, cangkul, tanam): the next step is Siram
+	-- Playtest 2026-11-22: NO tutorial rain. A rain waters every crop, so the Siram step was done by the sky and the
+	-- player never watered. Siram in T1 is the player's own action (Siram button / drag), nothing else completes it.
 	-- FTUE Bab 16.3 (0:50): the first harvest of a new save is always Super (no chance roll). Once per save (guide.done.ftue_super).
 	FTUE_FIRST_SUPER = true,
 	-- Mutasi DIHAPUS (Bab 29): panen pertama dijamin Super saja, Kualitas normal.

@@ -271,7 +271,8 @@ local function refresh(npcId: string)
 	end
 	T1Dialog.Show({
 		name = Locale.t(`npc.{npcId}`),
-		text = Locale.t(`npc.{npcId}.{greetSuffix(npcId)}`),
+		-- Gift mode (Kak Fajar's first visit) has its own line: the gift, not the shop greeting (playtest 2026-11-22).
+		text = if giftMode then Locale.t(`npc.{npcId}.gift`) else Locale.t(`npc.{npcId}.{greetSuffix(npcId)}`),
 		avatar = npcModel(npcId),
 		showNext = false,
 		bottom = 16,

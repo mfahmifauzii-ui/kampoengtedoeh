@@ -135,6 +135,9 @@ local function onSell(player: Player, npcId: any, target: any, amount: any)
 		-- The first-sale cutscene follows the tutorial's state: T1 not finished (or reset with !tut reset) and the cutscene not played yet.
 		local firstSale = data.guide.saleCutscene ~= true and data.guide.done.t1_awal ~= true and data.guide.skipped.t1_awal ~= true
 		data.guide.sells += 1 -- one finished sale trip for the new-player guide (Config/Onboarding)
+		if npc.id == "kak_fajar" then
+			data.guide.fishSold = true -- T1b "jual_ikan" step: Kak Fajar only buys fish, so any sale here is the fish sale
+		end
 		EconomyService.Add(player, "koin", total, if target == "all" then "sell:all" else `sell:{target}`)
 		Net.Fire("Notify", player, "sell.sold", { n = total }) -- (AnalyticsHooks logs first_sell from the Koin gain)
 		InventoryService.Sync(player)

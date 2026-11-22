@@ -147,21 +147,34 @@ local function onSnapshot(snapshot: any)
 
 	if initialized then
 		-- A tutorial that just finished: "Selesai" with its title.
+		-- Playtest 2026-11-22: "Selesai" is for the whole first-loop tutorial (T1b, ends after the fish sale to Kak Fajar),
+		-- not after T1 (the harvest sale to Pak Udin is only a step of it).
 		for _, tutorial in Onboarding.TUTORIALS do
-			if doneNow[tutorial.id] and not seenDone[tutorial.id] then
+			if tutorial.id == "t1b_kolam" and doneNow[tutorial.id] and not seenDone[tutorial.id] then
 				push(Locale.t("banner.done"), Locale.t(tutorial.title))
 			end
 		end
-		-- A quest that just started: "Dimulai" with its title.
+		-- A quest that just started: "Dimulai" with its title. Held while a tutorial is running (guide.step.id set): the
+		-- banner waits until the tutorial's talk is over, and then shows once (seenQuests is not updated for it yet).
+		local tutorialRunning = guide.step ~= nil and guide.step.id ~= ""
 		for id in activeNow do
-			if not seenQuests[id] then
+			if not seenQuests[id] and not tutorialRunning then
 				local key = `quest.{id}.title`
 				push(Locale.t("banner.started"), Locale.t(key))
 			end
 		end
 	end
 	seenDone = doneNow
-	seenQuests = activeNow
+	if initialized and guide.step ~= nil and guide.step.id ~= "" then
+		-- Tutorial running: a quest that is new now stays unseen, so its "Dimulai" still comes after the tutorial.
+		for id in seenQuests do
+			if not activeNow[id] then
+				seenQuests[id] = nil
+			end
+		end
+	else
+		seenQuests = activeNow
+	end
 	initialized = true
 end
 
