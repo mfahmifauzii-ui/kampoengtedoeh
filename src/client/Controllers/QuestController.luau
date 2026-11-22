@@ -173,13 +173,21 @@ local function kolamCardWanted(snapshot: any): boolean
 	return not (step and step.id == "t1b_kolam")
 end
 
-local TRACKER_MAX = 200 -- stops above the Craft button (its top sits ~200 px up from the bottom edge)
--- The tracker is as tall as its rows (plus padding), never more than TRACKER_MAX.
+local MAX_HEIGHT_PX = 200 -- top limit in px (stops above the Craft button)
+local MAX_HEIGHT_SCREEN = 0.25 -- top limit as a share of the screen height (Update owner 2026-11-22, Task 5)
+local MAX_ROWS = 3 -- at most 3 quest rows; the rest collapse into one "+N lainnya" row
+
+-- The tracker is as tall as its rows (plus padding), never more than min(MAX_HEIGHT_PX, MAX_HEIGHT_SCREEN x screen height).
+local function maxHeight(): number
+	local camera = workspace.CurrentCamera
+	local viewport = if camera then camera.ViewportSize.Y else MAX_HEIGHT_PX / MAX_HEIGHT_SCREEN
+	return math.min(MAX_HEIGHT_PX, MAX_HEIGHT_SCREEN * viewport)
+end
 local function fitTracker()
 	if tracker then
 		local content = tracker:FindFirstChildOfClass("UIListLayout")
 		local height = if content then content.AbsoluteContentSize.Y + 16 else 0
-		tracker.Size = UDim2.fromOffset(200, math.min(TRACKER_MAX, math.max(height, 0)))
+		tracker.Size = UDim2.fromOffset(200, math.min(maxHeight(), math.max(height, 0)))
 	end
 end
 
@@ -239,6 +247,37 @@ local function refresh()
 			step.Parent = row
 		end
 	end
+	-- Show at most MAX_ROWS rows; the rest collapse into one "+N lainnya" row.
+	local rows = {} :: { Instance }
+	for _, child in tracker:GetChildren() do
+		if child:IsA("Frame") then
+			table.insert(rows, child)
+		end
+	end
+	table.sort(rows, function(a, b)
+		return (a :: any).LayoutOrder < (b :: any).LayoutOrder
+	end)
+	if #rows > MAX_ROWS then
+		for index = MAX_ROWS + 1, #rows do
+			rows[index]:Destroy()
+		end
+		local more = Instance.new("Frame")
+		more.Name = "more"
+		more.LayoutOrder = MAX_ROWS + 1
+		more.BackgroundTransparency = 1
+		more.Size = UDim2.new(1, 0, 0, 18)
+		more.Parent = tracker
+		local text = Instance.new("TextLabel")
+		text.Name = "Title"
+		text.BackgroundTransparency = 1
+		text.Size = UDim2.new(1, 0, 1, 0)
+		text.Font = UiKit.FONT
+		text.TextSize = 12
+		text.TextColor3 = UiKit.TEXT
+		text.TextXAlignment = Enum.TextXAlignment.Left
+		text.Text = Locale.t("quest.more", { n = #rows - MAX_ROWS })
+		text.Parent = more
+	end
 	-- Readable without a panel: cream text with a dark outline on every label of the tracker.
 	for _, label in tracker:GetDescendants() do
 		if label:IsA("TextLabel") then
@@ -260,7 +299,7 @@ function QuestController.Init()
 	tracker.Position = UDim2.fromOffset(12, 118) -- under the status row and the goal chip
 	tracker.Size = UDim2.fromOffset(200, 0)
 	-- Owner (2026-11-22): the list ran over the Craft button and the XP card. Its height follows the rows (see
-	-- fitTracker) but never goes past TRACKER_MAX, which stops above Craft (Craft sits 200 px up from the bottom); the rest
+	-- fitTracker) but never goes past maxHeight (200 px or 25 % of the screen), which stops above Craft (Craft sits 200 px up from the bottom); the rest
 	-- is clipped, so nothing draws over the buttons.
 	tracker.AutomaticSize = Enum.AutomaticSize.None
 	tracker.ClipsDescendants = true
@@ -287,6 +326,16 @@ function QuestController.Init()
 end
 
 function QuestController.Start()
+	-- Max height follows the screen (25 % of the height, Task 5): refit when the camera or its viewport changes.
+	local function watchViewport()
+		local camera = workspace.CurrentCamera
+		if camera then
+			camera:GetPropertyChangedSignal("ViewportSize"):Connect(fitTracker)
+			fitTracker()
+		end
+	end
+	workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(watchViewport)
+	watchViewport()
 	State.Changed:Connect(refresh)
 	refresh()
 	-- Walking onto the land changes the kolam card without a state sync: check a few times a second, rebuild only on a change.

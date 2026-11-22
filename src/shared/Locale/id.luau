@@ -97,6 +97,7 @@ return {
 	["quest.new"] = "Misi baru: {title}",
 	["quest.step"] = "Misi maju: {title}",
 	["quest.done"] = "Misi selesai: {title}!",
+	["quest.more"] = "+{n} lainnya",
 	["quest.kolam_pertama.title"] = "Kolam Pertamamu",
 	["quest.kolam_pertama.s1"] = "Tap tombol Kolam, tap lahan kosong",
 	["quest.kolam_pertama.s2"] = "Pancing ikan di kolammu",
