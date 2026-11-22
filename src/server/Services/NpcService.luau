@@ -60,9 +60,6 @@ local function adopt(npc: Npcs.Npc): boolean
 		prompt.HoldDuration = 0
 		prompt.MaxActivationDistance = Npcs.TALK_DISTANCE
 		prompt.RequiresLineOfSight = false
-		if string.sub(npc.id, 1, 9) == "bang_jali" then
-			prompt:SetAttribute("Feature", "jual_bang_jali") -- Q-2: client hides this prompt while the feature is closed
-		end
 		prompt.KeyboardKeyCode = Enum.KeyCode.E
 		prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
 		prompt.Parent = root
@@ -216,9 +213,6 @@ local function build(npc: Npcs.Npc)
 	prompt.HoldDuration = 0
 	prompt.MaxActivationDistance = Npcs.TALK_DISTANCE
 	prompt.RequiresLineOfSight = false
-	if string.sub(npc.id, 1, 9) == "bang_jali" then
-		prompt:SetAttribute("Feature", "jual_bang_jali") -- Q-2: client hides this prompt while the feature is closed
-	end
 	prompt.KeyboardKeyCode = Enum.KeyCode.E
 	prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
 	prompt.Parent = root

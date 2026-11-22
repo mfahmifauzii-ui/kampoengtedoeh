@@ -20,6 +20,7 @@ local Workspace = game:GetService("Workspace")
 
 local Buffs = require(ReplicatedStorage.Shared.Config.Buffs)
 local FeedbackController = require(script.Parent.FeedbackController)
+local QuestOfferController = require(script.Parent.QuestOfferController)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local UiAssets = require(ReplicatedStorage.Shared.Config.UiAssets)
@@ -565,6 +566,15 @@ function HudController.Start()
 			-- "+N kangkung" would only repeat that.
 			if key == "farm.tilled" or key == "farm.moved" or key == "notify.gain" or key == "farm.harvested" then
 				return
+			end
+			if key == "quest.done" and typeof(vars) == "table" and typeof(vars.title) == "string" then
+				-- Q-3: a finished SIDE quest with a Naskah line shows its giver's line as the toast (not the title).
+				local id = string.match(vars.title, "^quest%.(.+)%.title$")
+				local line = if id then QuestOfferController.SideDoneText(id) else nil
+				if line then
+					HudController.Toast(line)
+					return
+				end
 			end
 			if key == "fish.caught" then
 				-- the catch flies from the water (the middle of the screen, where the bobber is) to the Bag

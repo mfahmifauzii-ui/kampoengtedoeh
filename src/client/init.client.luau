@@ -24,6 +24,7 @@ local ORDER = {
 	"InventoryController",
 	"ShopController",
 	"DialogueController",
+	"QuestOfferController", -- Q-3: "!" marker, Naskah start dialog (then QuestAccept), Selesai dialog for Main
 	"DecorController",
 	"OrdersController",
 	"QuestController",

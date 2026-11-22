@@ -9,6 +9,11 @@ local warned: { [string]: boolean } = {}
 
 local Locale = {}
 
+-- True when the key exists (no warning). Used to tell which quests have a Naskah dialog (Q-3).
+function Locale.has(key: string): boolean
+	return strings[key] ~= nil
+end
+
 function Locale.t(key: string, vars: { [string]: any }?): string
 	local template = strings[key]
 	if template == nil then

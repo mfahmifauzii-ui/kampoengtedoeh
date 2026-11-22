@@ -22,6 +22,7 @@ local ShopController = require(script.Parent.ShopController)
 local State = require(script.Parent.Parent.State)
 local T1Dialog = require(script.Parent.Parent.T1Dialog)
 local FadeManager = require(script.Parent.Parent.FadeManager)
+local QuestOfferController = require(script.Parent.QuestOfferController)
 local PromptGate = require(script.Parent.Parent.PromptGate) -- Plan v3 3.2: no proximity prompts while talking
 
 local CHECK_SECONDS = 0.5
@@ -202,6 +203,7 @@ end
 local function close(instantCamera: boolean?)
 	currentNpc = nil
 	holdFor = nil
+	QuestOfferController.Cancel() -- Q-3: a start dialog that is still running does not accept its quest
 	player:SetAttribute("NpcTalkOpen", nil)
 	T1Dialog.Hide()
 	showOtherGuis()
@@ -229,6 +231,15 @@ local function greetSuffix(npcId: string): string
 end
 
 local function refresh(npcId: string)
+	-- Q-3: a quest this giver offers is first introduced by its Naskah start dialog; the last Next accepts it (QuestAccept),
+	-- then the normal choices come back here.
+	local offer = QuestOfferController.ForGiver(npcId)
+	if offer then
+		QuestOfferController.PlayStart(npcId, offer, function()
+			refresh(npcId)
+		end)
+		return
+	end
 	local choices = {}
 	local giftMode = npcId == "kak_fajar" and not gotRodGift()
 	local locked = not giftMode and lockedFor(npcId)

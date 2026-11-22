@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Quests = require(ReplicatedStorage.Shared.Config.Quests)
+local Locale = require(ReplicatedStorage.Shared.Locale)
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local Types = require(ReplicatedStorage.Shared.Types)
@@ -107,6 +108,24 @@ local function startQuest(player: Player, data: Types.PlayerData, quest: Quests.
 	return true
 end
 
+-- Q-3: the Naskah key prefix of a quest ("m1_kampung" -> "m1", "s1_bibit" -> "s1"). A quest with a dlg.<prefix>.start.1 line
+-- waits for its giver (offered, then started by QuestAccept). Quests without a Naskah line (side_* of v0.2) keep the old
+-- auto start, with no dialog and no `!`.
+local function hasDialog(quest: Quests.Quest): boolean
+	local prefix = string.match(quest.id, "^(.-)_") or quest.id
+	return Locale.has(`dlg.{prefix}.start.1`)
+end
+
+-- Every condition for starting the quest now, except "not auto" and the dialog rule.
+local function isStartable(player: Player, data: Types.PlayerData, quest: Quests.Quest): boolean
+	return quest.blocked == nil
+		and data.quests.done[quest.id] == nil
+		and data.quests.active[quest.id] == nil
+		and data.level >= quest.unlockLevel
+		and (quest.after == nil or data.quests.done[quest.after] == true)
+		and (quest.requireAlbum == nil or BookService.AlbumPercent(player) >= quest.requireAlbum)
+end
+
 -- No quest at all until the player has finished the tutorial that ends with the fish sale (t1b_kolam, "jual ikan ke Kak Fajar").
 -- Old saves that never got t1b_kolam stay locked until they finish it, so a quest can never appear in the middle of a tutorial.
 -- Starts every quest the player now qualifies for. Returns true if something started.
@@ -116,21 +135,15 @@ local function startAvailable(player: Player, data: Types.PlayerData): boolean
 		return false
 	end
 	for _, quest in Quests.list do
-		if
-			quest.blocked == nil
-			and data.quests.done[quest.id] == nil
-			and data.quests.active[quest.id] == nil
-			and data.level >= quest.unlockLevel
-			and (quest.after == nil or data.quests.done[quest.after] == true)
-			and (quest.requireAlbum == nil or BookService.AlbumPercent(player) >= quest.requireAlbum)
-		then
+		if isStartable(player, data, quest) then
 			if quest.auto == true then
 				-- Selesai saat mulai (MQ12, Side Kolektor). Give hewan (kalau ada) dulu; gagal = coba lagi berikutnya.
 				if startQuest(player, data, quest) then
 					started = true
 					finishQuest(player, data, quest)
 				end
-			elseif startQuest(player, data, quest) then
+			elseif not hasDialog(quest) and startQuest(player, data, quest) then
+				-- a quest with a dialog is only offered here (see QuestAccept)
 				started = true
 			end
 		end
@@ -281,6 +294,50 @@ local function syncFeatures(data: Types.PlayerData)
 	end
 end
 
+-- Q-3: quests this player may accept now (startable, not auto, has a Naskah dialog). Sent to the client as QuestOffers;
+-- the client shows `!` on the giver and plays the start dialog, then sends QuestAccept.
+local function offeredIds(player: Player, data: Types.PlayerData): { string }
+	local ids = {}
+	if not TutorialService.KolamDone(data) then
+		return ids
+	end
+	for _, quest in Quests.list do
+		if quest.auto ~= true and hasDialog(quest) and isStartable(player, data, quest) then
+			table.insert(ids, quest.id)
+		end
+	end
+	return ids
+end
+
+local function sendOffers(player: Player)
+	local data = DataService.Get(player)
+	if data then
+		Net.Fire("QuestOffers", player, offeredIds(player, data))
+	end
+end
+
+-- Q-3: the player accepted an offered quest (after its start dialog). The server checks the offer again and starts it.
+local function onAccept(player: Player, questId: any)
+	if typeof(questId) ~= "string" then
+		return
+	end
+	local data = DataService.Get(player)
+	local quest = Quests.byId[questId]
+	if not data or not quest or not table.find(offeredIds(player, data), questId) then
+		sendOffers(player) -- the client drops its "accepted" mark on every answer
+		return
+	end
+	if not startQuest(player, data, quest) then
+		sendOffers(player) -- kandang penuh / belum ada plot: tetap ditawarkan, coba lagi
+		return
+	end
+	advance(player, data, quest, data.quests.active[questId])
+	startAvailable(player, data)
+	syncFeatures(data)
+	InventoryService.Sync(player)
+	sendOffers(player)
+end
+
 local function reportEvent(player: Player, event: string, amount: number?)
 	local data = DataService.Get(player)
 	if not data then
@@ -323,6 +380,7 @@ local function reportEvent(player: Player, event: string, amount: number?)
 		startAvailable(player, data) -- finishing a quest can unlock the next one (`after`)
 		syncFeatures(data)
 		InventoryService.Sync(player)
+		sendOffers(player)
 	end
 end
 
@@ -374,6 +432,7 @@ local function evaluate(player: Player)
 	startAvailable(player, data)
 	syncFeatures(data)
 	InventoryService.Sync(player)
+	sendOffers(player)
 end
 
 -- Setor Kolam Kakek: hanya berpengaruh bila M3 sedang di langkah 1 dan barangnya ada (cek di advance()).
@@ -383,6 +442,10 @@ end
 
 function QuestService.Init()
 	Net.On("QuestReport", onUiReport, { rate = 4, burst = 8 })
+	Net.On("QuestAccept", onAccept, { rate = 4, burst = 8 })
+	Net.On("QuestOffersRequest", function(player: Player)
+		sendOffers(player) -- the client asks once it is ready (a join-time send could arrive before its listener)
+	end, { rate = 2, burst = 4 })
 	Net.On("KakekSetor", onKakekSetor, { rate = 2, burst = 4 })
 	DataService.Loaded:Connect(evaluate)
 	ProgressionService.LevelUp:Connect(evaluate)
