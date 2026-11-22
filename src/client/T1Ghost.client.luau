@@ -1002,7 +1002,7 @@ end
 --   * jual_ikan:  Kak Fajar buys the first fish. No lines after the sale: the sale itself finishes T1b ("Selesai" shows).
 -- No click, no auto-sell, no skip, full price: the beat opens the sale as a bubble choice, waits for the real sale (the
 -- guide flag from the server), says the lines and ends.
-local SALE_BEAT_DISTANCE = 22 -- studs between the player and the NPC's head when the beat starts
+local SALE_BEAT_DISTANCE = Onboarding.SALE_BEAT_RADIUS -- studs (flat) between the player and the NPC when the beat starts; the server sell range is Shop.NPC_DISTANCE
 
 type Beat = {
 	step: string, -- the tutorial step that is live
@@ -1103,7 +1103,7 @@ local function dueBeat(): Beat?
 	for _, beat in BEATS do
 		if live == beat.step and not beatRan[beat.step] and not beat.sold(guide) and (beat.kind == "gift" or hasSellableFor(beat.npc)) then
 			local head = npcHeadOf(beat.npc)
-			if head and (head.Position - root.Position).Magnitude <= SALE_BEAT_DISTANCE then
+			if head and (Vector3.new(head.Position.X, 0, head.Position.Z) - Vector3.new(root.Position.X, 0, root.Position.Z)).Magnitude <= SALE_BEAT_DISTANCE then
 				return beat
 			end
 		end
@@ -1251,22 +1251,19 @@ local function runBeat(beat: Beat, guide: any)
 	-- No "Ngobrol" prompt from the first step of the walk (see runGiftBeat): shown again in restore().
 	PromptGate.Hide()
 
-	-- 1. The player walks up to a spot in front of the NPC (normal camera, nothing held yet).
+	-- 1. The cutscene starts at once: the player is LOCKED (Cutscene.Begin -> PlayerLock). Outside the trigger radius he is
+	-- moved to a fixed stand point in front of the NPC, so he cannot be out of the sell range. (Playtest item 2.)
 	local facing = npcRig:GetPivot().LookVector
 	local front = Vector3.new(facing.X, 0, facing.Z).Unit
 	local npcPos = head.Position
 	local stand = npcPos + front * 5
-	humanoid.WalkSpeed = 16
-	humanoid:MoveTo(Vector3.new(stand.X, root.Position.Y, stand.Z))
-	local waited = 0
-	while waited < 6 and (Vector3.new(root.Position.X, 0, root.Position.Z) - Vector3.new(stand.X, 0, stand.Z)).Magnitude > 3 do
-		task.wait(0.1)
-		waited += 0.1
-	end
-	humanoid:MoveTo(root.Position)
-
-	-- 2. The talk camera: glide to the shot, blur on, player held (the same as any NPC talk).
 	local endCutscene = Cutscene.Begin(npcRig, head, true)
+	local flatDistance = (Vector3.new(root.Position.X, 0, root.Position.Z) - Vector3.new(npcPos.X, 0, npcPos.Z)).Magnitude
+	if flatDistance > Onboarding.SALE_BEAT_RADIUS then
+		character:PivotTo(CFrame.lookAt(Vector3.new(stand.X, root.Position.Y, stand.Z), Vector3.new(npcPos.X, root.Position.Y, npcPos.Z)))
+	end
+
+	-- 2. The talk camera: glide to the shot (the player is already held).
 	saleRestore = function()
 		endCutscene()
 		PromptGate.Show()
@@ -1316,30 +1313,34 @@ local function runBeat(beat: Beat, guide: any)
 	if beat.greet then
 		say(Locale.t(beat.greet, { name = player.DisplayName }))
 	end
-	local chosen = false
-	say(Locale.t(beat.ask), {
-		{
-			text = Locale.t("tut.t1.s4_sell_all"),
-			onChoose = function()
-				chosen = true
-			end,
-		},
-	})
-	while not chosen do
-		task.wait(0.05)
-	end
-	T1Dialog.Hide()
-
-	-- 5. The sale itself: the same server path as the shop (full price, nothing else). Wait for the save to show it.
-	Net.Send("Sell", beat.npc, "all")
-	local sold = 0
-	while sold < 3 do
-		local snap = State.current :: any
-		if snap and snap.guide and beat.sold(snap.guide) then
-			break
+	-- 5. The sale. A rejected sale (or a late save) shows the same bubble again: the beat never ends without the sale.
+	local soldNow = false
+	while not soldNow do
+		local chosen = false
+		say(Locale.t(beat.ask), {
+			{
+				text = Locale.t("tut.t1.s4_sell_all"),
+				onChoose = function()
+					chosen = true
+				end,
+			},
+		})
+		while not chosen do
+			task.wait(0.05)
 		end
-		task.wait(0.1)
-		sold += 0.1
+		T1Dialog.Hide()
+		Net.Send("Sell", beat.npc, "all")
+		local waitedSale = 0
+		while waitedSale < 3 do
+			local snap = State.current :: any
+			if snap and snap.guide and beat.sold(snap.guide) then
+				break
+			end
+			task.wait(0.1)
+			waitedSale += 0.1
+		end
+		local snapNow = State.current :: any
+		soldNow = snapNow ~= nil and snapNow.guide ~= nil and beat.sold(snapNow.guide)
 	end
 
 	-- 6. The lines after the sale (Next after each; none for the fish), then the fade and the controls back.

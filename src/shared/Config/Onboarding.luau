@@ -247,5 +247,8 @@ return {
 	-- FTUE Bab 16.3 (0:50): the first harvest of a new save is always Bagus (no chance roll; Update owner 2026-11-22). Once per save (guide.done.ftue_super).
 	FTUE_FIRST_BAGUS = true,
 	-- Mutasi DIHAPUS (Bab 29): panen pertama dijamin Bagus, Kualitas normal.
+	-- Pemicu adegan jual NPC tutorial (Update owner playtest, item 2): jarak di mana adegan jual (Pak Udin, Kak Fajar) mulai.
+	-- HARUS lebih kecil dari batas jual server (Shop.NPC_DISTANCE = 25 studs). Adegan juga menaruh pemain di titik berdiri.
+	SALE_BEAT_RADIUS = 10,
 	CUTSCENE_MAX_SECONDS = 6, -- Bab 16.2: every FTUE cutscene is at most 6 s (Cutscene logs it, no UI)
 }
