@@ -1368,6 +1368,32 @@ end
 -- Decides, once the guide state is known, whether the intro plays (it then waits for MenuFlow's PLAY).
 local pendingSince = os.clock()
 
+-- Pemicu adegan jual (Update owner playtest, item 1): dicek tiap frame di sisi klien (Heartbeat), tanpa polling.
+local function tryStartBeat()
+	if not guideModule or not tutorialPending() then
+		return
+	end
+	-- JUAL PERTAMA (Bab 16.4): walking up to Pak Udin on the "panen_jual" step starts the beat.
+	local due = if guideModule then dueBeat() else nil
+	if due then
+		beatRan[due.step] = true
+		local guideRef = guideModule
+		task.spawn(function()
+			local ok, err = pcall(if due.kind == "gift" then runGiftBeat else runBeat, due, guideRef)
+			if not ok then
+				warn(`[T1Ghost] jual beat {due.step} failed: {err}`)
+				if saleRestore then
+					saleRestore() -- camera, GUIs and the lock back, whatever stage it died in
+				end
+				Cutscene.End()
+				dialogBusy = false
+			end
+		end)
+	end
+end
+
+RunService.Heartbeat:Connect(tryStartBeat)
+
 task.spawn(function()
 	while true do
 		local guide = guideData()
@@ -1433,23 +1459,6 @@ task.spawn(function()
 							end)
 						end
 					end
-				end
-				-- JUAL PERTAMA (Bab 16.4): walking up to Pak Udin on the "panen_jual" step starts the beat.
-				local due = if guideModule then dueBeat() else nil
-				if due then
-					beatRan[due.step] = true
-					local guideRef = guideModule
-					task.spawn(function()
-						local ok, err = pcall(if due.kind == "gift" then runGiftBeat else runBeat, due, guideRef)
-						if not ok then
-							warn(`[T1Ghost] jual beat {due.step} failed: {err}`)
-							if saleRestore then
-								saleRestore() -- camera, GUIs and the lock back, whatever stage it died in
-							end
-							Cutscene.End()
-							dialogBusy = false
-						end
-					end)
 				end
 				-- T1 is over (the sale): T1b starts, once.
 				if
