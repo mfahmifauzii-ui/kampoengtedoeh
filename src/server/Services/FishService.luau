@@ -29,6 +29,7 @@ local Locale = require(ReplicatedStorage.Shared.Locale)
 local Map = require(ReplicatedStorage.Shared.Config.Map)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local DataService = require(script.Parent.DataService)
+local FeatureGate = require(script.Parent.FeatureGate)
 local InventoryService = require(script.Parent.InventoryService)
 local NpcService = require(script.Parent.NpcService)
 local PlotService = require(script.Parent.PlotService)
@@ -541,7 +542,16 @@ local function startPondCast(player: Player, spot: BasePart, data: Types.PlayerD
 	scheduleBite(player, session, biteDelay)
 end
 
+-- Q-2 feature gate untuk spot: kolam (pond), kanal barat (Location sungai), empang.
+local SPOT_FEATURE: { [string]: string } = { kolam = "kolam", sungai = "kanal_barat", empang = "empang" }
+local function spotOpen(player: Player, spot: BasePart): boolean
+	local loc = spot:GetAttribute("Location")
+	local feature = if typeof(loc) == "string" then SPOT_FEATURE[loc] else nil
+	return feature == nil or FeatureGate.Check(player, feature)
+end
+
 local function startCast(player: Player, spot: BasePart)
+	if not spotOpen(player, spot) then return end
 	local data = DataService.Get(player)
 	local location = spot:GetAttribute("Location")
 	if not data or typeof(location) ~= "string" then
@@ -781,6 +791,7 @@ end
 
 -- PondDeposit(uid, itemId): one fish from the bag into the pond stock. Owner, distance, fish, capacity are checked here.
 local function onDeposit(player: Player, uid: any, itemId: any)
+	if not FeatureGate.Check(player, "kolam") then return end
 	if typeof(uid) ~= "number" or typeof(itemId) ~= "string" then
 		return
 	end
@@ -816,6 +827,7 @@ end
 
 -- PondWithdraw(uid, index): one fish from the stock back into the bag.
 local function onWithdraw(player: Player, uid: any, index: any)
+	if not FeatureGate.Check(player, "kolam") then return end
 	if typeof(uid) ~= "number" or typeof(index) ~= "number" then
 		return
 	end

@@ -7,6 +7,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
+local FeatureGate = require(script.Parent.FeatureGate)
 local BookService = require(script.Parent.BookService)
 local Crops = require(ReplicatedStorage.Shared.Config.Crops)
 local Decor = require(ReplicatedStorage.Shared.Config.Decor)
@@ -88,6 +89,7 @@ local function restockState(data: Types.PlayerData): { restock: number, bought: 
 end
 
 local function onGerobakBuy(player: Player, slotIndex: any)
+	if not FeatureGate.Check(player, "gerobak") then return end
 	if TutorialService.NpcBlocked(player, nil) then
 		Net.Fire("Notify", player, "npc.tut_block") -- Bab 16.3: no order/event/social while Tutorial 1 runs
 		return

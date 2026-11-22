@@ -140,7 +140,7 @@ return {
 	GARAM_PRICE = 10, -- Garam di Pak Udin (Bab 9.2)
 	DAPUR_SIZE = { 2, 2 }, -- sel grid (auto-place; "ditaruh bebas" = drag Studio, menyusul)
 	WARUNG_SIZE = { 2, 2 },
-	WARUNG_UNLOCK = 6,
+	WARUNG_UNLOCK = 7,
 	WARUNG_VISIT_MIN = 300, -- NPC tiap 5-10 mnt random (detik)
 	WARUNG_VISIT_MAX = 600,
 	WARUNG_OFFLINE_MAX = 5, -- max penjualan per login saat offline

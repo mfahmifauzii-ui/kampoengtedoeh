@@ -19,6 +19,7 @@ local TutorialService = require(script.Parent.TutorialService)
 local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
+local FeatureGate = require(script.Parent.FeatureGate)
 local EconomyService = require(script.Parent.EconomyService)
 local FarmService = require(script.Parent.FarmService)
 local InventoryService = require(script.Parent.InventoryService)
@@ -281,6 +282,7 @@ end
 -- barang pembantu; tidak bisa bantu lahan sendiri. Siram -> Basah (ikut peluang Bagus/Prima).
 -- Panen -> hasil masuk tas pemilik + 1 bibit sejenis bonus, Kualitas tetap milik pemilik.
 local function onBantu(helper: Player, ownerId: any, kind: any)
+	if not FeatureGate.Check(helper, "bantu") then return end
 	if TutorialService.NpcBlocked(helper, nil) then
 		Net.Fire("Notify", helper, "npc.tut_block") -- Bab 16.3: no order/event/social while Tutorial 1 runs
 		return

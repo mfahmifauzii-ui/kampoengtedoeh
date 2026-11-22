@@ -14,6 +14,7 @@ local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
+local FeatureGate = require(script.Parent.FeatureGate)
 local EconomyService = require(script.Parent.EconomyService)
 local FarmService = require(script.Parent.FarmService)
 local InventoryService = require(script.Parent.InventoryService)
@@ -68,6 +69,7 @@ local function isComplete(def: Bundel.Bundel, given: { [string]: number }): bool
 end
 
 local function onGive(player: Player, bundelId: any, itemId: any, count: any)
+	if not FeatureGate.Check(player, "bundel") then return end
 	if typeof(bundelId) ~= "string" or typeof(itemId) ~= "string" then
 		return
 	end

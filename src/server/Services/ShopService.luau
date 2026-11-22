@@ -19,6 +19,7 @@ local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Trade = require(ReplicatedStorage.Shared.Modules.Trade)
 local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
+local FeatureGate = require(script.Parent.FeatureGate)
 local EconomyService = require(script.Parent.EconomyService)
 local FishService = require(script.Parent.FishService)
 local PondService = require(script.Parent.PondService)
@@ -75,6 +76,7 @@ end
 -- Selling --------------------------------------------------------------------------
 
 local function onSell(player: Player, npcId: any, target: any, amount: any)
+	if typeof(npcId) == "string" and string.sub(npcId, 1, 9) == "bang_jali" and not FeatureGate.Check(player, "jual_bang_jali") then return end
 	if typeof(target) ~= "string" then
 		return
 	end

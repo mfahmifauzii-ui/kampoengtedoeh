@@ -18,6 +18,7 @@ local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
+local FeatureGate = require(script.Parent.FeatureGate)
 local EconomyService = require(script.Parent.EconomyService)
 local InventoryService = require(script.Parent.InventoryService)
 local PlotService = require(script.Parent.PlotService)
@@ -285,6 +286,7 @@ local function reportQuest(player: Player, event: string, amount: number?)
 end
 
 local function onKandang(player: Player, hewanId: any, tier: any)
+	if typeof(hewanId) == "string" and not FeatureGate.Check(player, "kandang_" .. hewanId) then return end
 	if typeof(hewanId) ~= "string" or (tier ~= 1 and tier ~= 2) then
 		return
 	end
@@ -342,6 +344,7 @@ end
 
 -- Beli 1 ekor (kandang harus ada + ada slot kosong).
 local function onHewan(player: Player, hewanId: any)
+	if typeof(hewanId) == "string" and not FeatureGate.Check(player, "kandang_" .. hewanId) then return end
 	if typeof(hewanId) ~= "string" then
 		return
 	end

@@ -14,6 +14,7 @@ local DecorGrid = require(ReplicatedStorage.Shared.Modules.DecorGrid)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
+local FeatureGate = require(script.Parent.FeatureGate)
 local EconomyService = require(script.Parent.EconomyService)
 local InventoryService = require(script.Parent.InventoryService)
 local PlotService = require(script.Parent.PlotService)
@@ -160,6 +161,7 @@ local function processSales(player: Player, data: Types.PlayerData, now: number,
 end
 
 local function onBuild(player: Player)
+	if not FeatureGate.Check(player, "warung") then return end
 	local data = DataService.Get(player)
 	if not data or data.warung.spot then
 		return
@@ -189,6 +191,7 @@ end
 
 -- Pajang 1 jenis olahan (semua unit yang dipunyai). Hanya olahan, bukan mentah (Bab 9.3).
 local function onDisplay(player: Player, itemId: any)
+	if not FeatureGate.Check(player, "warung") then return end
 	if typeof(itemId) ~= "string" then
 		return
 	end

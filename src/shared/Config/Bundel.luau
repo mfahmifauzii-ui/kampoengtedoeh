@@ -21,7 +21,7 @@ export type Bundel = {
 local list: { Bundel } = {
 	{
 		id = "sumur_tua",
-		unlockLevel = 6,
+		unlockLevel = 8,
 		size = "4x4",
 		needs = {
 			{ need = "kayu", count = 10 },

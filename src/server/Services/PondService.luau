@@ -32,6 +32,7 @@ local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Types = require(ReplicatedStorage.Shared.Types)
 local Upgrades = require(ReplicatedStorage.Shared.Modules.Upgrades)
 local DataService = require(script.Parent.DataService)
+local FeatureGate = require(script.Parent.FeatureGate)
 local EconomyService = require(script.Parent.EconomyService)
 local RanchService = require(script.Parent.RanchService)
 local FishService = require(script.Parent.FishService)
@@ -419,6 +420,7 @@ end
 -- Requests ----------------------------------------------------------------------------
 
 local function onBuild(player: Player, cx: any, cz: any)
+	if not FeatureGate.Check(player, "kolam") then return end
 	if not isCell(cx) or not isCell(cz) then
 		return
 	end

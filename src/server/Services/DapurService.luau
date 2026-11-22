@@ -18,6 +18,7 @@ local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Types = require(ReplicatedStorage.Shared.Types)
 local random = Random.new()
 local DataService = require(script.Parent.DataService)
+local FeatureGate = require(script.Parent.FeatureGate)
 local InventoryService = require(script.Parent.InventoryService)
 local PlotService = require(script.Parent.PlotService)
 local ProgressionService = require(script.Parent.ProgressionService)
@@ -315,6 +316,7 @@ end
 
 -- Bangun Inti Tier 1 (Lv 6). Tanpa Koin, hanya bahan (v7.3 tak memberi harga Koin).
 local function onBuild(player: Player)
+	if not FeatureGate.Check(player, "dapur") then return end
 	local data = DataService.Get(player)
 	if not data or data.dapur.tier > 0 then
 		return
@@ -387,6 +389,7 @@ end
 
 -- Masak: slot 0 = otomatis (slot kosong pertama). Kualitas dihitung saat mulai.
 local function onCook(player: Player, slot: any, recipeId: any)
+	if not FeatureGate.Check(player, "dapur") then return end
 	if typeof(slot) ~= "number" or typeof(recipeId) ~= "string" then
 		return
 	end

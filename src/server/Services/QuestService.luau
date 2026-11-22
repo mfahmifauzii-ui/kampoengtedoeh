@@ -239,6 +239,47 @@ local function reportAnyOf(player: Player, data: Types.PlayerData, quest: Quests
 	end
 end
 
+-- Q-2 feature gate: the states follow the quest progress (no separate event, and it works for old saves).
+-- Done quest -> its reveals are open. Active quest -> reveals of finished steps are open, reveal of the current step is
+-- introduced. A state never goes back (open stays open).
+local function setFeature(data: Types.PlayerData, id: string, state: string)
+	local current = data.features[id]
+	if current == "open" then
+		return
+	end
+	if state == "open" or current == nil then
+		data.features[id] = state
+	end
+end
+
+local function syncFeatures(data: Types.PlayerData)
+	if typeof(data.features) ~= "table" then
+		data.features = {}
+	end
+	for _, quest in Quests.list do
+		if data.quests.done[quest.id] == true then
+			for _, step in quest.steps do
+				if step.reveals then
+					setFeature(data, step.reveals, "open")
+				end
+			end
+		else
+			local progress = data.quests.active[quest.id]
+			if progress then
+				for index, step in quest.steps do
+					if step.reveals then
+						if index < progress.step then
+							setFeature(data, step.reveals, "open")
+						elseif index == progress.step then
+							setFeature(data, step.reveals, "introduced")
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
 local function reportEvent(player: Player, event: string, amount: number?)
 	local data = DataService.Get(player)
 	if not data then
@@ -279,6 +320,7 @@ local function reportEvent(player: Player, event: string, amount: number?)
 
 	if changed then
 		startAvailable(player, data) -- finishing a quest can unlock the next one (`after`)
+		syncFeatures(data)
 		InventoryService.Sync(player)
 	end
 end
@@ -315,6 +357,7 @@ local function evaluate(player: Player)
 		rollMingguan(data, os.time())
 	end
 	startAvailable(player, data)
+	syncFeatures(data)
 	for questId, progress in data.quests.active do
 		local quest = Quests.byId[questId]
 		if not quest then
@@ -324,6 +367,7 @@ local function evaluate(player: Player)
 		end
 	end
 	startAvailable(player, data)
+	syncFeatures(data)
 	InventoryService.Sync(player)
 end
 

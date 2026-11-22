@@ -84,6 +84,7 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		ponds = pondCells(data),
 		pondState = pondStateFor(data), -- breeding per kolam (uid, tier, kakek, breed) untuk UI
 		pondKakek = data.pond.kakekUnlocked == true or data.level >= Fishing.POND.UNLOCK_LEVEL, -- gate kolam: Lv 2 (Fishing.POND.UNLOCK_LEVEL) atau Kolam Kakek pulih. Tombol Kolam ikut ini.
+		features = table.clone(data.features or {}), -- Q-2 feature gate (client UI nanti)
 		ranch = data.ranch, -- kandang + hewan + mood untuk panel Ternak
 		bundel = data.bundel, -- Bundel Kakek (Bab 14.6): [id] = { given, done } + sumur_day (UI mendatang)
 		dapur = { tier = data.dapur.tier, slots = table.clone(data.dapur.slots) },

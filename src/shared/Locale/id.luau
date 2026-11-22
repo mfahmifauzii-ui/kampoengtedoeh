@@ -198,6 +198,7 @@ return {
 	["rod.gift_again"] = "Kak Fajar sudah memberimu joran. Selamat memancing!",
 	["pond.count"] = "{n}/{cap} ikan",
 	["pond.empty"] = "Kolam masih kosong",
+	["feature.locked"] = "Belum terbuka. Ikuti quest dulu.",
 	["pond.deposited"] = "{item} masuk kolam",
 	["pond.withdrew"] = "{item} kembali ke tas",
 	["pond.full"] = "Kolam penuh",

@@ -135,6 +135,7 @@ export type PlayerData = {
 	},
 	surat: { lastDay: string, logins: number, progress: number, done: { [number]: boolean } },
 	bundel: { [string]: any }, -- Bundel Kakek (Bab 14.6): [id] = { given, done } + sumur_day
+	features: { [string]: string }, -- Q-2 feature gate: "introduced" | "open" per fitur quest (FeatureGate)
 	pond: {
 		list: { PondEntry },
 		nextUid: number,

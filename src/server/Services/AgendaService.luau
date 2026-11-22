@@ -12,6 +12,7 @@ local Quests = require(ReplicatedStorage.Shared.Config.Quests)
 local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
+local FeatureGate = require(script.Parent.FeatureGate)
 local InventoryService = require(script.Parent.InventoryService)
 local ProgressionService = require(script.Parent.ProgressionService)
 
@@ -55,7 +56,7 @@ end
 -- Agenda terbuka saat quest M1 "Kampung Hari Ini" mulai atau sudah selesai (Quest v0.3 Bab 5: Tombol Agenda = M1).
 -- M1 sendiri punya langkah "Buka Agenda", jadi gate-nya tidak boleh menunggu M1 selesai.
 function AgendaService.IsOpen(data: Types.PlayerData): boolean
-	return data.quests.done.m1_kampung == true or data.quests.active.m1_kampung ~= nil
+	return FeatureGate.IsUsable(data, "agenda")
 end
 
 function AgendaService.Roll(data: Types.PlayerData, now: number)

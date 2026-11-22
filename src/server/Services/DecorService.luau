@@ -11,6 +11,7 @@ local DecorGrid = require(ReplicatedStorage.Shared.Modules.DecorGrid)
 local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Types = require(ReplicatedStorage.Shared.Types)
+local FeatureGate = require(script.Parent.FeatureGate)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
 local QuestService = require(script.Parent.QuestService)
@@ -110,6 +111,7 @@ end
 -- Requests ----------------------------------------------------------------------------
 
 local function onPlace(player: Player, itemId: any, x: any, z: any, r: any)
+	if not FeatureGate.Check(player, "hias") then return end
 	local data = DataService.Get(player)
 	local plot = PlotService.GetPlot(player)
 	local item = typeof(itemId) == "string" and Decor.byId[itemId] or nil

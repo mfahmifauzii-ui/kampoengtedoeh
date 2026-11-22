@@ -19,6 +19,7 @@ local Farm = require(ReplicatedStorage.Shared.Config.Farm)
 local Mining = require(ReplicatedStorage.Shared.Config.Mining)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Types = require(ReplicatedStorage.Shared.Types)
+local FeatureGate = require(script.Parent.FeatureGate)
 local DataService = require(script.Parent.DataService)
 local InventoryService = require(script.Parent.InventoryService)
 local QuestService = require(script.Parent.QuestService)
@@ -95,6 +96,7 @@ end
 -- Requests ------------------------------------------------------------------
 
 local function onHit(player: Player, nodeId: any, crit: any)
+	if not FeatureGate.Check(player, "hutan") then return end
 	if typeof(nodeId) ~= "string" then
 		return
 	end
@@ -172,6 +174,7 @@ local function onHit(player: Player, nodeId: any, crit: any)
 end
 
 local function onCraft(player: Player, recipeId: any, times: any)
+	if not FeatureGate.Check(player, "craft") then return end
 	if typeof(recipeId) ~= "string" or (times ~= 1 and times ~= 10) then
 		return
 	end

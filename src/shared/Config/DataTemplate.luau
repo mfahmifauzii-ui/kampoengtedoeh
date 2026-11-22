@@ -6,7 +6,8 @@ local Economy = require(script.Parent.Economy)
 local Types = require(script.Parent.Parent.Types)
 
 local template: Types.PlayerData = {
-	version = 74, -- B-3: pond.list[].stock (no migration: an old entry without stock is read as empty)
+	version = 75, -- B-3: pond.list[].stock (no migration: an old entry without stock is read as empty)
+	features = {}, -- Q-2: diisi QuestService.syncFeatures (no migration; old saves get {} then quest progress fills it)
 
 	koin = Economy.START_KOIN,
 	bunga = Economy.START_BUNGA,
