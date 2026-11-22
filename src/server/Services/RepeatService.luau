@@ -460,8 +460,10 @@ local function kbStart()
 		prompt.HoldDuration = 0
 		prompt.MaxActivationDistance = 12
 		prompt.RequiresLineOfSight = false
+		prompt:SetAttribute("Feature", "gerobak") -- Q-2: client hides this prompt while the gerobak feature is closed
 		prompt.Parent = part
 		prompt.Triggered:Connect(function(triggered: Player)
+			if not FeatureGate.Check(triggered, "gerobak") then return end -- Q-2 server gate (same as the other gerobak actions)
 			RepeatService.KBCollect(triggered, part)
 		end)
 		table.insert(kb.parts, part)

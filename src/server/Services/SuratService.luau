@@ -11,6 +11,7 @@ local Surat = require(ReplicatedStorage.Shared.Config.Surat)
 local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
+local FeatureGate = require(script.Parent.FeatureGate)
 local InventoryService = require(script.Parent.InventoryService)
 local ProgressionService = require(script.Parent.ProgressionService)
 
@@ -45,6 +46,11 @@ function SuratService.Report(player: Player, event: string, add: number)
 	if not data then
 		return
 	end
+	-- Q-2 gate "surat": gameplay events do not progress surat while the feature is closed. Silent (no toast): this is
+	-- not a player request, only a side effect of a harvest/bantu/mancing event.
+	if not FeatureGate.IsUsable(data, "surat") then
+		return
+	end
 	local n = current(data)
 	if n == 0 or n > data.surat.logins then
 		return -- surat belum dibuka (1 per hari login)
@@ -76,7 +82,8 @@ function SuratService.Init()
 			InventoryService.Sync(player)
 		end
 		local n = current(data)
-		if n > 0 and n <= data.surat.logins then
+		-- Q-2 gate "surat": the login toast only once the feature is open (login counting is unchanged).
+		if n > 0 and n <= data.surat.logins and FeatureGate.IsUsable(data, "surat") then
 			-- Surat baru hari ini (atau tertunda): tampilkan teksnya 1x per login.
 			Net.Fire("Notify", player, "surat.new", { text = `surat.{n}.text` })
 		end

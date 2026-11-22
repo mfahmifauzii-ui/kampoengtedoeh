@@ -16,6 +16,7 @@ local Types = require(ReplicatedStorage.Shared.Types)
 local AgendaService = require(script.Parent.AgendaService)
 local BookService = require(script.Parent.BookService)
 local DataService = require(script.Parent.DataService)
+local FeatureGate = require(script.Parent.FeatureGate)
 local InventoryService = require(script.Parent.InventoryService)
 local ProgressionService = require(script.Parent.ProgressionService)
 local RanchService = require(script.Parent.RanchService)
@@ -332,6 +333,10 @@ end
 -- Event dari klien untuk UI yang tidak punya remote sendiri (buka Agenda, lihat Gerobak, baca Surat).
 local function onUiReport(player: Player, event: any)
 	if typeof(event) ~= "string" or UI_EVENTS[event] ~= true then
+		return
+	end
+	-- Q-2 gate "surat": baca surat hanya bila fitur terbuka (introduced saat langkah s2_surat aktif, open setelah selesai).
+	if event == "surat_read" and not FeatureGate.Check(player, "surat") then
 		return
 	end
 	reportEvent(player, event, 1)
