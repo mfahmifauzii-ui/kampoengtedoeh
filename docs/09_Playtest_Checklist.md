@@ -223,5 +223,6 @@ Tempel juga **teks merah/kuning dari panel Output** bila ada. Tidak perlu meneba
 | Putaran | Tanggal | Bagian diuji | Ringkasan temuan (jumlah B / M / S) | Keputusan revisi tercatat (K-nn rev.) |
 |---------|---------|--------------|-------------------------------------|----------------------------------------|
 | 1 | 2026-11-23 | Owner, HP (844×390, 667×375, 390×844) | 18 temuan (#1–#18): A bug, B tutorial, C mancing UI, D quest, E event | K-53 … K-57 |
+| 2 | 2026-11-23 | Owner (lanjutan putaran 1), HP | Lanjutan: R2.x, Quest Log, Season, E2/E3, Gembor (lihat Roadmap Bab 20) | K-58 … K-63 |
 
 > Masukan yang mengubah **aturan desain** (bukan bug) dicatat Claude sebagai `K-nn rev.` di `02_Audit_Perbaikan.md` Bab 3.6, lalu GDD naik versi (v8.2, …). Bug cukup jadi tugas `R…` baru.

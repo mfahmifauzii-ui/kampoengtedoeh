@@ -1,5 +1,5 @@
 --!strict
--- Buff Olahan (docs/01_GDD_Kampoeng_Tedoeh_v8.3.md Bab 9.4, LOCKED). Olahan bisa dijual ATAU dimakan sendiri.
+-- Buff Olahan (docs/01_GDD_Kampoeng_Tedoeh_v8.4.md Bab 9.4, LOCKED). Olahan bisa dijual ATAU dimakan sendiri.
 -- Cuma 1 buff aktif, tidak stack. Makan Olahan baru = ganti buff lama.
 -- Durasi dari Kualitas Olahan: Biasa 10 mnt / Bagus 12 mnt / Prima 15 mnt. Timer real-time, tidak pause offline.
 -- Hanya kegiatan AKTIF. Yang TIDAK kena buff (pasif, haram): Cooldown Ternak, Breeding Kolam, Waktu Masak Dapur,

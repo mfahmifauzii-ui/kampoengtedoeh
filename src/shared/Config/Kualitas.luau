@@ -1,5 +1,5 @@
 --!strict
--- Kualitas Panen (docs/01_GDD_Kampoeng_Tedoeh_v8.3.md Bab 5.4, LOCKED). Kualitas ditentukan saat panen, dari timing + siram.
+-- Kualitas Panen (docs/01_GDD_Kampoeng_Tedoeh_v8.4.md Bab 5.4, LOCKED). Kualitas ditentukan saat panen, dari timing + siram.
 -- Nil (Biasa) = panen biasa, tidak ada prefix di id item. Bagus / Prima jadi prefix: "bagus_<crop>" / "prima_<crop>".
 -- Super DIHAPUS (Update owner 2026-11-22). Harga = sellPrice x mult (Bab 17.7).
 --

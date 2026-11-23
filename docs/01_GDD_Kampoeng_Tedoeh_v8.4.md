@@ -1,4 +1,4 @@
-# KAMPOENG TEDOEH — Game Design Document v8.3
+# KAMPOENG TEDOEH — Game Design Document v8.4
 ## Single Source of Truth (gameplay, angka, aturan)
 
 > Menggantikan `Kampoeng_Tedoeh_v7.4.md`, `v7.5.md`, `v7.6.md`, `v7.7.md`, dan `Skill_Tree_Kampoeng_Tedoeh_v7.7.md` (sekarang Bab 4.5).
@@ -810,6 +810,7 @@ Bunga per bangunan pulih: **10 Bunga** ✔ K-31; menggantikan "5 Bunga" di M9 (t
 
 - Permintaan NPC setor barang spesifik (contoh `Bawakan 5 Kangkung Bagus ke Pak Udin`). Beda dari Agenda.
 - Daily 3 + Weekly 1, reset 05:00 WIB. Pemberi: Pak Udin, Kak Fajar, Pak Amran, Mak Sari, Nek Ani.
+- Mingguan (v8.4, K-60): 4 jenis barang, jumlah ×3, hadiah ×3, XP ×0,5 (`Config/Orders`: WEEKLY_TYPES, WEEKLY_COUNT_MULT, WEEKLY_REWARD_MULT, WEEKLY_XP_MULT).
 - Hadiah = nilai jual × 1,5 (Daily) / × 3 (Weekly), Koin + XP saja.
 - Reroll 2 Bunga, maks 1x per order per hari, tier sama.
 - Tidak selesai = hilang saat reset, tanpa hukuman.
@@ -1013,6 +1014,15 @@ Gembor Bunga (siram 5 petak) 100 · Sabit Bunga (panen 5 petak) 100 · Kapak Bun
 Kolam: 1 Bunga per 10 menit sisa, maks 30. Bubu tidak bisa instant. Tidak ada instant panen / olahan.
 
 ---
+
+## Revisi Putaran 2 (v8.4, K-58…K-63)
+
+- **Quest Season "Bantu 20 lahan" (K-58):** 500 Koin, tanpa Bunga; kartu di Hadiah > Musim; hanya setelah Bantu terbuka.
+- **Album dekor (K-59):** hanya entri yang sudah dibangun dihitung; piece yang belum ada disembunyikan. Isi 80 piece = R4.8.
+- **Order Mingguan (K-60):** lihat 14.7.
+- **Warna dinding (K-61):** pemilih warna = R3.9, belum dibuat.
+- **Gembor Emas (K-62):** kosmetik di tab Alat, dipasang lewat Pakai. Quest side_prima memberi item ini.
+- **Jual Semua (K-63):** hilang bersama pindahnya penjualan Pasar ke bubble lapak (E2).
 
 ## Revisi Playtest Putaran 1 (v8.3, K-53…K-57)
 

@@ -36,7 +36,7 @@ return {
 		return if n <= TILE_FREE then 0 else n * TILE_COST
 	end,
 
-	-- Alat Koin (docs/01_GDD_Kampoeng_Tedoeh_v8.3.md Bab 17.5, LOCKED). Bought with Koin + bahan from Pak Udin (Alat section).
+	-- Alat Koin (docs/01_GDD_Kampoeng_Tedoeh_v8.4.md Bab 17.5, LOCKED). Bought with Koin + bahan from Pak Udin (Alat section).
 	-- mats = bahan (P2-1: belum ada sumber, belum bisa dipenuhi). cells = petak per tap (garis, gembor/sabit).
 	-- Efek sabit (panen garis) + sepatu (jalan) + kapak (bonus bahan) di-wire di P2; gembor garis jalan sekarang.
 	TOOLS = {

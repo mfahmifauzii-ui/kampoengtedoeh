@@ -8,7 +8,7 @@
 | File | Isi | Siapa yang paling sering pakai |
 |------|-----|-------------------------------|
 | `00_README_Docs.md` | Peta dokumen, aturan, cara pakai | Semua |
-| `01_GDD_Kampoeng_Tedoeh_v8.3.md` | **Sumber kebenaran gameplay**: semua angka, aturan, sistem, Skill Tree | Claude Code |
+| `01_GDD_Kampoeng_Tedoeh_v8.4.md` | **Sumber kebenaran gameplay**: semua angka, aturan, sistem, Skill Tree | Claude Code |
 | `02_Audit_Perbaikan.md` | 83 temuan kontradiksi/gap + **Keputusan K-01…K-42 (semua DIPUTUSKAN)** + riwayat keputusan final | Claude Code |
 | `03_Quest_Naskah.md` | Feature gate, rantai Main/Side Quest, semua teks dialog | Claude Code |
 | `04_Asset_Bible.md` | Arah gaya, anggaran performa, daftar 3D, animasi, VFX, SFX, musik, ikon | Claude Code (jalur aset) |

@@ -1570,8 +1570,8 @@ function UiKit.toastStack(screenGui: ScreenGui): Frame
 		local width = UiKit.toastWidth(view.X)
 		if width <= UiKit.HUD.TRACKER_W then
 			-- Narrow portrait: under the quest tracker, in its column.
-			local playerGui = screenGui.Parent
-			local questUi = if playerGui then playerGui:FindFirstChild("QuestUI") else nil
+			local guiParent = screenGui.Parent
+			local questUi = if guiParent then guiParent:FindFirstChild("QuestUI") else nil
 			local tracker = if questUi then questUi:FindFirstChild("Tracker") else nil
 			if tracker and tracker:IsA("GuiObject") and tracker.Visible then
 				top = math.max(top, tracker.AbsolutePosition.Y + tracker.AbsoluteSize.Y + UiKit.TOAST_GAP) -- never above the bar / bubble floor

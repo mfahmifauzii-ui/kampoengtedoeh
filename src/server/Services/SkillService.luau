@@ -1,5 +1,5 @@
 --!strict
--- Skill Tree (docs/01_GDD_Kampoeng_Tedoeh_v8.3.md Bab 4.5): beli 1 level = 1 SP + 3.000 Koin. Tidak ada reset.
+-- Skill Tree (docs/01_GDD_Kampoeng_Tedoeh_v8.4.md Bab 4.5): beli 1 level = 1 SP + 3.000 Koin. Tidak ada reset.
 -- Server authority: prasyarat, SP, Koin, dan batas maks dicek di sini. Semua pengecekan dilakukan sebelum ada yang dipotong,
 -- jadi pembelian gagal tanpa mengubah saldo. Hasilnya dikembalikan ke klien sebagai alasan (SkillBuy, RemoteFunction).
 

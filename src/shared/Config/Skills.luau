@@ -1,5 +1,5 @@
 --!strict
--- Skill Tree (docs/01_GDD_Kampoeng_Tedoeh_v8.3.md Bab 4.5, the single source of truth). 16 skill, 6 cabang, max Lv 5 each.
+-- Skill Tree (docs/01_GDD_Kampoeng_Tedoeh_v8.4.md Bab 4.5, the single source of truth). 16 skill, 6 cabang, max Lv 5 each.
 --   Beli: 1 SP + Koin naik per level, 1.000 x level berikutnya (K-12, GDD 4.5.1). Tidak ada reset. Tidak pakai Bunga / Robux.
 --   Prasyarat (Bab 2), semua opsional kecuali yang tertulis:
 --     level   = Player Lv minimum

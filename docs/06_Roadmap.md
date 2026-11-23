@@ -26,7 +26,7 @@
 
 ```
 Task R<id> — <title>
-Read first: docs/06_Roadmap.md (R<id>), docs/01_GDD_Kampoeng_Tedoeh_v8.3.md (Bab ...),
+Read first: docs/06_Roadmap.md (R<id>), docs/01_GDD_Kampoeng_Tedoeh_v8.4.md (Bab ...),
 docs/02_Audit_Perbaikan.md (K-.. must be DIPUTUSKAN), docs/05_GUI_Spec.md / 04_Asset_Bible.md if relevant.
 Goal: <one sentence>.
 Done when: <copy "Selesai kalau" from the roadmap row>.
@@ -154,6 +154,7 @@ Butuh: R0.3 selesai.
 | R3.6 | Tas (8 tab + Drawer + Makan), Album rapi, Atur lengkap, Menu awal & loading | GUI 6.10 | ★ | M |
 | R3.7 | Pass layar & aksesibilitas: 4 resolusi, toast vs bubble (K-40), layer coachmark vs toast (A-72), kualitas pakai bentuk + warna, teks ≥ 12 | GUI 3, 4 | ★ | M |
 | R3.8 | **Lempar Gelang minigame:** bar bergerak, tap berhenti; zona 60/30/10% (kecil/sedang/besar); 3 lemparan per malam; Pasar Malam jadi tempat di dunia (K-57) | K-57 | Hadiah sesuai zona; 3 lemparan per malam; tidak ada menu jual | | S |
+| R3.9 | Hias GUI "Warna Dinding": 12 warna muted (Asset Bible Bab 1) + "Dinding Spesial" (K-61) | K-61 | Warna terpasang di dinding dekor dan tersimpan | | S |
 | R3.8 | Pasang semua ikon dari R4.2 ke `Config/UiAssets`, hapus fallback pil teks | Asset Bible 10 | ★ | S |
 | R3.9 | `UiKit.sheet` kind list/grid/wide menggantikan `panel` di semua controller; hapus `Instance.new` manual yang punya komponen | GUI 5, 7 | | M |
 
@@ -305,3 +306,27 @@ Urutan: A bug → B tutorial → C mancing UI → D quest → E event/pasar. Sat
 | RP1.E1 | Tombol Event hanya saat event aktif (#12) | K-57 | Tidak tampil saat tidak ada event | S |
 | RP1.E2 | Pasar Malam tempat di dunia, Pak Kumis NPC, jual lewat bubble (#13) | K-57 | Tidak ada jual dari menu | M |
 | RP1.E3 | Lempar Gelang minigame (= R3.8) | K-57 | Zona 60/30/10; 3 lemparan | M |
+
+---
+
+## 20. Putaran Playtest 2 (K-58…K-63 + backlog Fase 2)
+
+Urutan (satu tugas = satu commit, selene 0 error, rojo exit 0):
+
+| ID | Tugas | Dasar | Selesai kalau |
+|----|-------|-------|---------------|
+| RP2.V | Verifikasi putaran 1: Play D1/D2, warning selene, cek server | Hutang | Hasil Play dicatat per item |
+| RP2.2 | R2.2 Agenda UI di Papan Hari Ini; M1 dibuka; M1 sampai MQ11 bisa jalan | GDD 14.5, GUI 6.9 | Tiap langkah bisa dipicu dan state dicatat |
+| RP2.D2 | Jalan-jalan quest Main + Side, tiap langkah ada baris instruksi | 03 Langkah | Tabel per langkah di laporan |
+| RP2.D4 | Quest Log (tab Main, Side, Harian, Pesanan; dua panel) | K-56 | Sesuai 05 Bab 9.1 |
+| RP2.S | Season "Bantu 20 lahan" | K-58 | Progres tersimpan, hadiah 500 Koin |
+| RP2.E2 | Pasar Malam tempat di dunia, Pak Kumis NPC, jual lewat bubble | K-57, K-63 | Tidak ada jual dari menu |
+| RP2.E3 | Lempar Gelang minigame (= R3.8) | K-57 | Zona 60/30/10, 3 lemparan |
+| RP2.G | Gembor Emas (K-62) | K-62 | Pakai di Alat, side_prima memberi item |
+| RP2.1 | R2.1 Bubu, buka M8 | GDD 6.6 | Pasang, 6 jam, panen offline |
+| RP2.5 | R2.5 Kebun Warga, buka Bantu dan S6 | K-17 | S6 selesai sendiri di server kosong |
+| RP2.10 | R2.10 Analytics lewat AnalyticsService | GDD 25.2 | Event tercatat di Output |
+| RP2.11 | R2.11 Settings (Mode Bantu, Efek rendah, Kurangi gerak, 4 grup volume, Haptic, Notif Gerobak) | GDD 2.3 | Tiap opsi tersimpan dan berpengaruh |
+| RP2.6–9, 12 | R2.6 Blueprint, R2.7 Akuarium, R2.8 Saung, R2.9 event, R2.12 Tabel Bunga | K-31 | Sesuai GDD, placeholder di Asset Bible 12 |
+
+Catatan: ada dua baris R3.8 di tabel Fase 3 (Lempar Gelang dan ikon UiAssets). ID bentrok; yang ikon perlu diberi ID baru.

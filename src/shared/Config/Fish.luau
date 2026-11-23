@@ -1,5 +1,5 @@
 --!strict
--- All fish (docs/01_GDD_Kampoeng_Tedoeh_v8.3.md Bab 6.4, LOCKED: 20 ikan). Add a fish here + a "fish.<id>" locale key.
+-- All fish (docs/01_GDD_Kampoeng_Tedoeh_v8.4.md Bab 6.4, LOCKED: 20 ikan). Add a fish here + a "fish.<id>" locale key.
 -- Rarity = tier internal (C Early, U Mid, R Late, L Legenda): dipakai roll bobot, pond, FISH_FOR_SALE.
 -- requirePhases / requireRain / rainKinds: the fish can ONLY be caught then (rainKinds = jenis hujan tertentu, K-07).
 -- unlockLevel = Buka Lv Bab 6.4. xp = XP per tangkapan Bab 6.4 (dipakai FishService).

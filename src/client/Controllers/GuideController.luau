@@ -867,10 +867,10 @@ function refreshTutorial()
 	end
 	-- B2 (K-54): the fishing step counts catches; after 1 or 2 the bubble says "Coba lagi" with how many are left.
 	if stepDef.id == "mancing" and not (now < current.introUntil and current.def.intro) and stuckFor < Onboarding.STUCK_TEXT then
-		local snapshot = State.current :: any
+		local bag = State.current :: any
 		local caught = 0
-		if snapshot and snapshot.items then
-			for itemId, count in snapshot.items do
+		if bag and bag.items then
+			for itemId, count in bag.items do
 				if typeof(count) == "number" and string.find(itemId, "@", 1, true) then
 					caught += count
 				end
