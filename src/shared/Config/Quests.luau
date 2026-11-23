@@ -51,6 +51,7 @@ local list: { Quest } = {
 		kind = "main",
 		giver = "nek_ani",
 		unlockLevel = 2,
+		blocked = "D2 (K-56): Agenda UI (R2.2) belum ada. M1 tetap tersembunyi sampai Papan Hari Ini berjalan.",
 		steps = {
 			{ event = "agenda_open", count = 1, reveals = "agenda" },
 			{ event = "agenda_done", count = 1 },
