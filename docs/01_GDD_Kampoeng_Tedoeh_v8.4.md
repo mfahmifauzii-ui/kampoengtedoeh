@@ -427,15 +427,20 @@ Ukuran diacak: Kecil ×0,8 (40%), Sedang ×1,0 (40%), Besar ×1,2 (15%), Jumbo �
 | Pengumuman | Banner ke server 3 dtk + fanfare. |
 | Batasan | Tidak bisa dibiakkan, dimasak, dijual di Warung, atau dihadiahkan. Bisa dipajang di Akuarium atau dijual ke NPC. |
 
-### 6.6 Bubu (Overnight) — ⚠ belum ada di kode (Roadmap R2.1)
+### 6.6 Bubu (Overnight) — ada di kode (R2.1, R2.1b; K-66)
 
-| Bubu | Harga | Isi per panen | Waktu |
-|------|-------|---------------|-------|
-| Bambu | 400 Koin + 10 Bambu | 3–4 ikan Early | 6 jam |
-| Kayu | 1.500 + 20 Kayu | 4–6 Early/Mid | 6 jam |
-| Besi | 4.000 + 15 Batu + 10 Kayu | 6–8 Mid, 5% 1 Late | 6 jam |
+Dijual di Pak Udin (bagian Kebutuhan) dengan harga Koin saja. Pasang di sungai dekat titik mancing, ambil setelah 6 jam (wall clock; tidak bisa instant Bunga).
 
-Maks 3 bubu total (semua tipe). Dipasang di air (Sungai Lahan / kanal). Tidak bisa instant Bunga. Tidak pernah memberi Legenda. Buka Lv 8 lewat M8.
+| Bubu | Harga (Koin, Pak Udin) | Ikan per panen | Rarity ikan (Config/Fish) |
+|------|------------------------|----------------|---------------------------|
+| Bambu | 400 | 3–4 | C (Early) |
+| Kayu | 1.500 | 4–6 | C (Early) dan U (Mid) |
+| Besi | 4.000 | 6–8 | U (Mid) dan R (Late) |
+
+- **Pemetaan rarity (satu-satunya tempat):** C = Early, U = Mid, R = Late, L = Legenda. Bubu tidak pernah memberi L.
+- **Bahan material ditunda (K-66):** 10 Bambu, 20 Kayu, serta 15 Batu + 10 Kayu tidak dipungut; harga cukup Koin.
+- Maks 3 bubu total (semua tipe). Buka Lv 8 lewat M8.
+- Perbedaan dengan tabel lama: tabel lama menulis "5% 1 Late" untuk Besi. Kode memilih ikan acak dari pool U + R; persentase 5% belum ada di kode (lihat laporan D3, butuh keputusan owner).
 
 ---
 
@@ -788,7 +793,7 @@ Semua quest baru muncul setelah tutorial jual ikan (`t1b_kolam`) selesai.
 
 30 surat, kumulatif (tidak reset). Isi: cerita + 1 tugas kecil + hadiah Koin/Bunga/bahan. Surat #1: `Nak, kalau hujan, jangan lari. Siram tanamanmu, biar Prima. — Kakek` Teks surat #2–#30 belum ditulis (Roadmap R8.3).
 
-### 14.5 Agenda Harian — ⚠ belum ada UI (R2.2)
+### 14.5 Agenda Harian — ada di kode (R2.2: tombol HUD "Papan", AgendaController)
 
 5 tugas/hari, reset 05:00 WIB. Hadiah: Panen 200 / Pancing 250 / Masak 300 / Bantu 150 / Nambang 400 Koin (USULAN). Tanpa XP, tanpa Bunga. Hadiah otomatis saat tugas selesai.
 
@@ -863,24 +868,31 @@ Dari pencapaian permanen, bukan dibeli. Tanpa stat (kecuali tercantum di 17.6). 
 - Tidak ada Kolam di tutorial (tidak ada langkah, coachmark, prompt, atau tombol Kolam).
 - Naskah semua baris: `03_Quest_Naskah.md` Bab 4.
 
-### 16.2 Langkah
+### 16.2 Langkah (sesuai `Config/Onboarding.luau`, B1/B2 K-54)
 
-| # | Langkah (id) | Tempat | Selesai saat |
-|---|--------------|--------|--------------|
-| 1 | Intro Mak Sari (cutscene, Next tiap baris) | Lahan | Baris terakhir |
-| 2 | Cangkul petak (`cangkul`) | Lahan | Petak dibuat |
-| 3 | Tanam Kangkung (`tanam`) | Lahan | Tanam (6 bibit gratis, ✔ A-20 final) |
-| 4 | Siram (`siram`) | Lahan | Menyiram |
-| 5 | Panen (`panen`) — dijamin Bagus | Lahan | Panen |
-| 6 | Jual ke Pak Udin (`panen_jual`) — cutscene proximity | Alun-alun | Pilih "Jual semua" di bubble |
-| 7 | Temui Kak Fajar (`kak_fajar`) | Sungai Lahan terdekat | Masuk radius → cutscene hadiah |
-| 8 | Terima Joran Bambu + umpan (`hadiah`) | Sungai Lahan | Tombol "Terima Hadiah"; hadiah umpan = **Cacing** ✔ K-21 (jumlah seperti kode) |
-| 9 | Mancing (`mancing`) — gigitan dijamin, ikan Early pelan → Wader Cakul | Sungai Lahan | Dapat ikan |
-| 10 | Jual ikan ke Kak Fajar (`jual_ikan`) | Sungai Lahan | "Jual semua" → banner Selesai |
+Dua tutorial: `t1_awal` (langkah 1–9) dan `t1b_kolam` (langkah 10–13). Id langkah = id di kode.
 
-- XP per langkah di `Config/Onboarding`; total di akhir tutorial **158 XP** (termasuk +115 di `jual_ikan`). Dengan 6 panen Kangkung (12 XP) pemain capai Lv 2 (230 XP) ±3 menit setelah tutorial.
-- Panjang tutorial ±3–4 menit.
+| # | Langkah (id) | Tempat | Selesai saat | Hadiah XP (kode) | Permukaan instruksi (aturan GUI 9.7) |
+|---|--------------|--------|--------------|------------------|--------------------------------------|
+| 1 | `sapa` | Lahan | Tombol Mulai (modal) | — | Modal sapaan (tanpa coachmark) |
+| 2 | `cangkul` | Lahan | Petak dibuat / tanam / panen | 1 | Pertama: bubble coachmark + ring Garap |
+| 3 | `tanam` | Lahan | Tanam 1 | 1 | Pertama: bubble coachmark + ring Tanam |
+| 4 | `siram` | Lahan | Siram 1 (wajib, bukan panen) | 1 | Pertama: bubble coachmark + ring Siram |
+| 5 | `panen_1` | Lahan | Panen 1 | — | Pertama: bubble coachmark + ring Panen |
+| 6 | `garap_5` | Lahan | 6 petak total (1 lama + 5 baru) | — | Pengulangan: toast saja |
+| 7 | `tanam_5` | Lahan | Tanam 5 lagi (bibit gratis di tas) | — | Pengulangan: toast saja |
+| 8 | `tunggu_semua` | Lahan | Panen 6 bibit gratis (semua) | — | Toast saja (tidak pernah gelap) |
+| 9 | `panen_jual` | Lahan → Pak Udin | Jual 1 ke Pak Udin | 20 | Toast saja |
+| 10 | `warung` | Pak Udin | Ok (ack) | — | Dialog Pak Udin |
+| 11 | `kak_fajar` | Sungai Lahan | Terima Hadiah (`rodgift`) | — | Panah NPC + toast |
+| 12 | `mancing` | Sungai Lahan | 3 ikan (B2 K-54) | 20 | Pertama: bubble coachmark + ring Aksi (Pancing); tangkapan ke-2 dan ke-3: toast |
+| 13 | `jual_ikan` | Sungai Lahan | Ok setelah jual ikan ke Kak Fajar | sampai Lv 2 (xpFill) | Dialog Kak Fajar |
+
+- **XP tutorial:** reward eksplisit = 1 + 1 + 1 + 20 + 20 = **43 XP**. Langkah 13 (`xpFill`) menambal sisa sampai batas Lv 1→2 (230 XP), jadi tutorial selesai **tepat di Lv 2**. Sisa XP dari ikan tangkapan ikut dihitung sebelum langkah 13. Total akhir = 230 XP (bukan 158 seperti versi lama).
+- **Perubahan klaim lama:** versi sebelumnya menulis "158 XP" dan "Lv 2 ±3 menit setelah tutorial". Kode sekarang menutup tutorial tepat di Lv 2 lewat `xpFill` (K-54 B2).
+- Panjang tutorial ±3–4 menit (perkiraan dokumen, belum diukur).
 - Langkah lama (Bayam, Nambang, Hias, Surat #1, Agenda + Gerobak) sekarang quest S1, M2, M4, S2, M1.
+- Kolom "Permukaan": aturan dari GUI 9.7. Pemetaan per langkah di atas belum diverifikasi terhadap `GuideController` (lihat laporan D3).
 
 ### 16.3 Blok NPC selama tutorial — LOCKED
 
@@ -1095,7 +1107,7 @@ Seluruh aturan GUI ada di **`05_GUI_Spec.md`**. Inti LOCKED: satu font (FredokaO
 | Sesi rata-rata | 20–40 menit |
 | Jam ke Lv 60 | 55–70 jam |
 
-Event wajib log (⚠ belum di kode, R2.10): Plant, Water, Harvest (Kualitas), Cast, Bite, PullSuccess, Fish (Tier, Size), Feed, Collect, Cook (Recipe, Kualitas), WarungSale, Bantu, KerjaBakti, Quest, Surat, Album, Login, Playtime, GerobakKaget, PasarMalam, **TutorialStep** (funnel FTUE), **FeatureOpen**.
+Event wajib log (⚠ sebagian ada: funnel tutorial dan event ekonomi lewat AnalyticsHooks; daftar lengkap belum di kode, R2.10): Plant, Water, Harvest (Kualitas), Cast, Bite, PullSuccess, Fish (Tier, Size), Feed, Collect, Cook (Recipe, Kualitas), WarungSale, Bantu, KerjaBakti, Quest, Surat, Album, Login, Playtime, GerobakKaget, PasarMalam, **TutorialStep** (funnel FTUE), **FeatureOpen**.
 
 ---
 
