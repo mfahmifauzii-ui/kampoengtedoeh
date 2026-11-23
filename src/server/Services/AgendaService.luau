@@ -18,12 +18,31 @@ local ProgressionService = require(script.Parent.ProgressionService)
 
 local AgendaService = {}
 
+-- D1 (K-56): a pool template is only picked when the player can do it now: its level and, when given, its feature are open.
+-- Hidden templates (Bantu, until Kebun Warga) are never picked. Returns the eligible templates (may be fewer than asked).
+function AgendaService.Eligible(data: Types.PlayerData, pool: { Quests.Daily }): { Quests.Daily }
+	local out: { Quests.Daily } = {}
+	for _, def in pool do
+		local req = def.requires
+		local ok = not def.hidden
+			and (req == nil or (data.level >= req.level and (req.feature == nil or FeatureGate.IsUsable(data, req.feature))))
+		if ok then
+			table.insert(out, def)
+		end
+	end
+	return out
+end
+
 local function rollAgenda(data: Types.PlayerData, now: number)
 	local day = TimeKeys.day(now - Quests.DAILY_RESET_HOUR * 3600)
 	if data.quests.daily.day == day then
 		return
 	end
-	local pick = Quests.AGENDA[math.random(1, #Quests.AGENDA)]
+	local pool = AgendaService.Eligible(data, Quests.AGENDA)
+	if #pool == 0 then
+		return
+	end
+	local pick = pool[math.random(1, #pool)]
 	data.quests.daily = { day = day, kind = pick.id, progress = 0, claimed = false }
 end
 

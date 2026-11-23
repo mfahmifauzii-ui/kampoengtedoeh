@@ -175,7 +175,7 @@ local function rollHarian(data: Types.PlayerData, now: number)
 		return
 	end
 	local slots = {}
-	for _, def in pickDistinct(Quests.HARIAN, Quests.HARIAN_COUNT) do
+	for _, def in pickDistinct(AgendaService.Eligible(data, Quests.HARIAN), Quests.HARIAN_COUNT) do
 		table.insert(slots, { kind = def.id, progress = 0, claimed = false })
 	end
 	data.quests.harian = { day = day, slots = slots }
@@ -188,7 +188,7 @@ local function rollMingguan(data: Types.PlayerData, now: number)
 		return
 	end
 	local slots = {}
-	for _, def in pickDistinct(Quests.MINGGUAN, Quests.MINGGUAN_COUNT) do
+	for _, def in pickDistinct(AgendaService.Eligible(data, Quests.MINGGUAN), Quests.MINGGUAN_COUNT) do
 		table.insert(slots, { kind = def.id, progress = 0, claimed = false })
 	end
 	data.quests.mingguan = { week = week, slots = slots }
