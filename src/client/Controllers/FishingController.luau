@@ -548,12 +548,29 @@ local function buildAksi()
 	UiKit.plate(button, 84, "pancing")
 	-- C2 (K-55): Tarik is its own control in the same slot as Pancing. Hold it to pull (touch or mouse), shown only while
 	-- the reel runs. Pancing (cast) and Tarik (pull) never share a handler.
-	local tarik = UiKit.button(aksiGui, "TarikButton", Locale.t("fish.reel_button"), UiKit.BUTTON)
+	-- Owner video (2026-11-23): Tarik was an orange rounded box. It is the same round Aksi-slot control as Pancing now: the
+	-- same 84 px plate and bamboo ring, with the "Tarik" word in its centre instead of the rod icon.
+	local tarik = Instance.new("TextButton")
+	tarik.Name = "TarikButton"
+	tarik.Text = ""
+	tarik.AutoButtonColor = false
 	tarik.AnchorPoint = Vector2.new(0.5, 0.5)
 	tarik.Position = button.Position
 	tarik.Size = UDim2.fromOffset(84, 84)
-	tarik.TextSize = 18
+	tarik.BackgroundTransparency = 1
 	tarik.Visible = false
+	tarik.Parent = aksiGui
+	UiKit.plate(tarik, 84)
+	local tarikWord = Instance.new("TextLabel")
+	tarikWord.Name = "Label"
+	tarikWord.BackgroundTransparency = 1
+	tarikWord.Size = UDim2.fromScale(1, 1)
+	tarikWord.Font = UiKit.FONT
+	tarikWord.TextSize = 18
+	tarikWord.TextColor3 = UiKit.CREAM
+	tarikWord.Text = Locale.t("fish.reel_button")
+	tarikWord.ZIndex = 5
+	tarikWord.Parent = tarik
 	tarik.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			holding = true
