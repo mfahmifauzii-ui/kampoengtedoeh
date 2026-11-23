@@ -28,12 +28,13 @@ local scrollX = 0 -- where the player left the tree (kept across re-renders)
 
 -- Layout (px). Node = UiKit.TOUCH_CTA (40 px, GUI doc 4.4 tier, the mockup's node size). The rest is layout only.
 local NODE = UiKit.TOUCH_CTA
-local TIER_GAP = 30
+local TIER_GAP = 10 -- D3 (K-56): tighter tiers, so the tree and the bottom bar fit a 844x390 phone without scrolling
 local TIER_H = NODE + TIER_GAP
 local COL_W = 120
 local COL_GAP = 12
 local HEAD_H = 26
 local TREE_H = HEAD_H + 3 * NODE + 2 * TIER_GAP
+local BAR_H = 88 -- D3 (K-56): the fixed bottom bar, shown when a node is tapped
 
 -- Where each skill sits in its branch: tier 1 = Root (bottom), 2 = Cabang (middle), 3 = Capstone (top).
 -- side: "c" = centre, "a" = left of centre, "b" = right of centre (Bertani and Mancing have two Cabang nodes).
@@ -268,67 +269,82 @@ local function buildBranch(scroll: ScrollingFrame, index: number, cabang: string
 	end
 end
 
--- The drawer: name, effect, level, requirement or breakpoint, cost, status, and Tingkatkan.
-local function buildDrawer(parent: ScrollingFrame, order: number, levels: { [string]: number })
+-- D3 (K-56): the fixed bottom bar, shown when a node is tapped. Name, effect, cost (SP + Koin), prerequisites and status on the
+-- left; the Tingkatkan (buy) button always on the right. It sits on the panel frame, not in the scrolling list, so the button
+-- is never pushed off-screen. Without a selection the bar is gone and the list takes the space back.
+local function buildBar(levels: { [string]: number })
+	local frame = if panel then panel.gui:FindFirstChild("Panel") else nil
+	if not panel or not frame or not frame:IsA("Frame") then
+		return
+	end
+	local old = frame:FindFirstChild("SkillBar")
+	if old then
+		old:Destroy()
+	end
 	local id = selected
 	local def = if id then Skills.byId[id] else nil
 	if not id or not def then
+		panel.list.Size = UDim2.new(1, -52, 1, -(40 + 22 + 38))
 		return
 	end
+	panel.list.Size = UDim2.new(1, -52, 1, -(40 + BAR_H + 12))
 	local lv = levels[id] or 0
 	local state, missing = nodeState(def, levels)
 
-	local drawer = Instance.new("Frame")
-	drawer.Name = "Drawer"
-	drawer.LayoutOrder = order
-	drawer.BackgroundColor3 = UiKit.ROW
-	drawer.AutomaticSize = Enum.AutomaticSize.Y
-	drawer.Size = UDim2.new(1, 0, 0, 0)
-	drawer.Parent = parent
+	local bar = Instance.new("Frame")
+	bar.Name = "SkillBar"
+	bar.AnchorPoint = Vector2.new(0.5, 1)
+	bar.Position = UDim2.new(0.5, 0, 1, -12)
+	bar.Size = UDim2.new(1, -52, 0, BAR_H)
+	bar.BackgroundColor3 = UiKit.ROW
+	bar.ZIndex = 5
+	bar.Parent = frame
 	local round = Instance.new("UICorner")
 	round.CornerRadius = UDim.new(0, UiKit.R_MD)
-	round.Parent = drawer
-	local pad = Instance.new("UIPadding")
-	pad.PaddingLeft = UDim.new(0, 12)
-	pad.PaddingRight = UDim.new(0, 12)
-	pad.PaddingTop = UDim.new(0, 8)
-	pad.PaddingBottom = UDim.new(0, 10)
-	pad.Parent = drawer
+	round.Parent = bar
+
+	local info = Instance.new("Frame")
+	info.Name = "Info"
+	info.BackgroundTransparency = 1
+	info.Position = UDim2.fromOffset(10, 6)
+	info.Size = UDim2.new(1, -132, 1, -12)
+	info.ZIndex = 6
+	info.Parent = bar
 	local layout = Instance.new("UIListLayout")
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
-	layout.Padding = UDim.new(0, 4)
-	layout.Parent = drawer
+	layout.Padding = UDim.new(0, 1)
+	layout.Parent = info
 
-	local function text(name: string, order2: number, value: string, size: number, color: Color3?)
+	local function line(name: string, order: number, value: string, height: number, size: number, color: Color3?)
 		local label = Instance.new("TextLabel")
 		label.Name = name
-		label.LayoutOrder = order2
+		label.LayoutOrder = order
 		label.BackgroundTransparency = 1
-		label.AutomaticSize = Enum.AutomaticSize.Y
-		label.Size = UDim2.new(1, 0, 0, 0)
+		label.Size = UDim2.new(1, 0, 0, height)
 		label.Font = UiKit.FONT
 		label.TextSize = size
 		label.TextWrapped = true
+		label.TextTruncate = Enum.TextTruncate.AtEnd
 		label.TextXAlignment = Enum.TextXAlignment.Left
 		label.TextColor3 = color or UiKit.TEXT
 		label.Text = value
-		label.Parent = drawer
+		label.ZIndex = 6
+		label.Parent = info
 	end
 
-	text("Name", 1, Locale.t(`skill.{id}`), UiKit.TEXT_HEADING)
-	text("Effect", 2, Locale.t(`skill.{id}.desc`), UiKit.TEXT_SMALL)
-	text("Level", 3, Locale.t("skill.level", { n = lv, max = def.maxLevel }), UiKit.TEXT_SMALL)
+	line("Name", 1, `{Locale.t(`skill.{id}`)}  ·  {Locale.t("skill.level", { n = lv, max = def.maxLevel })}`, 18, UiKit.TEXT_HEADING)
+	line("Effect", 2, Locale.t(`skill.{id}.desc`), 26, UiKit.TEXT_CAPTION)
+	line("Cost", 3, Locale.t("skill.cost_sp_koin", { koin = Locale.formatNumber(Skills.koinForLevel(lv + 1)) }), 14, UiKit.TEXT_CAPTION)
+	local prereq = if missing then requirementText(missing) else Locale.t("skill.prereq_ok")
+	line("Prereq", 4, prereq, 14, UiKit.TEXT_CAPTION, if missing then UiKit.RED_TEXT else nil)
 	if def.breakpoint and lv < def.breakpoint then
-		text("From", 4, Locale.t("skill.effect_from", { n = def.breakpoint }), UiKit.TEXT_SMALL, UiKit.HEADER_DARK)
+		line("From", 5, Locale.t("skill.effect_from", { n = def.breakpoint }), 14, UiKit.TEXT_CAPTION, UiKit.HEADER_DARK)
 	end
-	text("Cost", 5, Locale.t("skill.cost", { koin = Skills.koinForLevel(lv + 1) }), UiKit.TEXT_CAPTION)
 
-	-- Status: the requirement of a locked node, or the state of a buyable one, or the last server answer.
+	-- Status: the last server answer, or the reason it cannot be bought now.
 	local status: string? = nil
 	if message then
 		status = Locale.t(message)
-	elseif state == "locked" and missing then
-		status = requirementText(missing)
 	elseif state == "noSP" then
 		status = Locale.t("skill.need_sp")
 	elseif state == "noKoin" then
@@ -337,14 +353,15 @@ local function buildDrawer(parent: ScrollingFrame, order: number, levels: { [str
 		status = Locale.t("skill.maxed")
 	end
 	if status then
-		text("Status", 6, status, UiKit.TEXT_CAPTION, UiKit.RED_TEXT)
+		line("Status", 6, status, 14, UiKit.TEXT_CAPTION, UiKit.RED_TEXT)
 	end
 
-	-- Tingkatkan: the one main action of the drawer (touch tier 40, GUI doc 4.4). Enabled only when buyable.
+	-- Tingkatkan: always visible on the right. Enabled only when buyable.
 	local buy = Instance.new("TextButton")
 	buy.Name = "Tingkatkan"
-	buy.LayoutOrder = 7
-	buy.Size = UDim2.new(1, 0, 0, UiKit.TOUCH_CTA)
+	buy.AnchorPoint = Vector2.new(1, 0.5)
+	buy.Position = UDim2.new(1, -10, 0.5, 0)
+	buy.Size = UDim2.fromOffset(112, UiKit.TOUCH_CTA)
 	buy.Font = UiKit.FONT
 	buy.TextSize = UiKit.TEXT_BODY
 	buy.Text = Locale.t("skill.tingkatkan")
@@ -352,7 +369,8 @@ local function buildDrawer(parent: ScrollingFrame, order: number, levels: { [str
 	buy.BackgroundColor3 = if state == "buyable" then UiKit.BUTTON else UiKit.BUTTON_MUTED
 	buy.AutoButtonColor = state == "buyable"
 	buy.Active = state == "buyable"
-	buy.Parent = drawer
+	buy.ZIndex = 6
+	buy.Parent = bar
 	local buyCorner = Instance.new("UICorner")
 	buyCorner.CornerRadius = UDim.new(0, UiKit.R_MD)
 	buyCorner.Parent = buy
@@ -383,7 +401,7 @@ function SkillController.Render()
 	scroll.LayoutOrder = 2
 	scroll.BackgroundTransparency = 1
 	scroll.BorderSizePixel = 0
-	scroll.Size = UDim2.new(1, 0, 0, TREE_H + 10)
+	scroll.Size = UDim2.new(1, 0, 0, TREE_H)
 	scroll.ScrollingDirection = Enum.ScrollingDirection.X
 	scroll.ScrollBarThickness = 4
 	scroll.CanvasSize = UDim2.fromOffset(#Skills.CABANG_ORDER * (COL_W + COL_GAP), 0)
@@ -396,7 +414,7 @@ function SkillController.Render()
 		scrollX = scroll.CanvasPosition.X
 	end)
 
-	buildDrawer(panel.list, 3, levels)
+	buildBar(levels)
 end
 
 local function closePanel()
