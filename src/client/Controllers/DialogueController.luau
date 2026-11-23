@@ -238,13 +238,9 @@ local function gatedLine(): string
 	return Locale.t("npc.bang_jali.gated", { level = need })
 end
 
--- The sell choice names the cut like Pak Udin's: "Jual semua panen (100%)" / "(90%)" from the NPC's own config.
-local function tradeLabel(npcId: string): string
-	local npc = Npcs.byId[npcId]
-	local pct = if npc and npc.buys then npc.buys.crop else nil
-	if pct then
-		return Locale.t("dialog.sell_all", { pct = math.floor(pct * 100 + 0.5) })
-	end
+-- The shop choice is always "Jual / Beli" (opens the shop panel). The one-button "Jual semua panen (N%)" is the tutorial's
+-- sale step only (T1Ghost), never a normal dialogue choice (owner video 3:52: Pak Udin still showed it after the tutorial).
+local function tradeLabel(_npcId: string): string
 	return Locale.t("dialog.trade")
 end
 
