@@ -1,5 +1,5 @@
 --!strict
--- All fish (docs/01_GDD_Kampoeng_Tedoeh_v8.1.md Bab 6.4, LOCKED: 20 ikan). Add a fish here + a "fish.<id>" locale key.
+-- All fish (docs/01_GDD_Kampoeng_Tedoeh_v8.2.md Bab 6.4, LOCKED: 20 ikan). Add a fish here + a "fish.<id>" locale key.
 -- Rarity = tier internal (C Early, U Mid, R Late, L Legenda): dipakai roll bobot, pond, FISH_FOR_SALE.
 -- requirePhases / requireRain / rainKinds: the fish can ONLY be caught then (rainKinds = jenis hujan tertentu, K-07).
 -- unlockLevel = Buka Lv Bab 6.4. xp = XP per tangkapan Bab 6.4 (dipakai FishService).
@@ -54,13 +54,13 @@ return {
 	list = list,
 	byId = byId,
 
-	RARITY_WEIGHTS = { C = 70, U = 22, R = 7, L = 1 } :: { [Rarity]: number },
+	RARITY_WEIGHTS = { C = 70, U = 22, R = 7, L = 0.5 } :: { [Rarity]: number }, -- K-47: Legenda 0,5% per lemparan (GDD 6.5)
 	RAIN_MULT = { R = 1.5, L = 2 } :: { [Rarity]: number },
 
 	-- Reel score (0..1) -> size. Value multiplier applies when selling (Bab 6.4: Kecil x0,8 / Sedang x1,0 / Besar x1,2 / Jumbo x1,5).
 	SIZES = {
 		{ id = "S", minScore = 0, valueMult = 0.8 },
-		{ id = "M", minScore = 0.5, valueMult = 1.0 },
+		{ id = "M", minScore = 0.4, valueMult = 1.0 }, -- K-46: 40/40/15/5 (GDD 6.4) bila skor merata
 		{ id = "L", minScore = 0.8, valueMult = 1.2 },
 		{ id = "Jumbo", minScore = 0.95, valueMult = 1.5 },
 	},
