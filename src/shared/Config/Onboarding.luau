@@ -138,6 +138,7 @@ local TUTORIALS: { Tutorial } = {
 				id = "garap_5",
 				text = "tut.t1.s5_garap",
 				coach = "tut.coach.garap",
+				block = false, -- repeat of Garap (first time was cangkul): toast + ring only, no dim, no movement lock (LOCKED rule, docs/05 Bab 9)
 				done = { kind = "tiles", n = 6 }, -- 1 old plot + 5 new ones
 				highlight = "GarapButton",
 			},
@@ -145,6 +146,7 @@ local TUTORIALS: { Tutorial } = {
 				id = "tanam_5",
 				text = "tut.t1.s5_tanam",
 				coach = "tut.coach.tanam",
+				block = false, -- repeat of Tanam: toast + arrow only (LOCKED rule, docs/05 Bab 9)
 				done = { kind = "planted", n = 5 }, -- the 5 free seeds still in the bag
 				highlight = "TanamButton",
 			},
@@ -152,6 +154,7 @@ local TUTORIALS: { Tutorial } = {
 				-- All six free seeds harvested (the first harvest counts): never fewer.
 				id = "tunggu_semua",
 				text = "tut.t1.s5_tunggu",
+				block = false, -- waiting + harvesting repeats: toast + pills only, never a dim (the owner's phone was stuck here, 2026-11-23)
 				done = { kind = "harvests", n = 6 },
 				highlight = "PanenButton",
 			},

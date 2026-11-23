@@ -64,6 +64,11 @@ local npcArrow: TextLabel
 local current: Spec? = nil
 local FADE_IN = 0.4 -- seconds for the darkness to fade in when a coachmark appears
 local fadeInFrom = 0 -- os.clock() when the current coachmark appeared
+-- Safety net (2026-11-23, owner's phone stuck at tunggu_semua): a blocking coachmark (dim + spotlight, taps outside it swallowed,
+-- joystick included) releases itself after BLOCK_TIMEOUT seconds on the same instruction. The step still completes by its state;
+-- only the dim goes away. The bubble and the arrow stay.
+local BLOCK_TIMEOUT = 25
+local shownAt = 0 -- os.clock() when the current instruction (text / mode) started
 
 local function frame(name: string, parent: Instance): Frame
 	local piece = Instance.new("Frame")
@@ -196,6 +201,9 @@ function CoachmarkController.Init()
 end
 
 function CoachmarkController.Show(spec: Spec)
+	if current == nil or current.text ~= spec.text or current.mode ~= spec.mode then
+		shownAt = os.clock() -- a new instruction starts the block timer; the same one keeps it running
+	end
 	current = spec
 	bubbleText.Text = spec.text or ""
 	bubble.Visible = spec.text ~= nil
@@ -354,8 +362,9 @@ function CoachmarkController.Update()
 	end
 	bubble.Visible = spec.text ~= nil
 
-	-- Overlay: only when the step blocks.
-	overlayGui.Enabled = spec.block
+	-- Overlay: only when the step blocks, and only until the safety timer runs out (see BLOCK_TIMEOUT).
+	local blocking = spec.block and os.clock() - shownAt < BLOCK_TIMEOUT
+	overlayGui.Enabled = blocking
 	highlight.Visible = false
 	bubble.AnchorPoint = Vector2.new(0.5, 0)
 	bubble.Position = UDim2.fromOffset(view.X / 2, 70)
@@ -373,7 +382,7 @@ function CoachmarkController.Update()
 			-- The button's own corner radius in pixels (see cornerRadiusPx). The hole and the highlight take that radius plus the
 			-- PAD around the button, so the hole has the same corners as the button; 12 px when the button has no corner.
 			local shapeRadius = cornerRadiusPx(button, size)
-			if spec.block then
+			if blocking then
 				layoutHole(position, size, view, if shapeRadius then shapeRadius + PAD else 12)
 			end
 			local width, height = size.X + PAD * 2, size.Y + PAD * 2
@@ -404,7 +413,7 @@ function CoachmarkController.Update()
 			end
 		end
 	elseif spec.mode == "ground" then
-		if spec.block then
+		if blocking then
 			layoutHudZones(view)
 		end
 		-- No highlight: the ghost is the target. The bubble sits at the top middle, above the top bar.

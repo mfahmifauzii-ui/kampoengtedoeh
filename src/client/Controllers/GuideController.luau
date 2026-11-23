@@ -847,6 +847,20 @@ local function hintAllowed(): boolean
 	return player:GetAttribute("KTIntroPlaying") ~= true
 end
 
+-- Fish caught so far in the bag (items with "@" are fish). The mancing step dims only before the first catch (LOCKED rule).
+local function fishCaughtCount(): number
+	local bag = State.current :: any
+	local caught = 0
+	if bag and bag.items then
+		for itemId, count in bag.items do
+			if typeof(count) == "number" and string.find(itemId, "@", 1, true) then
+				caught += count
+			end
+		end
+	end
+	return caught
+end
+
 -- The bed a bed step asks for, as a world point (for the floating arrow). Used when the step's button is not on screen
 -- (the seed row / Siram / Panen only show next to the bed): tanam and tanam_5 want an empty bed, siram a dry one, panen_1 a
 -- ripe one. Nearest one to the player, or nil.
@@ -1015,7 +1029,8 @@ function refreshTutorial()
 		CoachmarkController.Show({
 			mode = if onGround then "ground" else "button",
 			text = if spoken then nil else coachText,
-			block = stepDef.block ~= false,
+			-- LOCKED rule (docs/05 Bab 9): the dim is for the first time only. Mancing dims before the first catch, then toast only.
+			block = stepDef.block ~= false and not (stepDef.id == "mancing" and fishCaughtCount() > 0),
 			findButton = if not onGround and highlight then function(): GuiObject? return findHighlight(highlight) end else nil,
 			npcPoint = if npcId then function(): Vector3?
 				local root = npcRootOf(npcId)
