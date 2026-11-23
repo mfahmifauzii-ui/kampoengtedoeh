@@ -310,7 +310,7 @@ local list: { Quest } = {
 		steps = {
 			{ event = "cook", count = 3 }, -- Masak 3 olahan (berbeda belum ditegakkan)
 		},
-		reward = { koin = 100 },
+		reward = { koin = 200 }, -- K-15: Resep Mak 200 Koin (USULAN)
 	},
 	{
 		id = "side_prima",

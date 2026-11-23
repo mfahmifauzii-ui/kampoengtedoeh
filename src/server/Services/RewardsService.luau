@@ -45,17 +45,19 @@ end
 -- Season F2P hari 30 dan Event completion: lihat onSeasonClaim dan Lampiran D (event belum punya definisi).
 local function checkTitles(player: Player, data: Types.PlayerData): boolean
 	local changed = false
-	local function grant(key: string, message: string, vars: { [string]: any }?)
+	local function grant(key: string, message: string, vars: { [string]: any }?, withPeti: boolean?)
 		if data.rewards.titlePeti[key] ~= true then
 			data.rewards.titlePeti[key] = true
-			data.rewards.peti += 1
+			if withPeti ~= false then
+				data.rewards.peti += 1
+			end
 			changed = true
 			Net.Fire("Notify", player, message, vars)
 		end
 	end
 	for _, title in Rewards.TITLES do
 		if data.titles[title.id] == true then
-			grant(`title:{title.id}`, "title.new", { title = `title.{title.id}` })
+			grant(`title:{title.id}`, "title.new", { title = `title.{title.id}` }, not title.noPeti)
 		end
 	end
 	for _, milestoneId in Rewards.MILESTONE_PETI do

@@ -48,7 +48,8 @@ Rewards.TITLES = {
 	-- Book.CATEGORY_REWARDS rumah: satu kategori rumah lengkap + klaim.
 	{ id = "juragan_pondok", source = "Kategori Album rumah lengkap + klaim (Config/Book CATEGORY_REWARDS)" },
 	-- Social.LIKE_MILESTONES 200 like.
-	{ id = "kebun_favorit", source = "Like 200 (Config/Social LIKE_MILESTONES)" },
+	-- K-28: Title dari like tidak memberi Peti Bunga (syarat bergantung pemain lain).
+	{ id = "kebun_favorit", source = "Like 200 (Config/Social LIKE_MILESTONES)", noPeti = true },
 }
 
 -- Peti Bunga dari Album milestone (sekali per milestone). Id sama dengan Book.MILESTONES.
