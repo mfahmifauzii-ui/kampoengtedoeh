@@ -397,3 +397,12 @@ Supaya tiap aksi terasa "enak", Claude Code memasang paket ini sekaligus:
 | Quest Main selesai | — | `fx.banner` | `ui.banner_done` | Banner Selesai, GUI lain disembunyikan | — |
 | Bundel pulih | — | `fx.restore` | sting kecil | Toast + kamera menyorot 2 dtk | — |
 | Legenda | Cheer | `fx.legend` | sting Legenda | Banner server | 2 denyut |
+
+---
+
+## 12. Placeholder Aktif (daftar)
+
+| Aset | Dipakai di | Keterangan | Status |
+|------|-----------|------------|--------|
+| Gembor Emas (ikon + model) | Hadiah `side_prima` (K-15, dialog `dlg.side_prima.done.1`) | Model Gembor yang ada, diwarnai emas. Visual saja, tanpa stat. | **PLACEHOLDER (replace in Fase 4)**. Belum dibangun: item & aturan "tidak mengubah siram" menunggu kerja fitur |
+| Warna dinding ke-13 "Dinding Spesial" | `Config/Decor` WALL_PALETTE_EXTRA | Satu warna muted hangat (214,178,124). Tidak butuh aset. | **PLACEHOLDER (replace in Fase 4)** |
