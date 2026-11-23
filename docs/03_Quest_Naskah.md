@@ -440,3 +440,6 @@ Struktur cerita "Babak 2 & 3" dan rancangan quest-nya: `08_Penyempurnaan.md` P-0
 - **Quest diblok** bila sistemnya belum ada: M1 "Kampung Hari Ini" tetap tersembunyi sampai Agenda UI (R2.2) berjalan.
 - **Baris langkah pemain** = kolom Langkah di bab ini, dipakai di tracker dan log (contoh: "Buka Agenda (1/3)", "Tanam 6 bibit Kangkung (3/6)"). Side quest juga menampilkan apa yang harus dilakukan dan di mana.
 - **Tutorial:** naskah Mak Sari dan Kak Fajar mengikuti K-54 (Bab 4 di atas).
+- **Mancing (K-54, B2):** langkah "Tangkap 3 ikan di sungai buat Kak Fajar". Tangkapan 1–2: bubble "Coba lagi, {n} ikan lagi ya!" saja, tanpa dialog. Tangkapan ke-3: Kak Fajar: "Kamu jago juga mancingnya, sini ikannya aku beli." lalu jual.
+- **Bang Jali (K-53, A6):** sebelum Lv 3: "Terbuka di Level 3. Jual panen dulu ke Pak Udin di warung." Sesudah Lv 3 tanpa jual ke dia: "Jual 1 barang ke saya dulu, nanti lapak saya terbuka." Lapak buka: pilihan "Jual semua panen (90%)".
+- **Tutorial panen (K-54, B1):** "Buat 5 petak lagi: tap Garap, lalu Cangkul", "Tanam 5 bibit lagi di petak baru", "Tunggu semua tumbuh, lalu panen semuanya".
