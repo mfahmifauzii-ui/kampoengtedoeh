@@ -24,6 +24,7 @@ local FeatureGate = require(script.Parent.FeatureGate)
 local DataService = require(script.Parent.DataService)
 local InventoryService = require(script.Parent.InventoryService)
 local QuestService = require(script.Parent.QuestService)
+local ProgressionService = require(script.Parent.ProgressionService)
 
 local NODE_TAG = "MiningNode"
 local RATE = { rate = 6, burst = 12 }
@@ -162,6 +163,8 @@ local function onHit(player: Player, nodeId: any, crit: any)
 		end
 	end
 	QuestService.Report(player, "mine", gained)
+	-- K-08 (b): 2 XP per bahan yang didapat (Bab 4.2).
+	ProgressionService.AddXp(player, gained * Mining.XP_PER_BAHAN, "mine")
 	Net.Fire(
 		"Notify",
 		player,

@@ -5,7 +5,7 @@
 -- Hutan (+-5 menit) = 30-45 bahan campuran (6 node x 4 pukulan = 24 base + Critical).
 -- Bahan mentah (7) TIDAK dijual di toko mana pun (sellPrice nil, lihat Modules/Items).
 -- Olahan di-craft instan + gratis, hanya pakai bahan. Tombol massal x10.
--- XP per pukulan: v7.3 tidak memberi angka (final ikut playtest Bab 17.8) -> 0.
+-- XP: 2 per bahan yang didapat (K-08 b, GDD 4.2 / 8.1).
 -- Kapak Besi/Baja (Config/Farm TOOLS bonusBahan) menambah bahan saat node habis, per node.
 
 export type NodeDef = {
@@ -55,6 +55,7 @@ end
 return {
 	FOREST_UNLOCK = 4, -- Hutan Nambang terbuka
 	HITS_PER_NODE = 4, -- pukulan per node (Bab 8.1)
+	XP_PER_BAHAN = 2, -- K-08 (b): XP per bahan yang didapat
 	NORMAL_YIELD = 1, -- bahan per pukulan biasa
 	CRIT_YIELD = 2, -- bahan per Critical
 	RESPAWN_SECONDS = 240, -- 4 menit (Bab 8.1)

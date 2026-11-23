@@ -85,7 +85,7 @@ return {
 		MAX_PONDS = 4,
 		PRICES = { 0, 400, 900, 1600 }, -- koin, by how many ponds you already have + 1 (the first is free)
 		TIER_NAMES = { "tanah", "batu", "taman" }, -- look by Kolam upgrade tier + 1 (see PondService)
-		REFUND_RATE = 0.5, -- share of the price returned when a pond is removed
+		REFUND_RATE = 1.0, -- share of the price returned when a pond is removed (K-09: bangunan & kolam refund 100%)
 		UNLOCK_LEVEL = 4, -- Lv 4 (Q-2): Quest M3 Kolam Kakek. Dulu Lv 2: the player may build a kolam (first step of Quest Kolam). Kolam Kakek (MQ4/Bundel) opens it too.
 	},
 }
