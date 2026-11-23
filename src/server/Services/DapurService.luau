@@ -27,6 +27,8 @@ local BookService = require(script.Parent.BookService)
 
 local RATE = { rate = 4, burst = 8 }
 local QUALITY_RANK = { biasa = 1, bagus = 2, prima = 3 }
+-- K-05: ukuran ikan = kualitas bahan (Kecil/Sedang = Biasa, Besar = Bagus, Jumbo = Prima).
+local FISH_SIZE_QUALITY: { [string]: string } = { S = "biasa", M = "biasa", L = "bagus", Jumbo = "prima" }
 
 local DapurService = {}
 
@@ -118,6 +120,10 @@ local function takeInputs(player: Player, data: Types.PlayerData, recipe: Dapur.
 						table.insert(takes, { id = id, count = take })
 						left -= take
 						value += fish.sellPrice * take
+						local sizeQ = FISH_SIZE_QUALITY[size.id] or "biasa"
+						if qualityRank(sizeQ) > qualityRank(best) then
+							best = sizeQ
+						end
 					end
 				end
 			end
@@ -443,7 +449,7 @@ local function onCook(player: Player, slot: any, recipeId: any)
 	end
 	-- Skill Rasa Prima (Bab 4.5, P2-4): peluang Olahan Prima +1%/lv (dari bahan tertinggi).
 	if quality ~= "prima" and random:NextNumber() < 0.01 * (data.skill.rasa_prima or 0) then
-		quality = "prima"
+		quality = if quality == "biasa" then "bagus" else "prima" -- K-05 (a): naik 1 tingkat, bukan langsung Prima
 	end
 	data.dapur.slots[slot :: number] = { recipe = recipe.id, startedAt = now, endsAt = now + dur, quality = quality, base = base }
 	InventoryService.Sync(player)
