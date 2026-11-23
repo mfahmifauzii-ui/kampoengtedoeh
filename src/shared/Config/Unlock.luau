@@ -16,7 +16,7 @@ return {
 	[10] = { "Bebek", "Sungai (Spot 3)", "Petak 13-24" },
 	[12] = { "Stroberi", "Bundel: Lumbung Kakek" },
 	[15] = { "Pisang", "Tebu", "Kolam Semen", "Dapur Tier 2", "Pohon Aren (Ijuk)", "Bingkai Album" },
-	[18] = { "Spot 4 (Sungai Malam)" },
+	[18] = { "Kanal Timur malam" }, -- K-22/K-23
 	[20] = { "Kirim Hadiah", "Bundel: Saung Kakek" },
 	[22] = { "Sapi", "Kandang Sapi", "Jahe" },
 	[25] = { "Kopi", "Teh", "Akuarium", "Kaca", "Petak 25-36" },

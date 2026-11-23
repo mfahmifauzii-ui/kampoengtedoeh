@@ -696,14 +696,14 @@ return {
 	["hud.level_banner"] = "LEVEL {level}!",
 	["level.up"] = "Naik ke Level {level}!",
 	["level.up_unlocks"] = "Level {level}! Terbuka: {unlocks}",
-	["location.sungai"] = "Sungai",
+	["location.sungai"] = "Kanal Barat", -- K-23
 	["location.sungai_lahan"] = "Sungai Lahan",
-	["location.empang"] = "Empang",
+	["location.empang"] = "Kanal Timur", -- K-23
 	["location.kolam"] = "Kolam",
-	-- Nama spot mancing (papan di dermaga dan teks prompt). Sungai = Basic, Empang = Pro.
-	["spot.sungai"] = "Basic Mancing",
+	-- Nama spot mancing (papan di dermaga dan teks prompt). K-23: Kanal Barat / Kanal Timur / Sungai Lahan.
+	["spot.sungai"] = "Kanal Barat",
 	["spot.sungai_lahan"] = "Sungai Lahan",
-	["spot.empang"] = "Pro Mancing",
+	["spot.empang"] = "Kanal Timur",
 	["spot.open"] = "Terbuka",
 	["spot.need"] = "Butuh Lv {level}",
 
@@ -1102,8 +1102,8 @@ return {
 	["quest.s8_kandang_bebek.title"] = "Kandang Bebek",
 	["quest.s8_kandang_bebek.s1"] = "Bangun Kandang Bebek",
 	["quest.s8_kandang_bebek.s2"] = "Beli 1 Bebek",
-	["quest.s9_empang.title"] = "Empang",
-	["quest.s9_empang.s1"] = "Tangkap 1 ikan di Empang",
+	["quest.s9_empang.title"] = "Kanal Timur",
+	["quest.s9_empang.s1"] = "Tangkap 1 ikan di Kanal Timur",
 	["quest.side_rumah_rapi.title"] = "Rumah Rapi",
 	["quest.side_rumah_rapi.s1"] = "Pasang {n} hiasan",
 	["quest.side_tetangga.title"] = "Tetangga Baik",
@@ -1232,7 +1232,7 @@ return {
 	["dlg.s7.done.1"] = "Petani sejati!",
 	["dlg.s8.start.1"] = "Sekarang ada bebek di warung. Telurnya lebih mahal dari telur ayam, lho.",
 	["dlg.s8.done.1"] = "Kweek! Ramai juga lahanmu sekarang.",
-	["dlg.s9.start.1"] = "Sisi timur kanal itu Empang. Ikannya galak-galak, jorannya harus kuat.",
+	["dlg.s9.start.1"] = "Sisi timur kanal itu ikannya galak-galak, jorannya harus kuat.", -- 03_Quest_Naskah FINAL (K-23)
 	["dlg.s9.done.1"] = "Wah, kamu sudah jago!",
 
 } :: { [string]: string }
