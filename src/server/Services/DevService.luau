@@ -158,6 +158,37 @@ local function onChatted(player: Player, message: string)
 		print(`[DEV] skenario {scenario} selesai`)
 		return
 	end
+	local npcId = normalized:match("^!teleport%s+(%S+)%s*$")
+	if npcId then
+		-- DEV: stand next to an NPC (its model in Workspace.Npcs) on the server
+		local model = Workspace:FindFirstChild("Npcs") and Workspace.Npcs:FindFirstChild(npcId)
+		local head = model and model:FindFirstChild("Head")
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		if head and head:IsA("BasePart") and root and root:IsA("BasePart") then
+			root.CFrame = head.CFrame * CFrame.new(0, 0, 6)
+			print(`[DEV] teleport ke {npcId}`)
+		else
+			warn(`[DEV] !teleport: {npcId} tidak ada`)
+		end
+		return
+	end
+	local dayMatch = normalized:match("^!hari%s+%+?(%d+)%s*$")
+	if dayMatch then
+		-- DEV: a new day/week for the daily pools, Agenda and orders: their day keys are cleared, so the next roll is fresh.
+		local data = DataService.Get(player)
+		if data then
+			for _ = 1, tonumber(dayMatch) :: number do
+				data.quests.agenda.day = ""
+				data.quests.harian.day = ""
+				data.quests.mingguan.week = ""
+				data.orders.day = ""
+				data.orders.week = ""
+			end
+			print("[DEV] hari berganti: pool harian, mingguan, agenda, dan order di-roll ulang")
+		end
+		return
+	end
 	local equipId = normalized:match("^!equip%s+(%S+)%s*$")
 	if equipId then
 		local data = DataService.Get(player)
@@ -329,6 +360,8 @@ function DevService.Start()
 		end
 	end, { rate = 4, burst = 8 })
 	local function hook(player: Player)
+		-- the DEV panel (client) shows only when this is true; the server checks IsAllowed on every command anyway
+		player:SetAttribute("DevAllowed", DevService.IsAllowed(player))
 		if not DevService.IsAllowed(player) then
 			return
 		end

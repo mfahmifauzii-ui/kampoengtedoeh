@@ -40,6 +40,16 @@ function FeatureGate.LevelOpen(level: number, id: string): boolean
 	return need ~= nil and level >= need
 end
 
+-- DEV (Putaran 2): every feature id that is gated (for "!buka semua").
+function FeatureGate.GatedIds(): { string }
+	local ids = {}
+	for id in gated do
+		table.insert(ids, id)
+	end
+	table.sort(ids)
+	return ids
+end
+
 function FeatureGate.IsGated(id: string): boolean
 	return gated[id] == true
 end

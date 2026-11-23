@@ -478,6 +478,17 @@ function QuestService.DevStart(player: Player, questId: string): string
 end
 
 function QuestService.DevOpenFeature(player: Player, featureId: string)
+	if featureId == "semua" then
+		local data = DataService.Get(player)
+		if data then
+			for _, id in FeatureGate.GatedIds() do
+				setFeature(data, id, "open")
+			end
+			syncFeatures(data)
+			InventoryService.Sync(player)
+		end
+		return
+	end
 	local data = DataService.Get(player)
 	if data then
 		setFeature(data, featureId, "open")
