@@ -248,6 +248,14 @@ Perintah ini hanya untuk akun owner (dan Studio). Diisi di chat game, diawali `!
 - Panel DEV: tombol di layar (hanya untuk akun owner). Isinya sama dengan perintah di bawah.
 - `!state`: cetak level, Koin, fitur terbuka, quest aktif, dan barang terpasang.
 - `!skenario <nama>`: isi cepat, contoh `pasca_tutorial`, `lv6_dapur`, `lv10_penuh`, `mancing`, `kandang`, `hujan_deres`, `event_agustusan`, `pasar_malam`, `solo_server`.
+- Panel DEV di layar: tab kecil "DEV" di tepi kiri (hanya untuk akun owner dan Studio). Ketuk untuk membuka daftar: Status, Lewati tutorial, Level +1, Koin +1000, Buka semua fitur, Cuaca (ganti), Waktu (ganti), Tumbuh, Hari +1, Teleport ke NPC, Skenario, dan Reset (ketuk dua kali).
+- `!bubu pasang <bambu|kayu|besi>` (berdiri di sungai dekat titik mancing, punya item bubu), `!bubu ambil <nomor>`. `!tumbuh` juga memajukan bubu ke siap.
+- `!teleport <npc>`, `!hari +N` (roll ulang pool harian, mingguan, agenda, dan order), `!buka semua`, `!quest mulai <id>`, `!quest selesai <id>`, `!lapor <event> [n]`.
 - `!reset`, `!level N`, `!xp N`, `!koin N`, `!bunga N`, `!sp N`, `!buka <fitur|semua>`, `!quest <id> [langkah]`, `!quest selesai <id>`, `!give <item> [n]`, `!equip <item>`, `!cuaca <cerah|gerimis|deres|petir>`, `!waktu <pagi|siang|sore|malam>`, `!tumbuh`, `!hari +N`, `!event <nama|off>`, `!pasar on|off`, `!teleport <npc|lokasi>`.
 
 Catatan: di Studio, profil yang gagal dimuat dipakai dari memori (tidak tersimpan).
+
+### B11. Putaran 2 (lanjutan): owner cek di HP
+1. [ ] **Marker "!" (fix):** hanya satu per pemberi, di dekat NPC, tidak tampak di layar judul, tidak melayang di tengah plaza (Studio: 0 sebelum main, 1 untuk Bang Jali saat dekat).
+2. [ ] **Bubu:** pasang di sungai dekat titik mancing, tunggu 6 jam, ambil; tidak bisa diambil sebelum siap. (Pembelian dan tombol pasang belum ada; pakai DEV.)
+3. [ ] **Panel DEV:** tab "DEV" bisa dibuka dan tombolnya berfungsi (Studio tidak bisa menekan tombol; cek di HP).
