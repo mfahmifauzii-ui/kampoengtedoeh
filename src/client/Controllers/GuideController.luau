@@ -34,6 +34,7 @@ local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Signal = require(ReplicatedStorage.Shared.Modules.Signal)
 local GarapController = require(script.Parent.GarapController)
 local CoachmarkController = require(script.Parent.CoachmarkController)
+local HudController = require(script.Parent.HudController)
 local State = require(script.Parent.Parent.State)
 local UiKit = require(script.Parent.Parent.UiKit)
 local WorldArrow = require(script.Parent.Parent.WorldArrow)
@@ -76,6 +77,21 @@ type Running = {
 }
 local running: Running? = nil
 local lastFinish: number? = nil -- os.clock() when the last tutorial ended (queue gap)
+local lastToastKey: string? = nil -- the tutorial toast already shown (step index, step id, wording)
+
+-- Rule 4 (GUI 4.6, locked): a repeat step's words are a toast in HudController's toast stack (under the Koin/Bunga bar),
+-- once per step and wording. Never a bubble, never a ring. The key changes with the step, so the next step may toast again.
+local function toastOnce(stepIndex: number, stepId: string, wording: string?)
+	if wording == nil then
+		return
+	end
+	local key = `{stepIndex}:{stepId}:{wording}`
+	if key == lastToastKey then
+		return
+	end
+	lastToastKey = key
+	HudController.Toast(wording)
+end
 local firstSnapshotAt: number? = nil
 local closed: { [string]: string } = {} -- "done" | "skipped" in this session (the snapshot may still be stale)
 local acked: { [string]: boolean } = {} -- welcome modal "Mulai" pressed, per step id (kind "ack"); reset on every run
@@ -837,15 +853,6 @@ local function inLandZone(radius: number): boolean
 	return (Vector3.new(root.Position.X, 0, root.Position.Z) - Vector3.new(center.X, 0, center.Z)).Magnitude <= radius
 end
 
--- Playtest 7 item 5: no hint line while the welcome menu is up (KTMenu not "done") or while the intro cutscene plays
--- (KTIntroPlaying, set by T1Ghost). A missing MenuFlow counts as done.
-local function hintAllowed(): boolean
-	local menu = player:GetAttribute("KTMenu")
-	if menu ~= nil and menu ~= "done" then
-		return false
-	end
-	return player:GetAttribute("KTIntroPlaying") ~= true
-end
 
 -- Fish caught so far in the bag (items with "@" are fish). Rule 1a: the mancing spotlight ends at the first catch.
 local function fishCaughtCount(): number
@@ -945,6 +952,27 @@ function refreshTutorial()
 	elseif phase == "sell" then
 		text = Locale.t("tut.t1.s4_sell")
 	end
+	-- Rule 2 (GUI 4.6, locked): a REPEAT step (or mancing after its first catch) is toast only: no bubble, no ring, no spotlight.
+	local repeatNow = stepDef.repeatStep == true or (stepDef.id == "mancing" and fishCaughtCount() > 0)
+	if repeatNow and phase == nil and stepDef.done.kind ~= "ack" then
+		-- garap_5 with an empty bed and seeds in the bag: the next real action is Tanam, so the words say Tanam (TB, 3).
+		local _, _, _, _, emptyBed = bedStates()
+		local seedsInBag = hasInBag(snapshot(), function(itemId)
+			return itemId:match("^seed_") ~= nil
+		end)
+		local wording = text
+		if stepDef.id == "garap_5" and emptyBed and seedsInBag then
+			wording = Locale.t("tut.t1.s5_tanam")
+		end
+		CoachmarkController.Hide()
+		clearRing()
+		GarapController.SetHintHidden(true)
+		hint.Visible = false
+		CoachmarkController.SetPaused(uiBusy())
+		local spoken = say(stepDef.id, stuckFor >= Onboarding.STUCK_TEXT)
+		toastOnce(current.n, stepDef.id, if spoken then nil else wording)
+		return
+	end
 	-- Waiting for a crop or walking to Pak Udin: no coachmark (its dark overlay hides the bed and the arrow). The hint bar
 	-- carries the text and the ground trail / bed arrow point the way (user, 16 Nov).
 	if phase ~= nil then -- wait / harvest / sell (the T1 panen step)
@@ -954,34 +982,26 @@ function refreshTutorial()
 		CoachmarkController.Hide()
 		clearRing()
 		GarapController.SetHintHidden(true)
-		local spoken = say(`panen_{phase}`, stuckFor >= Onboarding.STUCK_TEXT) -- Mak Sari says it: no text in the hint bar
-		if spoken then
-			-- No text anywhere, but still something to look at: glow on Panen when ripe, an arrow over Pak Udin to sell.
-			-- (spotlight = false: no dark overlay, the bed and the way stay clear.)
-			CoachmarkController.SetPaused(uiBusy())
-			if phase == "harvest" then
-				CoachmarkController.Show({
-					mode = "button",
-					text = nil,
-					spotlight = false,
-					findButton = function(): GuiObject?
-						return findHighlight("PanenButton")
-					end,
-				})
-			elseif phase == "sell" then
-				CoachmarkController.Show({
-					mode = "ground",
-					text = nil,
-					spotlight = false,
-					npcPoint = function(): Vector3?
-						local npc = npcRootOf("pak_udin")
-						return if npc then npc.Position + Vector3.new(0, 5, 0) else nil
-					end,
-				})
-			end
+		local spoken = say(`panen_{phase}`, stuckFor >= Onboarding.STUCK_TEXT) -- Mak Sari says it: no text anywhere
+		CoachmarkController.SetPaused(uiBusy())
+		-- Rule 2 (GUI 4.6): panen_jual is a repeat step. Its words are a toast (never a bubble, no ring on Panen).
+		-- Only the sell phase keeps the world arrow over Pak Udin (rule 1b: a world target, no dark).
+		if phase == "sell" then
+			CoachmarkController.Show({
+				mode = "ground",
+				key = stepDef.id,
+				text = nil,
+				spotlight = false,
+				npcPoint = function(): Vector3?
+					local npc = npcRootOf("pak_udin")
+					return if npc then npc.Position + Vector3.new(0, 5, 0) else nil
+				end,
+			})
+		else
+			CoachmarkController.Hide()
 		end
-		hint.Visible = not spoken and not GarapController.Active and hintAllowed()
-		hintText.Text = text
+		hint.Visible = false
+		toastOnce(current.n, stepDef.id .. phase, if spoken then nil else text)
 		return
 	end
 	-- Coachmark (CoachmarkController): ONE instruction per step. The hint bar is hidden while it shows, and the Garap hint

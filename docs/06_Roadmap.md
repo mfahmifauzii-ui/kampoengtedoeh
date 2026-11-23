@@ -321,6 +321,7 @@ Sumber: video dan HP owner (playthrough 8:21 di PC + screenshot). Setiap F = sat
 | F6 | "!" di atas setiap pemberi quest (Tersedia atau siap), termasuk setelah quest pembelian dan rejoin | DONE-CODE (jarak) · CEK (per pemberi) | 43b4719 | Tabel per pemberi belum dibuat (Bab 21) |
 | F7 | Pak Udin setelah tutorial: Jual / Beli + Sampai jumpa | DONE-CODE | 5641d7a | Cek HP pending |
 | F8 | docs/09: cek HP per perbaikan F1–F7 | TODO | — | Dikerjakan di tugas D8 (lihat 09 bagian baru) |
+| TB | Toast tepat di bawah bar Koin/Bunga, tidak ikut bubble coachmark atau dock; maks 2 chip, terbaru di atas; langkah pengulangan = toast saja (tanpa bubble, tanpa ring) | DONE-CODE (TB) | (commit feat(TB)) | Akar: `UiKit.TOAST_AVOID` mendorong stack ke bawah bubble coachmark (CoachTop) sampai menutupi dock. Dihapus. Garap_5 dan tanam_5 sekarang toast. Visual Play sebagian: posisi stack y=60 (UI tree), gambar belum |
 
 ## 19. Putaran Playtest 1 (K-53…K-57): dikerjakan sebelum Fase 2
 

@@ -1494,7 +1494,7 @@ function UiKit.hudStripBottomGap(view: Vector2): number
 end
 
 UiKit.TOAST_GAP = 8 -- px: under the currency bar, and between stacked chips
-UiKit.TOAST_MAX_VISIBLE = 3 -- chips on screen at once; more wait in HudController's queue
+UiKit.TOAST_MAX_VISIBLE = 2 -- chips on screen at once (TB: max 2); more wait in HudController queue
 UiKit.TOAST_WIDTH_SHARE = 0.5 -- at most half the screen wide
 UiKit.TOAST_LEFT = UiKit.HUD.MARGIN + UiKit.HUD.TRACKER_W + UiKit.HUD.GAP -- right of the quest tracker
 UiKit.TOAST_RIGHT = UiKit.HUD.MENU_W + UiKit.HUD.MARGIN + UiKit.HUD.GAP -- left of the right menu column
@@ -1509,7 +1509,7 @@ UiKit.TOAST_FADE = 0.25 -- seconds: fade in and out of one chip (UI motion, Lamp
 UiKit.TOAST_PAD_TOP = 12 -- px (A3, K-53): gap between the Koin/Bunga bar or a Bubble Instruksi and the toast stack
 -- Things the toast stack keeps clear of: { ScreenGui name, descendant name }. GuideUI "Hint" = Bubble Instruksi (K-40);
 -- CoachTop "Bubble" = the coachmark bubble.
-UiKit.TOAST_AVOID = { { "GuideUI", "Hint" }, { "CoachTop", "Bubble" } }
+UiKit.TOAST_AVOID = { { "GuideUI", "Hint" } } -- TB: the coachmark bubble is NOT avoided (it moved the stack onto the dock)
 UiKit.TOAST_PAD_X = 14 -- px: inside a chip, left and right
 UiKit.TOAST_PAD_Y = 8 -- px: inside a chip, top and bottom
 UiKit.TOAST_MIN_H = 40 -- px: the smallest chip (one line)
@@ -1597,7 +1597,7 @@ function UiKit.toastChip(stack: Frame, text: string): CanvasGroup
 	chip.Size = UDim2.new(1, 0, 0, UiKit.TOAST_MIN_H)
 	chip.ZIndex = 6
 	toastOrder += 1
-	chip.LayoutOrder = toastOrder -- newest at the bottom
+	chip.LayoutOrder = -toastOrder -- TB: newest at the top, under the Koin/Bunga bar
 	chip.Parent = stack
 	UiKit.parchmentBox(chip)
 	local label = Instance.new("TextLabel")

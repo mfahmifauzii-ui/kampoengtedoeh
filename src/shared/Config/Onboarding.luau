@@ -37,6 +37,7 @@ export type Step = {
 	reward: Reward?, -- paid once when the step completes (never on replay)
 	modal: { title: string, body: string }?, -- kind "ack" only: the welcome modal (Locale keys); Mulai acks it, no skip
 	coach: string?, -- Locale key of the coachmark bubble (defaults to text)
+	repeatStep: boolean?, -- rule 2 (GUI 4.6): the step was already done once; toast only
 	spotlight: boolean?, -- rule 1a (GUI 4.6): one dark hole around a FIXED HUD button, first time only. Default false = ring only
 	greet: string?, -- Locale key: a sapaan said first in the cutscene of this step (Fase 2; {name} = the player). Used by panen_jual
 }
@@ -137,6 +138,7 @@ local TUTORIALS: { Tutorial } = {
 			},
 			{
 				id = "garap_5",
+				repeatStep = true, -- rule 2 (GUI 4.6): repeat = toast only, no bubble, no ring, no spotlight
 				text = "tut.t1.s5_garap",
 				coach = "tut.coach.garap",
 				done = { kind = "tiles", n = 6 }, -- 1 old plot + 5 new ones
@@ -144,6 +146,7 @@ local TUTORIALS: { Tutorial } = {
 			},
 			{
 				id = "tanam_5",
+				repeatStep = true, -- rule 2 (GUI 4.6): repeat = toast only, no bubble, no ring, no spotlight
 				text = "tut.t1.s5_tanam",
 				coach = "tut.coach.tanam",
 				done = { kind = "planted", n = 5 }, -- the 5 free seeds still in the bag
@@ -152,12 +155,14 @@ local TUTORIALS: { Tutorial } = {
 			{
 				-- All six free seeds harvested (the first harvest counts): never fewer.
 				id = "tunggu_semua",
+				repeatStep = true, -- rule 2 (GUI 4.6): repeat = toast only, no bubble, no ring, no spotlight
 				text = "tut.t1.s5_tunggu",
 				done = { kind = "harvests", n = 6 },
 				highlight = "PanenButton",
 			},
 			{
 				id = "panen_jual",
+				repeatStep = true, -- rule 2 (GUI 4.6): repeat = toast only, no bubble, no ring, no spotlight
 				text = "tut.t1.s4",
 				coach = "tut.coach.panen",
 				greet = "tut.t1.jual.1", -- Pak Udin's sapaan at the first sale (naskah 1.3)

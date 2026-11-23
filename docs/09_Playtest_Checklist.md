@@ -284,3 +284,11 @@ Perintah ini hanya untuk akun owner (dan Studio). Diisi di chat game, diawali `!
 
 Catatan: di Studio, profil yang gagal dimuat dipakai dari memori (tidak tersimpan).
 
+
+### B12. Toast dan langkah pengulangan (TB, 2026-11-23)
+
+1. [ ] **Posisi toast:** toast muncul tepat di bawah bar Koin/Bunga di atas, bukan di atas dock. Dua chip paling banyak, yang terbaru di atas, tidak saling tumpang tindih.
+2. [ ] **Tidak menutupi dock:** saat langkah Garap dan Tanam aktif (ada bubble coachmark), toast tidak menutupi tombol Garap, Tas, atau Aksi.
+3. [ ] **Pengulangan = toast saja:** di langkah garap_5 dan tanam_5 tidak ada bubble coachmark dan tidak ada ring di tombol Garap. Hanya toast.
+4. [ ] **Hint sesuai aksi:** setelah panen pertama dan ada petak kosong dengan bibit di tas, hint berisi Tanam (bukan "Tap Garap dulu") selama popup Tanam dibuka.
+5. [ ] **Teks tidak terpotong:** toast dengan kalimat panjang terbaca penuh (dua baris paling banyak), tidak "...ga jual naik".
