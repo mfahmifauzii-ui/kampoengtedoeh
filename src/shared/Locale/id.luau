@@ -507,6 +507,7 @@ return {
 	["shop.sell_empty"] = "Belum ada yang bisa dijual ke sini",
 	["item.seed"] = "Bibit {crop}",
 	["item.crop_kualitas"] = "{crop} {quality}",
+	["item.ternak_kualitas"] = "{item} {quality}",
 	["kualitas.biasa"] = "Biasa",
 	["kualitas.bagus"] = "Bagus",
 	["kualitas.prima"] = "Prima",

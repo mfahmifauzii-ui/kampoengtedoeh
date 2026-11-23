@@ -532,7 +532,9 @@ function RanchService.Collect(player: Player, hewanId: string)
 		Net.Fire("Notify", player, "ranch.empty")
 		return
 	end
-	if not InventoryService.Add(player, hewan.product.item, count) then
+	-- K-05: telur & susu diambil saat Mood Hujan = Bagus (id "bagus_<produk>"). Tidak pernah Prima.
+	local productId = if RanchService.MoodActive(data) then `bagus_{hewan.product.item}` else hewan.product.item
+	if not InventoryService.Add(player, productId, count) then
 		return
 	end
 	if xp > 0 then

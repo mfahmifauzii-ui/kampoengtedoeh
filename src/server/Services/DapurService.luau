@@ -152,10 +152,25 @@ local function takeInputs(player: Player, data: Types.PlayerData, recipe: Dapur.
 			end
 			table.insert(takes, { id = input.id, count = input.count })
 		elseif input.kind == "ternak" and input.id then
-			if InventoryService.Count(player, input.id) < input.count then
+			-- K-05: telur/susu biasa dulu, lalu Bagus (Mood Hujan). Kualitas tertinggi ikut ke olahan.
+			local bagusId = `bagus_{input.id}`
+			local haveBiasa = InventoryService.Count(player, input.id)
+			local haveBagus = InventoryService.Count(player, bagusId)
+			if haveBiasa + haveBagus < input.count then
 				return false, best, 0
 			end
-			table.insert(takes, { id = input.id, count = input.count })
+			local leftT = input.count
+			local takeBiasa = math.min(leftT, haveBiasa)
+			if takeBiasa > 0 then
+				table.insert(takes, { id = input.id, count = takeBiasa })
+				leftT -= takeBiasa
+			end
+			if leftT > 0 then
+				table.insert(takes, { id = bagusId, count = leftT })
+				if qualityRank("bagus") > qualityRank(best) then
+					best = "bagus"
+				end
+			end
 			local info = Items.info(input.id)
 			value += (if info and info.sellPrice then info.sellPrice else 0) * input.count
 		elseif input.kind == "olahan" and input.id then

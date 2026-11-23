@@ -91,6 +91,20 @@ function Items.info(itemId: string): ItemInfo?
 		return { id = itemId, kind = "bahan", nameKey = bahanKey }
 	end
 
+	-- K-05: telur & susu Bagus (diambil saat Mood Hujan) memakai pola id panen: "bagus_<produk>".
+	local ternakBase = itemId:match("^bagus_(.+)$")
+	local ternakBagus = if ternakBase then TERNAK[ternakBase] else nil
+	if ternakBase and ternakBagus then
+		local bagus = Kualitas.byId.bagus
+		return {
+			id = itemId,
+			kind = "ternak",
+			nameKey = "item.ternak_kualitas",
+			nameVars = { item = ternakBagus.name, quality = bagus.nameKey },
+			sellPrice = math.floor(ternakBagus.sell * bagus.mult + 0.5),
+		}
+	end
+
 	local produk = TERNAK[itemId]
 	if produk then
 		return { id = itemId, kind = "ternak", nameKey = produk.name, sellPrice = produk.sell }
