@@ -124,7 +124,7 @@ local STEP_LINES: { [string]: Line } = {
 	panen_sell = { who = "mak_sari", key = "tut.t1.panen_sell.1" },
 	-- T1b
 	kak_fajar = { who = "pak_udin", key = "tut.t1b.kak_fajar.1" },
-	mancing = { who = "kak_fajar", key = "tut.t1b.mancing.1" },
+	-- B2 (K-54): no line for the fishing step; the first two catches only show the instruction bubble ("Coba lagi, ...").
 }
 
 local function lineText(line: Line): string

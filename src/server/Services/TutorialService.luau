@@ -14,6 +14,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Npcs = require(ReplicatedStorage.Shared.Config.Npcs)
+local Progression = require(ReplicatedStorage.Shared.Config.Progression)
 local Onboarding = require(ReplicatedStorage.Shared.Config.Onboarding)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Signal = require(ReplicatedStorage.Shared.Modules.Signal)
@@ -48,6 +49,14 @@ end
 local function pay(player: Player, reward: Onboarding.Reward?, tutorialId: string)
 	if not reward then
 		return
+	end
+	if reward.xpFill then
+		-- B2 (K-54): the rest of the XP to Lv 2 (never negative); the tutorial ends at Lv 2.
+		local data = DataService.Get(player)
+		local rest = if data then Progression.xpToNext(1) - data.xp else 0
+		if rest > 0 then
+			ProgressionService.AddXp(player, rest, `tutorial:{tutorialId}`)
+		end
 	end
 	if reward.xp and reward.xp > 0 then
 		ProgressionService.AddXp(player, reward.xp, `tutorial:{tutorialId}`)

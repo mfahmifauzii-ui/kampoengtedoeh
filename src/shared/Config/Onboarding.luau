@@ -23,6 +23,7 @@ export type Reward = {
 	koin: number?,
 	bunga: number?,
 	items: { [string]: number }?, -- inventory ids
+	xpFill: boolean?, -- B2 (K-54): tops XP up to the Lv 2 threshold (catch XP varies, so no fixed number lands on Lv 2)
 }
 
 export type Step = {
@@ -201,7 +202,7 @@ local TUTORIALS: { Tutorial } = {
 				text = "tut.t1b.mancing",
 				coach = "tut.coach.mancing", -- A3: the Mancing button (AksiButton) is ringed; cast, then pull, then the first fish
 				highlight = "AksiButton",
-				done = { kind = "fish" },
+				done = { kind = "fish", n = 3 }, -- B2 (K-54): three catches. The first two show only "Coba lagi" (GuideController), no dialogue
 				target = { spot = "sungai_lahan" }, -- the arrow to the nearest river spot (sungai lahan, Lv 1; Task 1 moves it to the plot's own spot)
 				arrive = 6,
 				reward = { xp = 20 }, -- the same 20 XP as the warung step (paid once on the first fish)
@@ -215,8 +216,8 @@ local TUTORIALS: { Tutorial } = {
 				done = { kind = "ack", id = "jual_ikan" },
 				target = { npc = "kak_fajar" },
 				arrive = 14,
-				-- B1 recount (K-54): 1+1+1 + 6 harvests x 12 + 20 (Jual) + 20 (first fish) = 115, the top-up that ends at Lv 2.
-				reward = { xp = 115 },
+				-- B2 (K-54): XP is topped up to exactly the Lv 2 threshold, so the tutorial ends at Lv 2 whatever the catches gave.
+				reward = { xpFill = true },
 			},
 		},
 	},

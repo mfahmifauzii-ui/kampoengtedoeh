@@ -865,6 +865,21 @@ function refreshTutorial()
 	else
 		text = Locale.t(stepDef.text)
 	end
+	-- B2 (K-54): the fishing step counts catches; after 1 or 2 the bubble says "Coba lagi" with how many are left.
+	if stepDef.id == "mancing" and not (now < current.introUntil and current.def.intro) and stuckFor < Onboarding.STUCK_TEXT then
+		local snapshot = State.current :: any
+		local caught = 0
+		if snapshot and snapshot.items then
+			for itemId, count in snapshot.items do
+				if typeof(count) == "number" and string.find(itemId, "@", 1, true) then
+					caught += count
+				end
+			end
+		end
+		if caught > 0 and caught < 3 then
+			text = Locale.t("tut.t1b.mancing_retry", { n = 3 - caught })
+		end
+	end
 	-- T1 panen step: the wording and the target follow the phase (wait / harvest / sell), so "Tap Panen" never shows
 	-- before the crop is ripe, and Pak Udin is named only after the harvest is in the Tas (user, 16 Nov).
 	local phase = if stepDef.id == "panen_jual" then t1Phase() else nil

@@ -628,7 +628,7 @@ return {
 	["tut.t1b.hadiah.2"] = "Nih, joran bambu sama umpan buat kamu. Anggap aja hadiah selamat datang.",
 	["tut.t1b.mancing.1"] = "Coba lempar ke riak air itu. Ketuk tombol Mancing yang menyala.",
 	-- 1.5 Ikan pertama + jual, Kak Fajar (satu rangkaian)
-	["tut.t1b.jual_ikan.1"] = "Wah, dapat! Lumayan buat percobaan pertama.",
+	["tut.t1b.jual_ikan.1"] = "Kamu jago juga mancingnya, sini ikannya aku beli.",
 	["tut.t1b.jual_ikan.2"] = "Mau dijual? Aku beli ikan di sini.",
 	["tut.t1b.jual_ikan.3"] = "Sungai ini dekat lahanmu, jadi bisa mancing sambil nunggu panen.",
 	["tut.t1b.jual_ikan.4"] = "Aku balik ke lapak dulu. Butuh umpan atau mau jual ikan, cari aku di pinggir kanal alun-alun.",
@@ -669,7 +669,8 @@ return {
 	["tut.t1b.kak_fajar"] = "Temui Kak Fajar di sungai dekat lahanmu",
 	["tut.t1b.jual_ikan"] = "Jual ikanmu ke Kak Fajar",
 	["tut.t1b.ok_fajar"] = "Ok, Kak Fajar",
-	["tut.t1b.mancing"] = "Mancing 1 ikan di sungai",
+	["tut.t1b.mancing"] = "Tangkap 3 ikan di sungai buat Kak Fajar",
+	["tut.t1b.mancing_retry"] = "Coba lagi, {n} ikan lagi ya!",
 	["tut.coach.mancing"] = "Ketuk Mancing, lalu tarik saat ikan menggigit",
 	["tut.coach.tarik"] = "Tahan Tarik! Jaga ikan tetap di zona hijau",
 
