@@ -442,6 +442,50 @@ local function onKakekSetor(player: Player)
 	reportEvent(player, "kakek_setor", 1)
 end
 
+-- DEV (K-64): !quest selesai <id> and !buka <fitur> use the same finish and feature code as the real quests.
+function QuestService.DevFinish(player: Player, questId: string): string
+	local data = DataService.Get(player)
+	local quest = Quests.byId[questId]
+	if not data or not quest then
+		return "quest tidak dikenal"
+	end
+	if data.quests.done[questId] then
+		return "sudah selesai"
+	end
+	if data.quests.active[questId] == nil and not startQuest(player, data, quest) then
+		return "tidak bisa dimulai"
+	end
+	finishQuest(player, data, quest)
+	InventoryService.Sync(player)
+	return "selesai"
+end
+
+-- DEV (K-64): "!quest mulai <id>" starts a quest through the same start code (no dialogue).
+function QuestService.DevStart(player: Player, questId: string): string
+	local data = DataService.Get(player)
+	local quest = Quests.byId[questId]
+	if not data or not quest then
+		return "quest tidak dikenal"
+	end
+	if data.quests.done[questId] or data.quests.active[questId] then
+		return "sudah dimulai/selesai"
+	end
+	if not startQuest(player, data, quest) then
+		return "tidak bisa dimulai"
+	end
+	InventoryService.Sync(player)
+	return "mulai"
+end
+
+function QuestService.DevOpenFeature(player: Player, featureId: string)
+	local data = DataService.Get(player)
+	if data then
+		setFeature(data, featureId, "open")
+		syncFeatures(data)
+		InventoryService.Sync(player)
+	end
+end
+
 function QuestService.Init()
 	Net.On("QuestReport", onUiReport, { rate = 4, burst = 8 })
 	Net.On("QuestAccept", onAccept, { rate = 4, burst = 8 })

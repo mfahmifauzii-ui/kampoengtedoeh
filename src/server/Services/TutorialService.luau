@@ -282,6 +282,33 @@ local function onMeetFajar(player: Player): any
 	return { ok = true, gave = true }
 end
 
+-- DEV (K-64): "!skip tutorial" finishes the auto tutorials the way play does: every step reward and the tutorial reward are
+-- paid through pay() (so the XP top-up to Lv 2 happens), the rod gift is given once, and the unlock flags are set.
+function TutorialService.DevFinishAll(player: Player): string
+	local data = DataService.Get(player)
+	if not data then
+		return "data belum termuat"
+	end
+	for _, tutorial in Onboarding.TUTORIALS do
+		if data.guide.done[tutorial.id] ~= true and data.guide.skipped[tutorial.id] ~= true then
+			for _, step in tutorial.steps do
+				pay(player, step.reward, tutorial.id)
+			end
+			pay(player, tutorial.reward, tutorial.id)
+			data.guide.done[tutorial.id] = true
+		end
+	end
+	giveRodGift(player, data)
+	data.guide.fishCaught = true
+	data.guide.fishSold = true
+	data.guide.saleCutscene = true
+	data.guide.kolamUnlocked = true
+	data.guide.decorUnlocked = true
+	data.guide.step = { id = "", n = 0 }
+	InventoryService.Sync(player)
+	return "tutorial selesai"
+end
+
 function TutorialService.Init()
 	register(Onboarding.TEST_TUTORIAL)
 	for _, tutorial in Onboarding.TUTORIALS do

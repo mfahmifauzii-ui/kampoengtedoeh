@@ -21,10 +21,57 @@ local ProgressionService = require(script.Parent.ProgressionService)
 local WorldService = require(script.Parent.WorldService)
 local MonetizationService = require(script.Parent.MonetizationService)
 local EventService = require(script.Parent.EventService)
+local QuestService = require(script.Parent.QuestService)
+local TutorialService = require(script.Parent.TutorialService)
+local DevAccess = require(ReplicatedStorage.Shared.Config.DevAccess)
+local DevScenarios = require(ReplicatedStorage.Shared.Config.DevScenarios)
 
 local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !sp 2, !orders, !grow, !time malam, !rain, !cuaca terik|gerimis|deres|petir, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 2: !level 2),!inv, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !buff tani 60 (UI test only: no effect yet), !give kangkung 30, !tut [reset|fast], !kakek (unlock Kolam Kakek: MQ4/Bundel placeholder)"
 
 local DevService = {}
+
+-- K-64: the one check for every DEV command and remote. Studio always; live only for the whitelist, while LIVE_ENABLED.
+function DevService.IsAllowed(player: Player): boolean
+	if RunService:IsStudio() then
+		return true
+	end
+	return DevAccess.LIVE_ENABLED and table.find(DevAccess.UserIds, player.UserId) ~= nil
+end
+
+-- "!state": printed lines (Output) with what the player has right now.
+local function printState(player: Player)
+	local data = DataService.Get(player)
+	if not data then
+		warn("[DEV] !state: data belum termuat")
+		return
+	end
+	local profile = DataService.GetProfile(player)
+	print(`[DEV] {player.Name} lv={data.level} xp={data.xp} koin={data.koin} bunga={data.bunga} sp={data.sp} rod={data.fishing.rod} bait={data.fishing.equippedBait} studioMock={tostring(profile ~= nil and profile.studioMock == true)}`)
+	local features = {}
+	for id, state in data.features do
+		table.insert(features, `{id}={state}`)
+	end
+	table.sort(features)
+	print(`[DEV] fitur: {table.concat(features, " ")}`)
+	local active, done, items = {}, {}, {}
+	for id in data.quests.active do
+		table.insert(active, `{id}@{data.quests.active[id].step}`)
+	end
+	for id in data.quests.done do
+		table.insert(done, id)
+	end
+	for id, count in data.inventory do
+		if count > 0 then
+			table.insert(items, `{id}x{count}`)
+		end
+	end
+	table.sort(active)
+	table.sort(done)
+	table.sort(items)
+	print(`[DEV] quest aktif: {table.concat(active, " ")}`)
+	print(`[DEV] quest selesai: {table.concat(done, " ")}`)
+	print(`[DEV] tas: {table.concat(items, " ")}`)
+end
 
 local function currencyCommand(player: Player, currency: any, amount: number)
 	local currencyName = `currency.{currency}`
@@ -46,6 +93,74 @@ local function onChatted(player: Player, message: string)
 	end
 	print(`[DevService] {player.Name}: {message}`)
 	local normalized = message:gsub("\u{2212}", "-") -- typographic minus from autocorrect
+
+	-- Putaran 2 (task 0): state, quest, feature, equip and scenario commands, through the real server code paths.
+	if normalized:match("^!state%s*$") then
+		printState(player)
+		return
+	end
+	local questId = normalized:match("^!quest%s+selesai%s+(%S+)%s*$")
+	if questId then
+		print(`[DEV] quest {questId}: {QuestService.DevFinish(player, questId)}`)
+		return
+	end
+	if normalized:match("^!skip%s+tutorial%s*$") then
+		print(`[DEV] {TutorialService.DevFinishAll(player)}`)
+		return
+	end
+	local startId = normalized:match("^!quest%s+mulai%s+(%S+)%s*$")
+	if startId then
+		print(`[DEV] quest {startId}: {QuestService.DevStart(player, startId)}`)
+		return
+	end
+	local event, times = normalized:match("^!lapor%s+([%w_]+)%s*(%d*)%s*$")
+	if event then
+		QuestService.Report(player, event, tonumber(times) or 1)
+		print(`[DEV] lapor {event} x{tonumber(times) or 1}`)
+		return
+	end
+	local feature = normalized:match("^!buka%s+(%S+)%s*$")
+	if feature then
+		QuestService.DevOpenFeature(player, feature)
+		print(`[DEV] fitur {feature} dibuka`)
+		return
+	end
+	local scenario = normalized:match("^!skenario%s+(%S+)%s*$")
+	if scenario then
+		local lines = DevScenarios[scenario]
+		if not lines then
+			local names = {}
+			for name in DevScenarios do
+				table.insert(names, name)
+			end
+			table.sort(names)
+			warn(`[DEV] skenario tidak dikenal: {scenario}. Ada: {table.concat(names, ", ")}`)
+			return
+		end
+		for _, line in lines do
+			onChatted(player, `!{line}`)
+		end
+		print(`[DEV] skenario {scenario} selesai`)
+		return
+	end
+	local equipId = normalized:match("^!equip%s+(%S+)%s*$")
+	if equipId then
+		local data = DataService.Get(player)
+		if not data then
+			return
+		end
+		if Fishing.rods[equipId] then
+			data.fishing.ownedRods[equipId] = true
+			data.fishing.rod = equipId
+		elseif Fishing.baitsById[equipId] and (data.inventory[equipId] or 0) > 0 then
+			data.fishing.equippedBait = equipId
+		else
+			warn(`[DEV] !equip: {equipId} tidak dimiliki atau tidak dikenal`)
+			return
+		end
+		InventoryService.Sync(player)
+		return
+	end
 
 	-- "!reset": wipes this player's save back to a brand-new account (Studio store only), then kicks so the next join is fresh.
 	if normalized:match("^!reset%s*$") then
@@ -191,13 +306,15 @@ local function onChatted(player: Player, message: string)
 	end
 end
 
--- The owner's own account (RafikoFauzo) may use the dev commands on the LIVE server too; every other player gets nothing
--- in live. In Studio everyone can use them, as before.
-local OWNER_USER_ID = 9416491408
-
 function DevService.Start()
+	-- DevCmd: the same command text from the DEV panel or a test client (IsAllowed, and the sender is the player it is for)
+	Net.On("DevCmd", function(sender: Player, text: any)
+		if typeof(text) == "string" and DevService.IsAllowed(sender) then
+			onChatted(sender, text)
+		end
+	end, { rate = 4, burst = 8 })
 	local function hook(player: Player)
-		if not RunService:IsStudio() and player.UserId ~= OWNER_USER_ID then
+		if not DevService.IsAllowed(player) then
 			return
 		end
 		player.Chatted:Connect(function(message)
