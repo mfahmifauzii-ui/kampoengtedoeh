@@ -6,7 +6,8 @@ local Economy = require(script.Parent.Economy)
 local Types = require(script.Parent.Parent.Types)
 
 local template: Types.PlayerData = {
-	version = 75, -- B-3: pond.list[].stock (no migration: an old entry without stock is read as empty)
+	version = 76, -- C1 (K-55): fishing.equippedBait (old saves get "")
+	-- B-3: pond.list[].stock (no migration: an old entry without stock is read as empty)
 	features = {}, -- Q-2: diisi QuestService.syncFeatures (no migration; old saves get {} then quest progress fills it)
 
 	koin = Economy.START_KOIN,
@@ -36,7 +37,8 @@ local template: Types.PlayerData = {
 	fishing = {
 		-- New accounts start WITHOUT a rod (Plan v3.1 3A, Opsi B): Kak Fajar gives the Joran Bambu (Terima Hadiah).
 		-- Old accounts keep the rod they already have: this default only fills keys that are missing.
-		rod = "", -- equipped rod id ("" = none)
+		rod = "", -- equipped rod id ("" = none). This IS equippedRod (K-55).
+		equippedBait = "", -- C1 (K-55): bait in use ("" = automatic: the first bait the player has, BAITS order)
 		ownedRods = {},
 		pity = {}, -- [fishId] = lemparan cocok sejak Legenda terakhir (Bab 6.5, P2-4)
 	},

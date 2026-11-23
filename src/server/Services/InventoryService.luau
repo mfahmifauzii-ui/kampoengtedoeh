@@ -76,10 +76,17 @@ end
 
 -- F-3: the bait a cast uses (Fishing.BAITS order, the first one the player owns) and its count. nil when none is owned.
 -- FishService.cast uses the same rule, so the chip and the cast never disagree.
+-- C1 (K-55): the bait in use is the one the player equipped, while they still have some. When it runs out, the first bait the
+-- player still has (BAITS order) takes over and becomes the equipped one. nil when there is no bait left.
 function InventoryService.ActiveBait(data: Types.PlayerData): (Fishing.Bait?, number)
+	local equipped = Fishing.baitsById[data.fishing.equippedBait]
+	if equipped and (data.inventory[equipped.id] or 0) > 0 then
+		return equipped, data.inventory[equipped.id]
+	end
 	for _, bait in Fishing.BAITS do
 		local count = data.inventory[bait.id] or 0
 		if count > 0 then
+			data.fishing.equippedBait = bait.id
 			return bait, count
 		end
 	end
@@ -133,6 +140,7 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		landExtra = Land.extraCount(data.land.chunks),
 		landPrice = Land.chunkPrice(Land.extraCount(data.land.chunks)),
 		rod = data.fishing.rod,
+		equippedBait = data.fishing.equippedBait,
 		ownedRods = table.clone(data.fishing.ownedRods),
 		tools = table.clone(data.tools),
 		decorStock = table.clone(data.decor.stock),

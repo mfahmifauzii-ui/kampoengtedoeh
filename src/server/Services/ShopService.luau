@@ -372,10 +372,20 @@ local function onEquipRod(player: Player, rodId: any)
 	end
 end
 
+-- C1 (K-55): the bait in use. Only a bait the player still has can be equipped (the server checks, never the client).
+local function onEquipBait(player: Player, baitId: any)
+	local data = DataService.Get(player)
+	if data and typeof(baitId) == "string" and Fishing.baitsById[baitId] and (data.inventory[baitId] or 0) > 0 then
+		data.fishing.equippedBait = baitId
+		InventoryService.Sync(player)
+	end
+end
+
 function ShopService.Start()
 	Net.On("Sell", onSell, RATE)
 	Net.On("ShopBuy", onBuy, RATE)
 	Net.On("ShopEquipRod", onEquipRod, RATE)
+	Net.On("EquipBait", onEquipBait, RATE)
 end
 
 return ShopService

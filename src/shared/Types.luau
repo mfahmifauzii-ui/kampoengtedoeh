@@ -124,6 +124,7 @@ export type PlayerData = {
 	},
 	fishing: {
 		rod: string,
+		equippedBait: string,
 		ownedRods: { [string]: boolean },
 		pity: { [string]: number }, -- counter per spesies Legenda (Bab 6.5, P2-4)
 	},

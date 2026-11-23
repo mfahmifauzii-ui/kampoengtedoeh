@@ -651,6 +651,13 @@ local function startCast(player: Player, spot: BasePart)
 	if activeBait and InventoryService.Remove(player, activeBait.id, 1) then
 		usedBait = activeBait
 	end
+	if usedBait and (data.inventory[usedBait.id] or 0) == 0 then
+		-- C1 (K-55): the equipped bait ran out: the next bait the player has takes over, with a toast.
+		local nextBait = InventoryService.ActiveBait(data)
+		if nextBait then
+			Net.Fire("Notify", player, "fish.bait_switched", { item = `item.{nextBait.id}` })
+		end
+	end
 	-- Pity Legenda (Bab 6.5, LOCKED, P2-4): counter per player per jenis Legenda, naik hanya saat
 	-- lemparan di kondisi yang cocok. Lemparan ke-200 dijamin (dikurangi skill Firasat, min 150).
 	-- Counter reset setelah dapat.
