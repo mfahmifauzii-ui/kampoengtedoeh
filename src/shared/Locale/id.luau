@@ -68,6 +68,7 @@ return {
 	["garap.done"] = "Selesai",
 	["garap.hint_till"] = "Tap rumput buat bikin petak",
 	["garap.hint_till_more"] = "Tap rumput buat tambah petak",
+	["garap.hint_tap_again"] = "Tap lagi di petak ini buat tanam",
 	["garap.count"] = "Petak garapan: {n}",
 	["ui.menu"] = "Menu",
 	["land.popup_title"] = "Beli lahan ini?",

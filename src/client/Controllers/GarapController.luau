@@ -581,7 +581,10 @@ local function tryTill(cx: number, cz: number)
 	})
 end
 
-local function act(ray: Ray)
+-- Phones (K-53): the first tap picks a square (it stays highlighted), the second tap on that same square places it.
+local selected: { plot: Model, cx: number, cz: number }? = nil
+
+local function act(ray: Ray, fromTouch: boolean?)
 	local plot, cx, cz, point = pointerCell(ray)
 	if not plot or not cx or not cz or not point then
 		return
@@ -618,6 +621,17 @@ local function act(ray: Ray)
 		end
 	end
 	local action = actionAt(plot, cx, cz, point)
+	if fromTouch and action == "till" and cellState(plot, cx, cz) == "valid" then
+		local picked = selected
+		if picked and picked.plot == plot and picked.cx == cx and picked.cz == cz then
+			selected = nil -- second tap on the same square: place it below
+		else
+			selected = { plot = plot, cx = cx, cz = cz } -- first tap: highlight only
+			showGhost(plot, cx, cz, point)
+			refreshHint()
+			return
+		end
+	end
 	if action == "pond" then
 		local pcx, pcz = pondCorner(point)
 		if pondBuildValid(plot, pcx, pcz) then
@@ -646,6 +660,8 @@ end
 function refreshHint()
 	if movingUid ~= nil then
 		hintLabel.Text = Locale.t("garap.hint_move")
+	elseif mode == "till" and selected then
+		hintLabel.Text = Locale.t("garap.hint_tap_again") -- K-53: first tap picked a square, the second tap plants it
 	elseif mode == "till" then
 		-- Once there is a bed, say what comes next (a new player used to be stuck here: the hint never changed).
 		-- T-04 TODO closed: the hint shows the price of the next bed (Bab 5.2: n x 150 after the first 6, Config/Farm).
@@ -668,6 +684,7 @@ end
 
 local function setMode(newMode: string)
 	mode = newMode
+	selected = nil
 	GarapController.Mode = newMode
 	UiKit.setMenuActive(toggleButton, GarapController.Active and mode == "till")
 	UiKit.setMenuActive(kolamButton, GarapController.Active and mode == "pond")
@@ -753,6 +770,8 @@ local function setActive(on: boolean, newMode: string?)
 	hintLabel.Visible = on and not hintHidden
 	if not on then
 		movingUid = nil
+		selected = nil
+		setBedHover(nil) -- A2: leaving Garap clears the yellow outline on the last plot
 	end
 	refreshGrid()
 	UiKit.setMenuLabel(toggleButton, Locale.t(if on and (newMode or mode) == "till" then "garap.done" else "ui.garap"))
@@ -962,7 +981,7 @@ function GarapController.Start()
 		local here = Vector2.new(input.Position.X, input.Position.Y)
 		if GarapController.Active and (here - start.pos).Magnitude <= TAP_SLOP and os.clock() - start.at <= TAP_MAX_SECONDS then
 			local camera = Workspace.CurrentCamera
-			act(camera:ViewportPointToRay(here.X, here.Y))
+			act(camera:ScreenPointToRay(here.X, here.Y), true)
 		end
 	end)
 
@@ -978,11 +997,19 @@ function GarapController.Start()
 		end
 		local camera = Workspace.CurrentCamera
 		local ray: Ray? = nil
+		-- A1: every input position here is a SCREEN position (top-bar inset included), so all rays use ScreenPointToRay.
+		-- ViewportPointToRay on the same numbers was one inset (~36 px) off: the tap landed one square away.
+		if UserInputService.TouchEnabled and selected and movingUid == nil and mode == "till" then
+			-- Phones: the picked square stays put (the ghost does not follow the finger) until the second tap.
+			local sx, sz = Land.tileCenter(selected.cx, selected.cz)
+			showGhost(selected.plot, selected.cx, selected.cz, Vector3.new(sx, 0, sz))
+			return
+		end
 		if UserInputService.TouchEnabled and pointer then
-			ray = camera:ViewportPointToRay(pointer.X, pointer.Y)
+			ray = camera:ScreenPointToRay(pointer.X, pointer.Y)
 		elseif UserInputService.MouseEnabled then
 			local mouse = UserInputService:GetMouseLocation()
-			ray = camera:ViewportPointToRay(mouse.X, mouse.Y)
+			ray = camera:ScreenPointToRay(mouse.X, mouse.Y)
 		end
 		if ray then
 			local plot, cx, cz, point = pointerCell(ray)
