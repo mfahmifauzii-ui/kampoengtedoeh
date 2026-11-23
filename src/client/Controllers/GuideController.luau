@@ -789,6 +789,7 @@ local function endTutorial()
 	running = nil
 	lastFinish = os.clock()
 	clearRing()
+	HudController.UnpinGuide()
 	CoachmarkController.Hide()
 	GuideController.Changed:Fire()
 	refresh()
@@ -903,18 +904,43 @@ local function targetBedPoint(stepId: string): Vector3?
 	return if best then best.Position + Vector3.new(0, 4, 0) else nil
 end
 
--- MS (2026-11-23): after the first harvest Mak Sari asks for MS_EXTRA_BEDS more beds in a dialogue bubble (T1Dialog, the same box
--- as her intro, Next after each line). Once per save: the Next press is sent to the server (guide.mkSariHarvestSeen), so it
--- never comes back on rejoin. Not a toast, no dim, no PlayerLock: the player keeps moving while it is up.
-local msLocalDone = false -- dismissed in this session (the server flag may not have arrived yet)
+-- MS (2026-11-23, MS-2): Mak Sari speaks at three stages, each as an NPC bubble (T1Dialog, Next per line), each once per save:
+--   stage 1: garap_5 starts (after the first harvest): make MS_EXTRA_BEDS more beds.
+--   stage 2: tanam_5 starts (all extra beds exist): plant MS_FREE_SEEDS more seeds from Mak.
+--   stage 3: tunggu_semua and a bed is ripe: do not forget to harvest them all.
+-- The bubble sits above the dock (T1Dialog.DOCK_CLEAR). No PlayerLock, no dim, dismissible, the player keeps moving.
+-- The Next press of each stage is sent to the server (guide.msStage), so a rejoin never repeats a stage already seen.
+local msStageLocal = 0 -- highest stage dismissed in this session (the server flag may not have arrived yet)
 local msRunning = false
 
-local function msSeen(snap: any): boolean
-	return msLocalDone or (snap ~= nil and snap.guide ~= nil and snap.guide.mkSariHarvestSeen == true)
+local function msStageSaved(snap: any): number
+	if snap == nil or snap.guide == nil then
+		return 0
+	end
+	return math.max(msStageLocal, snap.guide.msStage or 0)
 end
 
-local function msBubble()
-	if msRunning or msLocalDone then
+-- The stage whose bubble is due now, or nil. Stages come in order, so a higher stage never waits for a lower one.
+local function msPendingStage(stepId: string, ripe: boolean, snap: any): number?
+	local seen = msStageSaved(snap)
+	if stepId == "garap_5" and seen < 1 then
+		return 1
+	elseif stepId == "tanam_5" and seen < 2 then
+		return 2
+	elseif stepId == "tunggu_semua" and ripe and seen < 3 then
+		return 3
+	end
+	return nil
+end
+
+local MS_LINES: { [number]: { { key: string, n: number? } } } = {
+	[1] = { { key = "tut.ms.1" }, { key = "tut.ms.2", n = Onboarding.MS_EXTRA_BEDS } },
+	[2] = { { key = "tut.ms.3", n = Onboarding.MS_FREE_SEEDS } },
+	[3] = { { key = "tut.ms.4" } },
+}
+
+local function msBubble(stage: number)
+	if msRunning then
 		return
 	end
 	msRunning = true
@@ -922,19 +948,20 @@ local function msBubble()
 	task.spawn(function()
 		local release = T1Dialog.Acquire("npc.mak_sari", T1Dialog.BEAT)
 		if not release then
-			msRunning = false -- another line held the box; the next tick asks again
+			msRunning = false -- another line holds the box; the next tick asks again
 			return
 		end
 		local folder = Workspace:FindFirstChild("Npcs")
 		local model = folder and folder:FindFirstChild("mak_sari")
 		local avatar = if model and model:IsA("Model") then model else nil
-		for _, key in { "tut.ms.1", "tut.ms.2" } do
+		for _, line in MS_LINES[stage] do
 			local pressed = false
 			T1Dialog.Show({
 				name = Locale.t("npc.mak_sari"),
-				text = Locale.t(key, { n = Onboarding.MS_EXTRA_BEDS }),
+				text = Locale.t(line.key, if line.n then { n = line.n } else nil),
 				avatar = avatar,
 				showNext = true,
+				bottom = T1Dialog.DOCK_CLEAR,
 				onNext = function()
 					pressed = true
 				end,
@@ -945,10 +972,42 @@ local function msBubble()
 		end
 		T1Dialog.Hide() -- release() only frees the box: the last line must be hidden here
 		release()
-		msLocalDone = true
+		msStageLocal = math.max(msStageLocal, stage)
 		msRunning = false
-		Net.Send("GuideEvent", "ms_seen", "t1_awal")
+		Net.Send("GuideEvent", "ms_seen", "t1_awal", stage)
 	end)
+end
+
+-- MS-2: one round yellow ring on a HUD button (the coachmark's gold, no dim). name = nil clears it.
+local function setStepRing(name: string?)
+	if name ~= nil and name == ringFor and ring and ring.Parent then
+		return
+	end
+	clearRing()
+	if name == nil then
+		return
+	end
+	local button = findHighlight(name)
+	if not button then
+		return
+	end
+	local frame = Instance.new("Frame")
+	frame.Name = "GuideRing"
+	frame.AnchorPoint = Vector2.new(0.5, 0.5)
+	frame.Position = UDim2.fromScale(0.5, 0.5)
+	frame.Size = UDim2.new(1, 8, 1, 8)
+	frame.BackgroundTransparency = 1
+	frame.ZIndex = 50
+	local round = Instance.new("UICorner")
+	round.CornerRadius = UDim.new(0.5, 0)
+	round.Parent = frame
+	local line = Instance.new("UIStroke")
+	line.Name = "Line"
+	line.Color = Color3.fromRGB(255, 226, 120)
+	line.Thickness = 3
+	line.Parent = frame
+	frame.Parent = button
+	ring, ringFor = frame, name
 end
 
 function refreshTutorial()
@@ -1001,36 +1060,37 @@ function refreshTutorial()
 	elseif phase == "sell" then
 		text = Locale.t("tut.t1.s4_sell")
 	end
-	-- MS: garap_5 starts with Mak Sari's bubble (once per save). Until it is dismissed nothing else shows for this step.
-	if stepDef.id == "garap_5" and not msSeen(snapshot()) then
-		msBubble()
+	local beds, anyRipe = bedStates()
+	-- MS-2: the yellow round ring on the Garap dock button while garap_5 runs and Garap is closed (no dim).
+	setStepRing(if stepDef.id == "garap_5" and not GarapController.Active then "GarapButton" else nil)
+	-- MS-2: Mak Sari's stage bubble comes first. Until it is dismissed nothing else shows for this step.
+	local stage = msPendingStage(stepDef.id, anyRipe, snapshot())
+	if stage then
+		msBubble(stage)
 		CoachmarkController.Hide()
-		clearRing()
 		hint.Visible = false
 		return
+	end
+	-- MS-2: the pinned guidance toast. garap_5 keeps "n/N beds" until all N exist; tanam_5 keeps its planting line.
+	if stepDef.id == "garap_5" then
+		HudController.PinGuide(Locale.t("tut.ms.toast", { done = math.clamp(beds - 1, 0, Onboarding.MS_EXTRA_BEDS), total = Onboarding.MS_EXTRA_BEDS }))
+	elseif stepDef.id == "tanam_5" then
+		HudController.PinGuide(Locale.t("tut.t1.s5_tanam"))
+	else
+		HudController.UnpinGuide()
 	end
 	-- Rule 2 (GUI 4.6, locked): a REPEAT step (or mancing after its first catch) is toast only: no bubble, no ring, no spotlight.
 	local repeatNow = stepDef.repeatStep == true or (stepDef.id == "mancing" and fishCaughtCount() > 0)
 	if repeatNow and phase == nil and stepDef.done.kind ~= "ack" then
-		-- garap_5 with an empty bed and seeds in the bag: the next real action is Tanam, so the words say Tanam (TB, 3).
-		local beds, _, _, _, emptyBed = bedStates()
-		local seedsInBag = hasInBag(snapshot(), function(itemId)
-			return itemId:match("^seed_") ~= nil
-		end)
-		local wording = text
-		if stepDef.id == "garap_5" then -- MS reminder: progress of the 5 extra beds (6 beds in total)
-			wording = Locale.t("tut.ms.toast", { done = math.clamp(beds - 1, 0, Onboarding.MS_EXTRA_BEDS), total = Onboarding.MS_EXTRA_BEDS })
-		end
-		if stepDef.id == "garap_5" and emptyBed and seedsInBag then
-			wording = Locale.t("tut.t1.s5_tanam")
-		end
+		-- garap_5 and tanam_5 are pinned (see refreshTutorial): their words are not toasted a second time.
 		CoachmarkController.Hide()
-		clearRing()
 		GarapController.SetHintHidden(true)
 		hint.Visible = false
 		CoachmarkController.SetPaused(uiBusy())
 		local spoken = say(stepDef.id, stuckFor >= Onboarding.STUCK_TEXT)
-		toastOnce(current.n, stepDef.id, if spoken then nil else wording)
+		if stepDef.id ~= "garap_5" and stepDef.id ~= "tanam_5" then
+			toastOnce(current.n, stepDef.id, if spoken then nil else text)
+		end
 		return
 	end
 	-- Waiting for a crop or walking to Pak Udin: no coachmark (its dark overlay hides the bed and the arrow). The hint bar

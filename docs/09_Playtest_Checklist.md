@@ -299,3 +299,13 @@ Catatan: di Studio, profil yang gagal dimuat dipakai dari memori (tidak tersimpa
 2. [ ] **Bisa jalan:** saat bubble tampil, joystick dan tombol dock tetap bisa dipakai; layar tidak gelap.
 3. [ ] **Tutup dan simpan:** tekan Next sampai habis. Keluar lalu masuk lagi: bubble tidak muncul lagi.
 4. [ ] **Pengingat toast:** setelah bubble, pengingat berupa toast "Tap Garap, lalu Cangkul: n/5 petak baru" di bawah bar Koin, tanpa bubble dan tanpa ring di tombol Garap.
+
+### B14. Mak Sari tiga tahap dan pengingat (MS-2, 2026-11-23)
+
+1. [ ] **Posisi bubble:** bubble Mak Sari (ketiga tahap) berada di atas baris dock. Tombol Garap, Tas, dan Aksi tetap terlihat dan bisa ditekan, di 844×390, 667×375, dan 390×844.
+2. [ ] **Ring Garap:** saat tahap garap_5 aktif, tombol Garap punya satu lingkaran kuning bulat, tanpa gelap. Ring hilang saat mode Garap dibuka.
+3. [ ] **Toast tersemat:** "Tap Garap, lalu Cangkul: n/5 petak baru" tetap terlihat sampai 5 petak baru ada. Toast lain tidak menimpanya.
+4. [ ] **Tahap 2:** saat 5 petak baru selesai, bubble "Nah, coba tanam lagi 6 bibit dari Mak." muncul sekali.
+5. [ ] **Tahap 3:** saat ada tanaman siap panen, bubble "Jangan lupa panen semuanya ya, Nak." muncul sekali.
+6. [ ] **Bisa jalan:** saat bubble tampil, joystick dan Garap tetap bisa dipakai. Layar tidak gelap.
+7. [ ] **Keluar-masuk:** setelah tahap ditutup lalu game dimasuki lagi, tahap itu tidak muncul lagi.

@@ -126,6 +126,7 @@ Dock pindah ke kolom kanan. Toast turun di bawah tracker, lebar 200 px. Kolom me
 - Toast di bawah HUD Koin/Bunga, padding 12 px; di bawah Bubble Instruksi bila tampil.
 
 ### 4.3 Bubble Dialog NPC (`T1Dialog`)
+n- **MS-2 (2026-11-23):** bubble NPC tutorial (`T1Dialog`) berada di atas dock: `T1Dialog.DOCK_CLEAR` = 92 px dari bawah, tidak menutupi tombol Garap atau Aksi. Ring Garap kuning bulat (tanpa gelap) saat garap_5. Lihat docs/03 Bab 4.2c.
 
 | | Bubble Instruksi (langkah tutorial / quest) | Bubble Percakapan (NPC, Next / pilihan) |
 |---|---|---|

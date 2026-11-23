@@ -90,6 +90,8 @@ export type Tutorial = {
 
 -- MS (2026-11-23): after the first harvest Mak Sari asks for this many more beds (a dialogue bubble, then toast reminders).
 local MS_EXTRA_BEDS = 5
+-- MS-2: Mak Sari's stage 2 count. Config/save start is 6 Kangkung seeds (DataService seed_kangkung = 6), so the owner's "5" is shown as 6 here.
+local MS_FREE_SEEDS = 6
 
 local TUTORIALS: { Tutorial } = {
 	-- T1: the first loop. NO skip (v7.4 Bab 16.1); replayable from Atur > Panduan (no reward on replay).
@@ -268,6 +270,7 @@ local TEST_TUTORIAL: Tutorial = {
 return {
 	TRIES = 1, -- the old sale-trip guide stops after the first sale, the same sale that finishes T1 (sells n = 1)
 	MS_EXTRA_BEDS = MS_EXTRA_BEDS,
+	MS_FREE_SEEDS = MS_FREE_SEEDS,
 	BUYER_NPC = "pak_udin", -- the arrow points here once there is a crop to sell
 	TUTORIALS = TUTORIALS,
 	TEST_TUTORIAL = TEST_TUTORIAL,

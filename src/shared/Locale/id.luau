@@ -676,6 +676,8 @@ return {
 	["tut.t1.s5_garap"] = "Buat 5 petak lagi: tap Garap, lalu Cangkul",
 	["tut.ms.1"] = "Wah, panen pertamamu berhasil, Nak! Hebat sekali.",
 	["tut.ms.2"] = "Sekarang bikin {n} petak lagi ya, biar lahanmu makin ramai. Tap Garap, lalu Cangkul.",
+	["tut.ms.3"] = "Nah, coba tanam lagi {n} bibit dari Mak.",
+	["tut.ms.4"] = "Jangan lupa panen semuanya ya, Nak.",
 	["tut.ms.toast"] = "Tap Garap, lalu Cangkul: {done}/{total} petak baru",
 	["tut.t1.s5_tanam"] = "Tanam 5 bibit lagi di petak baru",
 	["tut.t1.s5_tunggu"] = "Tunggu semua tumbuh, lalu panen semuanya",

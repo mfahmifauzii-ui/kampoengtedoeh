@@ -149,6 +149,23 @@ Dipicu saat langkah `panen_1` selesai (langkah `garap_5` mulai). Bubble NPC (por
 
 Setelah bubble: pengingat berbentuk toast saja (tanpa bubble, tanpa ring, tanpa gelap) selama `garap_5`: `tut.ms.toast` = "Tap Garap, lalu Cangkul: {done}/{total} petak baru". Jika di tanah sudah ada petak kosong dan bibit di tas, pengingat berganti ke `tut.t1.s5_tanam`.
 
+### 4.2c Mak Sari — tiga tahap (MS-2, 2026-11-23) — bubble NPC, sekali per save
+
+Setiap tahap = bubble NPC (wajah, nama, baris, Next) di atas dock (`T1Dialog.DOCK_CLEAR` = 92 px). Tidak ada PlayerLock, tidak ada gelap, pemain tetap bisa jalan. Tahap yang sudah ditutup disimpan di server (`guide.msStage`, nilai tertinggi), jadi rejoin tidak mengulang tahap itu.
+
+| Tahap | Trigger | Kunci | Teks | Catatan |
+|---|---|---|---|---|
+| 1 | `garap_5` mulai (setelah panen pertama) | `tut.ms.1` | Wah, panen pertamamu berhasil, Nak! Hebat sekali. | Next |
+| 1 | (lanjutan) | `tut.ms.2` | Sekarang bikin {n} petak lagi ya, biar lahanmu makin ramai. Tap Garap, lalu Cangkul. | `{n}` = `MS_EXTRA_BEDS` = 5 |
+| 2 | `tanam_5` mulai (semua petak tambahan sudah ada) | `tut.ms.3` | Nah, coba tanam lagi {n} bibit dari Mak. | `{n}` = `MS_FREE_SEEDS` = **6** (lihat catatan) |
+| 3 | `tunggu_semua` dan ada petak siap panen | `tut.ms.4` | Jangan lupa panen semuanya ya, Nak. | Next |
+
+**Catatan angka:** owner menulis 5 untuk tahap 2. Config dan simpanan baru memberi 6 bibit Kangkung gratis (`DataService` `seed_kangkung = 6`, K-54: 1 petak dibibit ulang + 5 petak baru). Kode memakai 6 dari Config. Jumlah bibit tidak diubah.
+
+**Pengingat di antara bubble (toast yang disematkan):** `garap_5` = "Tap Garap, lalu Cangkul: {done}/{total} petak baru" sampai 5 petak baru ada. `tanam_5` = `tut.t1.s5_tanam`. Toast ini tidak tergantung bubble, tidak tertimpa toast lain, dan hilang hanya saat langkah berganti atau selesai.
+
+Ring: di `garap_5`, tombol Garap dapat satu lingkaran kuning bulat (tanpa gelap). Ring hilang saat mode Garap dibuka atau langkah selesai.
+
 ### 4.3 Jual Pertama — Pak Udin (cutscene proximity)
 
 | # | Kunci | Teks | Tombol |

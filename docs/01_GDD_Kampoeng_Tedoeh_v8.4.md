@@ -895,7 +895,9 @@ Dua tutorial: `t1_awal` (langkah 1–9) dan `t1b_kolam` (langkah 10–13). Id la
 | 3 | `tanam` | Lahan | Tanam 1 | 1 | Pertama: bubble coachmark + ring Tanam |
 | 4 | `siram` | Lahan | Siram 1 (wajib, bukan panen) | 1 | Pertama: bubble coachmark + ring Siram |
 | 5 | `panen_1` | Lahan | Panen 1 | — | Pertama: bubble coachmark + ring Panen |
-| 6 | `garap_5` | Lahan | 6 petak total (1 lama + `MS_EXTRA_BEDS` = 5 baru). Bubble Mak Sari dulu (sekali), lalu pengingat toast | — | Bubble Mak Sari (MS, sekali per save), lalu toast saja |
+| 6 | `garap_5` | Lahan | 6 petak total (1 lama + `MS_EXTRA_BEDS` = 5 baru). Bubble Mak Sari tahap 1 (sekali), lalu toast tersemat | — | Bubble Mak Sari tahap 1, lalu toast tersemat (ring Garap kuning, tanpa gelap) |
+| 6b | `tanam_5` | Lahan | Tanam `MS_FREE_SEEDS` (6) bibit gratis lagi | — | Bubble Mak Sari tahap 2 (sekali), lalu toast tersemat |
+| 8b | `tunggu_semua` | Lahan | Saat ada petak siap panen | — | Bubble Mak Sari tahap 3 (sekali) |
 | 7 | `tanam_5` | Lahan | Tanam 5 lagi (bibit gratis di tas) | — | Pengulangan: toast saja |
 | 8 | `tunggu_semua` | Lahan | Panen 6 bibit gratis (semua) | — | Toast saja (tanpa gelap) |
 | 9 | `panen_jual` | Lahan → Pak Udin | Jual 1 ke Pak Udin | 20 | Toast saja |
@@ -931,6 +933,7 @@ Dua tutorial: `t1_awal` (langkah 1–9) dan `t1b_kolam` (langkah 10–13). Id la
 - Cutscene hadiah mulai di frame trigger (target < 0,3 dtk, log `[beat-timing]`).
 
 ### 16.6 Sorot tutorial: dua gaya, hanya pertama kali — LOCKED (2026-11-23, batch F1, menggantikan aturan "tanpa gelap" sebelumnya)
+- **MS-2 (2026-11-23):** tiga tahap bubble Mak Sari (panen pertama, bibit ulang, panen semua), sekali per save; bubble di atas dock; ring Garap kuning; toast tersemat. Lihat docs/03 Bab 4.2c.
 - **MS (2026-11-23):** setelah panen pertama (langkah `panen_1` selesai), Mak Sari meminta 5 petak lagi lewat bubble NPC (Next, sekali per save, `guide.mkSariHarvestSeen`). Bubble ini satu-satunya permukaan instruksi pertama kali untuk `garap_5`; pengingatnya toast. Tidak ada gelap, tidak ada ring, pemain tetap bisa jalan. Lihat docs/03 Bab 4.2b.
 
 Aturan (owner, video PC dan rekaman HP):

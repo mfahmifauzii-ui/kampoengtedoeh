@@ -323,6 +323,7 @@ Sumber: video dan HP owner (playthrough 8:21 di PC + screenshot). Setiap F = sat
 | F8 | docs/09: cek HP per perbaikan F1–F7 | TODO | — | Dikerjakan di tugas D8 (lihat 09 bagian baru) |
 | TB | Toast tepat di bawah bar Koin/Bunga, tidak ikut bubble coachmark atau dock; maks 2 chip, terbaru di atas; langkah pengulangan = toast saja (tanpa bubble, tanpa ring) | DONE-CODE (TB; kode dicek terhadap keempat poin owner) | d4c3e55 | Akar: `UiKit.TOAST_AVOID` mendorong stack ke bawah bubble coachmark (CoachTop) sampai menutupi dock. Dihapus. Garap_5 dan tanam_5 sekarang toast. Visual Play sebagian: posisi stack y=60 (UI tree), gambar belum |
 | MS | Setelah panen pertama (panen_1 selesai), Mak Sari meminta {n}=5 petak lagi lewat bubble dialog (bukan toast). Next sekali per save (`guide.mkSariHarvestSeen`); pengingat sesudahnya toast; tidak ada gelap, pemain tetap bisa jalan | DONE-CODE (MS) | (lihat git log: feat(MS)) | Play sebagian: bubble tampil dengan dua baris benar ("5 petak"), Next dua kali, flag tersimpan di server (ms_seen). Toast pengingat setelah dismiss belum dilihat; uji ulang di save baru | 
+| MS-2 | Bubble Mak Sari di atas dock (`T1Dialog.DOCK_CLEAR` 92 px); tiga tahap sekali per save (panen pertama, bibit ulang, panen semua); ring Garap kuning di garap_5; toast tersemat sampai N petak | DONE-CODE (MS-2) | (lihat git log: feat(MS-2)) | Play belum: uji ulang dari !reset sampai panen pertama. Config bibit = 6 (owner menulis 5), dicatat di 03 4.2c |
 
 ## 19. Putaran Playtest 1 (K-53…K-57): dikerjakan sebelum Fase 2
 

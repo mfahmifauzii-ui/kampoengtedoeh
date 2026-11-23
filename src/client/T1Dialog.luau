@@ -15,6 +15,9 @@ local UiAssets = require(ReplicatedStorage.Shared.Config.UiAssets)
 
 local T1Dialog = {}
 
+-- MS-2: px from the bottom for a tutorial NPC bubble so it sits ABOVE the dock row (the Garap button stays visible and tappable).
+T1Dialog.DOCK_CLEAR = 92
+
 export type Choice = { text: string, onChoose: () -> () }
 
 export type Options = {

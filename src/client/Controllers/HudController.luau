@@ -464,6 +464,36 @@ function HudController.Toast(text: string)
 	pumpToasts()
 end
 
+-- MS-2: the step's guidance toast. Pinned at the top of the stack: other toasts stack below it or wait in the queue, and
+-- only UnpinGuide (the step changed or completed) removes it. It does not count toward TOAST_MAX_VISIBLE.
+local pinnedChip: CanvasGroup? = nil
+local pinnedText = ""
+
+function HudController.PinGuide(text: string)
+	if pinnedChip and pinnedText == text then
+		return
+	end
+	if pinnedChip then
+		pinnedChip:Destroy()
+		pinnedChip = nil
+	end
+	pinnedText = text
+	if not toastStack then
+		return
+	end
+	local chip = UiKit.toastChip(toastStack, text)
+	chip.LayoutOrder = -1000000 -- above every transient toast
+	pinnedChip = chip
+end
+
+function HudController.UnpinGuide()
+	pinnedText = ""
+	if pinnedChip then
+		pinnedChip:Destroy()
+		pinnedChip = nil
+	end
+end
+
 function HudController.SetGoal(text: string)
 	if goalLabel then
 		goalLabel.Text = text
