@@ -88,6 +88,9 @@ export type Tutorial = {
 --   "done"        tutorial `id` is finished or skipped
 --   "manual"      never auto-starts (replay only)
 
+-- MS (2026-11-23): after the first harvest Mak Sari asks for this many more beds (a dialogue bubble, then toast reminders).
+local MS_EXTRA_BEDS = 5
+
 local TUTORIALS: { Tutorial } = {
 	-- T1: the first loop. NO skip (v7.4 Bab 16.1); replayable from Atur > Panduan (no reward on replay).
 	{
@@ -141,7 +144,7 @@ local TUTORIALS: { Tutorial } = {
 				repeatStep = true, -- rule 2 (GUI 4.6): repeat = toast only, no bubble, no ring, no spotlight
 				text = "tut.t1.s5_garap",
 				coach = "tut.coach.garap",
-				done = { kind = "tiles", n = 6 }, -- 1 old plot + 5 new ones
+				done = { kind = "tiles", n = 1 + MS_EXTRA_BEDS }, -- 1 old plot + MS_EXTRA_BEDS new ones
 				highlight = "GarapButton",
 			},
 			{
@@ -264,6 +267,7 @@ local TEST_TUTORIAL: Tutorial = {
 
 return {
 	TRIES = 1, -- the old sale-trip guide stops after the first sale, the same sale that finishes T1 (sells n = 1)
+	MS_EXTRA_BEDS = MS_EXTRA_BEDS,
 	BUYER_NPC = "pak_udin", -- the arrow points here once there is a crop to sell
 	TUTORIALS = TUTORIALS,
 	TEST_TUTORIAL = TEST_TUTORIAL,

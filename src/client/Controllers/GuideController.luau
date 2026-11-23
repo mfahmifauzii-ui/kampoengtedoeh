@@ -35,6 +35,7 @@ local Signal = require(ReplicatedStorage.Shared.Modules.Signal)
 local GarapController = require(script.Parent.GarapController)
 local CoachmarkController = require(script.Parent.CoachmarkController)
 local HudController = require(script.Parent.HudController)
+local T1Dialog = require(script.Parent.Parent.T1Dialog)
 local State = require(script.Parent.Parent.State)
 local UiKit = require(script.Parent.Parent.UiKit)
 local WorldArrow = require(script.Parent.Parent.WorldArrow)
@@ -902,6 +903,54 @@ local function targetBedPoint(stepId: string): Vector3?
 	return if best then best.Position + Vector3.new(0, 4, 0) else nil
 end
 
+-- MS (2026-11-23): after the first harvest Mak Sari asks for MS_EXTRA_BEDS more beds in a dialogue bubble (T1Dialog, the same box
+-- as her intro, Next after each line). Once per save: the Next press is sent to the server (guide.mkSariHarvestSeen), so it
+-- never comes back on rejoin. Not a toast, no dim, no PlayerLock: the player keeps moving while it is up.
+local msLocalDone = false -- dismissed in this session (the server flag may not have arrived yet)
+local msRunning = false
+
+local function msSeen(snap: any): boolean
+	return msLocalDone or (snap ~= nil and snap.guide ~= nil and snap.guide.mkSariHarvestSeen == true)
+end
+
+local function msBubble()
+	if msRunning or msLocalDone then
+		return
+	end
+	msRunning = true
+	-- Acquire waits for the box (it yields), so the wait runs in its own task, never inside the tick.
+	task.spawn(function()
+		local release = T1Dialog.Acquire("npc.mak_sari", T1Dialog.BEAT)
+		if not release then
+			msRunning = false -- another line held the box; the next tick asks again
+			return
+		end
+		local folder = Workspace:FindFirstChild("Npcs")
+		local model = folder and folder:FindFirstChild("mak_sari")
+		local avatar = if model and model:IsA("Model") then model else nil
+		for _, key in { "tut.ms.1", "tut.ms.2" } do
+			local pressed = false
+			T1Dialog.Show({
+				name = Locale.t("npc.mak_sari"),
+				text = Locale.t(key, { n = Onboarding.MS_EXTRA_BEDS }),
+				avatar = avatar,
+				showNext = true,
+				onNext = function()
+					pressed = true
+				end,
+			})
+			while not pressed do
+				task.wait(0.05)
+			end
+		end
+		T1Dialog.Hide() -- release() only frees the box: the last line must be hidden here
+		release()
+		msLocalDone = true
+		msRunning = false
+		Net.Send("GuideEvent", "ms_seen", "t1_awal")
+	end)
+end
+
 function refreshTutorial()
 	local current = running
 	if not current then
@@ -952,15 +1001,26 @@ function refreshTutorial()
 	elseif phase == "sell" then
 		text = Locale.t("tut.t1.s4_sell")
 	end
+	-- MS: garap_5 starts with Mak Sari's bubble (once per save). Until it is dismissed nothing else shows for this step.
+	if stepDef.id == "garap_5" and not msSeen(snapshot()) then
+		msBubble()
+		CoachmarkController.Hide()
+		clearRing()
+		hint.Visible = false
+		return
+	end
 	-- Rule 2 (GUI 4.6, locked): a REPEAT step (or mancing after its first catch) is toast only: no bubble, no ring, no spotlight.
 	local repeatNow = stepDef.repeatStep == true or (stepDef.id == "mancing" and fishCaughtCount() > 0)
 	if repeatNow and phase == nil and stepDef.done.kind ~= "ack" then
 		-- garap_5 with an empty bed and seeds in the bag: the next real action is Tanam, so the words say Tanam (TB, 3).
-		local _, _, _, _, emptyBed = bedStates()
+		local beds, _, _, _, emptyBed = bedStates()
 		local seedsInBag = hasInBag(snapshot(), function(itemId)
 			return itemId:match("^seed_") ~= nil
 		end)
 		local wording = text
+		if stepDef.id == "garap_5" then -- MS reminder: progress of the 5 extra beds (6 beds in total)
+			wording = Locale.t("tut.ms.toast", { done = math.clamp(beds - 1, 0, Onboarding.MS_EXTRA_BEDS), total = Onboarding.MS_EXTRA_BEDS })
+		end
 		if stepDef.id == "garap_5" and emptyBed and seedsInBag then
 			wording = Locale.t("tut.t1.s5_tanam")
 		end

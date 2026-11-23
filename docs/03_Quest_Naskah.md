@@ -138,6 +138,17 @@ Sesi pertama (±30–40 menit) berakhir sekitar Lv 4: pemain masuk Hutan dan dap
 | panen (matang) | `tut.t1.panen_harvest.1` | Sudah matang! Ketuk Panen. |
 | jual | `tut.t1.panen_sell.1` | Bawa hasil panenmu ke Pak Udin di warung alun-alun. Ikuti panah di tanah, ya. |
 
+### 4.2b Panen Pertama → Mak Sari (MS, 2026-11-23) — bubble dialog, bukan toast
+
+Dipicu saat langkah `panen_1` selesai (langkah `garap_5` mulai). Bubble NPC (portrait, nama, baris, Next) — komponen yang sama dengan intro, tidak perlu dekat Mak Sari dan tidak ada kamera cutscene. Pemain tetap bisa jalan. Sekali per save: Next menyimpan `guide.mkSariHarvestSeen` di server (tidak muncul lagi saat rejoin).
+
+| # | Kunci | Teks | Catatan |
+|---|-------|------|---------|
+| 1 | `tut.ms.1` | Wah, panen pertamamu berhasil, Nak! Hebat sekali. | Next |
+| 2 | `tut.ms.2` | Sekarang bikin {n} petak lagi ya, biar lahanmu makin ramai. Tap Garap, lalu Cangkul. | `{n}` = `Onboarding.MS_EXTRA_BEDS` (5). Next menutup bubble |
+
+Setelah bubble: pengingat berbentuk toast saja (tanpa bubble, tanpa ring, tanpa gelap) selama `garap_5`: `tut.ms.toast` = "Tap Garap, lalu Cangkul: {done}/{total} petak baru". Jika di tanah sudah ada petak kosong dan bibit di tas, pengingat berganti ke `tut.t1.s5_tanam`.
+
 ### 4.3 Jual Pertama — Pak Udin (cutscene proximity)
 
 | # | Kunci | Teks | Tombol |

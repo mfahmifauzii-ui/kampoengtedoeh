@@ -131,6 +131,11 @@ local function onGuideEvent(player: Player, action: any, tutorialId: any, n: any
 			guide.step = { id = tutorialId, n = 0 }
 			logEvent(player, `tut_{tutorialId}_start`, tutorialId)
 		end
+	elseif action == "ms_seen" then
+		-- MS (2026-11-23): Mak Sari's errand bubble was dismissed. Persisted, so it never comes back on rejoin.
+		if tutorialId == "t1_awal" then
+			guide.mkSariHarvestSeen = true
+		end
 	elseif action == "step" then
 		if guide.step.id ~= tutorialId or typeof(n) ~= "number" or n % 1 ~= 0 then
 			return

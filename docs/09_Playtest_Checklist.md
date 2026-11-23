@@ -292,3 +292,10 @@ Catatan: di Studio, profil yang gagal dimuat dipakai dari memori (tidak tersimpa
 3. [ ] **Pengulangan = toast saja:** di langkah garap_5 dan tanam_5 tidak ada bubble coachmark dan tidak ada ring di tombol Garap. Hanya toast.
 4. [ ] **Hint sesuai aksi:** setelah panen pertama dan ada petak kosong dengan bibit di tas, hint berisi Tanam (bukan "Tap Garap dulu") selama popup Tanam dibuka.
 5. [ ] **Teks tidak terpotong:** toast dengan kalimat panjang terbaca penuh (dua baris paling banyak), tidak "...ga jual naik".
+
+### B13. Mak Sari setelah panen pertama (MS, 2026-11-23)
+
+1. [ ] **Bubble muncul sekali:** setelah panen pertama, Mak Sari berbicara lewat bubble bawah (wajah, nama, teks, tombol Next), bukan toast. Teks: "Wah, panen pertamamu berhasil, Nak!" lalu "Sekarang bikin 5 petak lagi...".
+2. [ ] **Bisa jalan:** saat bubble tampil, joystick dan tombol dock tetap bisa dipakai; layar tidak gelap.
+3. [ ] **Tutup dan simpan:** tekan Next sampai habis. Keluar lalu masuk lagi: bubble tidak muncul lagi.
+4. [ ] **Pengingat toast:** setelah bubble, pengingat berupa toast "Tap Garap, lalu Cangkul: n/5 petak baru" di bawah bar Koin, tanpa bubble dan tanpa ring di tombol Garap.
