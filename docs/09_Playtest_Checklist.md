@@ -241,6 +241,18 @@ Tes AI sudah dijalankan di Studio untuk yang disebut "terverifikasi". Sisanya ha
 
 ---
 
+### B12. Tutorial penuh di HP (BLOCKER, 2026-11-23)
+Tujuan: pemain tidak pernah terkunci, dan gelap (coachmark) hanya muncul di aksi pertama.
+1. [ ] **Akun baru**, mulai tutorial dari awal (Mak Sari). Setiap langkah ada satu kalimat yang terlihat (toast atau bubble) dan satu target (panah atau tombol berkedip).
+2. [ ] **Tanam pertama:** gelap muncul sekali. **Tanam 5 berikutnya:** tidak ada gelap; joystick tetap bisa dipakai.
+3. [ ] **Garap pertama:** gelap sekali. **Garap 5 petak lagi:** tidak ada gelap.
+4. [ ] **Tunggu semua tumbuh:** layar TIDAK gelap, joystick bisa dipakai, pill Panen bisa diketuk, panen semua selesai, lalu langkah lanjut ke Jual.
+5. [ ] **Jual ke Pak Udin:** panah di tanah terlihat, joystick bisa dipakai saat berjalan.
+6. [ ] **Mancing:** gelap hanya sebelum tangkapan pertama; tangkapan ke-2 dan ke-3 hanya teks.
+7. [ ] **Tidak pernah terkunci:** tidak ada langkah di mana karakter tidak bisa jalan dan layar tetap gelap. Bila itu terjadi, catat langkahnya dan kirim screenshot.
+8. [ ] **Cutscene Jual Pertama:** setelah sekitar 1 menit tanpa menjual, gerak kembali sendiri.
+
+
 ## DEV (cara pakai untuk owner)
 
 Perintah ini hanya untuk akun owner (dan Studio). Diisi di chat game, diawali `!`.
