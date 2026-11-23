@@ -48,6 +48,11 @@ local function linesOf(questId: string, kind: string): { string }
 	return lines
 end
 
+-- bang_jali_1 .. bang_jali_8 are ONE giver (Quests: giver = "bang_jali"): drop the number after the last underscore.
+local function giverOf(npcId: string): string
+	return string.match(npcId, "^(.-)_%d+$") or npcId
+end
+
 local function tutorialRunning(): boolean
 	local snapshot = State.current :: any
 	return snapshot ~= nil and snapshot.guide ~= nil and snapshot.guide.step ~= nil and snapshot.guide.step.id ~= ""
@@ -56,28 +61,18 @@ end
 -- The "!" marker: a small parchment pill with a bamboo "!" above the giver's overhead name label. The marker is a child of
 -- that label's BillboardGui and sits ABOVE it in pixels (Bug 2: it used to cover the name). Without a label it falls back to
 -- its own billboard on the head.
+-- A4-style fix (playtest K-53): the marker used to be a child of the name billboard (220 x 36 px). When that billboard was
+-- small or hidden the "!" was gone too. Now it is its own billboard on the head, always on top, so it does not depend on
+-- the name label's size. Markers are checked every second (see Start), so a late-streamed NPC gets its marker too.
 local function makeMarker(head: BasePart): GuiObject
-	local overhead = head:FindFirstChildOfClass("BillboardGui")
-	local gui: GuiObject
-	if overhead then
-		local frame = Instance.new("Frame")
-		frame.AnchorPoint = Vector2.new(0.5, 1)
-		frame.Position = UDim2.new(0.5, 0, 0, -6) -- 6 px above the name label's top edge
-		frame.Size = UDim2.fromOffset(34, 40)
-		frame.BackgroundTransparency = 1
-		frame.ZIndex = 5
-		frame.Parent = overhead
-		gui = frame
-	else
-		local billboard = Instance.new("BillboardGui")
-		billboard.Adornee = head
-		billboard.Size = UDim2.fromOffset(34, 40)
-		billboard.StudsOffset = Vector3.new(0, 3.2, 0)
-		billboard.AlwaysOnTop = true
-		billboard.Parent = head
-		gui = billboard
-	end
-	gui.Name = "QuestMarker"
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "QuestMarker"
+	billboard.Adornee = head
+	billboard.Size = UDim2.fromOffset(34, 40)
+	billboard.StudsOffset = Vector3.new(0, 3.6, 0) -- just above the overhead name label (2.6 studs + its 36 px)
+	billboard.AlwaysOnTop = true
+	billboard.Parent = head
+	local gui: GuiObject = billboard
 	local label = Instance.new("TextLabel")
 	label.Name = "Bang"
 	label.Size = UDim2.fromScale(1, 1)
@@ -94,6 +89,7 @@ local function makeMarker(head: BasePart): GuiObject
 end
 
 local function refreshMarkers()
+	-- Givers that have an offer now (the tutorial hides every "!").
 	local wanted: { [string]: boolean } = {}
 	if not tutorialRunning() then
 		for _, id in offers do
@@ -103,21 +99,29 @@ local function refreshMarkers()
 			end
 		end
 	end
+	-- A4 (K-53): one "!" per NPC MODEL (bang_jali_1 .. _8 each get one). Markers used to be keyed by the giver id, so
+	-- Bang Jali's models (named bang_jali_N) never matched "bang_jali" and never got a "!".
+	local folder = Workspace:FindFirstChild("Npcs")
+	local show: { [string]: boolean } = {}
+	if folder then
+		for _, model in folder:GetChildren() do
+			if model:IsA("Model") and wanted[giverOf(model.Name)] then
+				show[model.Name] = true
+			end
+		end
+	end
 	for npcId, gui in markers do
-		if not wanted[npcId] or not gui:IsDescendantOf(game) then
+		if not show[npcId] or not gui:IsDescendantOf(game) then
 			gui:Destroy()
 			markers[npcId] = nil
 		end
 	end
-	local folder = Workspace:FindFirstChild("Npcs")
-	for npcId in wanted do
+	for npcId in show do
 		if not markers[npcId] then
 			local model = folder and folder:FindFirstChild(npcId)
-			if model and model:IsA("Model") then
-				local head = model:FindFirstChild("Head") or model.PrimaryPart
-				if head and head:IsA("BasePart") then
-					markers[npcId] = makeMarker(head)
-				end
+			local head = if model and model:IsA("Model") then (model:FindFirstChild("Head") or model.PrimaryPart) else nil
+			if head and head:IsA("BasePart") then
+				markers[npcId] = makeMarker(head)
 			end
 		end
 	end
@@ -135,7 +139,7 @@ function QuestOfferController.ForGiver(npcId: string): string?
 	end
 	for _, id in offers do
 		local quest = Quests.byId[id]
-		if quest and quest.giver == npcId and not accepting[id] then
+		if quest and quest.giver == giverOf(npcId) and not accepting[id] then
 			return id
 		end
 	end
