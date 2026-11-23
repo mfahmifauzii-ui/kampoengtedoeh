@@ -354,7 +354,12 @@ Cara owner memberi masukan: lewat playtest (`09_Playtest_Checklist.md`). Masukan
 
 | ID | Tanggal | Isi | Alasan |
 |----|---------|-----|--------|
-| (kosong) | | | |
+| K-43 | 2026-11-23 | Kolam Tanah dibuka **Lv 4** (kode Lv 3). Diubah di `Config/Ranch` (R0.4). | GDD 7.2 = target; kode yang berubah |
+| K-44 | 2026-11-23 | Pack Bunga 700 (GDD 18.4) ditambahkan sebagai `bunga_xl`, `id = 0` (Belum tersedia). `priceDraft` 459 = USULAN, hanya label cadangan. | Angka GDD; tanpa id tidak ada pembelian |
+| K-45 | 2026-11-23 | Ikan Mid (Mujair…Baung) di kode juga bisa di `kolam` (GDD 6.4: Kanal Barat). **Default: tetap** (kolam memakai stok, B-3). Dicek di playtest. | Mengubah lokasi bisa memutus stok kolam |
+| K-46 | 2026-11-23 | Ukuran ikan: GDD 6.4 Kecil 40% / Sedang 40% / Besar 15% / Jumbo 5%; kode memakai skor reel (≈50/30/15/5 bila skor merata). **Default: tetap** (skor = skill, GDD "ukuran diacak" tidak merinci). | Ubah = desain baru |
+| K-47 | 2026-11-23 | Peluang Legenda: kode bobot L=1 dari 100 (1%), GDD 0,5% per lemparan dengan syarat spot+waktu+level. **Default: tetap**, dicek di R1.2 (QA C-6, 1000 sampel). | Syarat berbeda, belum bisa dibandingkan |
+| K-48 | 2026-11-23 | Angka tanpa sumber GDD: Koin awal 100 / Bunga awal 10 (`Config/Economy`), hadiah kategori Album ladang/sungai 300 Koin (`Config/Book`). **Default: tetap.** | Tidak ada angka di GDD untuk dicocokkan |
 
 ---
 
