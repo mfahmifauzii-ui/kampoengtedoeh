@@ -1,4 +1,4 @@
-# KAMPOENG TEDOEH — Playtest Checklist v1.0 (untuk Owner)
+# KAMPOENG TEDOEH — Playtest Checklist (sinkron GDD v8.4, 2026-11-23)
 
 > Satu-satunya tugas owner: **main, rasakan, tulis masukan**. Semua keputusan desain sudah diambil (`02_Audit_Perbaikan.md` Bab 3.0). Claude Code tidak menunggu hasil checklist ini untuk lanjut kerja; masukan Anda masuk sebagai perbaikan di putaran berikutnya.
 > Cara pakai: ambil **hanya bagian yang Claude Code bilang sudah selesai** (dia menyebut nomor bagian di laporannya). Tidak perlu mengisi semuanya sekaligus.
@@ -36,7 +36,9 @@ Tempel juga **teks merah/kuning dari panel Output** bila ada. Tidak perlu meneba
 
 ---
 
-## A. Build Sekarang — Backlog "Belum Playtest" (Roadmap R0.5)
+## A. Backlog lama "Belum Playtest" (Roadmap R0.5)
+
+> Sebagian sudah dicek di putaran 1–3 (B9–B11). Item yang masih berlaku ditandai di Roadmap R0.5; sisanya tidak dipakai lagi.
 
 > Semua yang selesai di kode tapi belum pernah dirasakan. Lakukan **sebelum** Fase 1 dikerjakan. **Jangan uji** (belum ada di kode): Bubu, Agenda UI, Blueprint, Pajangan, Kebun Warga, Kucing/Joran Hilang. Perilaku hujan saat mancing masih versi lama sampai R1.2.
 
@@ -47,7 +49,7 @@ Tempel juga **teks merah/kuning dari panel Output** bila ada. Tidak perlu meneba
 4. [ ] Pak Udin muncul dekat; jual lewat bubble "Jual semua" (tanpa GUI jual).
 5. [ ] Kak Fajar muncul di sungai dekat lahan; cutscene singkat (< 0,3 dtk jeda), tidak terasa nyangkut.
 6. [ ] Menerima Joran + umpan; ikan pertama didapat; jual ikan ke Kak Fajar; banner **Selesai** muncul.
-7. [ ] Total XP tutorial 158 (cek bar XP / Lv 2 tercapai wajar).
+7. [ ] Total XP tutorial 230 (tepat Lv 2, GDD 16.2). Lama: 158.
 8. [ ] Selama tutorial, Nek Ani / Pak Amran hanya bilang "Selesaikan tutorial dulu".
 
 **A2. Quest & gerbang fitur**
@@ -187,19 +189,7 @@ Tempel juga **teks merah/kuning dari panel Output** bila ada. Tidak perlu meneba
 
 ---
 
-### B10. Putaran Playtest 2 (K-58 … K-65): owner cek di HP
-Tes AI sudah dijalankan di Studio untuk yang disebut "terverifikasi". Sisanya harus dicek di HP.
-1. [ ] **Papan (R2.2):** tombol "Papan" di HUD muncul setelah quest "Kampung Hari Ini" mulai; isi: tugas hari ini dengan progres x/n, Selesai bila tuntas.
-2. [ ] **Garap (K-53):** ketuk sekali sorot, ketuk lagi tanam; di 844x390, 667x375, 390x844.
-3. [ ] **Toast (K-53):** di bawah Koin/Bunga, tidak menutupi HUD.
-4. [ ] **Bang Jali (K-53):** di Lv 3 kepalanya ada "!" (terverifikasi di Studio); bubble "Terbuka di Level 3 ..." / "Jual 1 barang ke saya dulu ..." terbaca.
-5. [ ] **Pakai di Tas (K-55):** pancing dan umpan bisa dipakai; badge Dipakai.
-6. [ ] **Tarik (K-55):** tombol Tarik di slot Tombol Aksi saat ikan menarik.
-7. [ ] **Skill (K-56):** tombol Tingkatkan terlihat saat node ditekan (bar bawah).
-8. [ ] **Quest (K-56):** Harian dan Mingguan hanya memuat quest yang bisa dikerjakan.
-9. [ ] **DEV (K-64):** akun owner bisa memakai `!state`, `!skenario`, `!skip tutorial` di game terbit. Sebelum rilis: `LIVE_ENABLED = false`.
-
-### B9. Putaran Playtest 1 (K-53 … K-57)
+### B9. Putaran 1 (K-53 … K-57)
 1. [ ] **Garap (K-53):** ketuk sekali = sorot; ketuk lagi = tanam; yang tertanam sama dengan sel yang disorot; outline hilang saat keluar mode.
 2. [ ] **Toast (K-53):** di bawah Koin/Bunga, tidak menutupi HUD; di bawah Bubble Instruksi bila tampil.
 3. [ ] **Kartu pemain (K-53):** pill "Lv n" terlihat; slot buff kosong tidak tampil.
@@ -211,6 +201,44 @@ Tes AI sudah dijalankan di Studio untuk yang disebut "terverifikasi". Sisanya ha
 9. [ ] **Tarik (K-55):** tombol Tarik di slot Tombol Aksi; Pancing dan Tarik tidak tertimpa.
 10. [ ] **Harian & Mingguan (K-56):** tidak ada templat yang belum terbuka; "Bantu lahan" tidak ada di sana, tetapi ada di Season (500 Koin).
 11. [ ] **Event (K-57):** tombol "Event" hanya saat event aktif.
+
+### B10. Putaran 2 (K-58 … K-65): owner cek di HP
+Tes AI sudah dijalankan di Studio untuk yang disebut "terverifikasi". Sisanya harus dicek di HP.
+1. [ ] **Papan (R2.2):** tombol "Papan" di HUD muncul setelah quest "Kampung Hari Ini" mulai; isi: tugas hari ini dengan progres x/n, Selesai bila tuntas.
+2. [ ] **Garap (K-53):** ketuk sekali sorot, ketuk lagi tanam; di 844x390, 667x375, 390x844.
+3. [ ] **Toast (K-53):** di bawah Koin/Bunga, tidak menutupi HUD.
+4. [ ] **Bang Jali (K-53):** di Lv 3 kepalanya ada "!" (terverifikasi di Studio); bubble "Terbuka di Level 3 ..." / "Jual 1 barang ke saya dulu ..." terbaca.
+5. [ ] **Pakai di Tas (K-55):** pancing dan umpan bisa dipakai; badge Dipakai.
+6. [ ] **Tarik (K-55):** tombol Tarik di slot Tombol Aksi saat ikan menarik.
+7. [ ] **Skill (K-56):** tombol Tingkatkan terlihat saat node ditekan (bar bawah).
+8. [ ] **Quest (K-56):** Harian dan Mingguan hanya memuat quest yang bisa dikerjakan.
+9. [ ] **DEV (K-64):** akun owner bisa memakai `!state`, `!skenario`, `!skip tutorial` di game terbit. Sebelum rilis: `LIVE_ENABLED = false`.
+10. [ ] **"!" (fix):** tanda "!" di atas setiap pemberi quest yang punya quest Tersedia, terlihat dari jarak jauh (sampai 200 studs), satu per pemberi, tidak tampak di layar judul. Studio: 0 sebelum main.
+11. [ ] **Bubu (R2.1b), alur lengkap:** beli Bubu Bambu di Pak Udin (400 Koin, bagian Kebutuhan) → berdiri di sungai dekat titik mancing → tombol **Pasang** muncul di kiri Pancing → pasang → tiang di sungai "belum siap" → tunggu 6 jam (atau `!tumbuh` di DEV) → label **SIAP!** dan tombol berubah **Ambil** → tap Ambil → ikan masuk tas, tiang hilang. Maks 3 bubu. Tidak bisa Ambil sebelum siap.
+12. [ ] **Panel DEV:** tab "DEV" bisa dibuka dan tombolnya berfungsi (Studio tidak bisa menekan tombol; cek di HP).
+13. [ ] **Ambil dengan tap sungguhan (R2.1b, belum terbukti):** tekan tombol **Ambil** di HP saat bubu siap (Studio hanya memicu remote yang sama; tombol fisik belum diklik). Ambil harus memberi ikan dan tiang hilang.
+14. [ ] **Tracker Quest (D4, temuan Task 4):** di HP, tracker kanan atas hanya menampilkan sekitar 6 baris lalu "+N lainnya". Quest yang aktif tidak bisa dibaca semua; cek apakah ini membingungkan. Ditangani di Task 6 (Quest Log).
+
+### B11. Putaran 3 (2026-11-23, video dan HP): F1–F8
+
+Cek ini untuk perbaikan dari video playthrough. Satu tugas F = satu centang. Tes Studio tidak menggantikan cek HP.
+1. [ ] **F1 Tanpa gelap (GUI 4.6):** di setiap langkah tutorial (Garap, Tanam, Siram, Panen, Tunggu semua, Jual, Mancing) tidak ada layar gelap atau kotak hitam di atas HUD. Joystick, tombol dock, kartu pemain, dan kolom kanan bisa ditekan.
+2. [ ] **F2 Satu permukaan instruksi (GUI 9.7):** di langkah pertama (aksi pertama) hanya bubble coachmark; di pengulangan hanya toast. Tidak pernah dua-duanya untuk teks yang sama. *Belum di kode: cek setelah F2 selesai.*
+3. [ ] **F3 Aksi bulat (GUI 6.12):** Tarik sudah bulat sama dengan Pancing. Cek juga **Pasang**, **Ambil**, dan **Panen Semua**: semuanya bulat dengan ukuran dan cincin yang sama. *Pasang dan Panen Semua belum di kode.*
+4. [ ] **F4 Tracker stabil:** beli Bayam di Pak Udin → quest "Bibit Kedua" mulai → tracker tetap tampil dan memuat langkahnya. Tanam 2 Bayam → quest selesai → tracker berubah dan tidak hilang tanpa alasan.
+5. [ ] **F5 Quest Log dari dua pintu (GUI 6.8):** di tiga keadaan (ada quest aktif, baru selesai, tidak ada quest aktif), tap ikon bintang di kolom kanan dan tap tracker: Quest Log terbuka dua-duanya. Bintang punya badge untuk quest baru. Quest yang mulai otomatis dari pembelian muncul toast "Quest baru: <judul>".
+6. [ ] **F6 "!" pemberi:** "!" tampil di atas Mak Sari dan Nek Ani saat quest mereka Tersedia (Quest Log menulisnya). Cek juga setelah quest side dari pembelian mulai dan setelah keluar-masuk game.
+7. [ ] **F7 Pak Udin setelah tutorial:** dialog menawarkan **Jual / Beli** (membuka panel toko) dan **Sampai jumpa**. "Jual semua panen (N%)" tidak muncul di luar langkah jual tutorial.
+8. [ ] **F8 Pill normal tap:** di HP, satu ketukan biasa pada pill Tanam, Siram, atau Panen langsung menjalankan aksi (pada petak kosong, siap panen, dan kering). Tahan setengah detik membuka menu hanya untuk petak kosong. Ulangi 5 kali.
+9. [ ] **Bubu fisik:** di HP, tap tombol **Ambil** saat bubu siap (bukan lewat remote Studio). Ikan masuk, tiang hilang.
+
+**Tutorial penuh di HP (dulu B12, BLOCKER 2026-11-23):** tidak ada gelap di langkah mana pun (F1). Pastikan joystick bisa dipakai.
+T1. [ ] **Akun baru**, mulai tutorial dari awal (Mak Sari). Setiap langkah ada satu kalimat yang terlihat (toast atau bubble) dan satu target (panah atau tombol berkedip).
+T2. [ ] **Tunggu semua tumbuh:** layar TIDAK gelap, joystick bisa dipakai, pill Panen bisa diketuk, panen semua selesai, lalu langkah lanjut ke Jual.
+T3. [ ] **Jual ke Pak Udin:** panah di tanah terlihat, joystick bisa dipakai saat berjalan.
+T4. [ ] **Mancing:** tangkapan pertama lewat bubble coachmark; tangkapan ke-2 dan ke-3 hanya toast.
+T5. [ ] **Tidak pernah terkunci:** tidak ada langkah di mana karakter tidak bisa jalan. Bila itu terjadi, catat langkahnya dan kirim screenshot.
+T6. [ ] **Cutscene Jual Pertama:** setelah sekitar 1 menit tanpa menjual, gerak kembali sendiri.
 
 ## G. Gate Checklist
 
@@ -236,23 +264,11 @@ Tes AI sudah dijalankan di Studio untuk yang disebut "terverifikasi". Sisanya ha
 |---------|---------|--------------|-------------------------------------|----------------------------------------|
 | 1 | 2026-11-23 | Owner, HP (844×390, 667×375, 390×844) | 18 temuan (#1–#18): A bug, B tutorial, C mancing UI, D quest, E event | K-53 … K-57 |
 | 2 | 2026-11-23 | Owner (lanjutan putaran 1), HP | Lanjutan: R2.x, Quest Log, Season, E2/E3, Gembor (lihat Roadmap Bab 20) | K-58 … K-63 |
+| 3 | 2026-11-23 | Owner, video PC 8:21 + HP | F1–F8 (no dim, satu permukaan instruksi, Aksi bulat, tracker, Quest Log, "!", Pak Udin, pill) | K-66 (auto), GUI 4.6, 6.12 |
 
 > Masukan yang mengubah **aturan desain** (bukan bug) dicatat Claude sebagai `K-nn rev.` di `02_Audit_Perbaikan.md` Bab 3.6, lalu GDD naik versi (v8.2, …). Bug cukup jadi tugas `R…` baru.
 
 ---
-
-### B12. Tutorial penuh di HP (BLOCKER, 2026-11-23)
-Tujuan: pemain tidak pernah terkunci, dan gelap (coachmark) hanya muncul di aksi pertama.
-1. [ ] **Akun baru**, mulai tutorial dari awal (Mak Sari). Setiap langkah ada satu kalimat yang terlihat (toast atau bubble) dan satu target (panah atau tombol berkedip).
-2. [ ] **Tanam pertama:** gelap muncul sekali. **Tanam 5 berikutnya:** tidak ada gelap; joystick tetap bisa dipakai.
-3. [ ] **Garap pertama:** gelap sekali. **Garap 5 petak lagi:** tidak ada gelap.
-4. [ ] **Tunggu semua tumbuh:** layar TIDAK gelap, joystick bisa dipakai, pill Panen bisa diketuk, panen semua selesai, lalu langkah lanjut ke Jual.
-5. [ ] **Jual ke Pak Udin:** panah di tanah terlihat, joystick bisa dipakai saat berjalan.
-6. [ ] **Mancing:** gelap hanya sebelum tangkapan pertama; tangkapan ke-2 dan ke-3 hanya teks.
-7. [ ] **Tidak pernah terkunci:** tidak ada langkah di mana karakter tidak bisa jalan dan layar tetap gelap. Bila itu terjadi, catat langkahnya dan kirim screenshot.
-8. [ ] **Cutscene Jual Pertama:** setelah sekitar 1 menit tanpa menjual, gerak kembali sendiri.
-9. [ ] **Pill Tanam / Siram / Panen di HP:** satu ketukan biasa (tanpa tahan) langsung menjalankan aksi, baik pada petak kosong, siap panen, maupun kering. Tahan sekitar setengah detik membuka menu petak (Pindah / Hapus) hanya untuk petak kosong. Ulangi 5 kali berturut-turut dengan jari, termasuk pill Panen terakhir saat Panen Semua tersedia.
-
 
 ## DEV (cara pakai untuk owner)
 
@@ -268,9 +284,3 @@ Perintah ini hanya untuk akun owner (dan Studio). Diisi di chat game, diawali `!
 
 Catatan: di Studio, profil yang gagal dimuat dipakai dari memori (tidak tersimpan).
 
-### B11. Putaran 2 (lanjutan): owner cek di HP
-1. [ ] **Marker "!" (fix):** hanya satu per pemberi, di dekat NPC, tidak tampak di layar judul, tidak melayang di tengah plaza (Studio: 0 sebelum main, 1 untuk Bang Jali saat dekat).
-2. [ ] **Bubu (R2.1b):** beli Bubu Bambu di Pak Udin (400 Koin, bagian Kebutuhan); berdiri di sungai dekat titik mancing, tombol **Pasang** muncul di kiri tombol Pancing; setelah dipasang ada tiang di sungai berlabel "belum siap"; setelah 6 jam label jadi hijau **SIAP!** dan tombol berubah **Ambil**; Ambil memberi ikan dan tiang hilang. Cek juga: tidak bisa Ambil sebelum siap; maks 3 bubu. (Tes Studio: beli → pasang → !tumbuh → ambil sudah lulus lewat jalur remote.)
-3. [ ] **Panel DEV:** tab "DEV" bisa dibuka dan tombolnya berfungsi (Studio tidak bisa menekan tombol; cek di HP).
-4. [ ] **Ambil dengan tap sungguhan (R2.1b, belum terbukti):** tekan tombol **Ambil** di HP saat bubu siap (Studio hanya memicu remote yang sama; tombol fisik belum diklik). Ambil harus memberi ikan dan tiang hilang.
-5. [ ] **Tracker Quest (D4, temuan Task 4):** di HP, tracker kanan atas hanya menampilkan sekitar 6 baris lalu "+N lainnya". Quest yang aktif tidak bisa dibaca semua; cek apakah ini membingungkan. Ditangani di Task 6 (Quest Log).
