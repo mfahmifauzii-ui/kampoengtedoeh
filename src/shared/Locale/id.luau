@@ -1110,6 +1110,7 @@ return {
 	["quest.m9_sumur.s1"] = "Pulihkan Sumur Tua (10 Kayu, 5 Batu, 2 olahan)",
 	["quest.mq11_legenda.title"] = "Legenda Pertama",
 	["quest.mq11_legenda.s1"] = "Dapat 1 Ikan Legenda atau panen 1 Prima tanaman Late",
+	["quest.mq11_legenda.s2"] = "Atau panen 1 Prima tanaman Late (2 jam+)",
 	["quest.mq12_warga.title"] = "Warga Kampoeng Tedoeh",
 	["quest.mq12_warga.s1"] = "Selesaikan Album Kampung 50%",
 	["quest.s1_bibit.title"] = "Bibit Kedua",
