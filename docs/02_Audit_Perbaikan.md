@@ -409,6 +409,9 @@ Keputusan Putaran 2 dan keputusan otomatis (detail lengkap di 3.6). Kolom "Diter
 | K-64 | 2026-11-23 | **DIPUTUSKAN (Putaran 2, DEV).** Akses perintah DEV: `DevService.IsAllowed(player)` = `RunService:IsStudio()` ATAU UserId ada di `Config/DevAccess.UserIds` (akun owner). Satu fungsi dipakai semua perintah dan remote DEV. `Config/DevAccess.LIVE_ENABLED = true` sekarang; R10.5 dan gerbang G3 mewajibkan `false` plus cek otomatis (AUTO) sebelum rilis publik. Semua item DEV ONLY dicatat di Roadmap Bab 17. | Owner mengetes game terbit dengan akunnya sendiri |
 | K-65 | 2026-11-23 | **DIPUTUSKAN (Putaran 2, Studio).** Bila di Studio profil tidak bisa dimuat (kunci sesi karena owner memainkan akun yang sama, atau API off), dibuat profil dari DataTemplate di memori dengan `studioMock = true`. Profil ini tidak pernah disimpan. Satu baris log. Di server live tidak berlaku (tetap kick). | Tes Play di Studio tidak boleh mati karena data |
 | K-66 | 2026-11-23 | **DIPUTUSKAN (otomatis, R2.1b).** Bubu dijual di Pak Udin (bagian Kebutuhan) dengan harga Koin saja: Bambu 400, Kayu 1.500, Besi 4.000 (Config/Bubu TYPES). GDD 6.6 juga menyebut bahan (10 Bambu, 20 Kayu, 15 Batu + 10 Kayu) yang belum ada di kode; bahan belum dipungut. Pasang memakai bubu pertama yang dimiliki (tanpa pilih manual). Ambil hanya muncul di dekat tiang bubu. Tiang di sungai dan label "belum siap"/"SIAP!" dibuat server. | Keputusan Claude; owner cek di HP |
+| K-67 | 2026-11-23 | **DIPUTUSKAN (owner).** Bubu Besi tetap memakai perilaku kode: panen mengambil ikan merata dari semua ikan U dan R. Aturan "5% 1 Late" dihapus dari desain (GDD 6.6). | Owner; GDD 6.6 diperbarui |
+| K-68 | 2026-11-23 | **DIPUTUSKAN (owner).** Bahan Bubu tetap ditunda (K-66). Harga Bubu hanya Koin. | Owner; GDD 6.6 tetap |
+| K-69 | 2026-11-23 | **DIPUTUSKAN (owner).** Toast saat quest mulai: `Quest baru: <judul>` (menggantikan "Misi baru" di mana pun). | Owner; Locale `quest.new`, 03 Bab 9 |
 
 ---
 

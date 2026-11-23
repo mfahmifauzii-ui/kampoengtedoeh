@@ -444,7 +444,7 @@ Dijual di Pak Udin (bagian Kebutuhan) dengan harga Koin saja. Pasang di sungai d
 - **Pemetaan rarity (satu-satunya tempat):** C = Early, U = Mid, R = Late, L = Legenda. Bubu tidak pernah memberi L.
 - **Bahan material ditunda (K-66):** 10 Bambu, 20 Kayu, serta 15 Batu + 10 Kayu tidak dipungut; harga cukup Koin.
 - Maks 3 bubu total (semua tipe). Buka Lv 8 lewat M8.
-- Perbedaan dengan tabel lama: tabel lama menulis "5% 1 Late" untuk Besi. Kode (`BubuService`) memilih tiap ikan dengan peluang sama dari semua ikan ber-rarity itu (tanpa bobot rarity). Aturan "5% 1 Late" tidak ada di kode dan butuh keputusan owner.
+- Besi: panen memilih tiap ikan dengan peluang sama dari semua ikan U dan R (K-67, keputusan owner). Aturan "5% 1 Late" dari tabel lama dihapus dan tidak berlaku.
 
 ---
 

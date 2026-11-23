@@ -95,7 +95,7 @@ return {
 	["garap.price_free"] = "Gratis",
 	["garap.price"] = "{n} koin",
 	["garap.next_price"] = "Petak berikutnya: {price}",
-	["quest.new"] = "Misi baru: {title}",
+	["quest.new"] = "Quest baru: {title}",
 	["quest.step"] = "Misi maju: {title}",
 	["quest.done"] = "Misi selesai: {title}!",
 	["quest.more"] = "+{n} quest lain · buka Quest Log",
