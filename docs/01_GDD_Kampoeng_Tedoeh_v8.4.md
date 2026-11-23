@@ -1,10 +1,10 @@
 # KAMPOENG TEDOEH — Game Design Document v8.4
 ## Single Source of Truth (gameplay, angka, aturan)
 
-> Menggantikan `Kampoeng_Tedoeh_v7.4.md`, `v7.5.md`, `v7.6.md`, `v7.7.md`, dan `Skill_Tree_Kampoeng_Tedoeh_v7.7.md` (sekarang Bab 4.5).
-> Isi = v7.7 + Skill Tree v7.7 + **semua keputusan K-01…K-42 (DIPUTUSKAN, Audit Bab 3.0)** + perapihan kesalahan tulis. v8.1 = v8.0 + keputusan diterapkan. Angka di kode yang masih beda dari dokumen ini diselaraskan oleh tugas `R1.x`, bukan dengan menurunkan dokumen.
+> **Versi sekarang: v8.4 = semua keputusan K-01…K-66** (Audit Bab 3). Menggantikan `Kampoeng_Tedoeh_v7.4…v7.7.md` dan `Skill_Tree_Kampoeng_Tedoeh_v7.7.md` (sekarang Bab 4.5).
 > **Nomor bab sengaja sama dengan v7.x** supaya komentar kode "Bab 9.4" dll. tetap benar.
-> Riwayat perubahan lama tidak ditulis ulang; ada di git dan di Audit Bab 4.
+> Angka di kode yang masih beda dari dokumen ini diselaraskan oleh tugas `R1.x`, bukan dengan menurunkan dokumen.
+> Riwayat perubahan ringkas: tabel "Riwayat revisi" di akhir dokumen. Riwayat lengkap ada di git dan di Audit Bab 4.
 
 ### Cara Baca
 
@@ -344,6 +344,8 @@ Bibit ≈ 30% harga jual.
 | Bantu Tetangga | Bab 12.2. |
 
 ---
+- **Gembor Emas (K-62):** kosmetik di tab Alat, dipasang lewat Pakai. Quest side_prima memberi item ini.
+
 
 ## 6. MANCING — Aktif, Fokus Pendek
 
@@ -386,6 +388,8 @@ Dekati spot → Tombol Mancing (bulat, ikon joran) → Lempar (0,6 dtk) → Tung
 | Jangkrik | 25 | Gigitan 30% lebih cepat |
 | Pelet | 45 | +15% peluang Mid+ |
 | Udang Kecil | 80 (Lv 6) | +10% peluang Late+ |
+- **Pakai di Tas (K-55):** pancing dan umpan dipilih lewat "Pakai" di Tas. Mengganti D#42 / D#49 ("tanpa pemilihan umpan"). Umpan habis → pindah otomatis ke umpan berikutnya.
+
 
 ### 6.4 Ikan (20) — LOCKED
 
@@ -513,6 +517,8 @@ Kumpul bahan → Menu Hias → pilih piece → Warna (12) + Material (Kayu, Bamb
 - Hanya di lahan sendiri; tidak saat memancing; tembus dinding sendiri saat mode Hias.
 - Validasi lembut: tanpa pintu → toast `Belum ada pintu nih` 1x, tetap boleh.
 - Hapus = refund 100%, bahan terbang ke Tas.
+- **Warna dinding (K-61):** pemilih warna = R3.10 (ID lama R3.9 bentrok; lihat Roadmap). Belum dibuat.
+
 
 ### 8.4 Dekor Berkah — LOCKED
 
@@ -668,6 +674,8 @@ Aturan dialog: bicara dengan NPC, bubble, dan NPC menoleh = **sisi klien, hanya 
 | Pedagang Tamu | 1 jenis acak | +50% | 10/malam |
 
 Pasar Harian & Kualitas dikalikan di semua penjual.
+- **Jual Semua (K-63):** hilang bersama pindahnya penjualan Pasar ke bubble lapak (E2).
+
 
 ### 10.3 Sumber Item — LOCKED
 
@@ -707,6 +715,8 @@ Album = GUI kartu, dibuka dari HUD. Bukan item, bukan bangunan.
 - Kartu Album: tombol `Bagikan` membuat gambar (nama, %, 3 entri terlangka).
 
 ---
+- **Album dekor (K-59):** hanya entri yang sudah dibangun dihitung; piece yang belum ada disembunyikan. Isi 80 piece = R4.8.
+
 
 ## 12. SOSIAL
 
@@ -754,6 +764,8 @@ RW bukan sistem; hanya muncul di dialog NPC.
 ### 13.2 Pasar Malam (tiap Malam game, 9 menit)
 
 Pedagang Tamu datang (Bab 10.1). Lempar Gelang: 3x gratis per malam, hadiah Koin kecil / bahan / tiket dekor (angka Gelang 60/30/10 di Config = USULAN, R0.4 menulis artinya di sini). Bukan pasar antar pemain.
+- **Event tampil (K-57):** sebagai "Event" hanya saat event aktif. Pasar Malam adalah tempat di dunia dengan NPC Pak Kumis.
+
 
 ### 13.3 Event Musiman
 
@@ -770,6 +782,8 @@ Agustusan (10–24 Agu), Lebaran (ikut kalender), Tahun Baru (28 Des – 7 Jan),
 | Solo | 1 pemain bisa 100%. |
 
 ---
+- **Lempar Gelang (K-57):** memakai minigame (zona 60/30/10%). Tidak diubah oleh K-57 selain ini.
+
 
 ## 14. QUEST
 
@@ -788,6 +802,8 @@ Rantai Main / Side Quest (dulu Bab 14.2 & 14.4), feature gate, dan naskah ada di
 | Bundel Kakek | 5 proyek pemulihan. |
 
 Semua quest baru muncul setelah tutorial jual ikan (`t1b_kolam`) selesai.
+- **Harian dan Mingguan (K-56):** hanya memilih templat yang fitur dan levelnya sudah terbuka. "Bantu lahan" pindah ke Season (500 Koin, tanpa Bunga, K-28). Quest yang sistemnya belum ada diblok.
+
 
 ### 14.3 Surat Kakek
 
@@ -1037,28 +1053,6 @@ Kolam: 1 Bunga per 10 menit sisa, maks 30. Bubu tidak bisa instant. Tidak ada in
 
 ---
 
-## Revisi Putaran 2 (v8.4, K-58…K-63)
-
-- **Akses DEV (K-64):** perintah `!` aktif untuk Studio dan akun owner (Config/DevAccess). Dimatikan sebelum rilis (R10.5).
-- **Mode studioMock (K-65):** di Studio, profil yang gagal dimuat dibuat di memori; tidak disimpan.
-
-- **Quest Season "Bantu 20 lahan" (K-58):** 500 Koin, tanpa Bunga; kartu di Hadiah > Musim; hanya setelah Bantu terbuka.
-- **Album dekor (K-59):** hanya entri yang sudah dibangun dihitung; piece yang belum ada disembunyikan. Isi 80 piece = R4.8.
-- **Order Mingguan (K-60):** lihat 14.7.
-- **Warna dinding (K-61):** pemilih warna = R3.9, belum dibuat.
-- **Gembor Emas (K-62):** kosmetik di tab Alat, dipasang lewat Pakai. Quest side_prima memberi item ini.
-- **Jual Semua (K-63):** hilang bersama pindahnya penjualan Pasar ke bubble lapak (E2).
-
-## Revisi Playtest Putaran 1 (v8.3, K-53…K-57)
-
-Aturan yang berubah dari v8.2 (detail di Audit Bab 3.6, tugas di Roadmap Bab 19):
-- **Tutorial (K-54):** setelah panen pertama, pemain membuat 5 Garap lagi, menanam ulang 6 bibit Kangkung gratis, menunggu semua panen, baru dikirim ke Pak Udin. Mancing: tangkapan 1–2 tanpa cutscene; tangkapan ke-3 cutscene Kak Fajar lalu jual.
-- **Peralatan (K-55):** pancing dan umpan dipilih lewat "Pakai" di Tas. Ini **mengganti D#42 / D#49** ("tanpa pemilihan umpan"). Umpan habis → pindah otomatis ke umpan berikutnya.
-- **Quest (K-56):** Harian dan Mingguan hanya memilih templat yang fitur dan levelnya sudah terbuka. "Bantu lahan" pindah ke Season (500 Koin, tanpa Bunga, K-28). Quest yang sistemnya belum ada diblok.
-- **Event (K-57):** Acara tampil sebagai "Event" hanya saat event aktif. Pasar Malam adalah tempat di dunia dengan NPC Pak Kumis; Lempar Gelang memakai minigame (zona 60/30/10%).
-
-Angka ekonomi lain tidak berubah. Yang baru: hadiah Season "Bantu 20 lahan" (500 Koin) dan total XP tutorial (disesuaikan K-54 agar tetap Lv 2).
-
 ## 19. SEASON PASS — "Musim Panen"
 
 - 30 hari, 2 track. Mulai: ✔ K-29 **hari rilis** (kode saat ini 1 Des 2026 → R1.11). Reset 05:00 WIB, berikutnya otomatis.
@@ -1068,6 +1062,9 @@ Angka ekonomi lain tidak berubah. Yang baru: hadiah Season "Bantu 20 lahan" (500
 - Kosmetik Premium tidak dijual lagi (satu-satunya barang terbatas, dan itu kosmetik).
 
 ---
+- **Quest Season "Bantu 20 lahan" (K-58):** 500 Koin, tanpa Bunga; kartu di Hadiah > Musim; hanya setelah Bantu terbuka.
+
+
 
 ## 20–22. GAME FEEL, EFEK, ANIMASI
 
@@ -1139,6 +1136,9 @@ PlayerData: Level, XP, SP, Koin, Bunga, Tas (item + kualitas), Lahan (petak + `p
 Mutasi, Pelangi, Greenhouse, **Super Panen**, Rak Pajangan, Papan Pamer, RW sebagai sistem, Pasar antar pemain, Ramalan Cuaca, Antrean Dapur, Reputasi Warung, Kasih Minum Ternak, Pupuk, Hama, Stamina, Fail, Loot Box, Iklan, Robux → Koin, Premium → Koin, Bunga → Koin/XP/Level/Bahan Mentah/Hewan, Streak Reset, Hadiah > 60 Menit, Salju, Daging, Hewan Mati, Tanaman Mati, Bangunan Roboh, Quest Gagal karena Waktu, Nama NPC Lama, Gestur Joget/Tunjuk/Hug, Jual Legenda di Warung/Hadiah, Masak Legenda, Instant Bubu, Bunga dari Level-Up, **Bunga dari Like (termasuk lewat Title/Peti)**, Bibit Unggul, Backpack Pass, Blueprint gating, Buff Pasif, tombol Lewati di tutorial.
 
 ---
+- **Akses DEV (K-64):** perintah `!` aktif untuk Studio dan akun owner (Config/DevAccess). Dimatikan sebelum rilis (R10.5).
+- **Mode studioMock (K-65):** di Studio, profil yang gagal dimuat dibuat di memori; tidak disimpan.
+
 
 ## 30. PLAYTEST
 
@@ -1171,3 +1171,13 @@ Checklist lengkap ada di **`07_QA_Test_Plan.md`** Bab D.
 **C.3 Album 214** = Ladang 54 + Sungai 80 + Dapur 72 + Varian 8.
 
 **C.4 XP total** Lv 1→60 = Σ(200 + 30n), n = 1..59 = 11.800 + 53.100 = **64.900**.
+
+## Riwayat revisi
+
+| Versi | Tanggal | K | Bab yang tersentuh |
+|-------|---------|---|--------------------|
+| v7.4–v7.7 | sebelum 2026-11 | K-01…K-42 (diputuskan, Audit 3.0) | 1–18 (isi dasar) |
+| v8.1 | 2026-11-23 | K-01…K-42 diterapkan ke GDD | semua bab |
+| v8.3 (Playtest 1) | 2026-11-23 | K-53…K-57 | 6.3, 5.5, 8.3, 10.2, 11, 13.2, 13.4, 14.1, 16.2 |
+| v8.4 (Putaran 2) | 2026-11-23 | K-58…K-66 | 6.6 (Bubu), 8.3, 13.2, 14.5, 14.7, 16.2, 19, 25.2, 29 |
+| v8.4 (koreksi D3) | 2026-11-23 | — | 6.6, 14.5, 16.2, 25.2 (ke nilai kode; lihat Audit) |
