@@ -114,7 +114,7 @@ end
 -- waits for its giver (offered, then started by QuestAccept). Quests without a Naskah line (side_* of v0.2) keep the old
 -- auto start, with no dialog and no `!`.
 local function hasDialog(quest: Quests.Quest): boolean
-	local prefix = string.match(quest.id, "^(.-)_") or quest.id
+	local prefix = string.match(quest.id, "^(%a+%d+)_") or quest.id -- side_* memakai id penuh (dlg.side_rumah_rapi.*)
 	return Locale.has(`dlg.{prefix}.start.1`)
 end
 

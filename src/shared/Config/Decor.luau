@@ -246,6 +246,12 @@ return {
 	MAX_PLACED = 800, -- Bab 8.3 v7.3: cap per lahan 800 piece
 	BLOCK_MARGIN = 1, -- studs kept clear around the farm and pond
 
+	-- Palet warna dinding Hias (K-50, Quest side_rumah_rapi). Warna ke-13 terbuka lewat Title "Dinding Spesial".
+	-- Tidak ada palet 12 warna di kode saat ini; entri ini adalah satu-satunya warna tambahan. Muted hangat (Asset Bible Bab 1).
+	WALL_PALETTE_EXTRA = {
+		{ id = "dinding_spesial", color = Color3.fromRGB(214, 178, 124), unlockTitle = "dinding_spesial" },
+	},
+
 	-- Extra no-build areas in plot-local studs (e.g. your house), as {min = Vector2(x, z), max = Vector2(x, z)}.
 	-- (Ponds are blocked by the land rules; there is no start house any more.)
 	BLOCKED_EXTRA = {} :: { { min: Vector2, max: Vector2 } },

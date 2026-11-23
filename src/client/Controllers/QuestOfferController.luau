@@ -34,7 +34,7 @@ local seenDone: { [string]: boolean } = {}
 local doneSeeded = false
 
 local function prefixOf(questId: string): string
-	return string.match(questId, "^(.-)_") or questId
+	return string.match(questId, "^(%a+%d+)_") or questId -- side_* memakai id penuh (dlg.side_rumah_rapi.*)
 end
 
 -- Naskah keys of one quest: dlg.<prefix>.<kind>.1, .2, ... (stops at the first missing number).
