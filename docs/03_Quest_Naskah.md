@@ -63,7 +63,7 @@ Aturan:
 | Prompt Bantu | 5 | S6 |
 | Dapur (Tombol Aksi dekat Tungku), Makan, ikon buff | 6 | M6 |
 | Warung Pemain | 7 | M7 |
-| Bubu | 8 | M8 (⚠ sistem belum ada) |
+| Bubu | 8 | M8 (Bubu sudah ada di kode, R2.1) |
 | Bundel Kakek | 8 | M9 |
 | Kandang Bebek | 10 | S8 |
 | Mancing Kanal Timur | 10 | S9 |
@@ -177,14 +177,14 @@ Langkah `kak_fajar`: `tut.t1b.kak_fajar.1` (Pak Udin) — Kak Fajar ada di sunga
 
 | # | Lv | Judul | Pemberi | Membuka | Langkah | Hadiah | Status kode |
 |---|----|-------|---------|---------|---------|--------|-------------|
-| M1 | 2 | Kampung Hari Ini | Nek Ani | Agenda, Gerobak Kaget, Order, Kerja Bakti | Buka Agenda → Selesaikan 1 tugas Agenda → Lihat Gerobak Kaget | 100 Koin | Ada; ⚠ Agenda belum punya UI (R2.2) |
+| M1 | 2 | Kampung Hari Ini | Nek Ani | Agenda, Gerobak Kaget, Order, Kerja Bakti | Buka Agenda → Selesaikan 1 tugas Agenda → Lihat Gerobak Kaget | 100 Koin | Ada; Agenda sudah ada di kode (R2.2, tombol Papan) |
 | M2 | 4 | Ke Hutan | Pak Amran | Nambang, Crafting | Pergi ke Hutan → Kumpulkan 10 Batu + 9 Kayu → Craft 2 Papan | 20 XP + 50 Koin [USULAN] | Ada; butuh objek "Meja Crafting" di Studio |
 | M3 | 4 | Kolam Kakek | Kak Fajar | Kolam | Bangun Kolam Kakek (setor 10 Batu + 5 Kayu + 3 ikan Early; tombol Kolam muncul di langkah ini) → Tangkap 1 ikan di kolam | Kolam Kakek + 300 Koin + 60 XP | Ada |
 | M4 | 5 | Pagar Pertama | Pak Amran | Hias | Pasang 1 Pagar Bambu | – | Ada |
 | M5 | 5 | Kokok Pertama | Pak Udin | Ternak | Terima Ayam → Isi pakan → Ambil 1 telur | Ayam + Kandang Ayam Lv 1 | Ada |
 | M6 | 6 | Dapur Pertama | Mak Sari | Dapur + Buff | Craft Tungku → Masak 1 olahan → Makan 1 olahan | 200 Koin | Ada |
 | M7 | 7 | Warung Pertama | Mak Sari | Warung | Pasang Warung → Jual 1 olahan di Warung | 200 Koin | Ada |
-| M8 | 8 | Jebakan Kak Fajar | Kak Fajar | Bubu | Pasang 1 Bubu (selesai saat terpasang, panen 6 jam tidak ditunggu) | 1 Bubu Bambu | **Diblok** — sistem Bubu belum ada (R2.1) |
+| M8 | 8 | Jebakan Kak Fajar | Kak Fajar | Bubu | Pasang 1 Bubu (selesai saat terpasang, panen 6 jam tidak ditunggu) | 1 Bubu Bambu | Ada di kode (R2.1), tidak diblok |
 | M9 | 8 | Sumur Tua | Nek Ani | Bundel Kakek | Pulihkan Sumur Tua (10 Kayu + 5 Batu + 2 olahan) | 300 Koin + 5 Bunga (✔ K-31) | Ada |
 | MQ11 | 15 | Legenda Pertama | Kak Fajar | (cerita) | Dapat 1 Ikan Legenda **atau** panen 1 Prima tanaman Late (✔ K-13) | 500 Koin + Title Penakluk Legenda | Ada (`mq11_legenda`) |
 | MQ12 | – | Warga Kampoeng Tedoeh | Mak Sari | (cerita) | Semua Main selesai + Album 50% | Title Warga Kampoeng Tedoeh + 10 Bunga | Ada (`mq12_warga`, auto) |
@@ -208,10 +208,12 @@ Langkah `kak_fajar`: `tut.t1b.kak_fajar.1` (Pak Udin) — Kak Fajar ada di sunga
 
 ### 5.3 Side Quest Lama (GDD v7.x Bab 14.4) — tanpa banner
 
+**Hitungan quest:** `Config/Quests` berisi **28 quest aktif** (M1–M9, MQ11–MQ12, S1–S9, 8 side `side_*`). **2 quest ditunda** (Kucing Alun-alun, Joran Hilang) belum ada di kode dan tidak punya flag `released`; keduanya tetap dicatat di bawah sampai R12.4 (K-16 b). Total dokumen: 28 + 2.
+
 | Judul | Id kode | Pemberi | Syarat | Hadiah | Status |
 |-------|---------|---------|--------|--------|--------|
-| Kucing Alun-alun | (belum ada) | Pak Udin | Kasih makan kucing 3 hari berbeda | Title Penyayang Kucing + pet kucing kampung (kosmetik) | **Update 1** (✔ K-16 b): tidak muncul di Quest Log rilis, data disimpan dengan `released=false` |
-| Joran Hilang | (belum ada) | Kak Fajar | Cari 3 joran hilang di pinggir air | Joran Kayu + 200 Koin | **Update 1** (✔ K-16 b): tidak muncul di Quest Log rilis, data disimpan dengan `released=false` |
+| Kucing Alun-alun | belum di kode (ditunda R12.4, K-16 b) | Pak Udin | Kasih makan kucing 3 hari berbeda | Title Penyayang Kucing + pet kucing kampung (kosmetik) | **Update 1** (✔ K-16 b): tidak muncul di Quest Log rilis, data disimpan dengan `released=false` |
+| Joran Hilang | belum di kode (ditunda R12.4, K-16 b) | Kak Fajar | Cari 3 joran hilang di pinggir air | Joran Kayu + 200 Koin | **Update 1** (✔ K-16 b): tidak muncul di Quest Log rilis, data disimpan dengan `released=false` |
 | Rumah Rapi | `side_rumah_rapi` | Pak Amran | Pasang 20 piece | Title Dinding Spesial + warna dinding spesial ✔ K-15 | Ada, tanpa naskah |
 | Ringan Tangan *(dulu "Tetangga Baik")* | `side_tetangga` | Nek Ani | Bantu 10 lahan | 300 Koin ✔ K-15 | Ada, tanpa naskah |
 | Resep Mak | `side_resep` | Mak Sari | Masak 3 resep berbeda | 200 Koin [USULAN] ✔ K-15 | Ada, tanpa naskah |
@@ -437,9 +439,20 @@ Struktur cerita "Babak 2 & 3" dan rancangan quest-nya: `08_Penyempurnaan.md` P-0
 ## 8. Revisi Playtest Putaran 1 (v8.3, K-54 / K-56)
 
 - **Bantu lahan** dihapus dari pool Harian dan Mingguan. Quest Season baru: "Bantu 20 lahan (Season)", 500 Koin, tanpa Bunga, muncul setelah Bantu terbuka.
-- **Quest diblok** bila sistemnya belum ada: M1 "Kampung Hari Ini" tetap tersembunyi sampai Agenda UI (R2.2) berjalan.
+- **Quest diblok** hanya bila `blocked` di `Config/Quests` terisi. Saat ini tidak ada quest yang diblok (Agenda R2.2 dan Bubu R2.1 sudah ada di kode). Dua quest yang belum ada di kode (Kucing Alun-alun, Joran Hilang) tidak ada di `Config/Quests` sama sekali; lihat 5.3.
 - **Baris langkah pemain** = kolom Langkah di bab ini, dipakai di tracker dan log (contoh: "Buka Agenda (1/3)", "Tanam 6 bibit Kangkung (3/6)"). Side quest juga menampilkan apa yang harus dilakukan dan di mana.
 - **Tutorial:** naskah Mak Sari dan Kak Fajar mengikuti K-54 (Bab 4 di atas).
 - **Mancing (K-54, B2):** langkah "Tangkap 3 ikan di sungai buat Kak Fajar". Tangkapan 1–2: bubble "Coba lagi, {n} ikan lagi ya!" saja, tanpa dialog. Tangkapan ke-3: Kak Fajar: "Kamu jago juga mancingnya, sini ikannya aku beli." lalu jual.
-- **Bang Jali (K-53, A6):** sebelum Lv 3: "Terbuka di Level 3. Jual panen dulu ke Pak Udin di warung." Sesudah Lv 3 tanpa jual ke dia: "Jual 1 barang ke saya dulu, nanti lapak saya terbuka." Lapak buka: pilihan "Jual semua panen (90%)".
+- **Bang Jali (K-53, A6):** sebelum Lv 3: "Terbuka di Level 3. Jual panen dulu ke Pak Udin di warung." Sesudah Lv 3 tanpa jual ke dia: "Jual 1 barang ke saya dulu, nanti lapak saya terbuka." Lapak buka: pilihan "Jual / Beli" (sejak 2026-11-23; sebelumnya "Jual semua panen (90%)", yang kini hanya untuk langkah jual tutorial).
 - **Tutorial panen (K-54, B1):** "Buat 5 petak lagi: tap Garap, lalu Cangkul", "Tanam 5 bibit lagi di petak baru", "Tunggu semua tumbuh, lalu panen semuanya".
+
+## 9. Aturan permukaan quest (owner video 2026-11-23)
+
+Syarat, bukan yang sudah ada. Status ada di `06_Roadmap` (F4, F5, F6).
+
+- **Quest yang mulai otomatis dari pembelian** (contoh: "Bibit Kedua" `s1_bibit` mulai saat membeli bibit Bayam): tampil toast **"Quest baru: <judul>"** dan langsung masuk tracker dengan langkah aktifnya. *(Catatan: teks sekarang `Misi baru: {title}` di `Locale/id`; belum diubah.)* → F4.
+- **Quest Log bisa dibuka dari dua tempat di semua keadaan** (ada quest aktif, baru selesai, atau tidak ada quest aktif): ikon bintang di kolom kanan dan tap tracker. Bintang menampilkan badge untuk quest baru atau siap diserahkan. → F5.
+- **Quest selesai** menampilkan toast selesai dan tracker ikut berubah saat itu juga.
+- **Tracker tidak berkedip:** muncul saat ada quest yang dilacak, hilang hanya saat tidak ada yang dilacak. Tidak boleh hilang karena quest side mulai atau selesai. → F4.
+- **Tanda "!" di atas pemberi quest** yang punya quest Tersedia atau siap diserahkan, termasuk setelah quest side dari pembelian dan setelah rejoin. → F6.
+
