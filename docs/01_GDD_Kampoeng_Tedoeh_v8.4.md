@@ -902,14 +902,15 @@ Dari pencapaian permanen, bukan dibeli. Tanpa stat (kecuali tercantum di 17.6). 
 - Jual ikan tutorial hanya diterima server saat langkah `jual_ikan` dan dalam 25 stud dari spot milik pemain (✔ K-27).
 - Cutscene hadiah mulai di frame trigger (target < 0,3 dtk, log `[beat-timing]`).
 
-### 16.6 Coachmark hanya untuk aksi pertama — LOCKED (2026-11-23)
+### 16.6 Coachmark tidak pernah menggelapkan atau memblokir GUI — LOCKED (2026-11-23, revisi owner video HP)
 
-- Coachmark (lapisan gelap + lubang sorot) dipakai **hanya saat pemain pertama kali melakukan aksi** di tutorial.
-- Aksi yang sama di langkah sesudahnya, atau pengulangan aksi yang sama, memakai **toast / bubble petunjuk saja**: tidak ada gelap, tidak ada lubang sorot, tidak ada kunci gerak.
-- Tiap langkah tetap punya **satu** instruksi kalimat biasa (toast atau hint bar) dan **satu** target visual (panah dunia atau pill/tombol berkedip), jadi menghapus coachmark tidak menghapus petunjuk.
-- Penerapan: Tanam (gelap pada tanam pertama saja; tanam_5 toast). Garap (cangkul gelap; garap_5 toast). Siram dan panen_1 gelap pertama kali; tunggu_semua dan panen_jual toast. Mancing gelap sebelum tangkapan pertama saja; tangkapan ke-2 dan ke-3 toast.
-- Pengaman: gelap yang memblok melepas dirinya sendiri setelah 25 detik pada instruksi yang sama. Cutscene yang menunggu pemain melepas kunci gerak setelah 60 detik.
-- Alasan: 2026-11-23, HP owner terkunci di tunggu_semua (gelap menutupi joystick).
+- **Aturan baru (menggantikan aturan "gelap hanya pada aksi pertama"):** coachmark TIDAK PERNAH menggelapkan atau memblokir GUI, di langkah mana pun, termasuk langkah pertama.
+- Coachmark = ring sorot di target + panah/penanda + satu baris instruksi. Tidak ada lapisan gelap, tidak ada lubang, tidak ada zona blokir HUD.
+- Tiap langkah punya **satu** permukaan instruksi: langkah pertama = bubble coachmark saja; langkah berikutnya / pengulangan = toast saja. Tidak pernah keduanya untuk teks yang sama (lihat tabel di docs/05 9.7).
+- Semua tombol HUD, dock, dan joystick selalu bisa ditekan di setiap langkah tutorial.
+- Alasan: video owner (2026-11-23) menunjukkan HUD tertutup kotak gelap dan kotak oranye di dock saat langkah Garap.
+- Sisa aturan lama yang tidak berlaku lagi: gelap pertama pada Tanam/Siram/Panen/Mancing, dan timer 25 detik. Cutscene yang menunggu pemain melepas kunci gerak setelah 60 detik tetap berlaku.
+- Riwayat (sudah digantikan): 2026-11-23, HP owner terkunci di tunggu_semua karena gelap menutupi joystick.
 
 ---
 

@@ -294,9 +294,21 @@ Mockup lama (canvas "Mockup Season Pass & Pohon Skill (HP)", https://claude.ai/a
 - Pasar Malam: tempat di dunia, buka sesuai jadwal. Pak Kumis = NPC; bubble "Jual semua" / "Jual 1", seperti Pak Udin.
 - Lempar Gelang: bar bergerak, tap untuk berhenti; zona 60/30/10% (kecil/sedang/besar); 3 lemparan per malam.
 
-### 9.7 Coachmark tutorial: hanya aksi pertama — LOCKED (2026-11-23)
-- Lapisan gelap + lubang sorot (coachmark) hanya untuk **aksi pertama** pemain di tutorial. Pengulangan aksi yang sama memakai toast / bubble saja: tanpa gelap, tanpa lubang, tanpa kunci gerak.
-- Setiap langkah: satu instruksi kalimat biasa (toast atau hint bar) + satu target visual (panah dunia, ring, atau pill).
-- Matriks: Tanam gelap pada tanam pertama, tanam_5 toast. Garap gelap pada cangkul, garap_5 toast. Siram dan panen_1 gelap pertama, tunggu_semua dan panen_jual toast. Mancing gelap sebelum tangkapan pertama, tangkapan ke-2 dan ke-3 toast.
-- Gelap yang memblok lepas sendiri setelah 25 detik pada instruksi yang sama (CoachmarkController.BLOCK_TIMEOUT). Cutscene yang menunggu pemain lepas kunci gerak setelah 60 detik (Cutscene.UNTIMED_RELEASE_SECONDS).
+### 9.7 Coachmark tutorial: tanpa gelap, satu permukaan instruksi — LOCKED (2026-11-23, revisi owner video HP)
+- **Tidak ada gelap, tidak ada lubang, tidak ada zona blokir HUD** di langkah mana pun (CoachmarkController: `blocking = false`). Coachmark = ring sorot + panah + bubble.
+- **Satu permukaan instruksi per langkah.** Langkah pertama (aksi pertama) = bubble coachmark saja. Langkah berikutnya / pengulangan = toast saja. Tidak pernah keduanya untuk teks yang sama. Toast hilang saat langkah berganti atau setelah langkah selesai; umur toast tidak bergantung pada coachmark.
+- Tabel per langkah (diisi saat verifikasi Play; kolom "permukaan" adalah aturan, belum tervalidasi di Play):
+
+| Langkah | Permukaan | Catatan |
+|---|---|---|
+| tanam (pertama) | bubble coachmark | target: tanah kosong |
+| tanam_5 dst | toast | |
+| garap (pertama) | bubble coachmark | ring pada tombol Garap |
+| garap_5 | toast | |
+| siram, panen_1 (pertama) | bubble coachmark | |
+| tunggu_semua, panen_jual | toast | |
+| tangkapan ke-1 mancing | bubble coachmark | |
+| tangkapan ke-2 dan ke-3 | toast | |
+
+- Cutscene yang menunggu pemain melepas kunci gerak setelah 60 detik (Cutscene.UNTIMED_RELEASE_SECONDS) tetap berlaku.
 - Lihat juga GDD Bab 16.6.
