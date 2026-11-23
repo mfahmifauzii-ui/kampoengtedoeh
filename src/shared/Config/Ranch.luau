@@ -88,7 +88,7 @@ local KANDANG: { [string]: KandangCost } = {
 }
 
 local KOLAM_TIERS: { KolamTier } = {
-	{ id = "tanah", unlockLevel = 3, koin = 1000, mats = { { id = "batu", count = 20 } }, hours = 6, cap = 10 },
+	{ id = "tanah", unlockLevel = 4, koin = 1000, mats = { { id = "batu", count = 20 } }, hours = 6, cap = 10 },
 	{ id = "semen", unlockLevel = 15, koin = 3000, mats = { { id = "bata", count = 20 }, { id = "semen", count = 15 } }, hours = 5, cap = 20 },
 	{ id = "keramik", unlockLevel = 30, koin = 6000, mats = { { id = "bata", count = 30 }, { id = "semen", count = 25 } }, hours = 4, cap = 30 },
 }
