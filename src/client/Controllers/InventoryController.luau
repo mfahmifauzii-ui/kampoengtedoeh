@@ -23,8 +23,10 @@ local TABS = {
 	{ id = "seed", text = "Bibit" },
 	{ id = "crop", text = "Panen" },
 	{ id = "fish", text = "Ikan" },
-	{ id = "tool", text = "Alat" },
+	{ id = "olahan", text = "Olahan" }, -- K-33: urutan Semua · Bibit · Panen · Ikan · Olahan · Bahan · Umpan · Alat
+	{ id = "bahan", text = "Bahan" },
 	{ id = "bait", text = "Umpan" }, -- F-1: bait (Pelet, Cacing, Jangkrik, Udang Kecil) has its own tab
+	{ id = "tool", text = "Alat" },
 }
 local TAB_HEIGHT = UiKit.TOUCH -- a tab is a standard touch target (32 px, GUI doc 4.4)
 local selectedTab = "all"
@@ -37,11 +39,17 @@ local function categoryOf(itemId: string, info: any): string
 	if info.kind == "bait" then
 		return "bait" -- F-1: bait is only under Umpan (and Semua)
 	end
-	if info.kind == "crop" then
-		return "crop"
+	if info.kind == "crop" or info.kind == "ternak" then
+		return "crop" -- K-33: Panen memuat tanaman + telur + susu
 	end
 	if info.kind == "fish" then
 		return "fish"
+	end
+	if info.kind == "olahan" then
+		return "olahan"
+	end
+	if info.kind == "bahan" then
+		return "bahan"
 	end
 	return "tool"
 end

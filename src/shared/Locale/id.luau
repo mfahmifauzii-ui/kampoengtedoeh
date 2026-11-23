@@ -1000,7 +1000,7 @@ return {
 	["gelang.bunga"] = "Gelang: +{n} Bunga!",
 	["kb.title"] = "Kerja Bakti Kilat",
 	["kb.active"] = "Kerja Bakti! Pungut sampah di plaza",
-	["kb.how"] = "Hujan reda: pungut sampah di plaza, +15 Koin +3 XP/poin",
+	["kb.how"] = "Setelah hujan deres atau petir: pungut sampah di alun-alun. +15 Koin +3 XP per poin.", -- K-37
 	["kb.none"] = "Tidak ada Kerja Bakti sekarang",
 	["kb.bonus"] = "Bonus Kampung 100%! +{n} Koin + Diskon Warga",
 	["kb.discount_on"] = "Diskon Warga aktif (-10%)!",
