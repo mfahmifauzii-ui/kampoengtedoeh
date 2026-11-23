@@ -180,18 +180,23 @@ local function makePill(): Pill
 		phase = math.random() * 6,
 	}
 	-- Tap = the normal action (plant / water / harvest). Press and hold (HOLD_SECONDS) = the bed menu instead.
-	local pressedAt = 0
+	-- The press time is taken once per press and cleared when it is used. Before this, a press whose InputBegan was not
+	-- seen left an old (or zero) time behind, so a plain tap read as a long hold and opened the bed menu instead of
+	-- acting. No press time now means a tap (the action), never a hold.
+	local pressedAt: number? = nil
 	hit.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			pressedAt = os.clock()
 		end
 	end)
 	hit.Activated:Connect(function()
+		local startedAt = pressedAt
+		pressedAt = nil
 		local part = pill.part
 		if not part or pending[part] ~= nil then
 			return
 		end
-		if os.clock() - pressedAt >= HOLD_SECONDS then
+		if startedAt and os.clock() - startedAt >= HOLD_SECONDS then
 			onHold(part, pill.kind)
 		else
 			onAction(part, pill.kind)

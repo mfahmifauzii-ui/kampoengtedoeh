@@ -251,6 +251,7 @@ Tujuan: pemain tidak pernah terkunci, dan gelap (coachmark) hanya muncul di aksi
 6. [ ] **Mancing:** gelap hanya sebelum tangkapan pertama; tangkapan ke-2 dan ke-3 hanya teks.
 7. [ ] **Tidak pernah terkunci:** tidak ada langkah di mana karakter tidak bisa jalan dan layar tetap gelap. Bila itu terjadi, catat langkahnya dan kirim screenshot.
 8. [ ] **Cutscene Jual Pertama:** setelah sekitar 1 menit tanpa menjual, gerak kembali sendiri.
+9. [ ] **Pill Tanam / Siram / Panen di HP:** satu ketukan biasa (tanpa tahan) langsung menjalankan aksi, baik pada petak kosong, siap panen, maupun kering. Tahan sekitar setengah detik membuka menu petak (Pindah / Hapus) hanya untuk petak kosong. Ulangi 5 kali berturut-turut dengan jari, termasuk pill Panen terakhir saat Panen Semua tersedia.
 
 
 ## DEV (cara pakai untuk owner)
