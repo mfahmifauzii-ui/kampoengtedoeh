@@ -537,7 +537,13 @@ function refresh()
 		end
 		return
 	end
-	buildRows()
+	-- 2026-11-23 owner video: the tracker vanished at 5:16-5:52 and the Quest Log could not be reached from it. If building a
+	-- row ever errors, the error used to abort refresh before the visibility line. Now the error is reported and the rest
+	-- still runs, so the tracker always shows the rows it did build. (Root cause not yet reproduced in Play.)
+	local built, buildError = pcall(buildRows)
+	if not built then
+		warn(`[QuestController] tracker rows failed: {buildError}`)
+	end
 	-- Show at most MAX_ROWS rows; the rest collapse into one "+N lainnya" row.
 	local rows = {} :: { Instance }
 	for _, child in tracker:GetChildren() do
