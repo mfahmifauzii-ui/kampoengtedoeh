@@ -1,18 +1,25 @@
 --!strict
--- Coachmark: the one thing to do during a tutorial step. Visual + input only. GuideController decides WHAT to show
--- (Show / Hide); this controller draws it. ONE highlight per step, always the shape of its target.
+-- Coachmark: the one thing to do during a tutorial step. Visual only (it never takes a tap). GuideController decides WHAT
+-- to show (Show / Hide) and whether the step gets a spotlight; this controller draws it.
 --
--- Shared look (every step): a 60 % black overlay (transparency 0.4) built from four dark frames that meet with a 1 px overlap,
+-- Rule 1 of the locked tutorial GUI rules (2026-11-23 owner batch; GUI 4.6, GDD 16.6): two highlight styles, chosen by the
+-- target type, FIRST TIME ONLY.
+--   a) spotlight = a fixed HUD button (GarapButton on the dock, AksiButton for Pancing): ONE dark overlay with a single hole
+--      around the button. Only when Spec.spotlight is true.
+--   b) outline = a floating / world-anchored target (the Tanam / Siram / Panen pills over the beds, the ghost in Garap,
+--      an NPC): NO dim. The yellow ring on the pill (mode "button") or the arrow only.
+-- Rule 3: the dark overlay is made of pieces that never take a tap (Active = false), so the joystick and the camera stay
+-- free. It releases by itself when the step changes, when the step completes, or after SPOTLIGHT_TIMEOUT seconds.
+--
+-- Shared look: the spotlight is a 60 % black overlay (transparency 0.4) built from four frames that meet with a 1 px overlap,
 -- so there is no seam. The info bubble sits above the target with an arrow down (below it if there is no room above).
 -- There is no skip button in the tutorial (no Lewati): the tutorial is part of the game.
 --
 -- Modes (GuideController picks one per step):
---   * "button": the overlay covers the whole screen except a HOLE around a named button (GarapButton, TanamButton,
---     SiramButton, PanenButton). The highlight follows the button: a round one for round docks buttons, a rounded box
---     (padding 8 px) for pills. The button itself shows through the hole.
---   * "ground": the 3D world is NOT darkened. Only the UI zones (top bar, dock, right menu column, player card) are dimmed
---     and blocked, so the land stays clear and the player can pick a grid square. No ring here: the Garap ghost and its
---     green arrow (GarapController) are the target.
+--   * "button": the target is a named button (GarapButton, TanamButton, SiramButton, PanenButton, AksiButton). The highlight
+--     ring follows the button: a round one for round buttons, a rounded box (padding 8 px) for pills. When Spec.spotlight is
+--     true the overlay also gets a hole around the button (rule 1a); otherwise there is only the ring (rule 1b).
+--   * "ground": no overlay, no ring. The Garap ghost and its green arrow (GarapController) are the target; the land stays bright.
 --   * "npc": no overlay. A small arrow floats slowly above an NPC's head ("walk there"), different from the Garap arrow,
 --     which bobs DOWN above a ghost ("tap here"). Used for Panen / Jual (Pak Udin is outside any hole).
 --
@@ -35,25 +42,24 @@ local CoachmarkController = {}
 
 export type Spec = {
 	mode: string, -- "button" | "ground" | "npc"
+	key: string?, -- the step id: a new key restarts the spotlight timer
 	text: string?, -- the bubble text (Locale key already resolved); nil = no bubble
-	block: boolean, -- button / ground: true = dark zones that block taps; false = no overlay
+	spotlight: boolean, -- button mode only: true = dark overlay with one hole around the button (rule 1a); false = ring only
 	findButton: (() -> GuiObject?)?, -- button mode
 	npcPoint: (() -> Vector3?)?, -- npc mode: world point above the NPC's head
 }
 
 local PAD = 8 -- px around a button inside the hole
 local OVERLAY_TRANSPARENCY = 0.4 -- 60 % black, the same on every step
+local SPOTLIGHT_TIMEOUT = 25 -- s: the spotlight releases by itself on the same step (rule 3); the bubble and the ring stay
 local GOLD = Color3.fromRGB(255, 226, 120)
 local TOP_BAR = 70 -- px: the top band of the screen (room for the stat chips and the hint)
 local DOCK_BAND = 96 -- px: the bottom band (dock + player card)
-local RIGHT_COLUMN = 84 -- px: the menu column on the right
-local CARD_WIDTH = 300 -- px: the player card at the bottom left
 
 local overlayGui: ScreenGui
 local topGui: ScreenGui
 local pieces: { Frame } = {}
 local corners: { ImageLabel } = {} -- rounded hole: one dark corner per hole corner (UiAssets.COACH_CORNER), empty = square hole
-local hudPool: { Frame } = {} -- ground mode: one dark blocking frame per visible HUD panel
 local highlight: Frame
 local highlightStroke: UIStroke
 local highlightRound: UICorner
@@ -64,9 +70,8 @@ local npcArrow: TextLabel
 local current: Spec? = nil
 local FADE_IN = 0.4 -- seconds for the darkness to fade in when a coachmark appears
 local fadeInFrom = 0 -- os.clock() when the current coachmark appeared
--- Safety net (2026-11-23, owner's phone stuck at tunggu_semua): a blocking coachmark (dim + spotlight, taps outside it swallowed,
--- joystick included) releases itself after BLOCK_TIMEOUT seconds on the same instruction. The step still completes by its state;
--- only the dim goes away. The bubble and the arrow stay.
+local shownKey: string? = nil -- the step the spotlight timer belongs to
+local shownSince = 0 -- os.clock() when that step's coachmark first appeared
 
 local function frame(name: string, parent: Instance): Frame
 	local piece = Instance.new("Frame")
@@ -74,7 +79,8 @@ local function frame(name: string, parent: Instance): Frame
 	piece.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	piece.BackgroundTransparency = OVERLAY_TRANSPARENCY
 	piece.BorderSizePixel = 0
-	piece.Active = true -- swallows every tap on it
+	piece.Active = false -- visual only: the joystick, the camera and every tap pass through the dark (rule 3)
+	piece.Visible = false
 	piece.Parent = parent
 	return piece
 end
@@ -85,7 +91,7 @@ local function place(piece: Frame, x: number, y: number, w: number, h: number)
 end
 
 function CoachmarkController.Init()
-	-- Under the HUD (20) and above panels and the world: the HUD buttons outside the hole are dimmed and blocked.
+	-- Under the HUD (20) and above panels and the world: the HUD buttons outside the spotlight hole are dimmed (not blocked).
 	overlayGui = Instance.new("ScreenGui")
 	overlayGui.Name = "CoachOverlay"
 	overlayGui.ResetOnSpawn = false
@@ -205,6 +211,10 @@ function CoachmarkController.Show(spec: Spec)
 	if not topGui.Enabled then
 		fadeInFrom = os.clock() -- a coachmark that was hidden fades in, it does not pop in
 	end
+	if not topGui.Enabled or spec.key ~= shownKey then
+		shownKey = spec.key
+		shownSince = os.clock() -- the spotlight timer restarts on every new step
+	end
 	topGui.Enabled = true
 end
 
@@ -261,9 +271,6 @@ local function layoutHole(position: Vector2, size: Vector2, view: Vector2, radiu
 	for _, piece in pieces do
 		piece.Visible = true
 	end
-	for _, piece in hudPool do
-		piece.Visible = false
-	end
 	local l, t, r, b = math.floor(left), math.floor(top), math.ceil(right), math.ceil(bottom)
 	place(pieces[1], 0, 0, view.X, t) -- top: 0 .. t
 	place(pieces[2], 0, b, view.X, view.Y - b) -- bottom: b .. screen bottom
@@ -281,60 +288,6 @@ local function layoutHole(position: Vector2, size: Vector2, view: Vector2, radiu
 	end
 	highlight.Position = UDim2.fromOffset(left + width / 2, top + height / 2)
 	highlight.Size = UDim2.fromOffset(width, height)
-end
-
--- Ground mode: the UI itself only. One dark, blocking frame per visible HUD panel (stat chips, menu column, dock, player
--- card), padded by 4 px. Everything else (the land, the sky, the road) stays bright.
-local function layoutHudZones(view: Vector2)
-	for _, piece in pieces do
-		piece.Visible = false
-	end
-	for _, piece in corners do
-		piece.Visible = false
-	end
-	local playerGui = player:FindFirstChildOfClass("PlayerGui")
-	local hud = if playerGui then playerGui:FindFirstChild("HUD") else nil
-	local rects: { { x: number, y: number, w: number, h: number } } = {}
-	if hud then
-		local inset = GuiService:GetGuiInset().Y
-		local function addRect(obj: GuiObject)
-			table.insert(rects, {
-				x = obj.AbsolutePosition.X,
-				y = obj.AbsolutePosition.Y + inset,
-				w = obj.AbsoluteSize.X,
-				h = obj.AbsoluteSize.Y,
-			})
-		end
-		for _, child in hud:GetChildren() do
-			if child:IsA("GuiObject") and child.Visible and child.AbsoluteSize.X > 0 then
-				if child.Name == "DockBar" then
-					-- Garap and Kolam are the tools this ground step is about: they must stay tappable (they switch the mode off).
-					-- Only the rest of the dock is blocked.
-					for _, button in child:GetChildren() do
-						if button:IsA("GuiObject") and button.Visible and button.AbsoluteSize.X > 0
-							and button.Name ~= "GarapButton" and button.Name ~= "KolamButton" then
-							addRect(button)
-						end
-					end
-				-- skip a full-screen container: it would dim the land too
-				elseif child.AbsoluteSize.X < view.X * 0.95 or child.AbsoluteSize.Y < view.Y * 0.95 then
-					addRect(child)
-				end
-			end
-		end
-	end
-	for index, rect in rects do
-		local piece = hudPool[index]
-		if not piece then
-			piece = frame("Hud" .. index, overlayGui)
-			hudPool[index] = piece
-		end
-		piece.Visible = true
-		place(piece, rect.x - 4, rect.y - 4, rect.w + 8, rect.h + 8)
-	end
-	for index = #rects + 1, #hudPool do
-		hudPool[index].Visible = false
-	end
 end
 
 function CoachmarkController.Update()
@@ -357,10 +310,10 @@ function CoachmarkController.Update()
 	end
 	bubble.Visible = spec.text ~= nil
 
-	-- LOCKED 2026-11-23 (owner phone video): a coachmark NEVER dims or blocks. No dark overlay, no hole, no ground zones,
-	-- on any step, first-time or not. Only the highlight ring, the arrow and the bubble are drawn. spec.block is ignored.
-	local blocking = false
-	overlayGui.Enabled = blocking
+	-- Rule 1a/1b and rule 3 (GUI 4.6): the spotlight (dark + one hole) only for a fixed HUD button, only for the first time,
+	-- and only until SPOTLIGHT_TIMEOUT. Everything else draws the ring, the arrow and the bubble with no dark at all.
+	local spotlightOn = spec.spotlight and spec.mode == "button" and (t - shownSince) < SPOTLIGHT_TIMEOUT
+	overlayGui.Enabled = false
 	highlight.Visible = false
 	bubble.AnchorPoint = Vector2.new(0.5, 0)
 	bubble.Position = UDim2.fromOffset(view.X / 2, 70)
@@ -370,7 +323,7 @@ function CoachmarkController.Update()
 	if spec.mode == "button" then
 		local button = if spec.findButton then spec.findButton() else nil
 		if not button or button.AbsoluteSize.X <= 0 then
-			-- The target is not on screen (panel closed, bed off screen): no hole, no block, bubble at the top middle.
+			-- The target is not on screen (panel closed, bed off screen): no hole, bubble at the top middle.
 			overlayGui.Enabled = false
 		else
 			local position, size = buttonRect(button)
@@ -378,7 +331,8 @@ function CoachmarkController.Update()
 			-- The button's own corner radius in pixels (see cornerRadiusPx). The hole and the highlight take that radius plus the
 			-- PAD around the button, so the hole has the same corners as the button; 12 px when the button has no corner.
 			local shapeRadius = cornerRadiusPx(button, size)
-			if blocking then
+			if spotlightOn then
+				overlayGui.Enabled = true
 				layoutHole(position, size, view, if shapeRadius then shapeRadius + PAD else 12)
 			end
 			local width, height = size.X + PAD * 2, size.Y + PAD * 2
@@ -409,10 +363,7 @@ function CoachmarkController.Update()
 			end
 		end
 	elseif spec.mode == "ground" then
-		if blocking then
-			layoutHudZones(view)
-		end
-		-- No highlight: the ghost is the target. The bubble sits at the top middle, above the top bar.
+		-- No overlay and no highlight: the ghost is the target. The bubble sits at the top middle, above the top bar.
 		bubble.AnchorPoint = Vector2.new(0.5, 0)
 		bubble.Position = UDim2.fromOffset(view.X / 2, TOP_BAR + 10)
 	end

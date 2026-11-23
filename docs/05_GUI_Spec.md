@@ -154,40 +154,40 @@ Dock pindah ke kolom kanan. Toast turun di bawah tracker, lebar 200 px. Kolom me
 - Kartu pemain: pill "Lv n" di sebelah nama. Slot buff kosong disembunyikan. (K-53)
 - Marker "!" di atas setiap pemberi quest yang menawarkan quest Tersedia atau siap diserahkan. Terlihat dari jarak jauh (`MARKER_MAX_DISTANCE` 200 studs, sejak 2026-11-23). Satu marker per pemberi. (F6)
 
-### 4.6 Coachmark tutorial: tanpa gelap, satu permukaan instruksi — LOCKED (2026-11-23)
+### 4.6 Coachmark tutorial: dua gaya sorot, satu permukaan instruksi — LOCKED (2026-11-23, batch F1)
 
-- **Tidak ada gelap, tidak ada lubang, tidak ada zona blokir HUD** di langkah mana pun (CoachmarkController: `blocking = false`). Coachmark = ring sorot + panah + bubble.
-- **Satu permukaan instruksi per langkah.** Langkah pertama (aksi pertama) = bubble coachmark saja. Langkah berikutnya / pengulangan = toast saja. Tidak pernah keduanya untuk teks yang sama. Toast hilang saat langkah berganti atau setelah langkah selesai; umur toast tidak bergantung pada coachmark.
-- Tabel per langkah (diisi saat verifikasi Play; kolom "permukaan" adalah aturan, belum tervalidasi di Play):
+Aturan (owner, dari video dan rekaman HP):
 
-| Langkah | Permukaan | Catatan |
-|---|---|---|
-| tanam (pertama) | bubble coachmark | target: tanah kosong |
-| tanam_5 dst | toast | |
-| garap (pertama) | bubble coachmark | ring pada tombol Garap |
-| garap_5 | toast | |
-| siram, panen_1 (pertama) | bubble coachmark | |
-| tunggu_semua, panen_jual | toast | |
-| tangkapan ke-1 mancing | bubble coachmark | |
-| tangkapan ke-2 dan ke-3 | toast | |
+1. **Dua gaya sorot, dipilih dari jenis target, HANYA untuk pertama kali:**
+   a) Target = **tombol HUD tetap** (dock Garap, tombol Aksi Pancing): **spotlight** = satu overlay gelap dengan **satu lubang** di sekeliling tombol.
+   b) Target = **GUI mengambang atau objek dunia** (pill Tanam / Siram / Panen di atas petak, ghost Garap, NPC, tanah): **tanpa gelap**. Yang dipakai hanya outline kuning yang sudah ada (ring) dan baris instruksi.
+2. **Pengulangan** (langkah yang sudah pernah dilakukan sekali): **toast saja**. Tanpa gelap, tanpa outline, tanpa bubble.
+3. Overlay = **satu bidang dengan lubang**, tidak pernah kotak gelap terpisah per elemen GUI. Piece overlay tidak menelan sentuhan (`Active = false`), jadi joystick dan area sentuh kamera selalu bebas. Overlay lepas sendiri saat langkah berganti, saat langkah selesai, atau setelah 25 detik (`CoachmarkController.SPOTLIGHT_TIMEOUT`).
+4. **Satu permukaan instruksi per langkah:** pertama kali = bubble coachmark; pengulangan = toast. Tidak pernah keduanya untuk teks yang sama. Toast hilang saat langkah berganti atau selesai.
+5. Tombol Aksi (Pancing, Tarik, Pasang, Ambil, Panen Semua) adalah satu komponen bulat (F3).
 
-- Cutscene yang menunggu pemain melepas kunci gerak setelah 60 detik (Cutscene.UNTIMED_RELEASE_SECONDS) tetap berlaku.
-- Lihat juga GDD Bab 16.6.
-- **Satu permukaan instruksi per langkah.** Langkah pertama (aksi pertama) = bubble coachmark saja. Langkah berikutnya / pengulangan = toast saja. Tidak pernah keduanya untuk teks yang sama. Toast hilang saat langkah berganti atau setelah langkah selesai; umur toast tidak bergantung pada coachmark.
-- Tabel per langkah (diisi saat verifikasi Play; kolom "permukaan" adalah aturan, belum tervalidasi di Play):
+**Klasifikasi per langkah** (id langkah = `Config/Onboarding.luau`; kolom "Dibuat di kode" = aturan yang diterapkan di F1a; kolom "Play" diisi saat verifikasi):
 
-| Langkah | Permukaan | Catatan |
-|---|---|---|
-| tanam (pertama) | bubble coachmark | target: tanah kosong |
-| tanam_5 dst | toast | |
-| garap (pertama) | bubble coachmark | ring pada tombol Garap |
-| garap_5 | toast | |
-| siram, panen_1 (pertama) | bubble coachmark | |
-| tunggu_semua, panen_jual | toast | |
-| tangkapan ke-1 mancing | bubble coachmark | |
-| tangkapan ke-2 dan ke-3 | toast | |
+| Langkah (id) | Target | Gaya sorot | Pertama kali? | Permukaan | Overlay gelap | Outline | Bisa gerak | Dibuat di kode | Play |
+|---|---|---|---|---|---|---|---|---|---|
+| `sapa` | modal sapaan | — | ya | modal (Mulai) | tidak | tidak | tidak (modal) | ya | belum |
+| `cangkul` | tombol Garap (dock HUD) | spotlight | ya | bubble | ya, satu lubang | ya | ya | ya | belum |
+| `tanam` | pill Tanam di atas petak / tanah kosong | outline | ya | bubble | tidak | ya | ya | ya | belum |
+| `siram` | pill Siram di atas petak | outline | ya | bubble | tidak | ya | ya | ya | belum |
+| `panen_1` | pill Panen di atas petak | outline | ya | bubble | tidak | ya | ya | ya | belum |
+| `garap_5` | Garap (ghost di tanah) | — | tidak (ulang) | toast | tidak | tidak | ya | belum (F2) | belum |
+| `tanam_5` | pill Tanam | — | tidak (ulang) | toast | tidak | tidak | ya | belum (F2) | belum |
+| `tunggu_semua` | pill Panen | — | tidak (ulang) | toast | tidak | tidak | ya | belum (F2) | belum |
+| `panen_jual` | Pak Udin (NPC) | panah NPC | tidak (ulang) | toast | tidak | tidak | ya | belum (F2) | belum |
+| `warung` | Pak Udin | — | — | dialog | tidak | tidak | — | ya | belum |
+| `kak_fajar` | Kak Fajar (NPC) | panah NPC | — | toast + panah | tidak | tidak | ya | ya | belum |
+| `mancing` (tangkapan ke-1) | tombol Aksi Pancing (HUD) | spotlight | ya | bubble | ya, satu lubang | ya | ya | ya | belum |
+| `mancing` (tangkapan ke-2 dan ke-3) | tombol Aksi Pancing | — | tidak (ulang) | toast | tidak | tidak | ya | belum (F2) | belum |
+| `jual_ikan` | dialog Kak Fajar | — | — | dialog | tidak | tidak | — | ya | belum |
 
-- Cutscene yang menunggu pemain melepas kunci gerak setelah 60 detik (Cutscene.UNTIMED_RELEASE_SECONDS) tetap berlaku.
+Catatan: "Dibuat di kode = belum (F2)" berarti langkah pengulangan masih menampilkan bubble coachmark di kode; F2 menggantinya dengan toast. Kolom Play tetap "belum" sampai langkah itu dijalankan di Play.
+
+- Cutscene yang menunggu pemain melepas kunci gerak setelah 60 detik (`Cutscene.UNTIMED_RELEASE_SECONDS`) tetap berlaku.
 - Lihat juga GDD Bab 16.6.
 
 ## 5. Bentuk Sheet

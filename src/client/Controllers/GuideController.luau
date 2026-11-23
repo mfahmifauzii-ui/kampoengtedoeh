@@ -847,7 +847,7 @@ local function hintAllowed(): boolean
 	return player:GetAttribute("KTIntroPlaying") ~= true
 end
 
--- Fish caught so far in the bag (items with "@" are fish). The mancing step dims only before the first catch (LOCKED rule).
+-- Fish caught so far in the bag (items with "@" are fish). Rule 1a: the mancing spotlight ends at the first catch.
 local function fishCaughtCount(): number
 	local bag = State.current :: any
 	local caught = 0
@@ -957,13 +957,13 @@ function refreshTutorial()
 		local spoken = say(`panen_{phase}`, stuckFor >= Onboarding.STUCK_TEXT) -- Mak Sari says it: no text in the hint bar
 		if spoken then
 			-- No text anywhere, but still something to look at: glow on Panen when ripe, an arrow over Pak Udin to sell.
-			-- (block = false: no dark overlay, the bed and the way stay clear.)
+			-- (spotlight = false: no dark overlay, the bed and the way stay clear.)
 			CoachmarkController.SetPaused(uiBusy())
 			if phase == "harvest" then
 				CoachmarkController.Show({
 					mode = "button",
 					text = nil,
-					block = false,
+					spotlight = false,
 					findButton = function(): GuiObject?
 						return findHighlight("PanenButton")
 					end,
@@ -972,7 +972,7 @@ function refreshTutorial()
 				CoachmarkController.Show({
 					mode = "ground",
 					text = nil,
-					block = false,
+					spotlight = false,
 					npcPoint = function(): Vector3?
 						local npc = npcRootOf("pak_udin")
 						return if npc then npc.Position + Vector3.new(0, 5, 0) else nil
@@ -1028,9 +1028,11 @@ function refreshTutorial()
 		local spoken = say(if onGround then `{stepDef.id}_ground` else stepDef.id, stuckFor >= Onboarding.STUCK_TEXT)
 		CoachmarkController.Show({
 			mode = if onGround then "ground" else "button",
+			key = stepDef.id,
 			text = if spoken then nil else coachText,
-			-- LOCKED rule (docs/05 Bab 9): the dim is for the first time only. Mancing dims before the first catch, then toast only.
-			block = stepDef.block ~= false and not (stepDef.id == "mancing" and fishCaughtCount() > 0),
+			-- Rule 1a (GUI 4.6, locked 2026-11-23): the spotlight (one hole) only for a fixed HUD button, first time only.
+			-- Config Onboarding marks the two such steps (cangkul = GarapButton, mancing = AksiButton); mancing loses it after the first catch.
+			spotlight = not onGround and stepDef.spotlight == true and (stepDef.id ~= "mancing" or fishCaughtCount() == 0),
 			findButton = if not onGround and highlight then function(): GuiObject? return findHighlight(highlight) end else nil,
 			npcPoint = if npcId then function(): Vector3?
 				local root = npcRootOf(npcId)

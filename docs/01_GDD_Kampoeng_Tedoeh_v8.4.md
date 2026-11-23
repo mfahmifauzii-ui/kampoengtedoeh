@@ -908,7 +908,7 @@ Dua tutorial: `t1_awal` (langkah 1–9) dan `t1b_kolam` (langkah 10–13). Id la
 - **Perubahan klaim lama:** versi sebelumnya menulis "158 XP" dan "Lv 2 ±3 menit setelah tutorial". Kode sekarang menutup tutorial tepat di Lv 2 lewat `xpFill` (K-54 B2).
 - Panjang tutorial ±3–4 menit (perkiraan dokumen, belum diukur).
 - Langkah lama (Bayam, Nambang, Hias, Surat #1, Agenda + Gerobak) sekarang quest S1, M2, M4, S2, M1.
-- Kolom "Permukaan": aturan dari GUI 4.6. Pemetaan per langkah di atas belum diverifikasi terhadap `GuideController` (lihat laporan D3).
+- Kolom "Permukaan" dan gaya sorot: aturan dari GUI 4.6 (tabel klasifikasi per langkah: jenis target, spotlight atau outline, pertama kali atau ulang, bisa gerak). Spotlight hanya untuk `cangkul` (tombol Garap) dan `mancing` tangkapan pertama (tombol Aksi Pancing), diterapkan di kode F1a (`Config/Onboarding` `spotlight = true`). Verifikasi per langkah di Play belum dilakukan (lihat kolom Play di GUI 4.6).
 
 ### 16.3 Blok NPC selama tutorial — LOCKED
 

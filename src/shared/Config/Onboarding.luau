@@ -37,7 +37,7 @@ export type Step = {
 	reward: Reward?, -- paid once when the step completes (never on replay)
 	modal: { title: string, body: string }?, -- kind "ack" only: the welcome modal (Locale keys); Mulai acks it, no skip
 	coach: string?, -- Locale key of the coachmark bubble (defaults to text)
-	block: boolean?, -- coachmark overlay blocks every other tap (default true); false = ring + bubble only
+	spotlight: boolean?, -- rule 1a (GUI 4.6): one dark hole around a FIXED HUD button, first time only. Default false = ring only
 	greet: string?, -- Locale key: a sapaan said first in the cutscene of this step (Fase 2; {name} = the player). Used by panen_jual
 }
 
@@ -108,6 +108,7 @@ local TUTORIALS: { Tutorial } = {
 				coach = "tut.coach.garap",
 				done = { kind = "any", any = { { kind = "tiles", n = 1 }, { kind = "planted", n = 1 }, { kind = "harvested" } } },
 				highlight = "GarapButton",
+				spotlight = true, -- rule 1a (GUI 4.6): first time, fixed HUD button -> one hole. The only spotlight besides mancing
 				reward = { xp = 1 },
 			},
 			{
@@ -138,7 +139,6 @@ local TUTORIALS: { Tutorial } = {
 				id = "garap_5",
 				text = "tut.t1.s5_garap",
 				coach = "tut.coach.garap",
-				block = false, -- repeat of Garap (first time was cangkul): toast + ring only, no dim, no movement lock (LOCKED rule, docs/05 Bab 9)
 				done = { kind = "tiles", n = 6 }, -- 1 old plot + 5 new ones
 				highlight = "GarapButton",
 			},
@@ -146,7 +146,6 @@ local TUTORIALS: { Tutorial } = {
 				id = "tanam_5",
 				text = "tut.t1.s5_tanam",
 				coach = "tut.coach.tanam",
-				block = false, -- repeat of Tanam: toast + arrow only (LOCKED rule, docs/05 Bab 9)
 				done = { kind = "planted", n = 5 }, -- the 5 free seeds still in the bag
 				highlight = "TanamButton",
 			},
@@ -154,7 +153,6 @@ local TUTORIALS: { Tutorial } = {
 				-- All six free seeds harvested (the first harvest counts): never fewer.
 				id = "tunggu_semua",
 				text = "tut.t1.s5_tunggu",
-				block = false, -- waiting + harvesting repeats: toast + pills only, never a dim (the owner's phone was stuck here, 2026-11-23)
 				done = { kind = "harvests", n = 6 },
 				highlight = "PanenButton",
 			},
@@ -162,7 +160,6 @@ local TUTORIALS: { Tutorial } = {
 				id = "panen_jual",
 				text = "tut.t1.s4",
 				coach = "tut.coach.panen",
-				block = false, -- after Panen the player must reach Pak Udin (outside the hole): no overlay here
 				greet = "tut.t1.jual.1", -- Pak Udin's sapaan at the first sale (naskah 1.3)
 				done = { kind = "sells", n = 1 },
 				target = { npc = "pak_udin" },
@@ -205,6 +202,7 @@ local TUTORIALS: { Tutorial } = {
 				text = "tut.t1b.mancing",
 				coach = "tut.coach.mancing", -- A3: the Mancing button (AksiButton) is ringed; cast, then pull, then the first fish
 				highlight = "AksiButton",
+				spotlight = true, -- rule 1a: first catch only (GuideController drops it after the first fish); fixed HUD button
 				done = { kind = "fish", n = 3 }, -- B2 (K-54): three catches. The first two show only "Coba lagi" (GuideController), no dialogue
 				target = { spot = "sungai_lahan" }, -- the arrow to the nearest river spot (sungai lahan, Lv 1; Task 1 moves it to the plot's own spot)
 				arrive = 6,
