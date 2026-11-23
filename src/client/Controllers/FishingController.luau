@@ -60,6 +60,7 @@ local progressFill: Frame
 local bobber: Part?
 local holding = false
 local reeling = false
+local tarikButton: TextButton? = nil -- C2 (K-55): the pull control, in the Tombol Aksi slot (its own control, not the cast button)
 
 -- UI ------------------------------------------------------------------------------
 
@@ -130,7 +131,7 @@ local function buildUi()
 	reelFrame.Name = "Reel"
 	reelFrame.AnchorPoint = Vector2.new(0.5, 1)
 	reelFrame.Position = UDim2.new(0.5, 0, 1, -92)
-	reelFrame.Size = UDim2.fromOffset(260, 108) -- 8 px gaps between track, progress and Tarik (layout rule) -- compact: it must not cover the player (owner, 2026-11-22)
+	reelFrame.Size = UDim2.fromOffset(260, 76) -- track and progress only: the pull button lives in the Tombol Aksi slot (C2, K-55), compact so it does not cover the player
 	reelFrame.Visible = false
 	reelFrame.Parent = gui
 	darkBox(reelFrame, 18)
@@ -251,22 +252,6 @@ local function buildUi()
 	fillRound.CornerRadius = UDim.new(1, 0)
 	fillRound.Parent = progressFill
 
-	local pull = UiKit.button(reelFrame, "Pull", Locale.t("fish.reel_button"), UiKit.BUTTON)
-	pull.AnchorPoint = Vector2.new(0.5, 1)
-	pull.Position = UDim2.new(0.5, 0, 1, -8)
-	pull.Size = UDim2.new(1, -28, 0, 32)
-	pull.TextSize = 16
-	pull.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			holding = true
-		end
-	end)
-	pull.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			holding = false
-		end
-	end)
-
 	gui.Parent = playerGui
 end
 
@@ -340,6 +325,9 @@ local function runReel()
 	reeling = true
 	statusFrame.Visible = false
 	reelFrame.Visible = true
+	if tarikButton then
+		tarikButton.Visible = true -- C2: Tarik takes the Aksi slot while the reel runs
+	end
 	if bobber then
 		bobber.Position -= Vector3.new(0, 0.4, 0) -- dip
 	end
@@ -360,6 +348,9 @@ local function runReel()
 		end
 		ContextActionService:UnbindAction(REEL_ACTION)
 		reeling = false
+		if tarikButton then
+			tarikButton.Visible = false
+		end
 		Net.Send("FishReel", score)
 	end
 
@@ -555,6 +546,25 @@ local function buildAksi()
 	button.Parent = aksiGui
 	-- Same round plate as the other round buttons (HUD menu, dock): cream disc, bamboo ring, rod icon.
 	UiKit.plate(button, 84, "pancing")
+	-- C2 (K-55): Tarik is its own control in the same slot as Pancing. Hold it to pull (touch or mouse), shown only while
+	-- the reel runs. Pancing (cast) and Tarik (pull) never share a handler.
+	local tarik = UiKit.button(aksiGui, "TarikButton", Locale.t("fish.reel_button"), UiKit.BUTTON)
+	tarik.AnchorPoint = Vector2.new(0.5, 0.5)
+	tarik.Position = button.Position
+	tarik.Size = UDim2.fromOffset(84, 84)
+	tarik.TextSize = 18
+	tarik.Visible = false
+	tarik.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			holding = true
+		end
+	end)
+	tarik.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			holding = false
+		end
+	end)
+	tarikButton = tarik
 	makeBaitChip(aksiGui)
 	button.Activated:Connect(function()
 		Net.Send("FishCast")
@@ -592,6 +602,9 @@ local function refreshAksi()
 	local gifted = snap ~= nil and snap.guide ~= nil and snap.guide.rodGift == true
 	local fishing = player:GetAttribute("FishingActive") == true
 	aksiButton.Visible = gifted and not fishing and nearSpot()
+	if tarikButton then
+		tarikButton.Visible = reeling -- C2: the pull control shows only while the reel runs
+	end
 	if baitChip then
 		baitChip.Visible = aksiButton.Visible
 		baitChip.Position = stripPosition()

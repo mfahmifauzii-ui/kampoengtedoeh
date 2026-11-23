@@ -186,7 +186,7 @@ return {
 	["fish.waiting"] = "Menunggu ikan menggigit…",
 	["fish.bite"] = "Ikan menggigit!",
 	["fish.reel_hint"] = "Tahan Tarik! agar ikan tetap di area terang",
-	["fish.reel_button"] = "Tarik!",
+	["fish.reel_button"] = "Tarik",
 	["fish.cancel"] = "Batal",
 	["fish.caught"] = "Dapat {item} ({size})!",
 	["fish.locked"] = "Terbuka di Level {level}",
