@@ -364,6 +364,7 @@ return {
 	["ui.equipped"] = "Dipakai",
 	["ui.max"] = "Maks",
 	["ui.locked"] = "Lv {level}",
+	["dapur.locked_ingredients"] = "Bahan terkunci: {list}",
 	["ui.empty"] = "Tas masih kosong",
 	["ui.owned"] = "Punya: {n}",
 	["ui.koin"] = "{n} Koin",

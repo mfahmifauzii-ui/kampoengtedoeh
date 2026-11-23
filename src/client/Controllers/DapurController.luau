@@ -5,6 +5,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Dapur = require(ReplicatedStorage.Shared.Config.Dapur)
+local Crops = require(ReplicatedStorage.Shared.Config.Crops)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
@@ -37,6 +38,23 @@ local function costText(recipe: Dapur.Recipe): string
 		end
 	end
 	return table.concat(bits, " + ")
+end
+
+-- Bahan tanaman yang belum terbuka di level pemain (R1.1, K-02): ditampilkan di kartu resep.
+local function lockedIngredientsText(recipe: Dapur.Recipe): string?
+	local value = game:GetService("Players").LocalPlayer:GetAttribute("Level")
+	local level = if typeof(value) == "number" then value else 1
+	local bits = {}
+	for _, input in recipe.inputs do
+		local crop = input.kind == "crop" and input.id and Crops.byId[input.id]
+		if crop and crop.unlockLevel > level then
+			table.insert(bits, `{Locale.t(`crop.{crop.id}`)} ({Locale.t("ui.locked", { level = crop.unlockLevel })})`)
+		end
+	end
+	if #bits == 0 then
+		return nil
+	end
+	return Locale.t("dapur.locked_ingredients", { list = table.concat(bits, ", ") })
 end
 
 local function recipeName(recipe: Dapur.Recipe): string
@@ -115,6 +133,10 @@ local function rebuild()
 		order += 1
 		local locked = dapur.tier < recipe.tier
 		local sub = `{math.floor(recipe.minutes * Dapur.TIERS[recipe.tier].timeMult + 0.5)} mnt · {costText(recipe)} · {recipe.xp} XP`
+		local lockedText = lockedIngredientsText(recipe)
+		if lockedText then
+			sub ..= ` · {lockedText}`
+		end
 		UiKit.row(list, order, recipeName(recipe), sub, Locale.t("dapur.cook"), not locked, function()
 			Net.Send("DapurCook", 0, recipe.id)
 		end)
