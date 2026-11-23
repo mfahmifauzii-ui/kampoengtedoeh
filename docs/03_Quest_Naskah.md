@@ -2,7 +2,7 @@
 
 > Menggantikan `Quest_Kampoeng_Tedoeh_v0.3.md` dan `Naskah_Dialog_Kampoeng_Tedoeh_v0.1.md`.
 > Status: rantai Lv 1–10 **disetujui owner** (2026-11-22) dan sudah di kode (Q-1…Q-5). Baris bertanda **[USULAN]** adalah teks baru dari audit, belum di kode, menunggu K-xx (`02_Audit_Perbaikan.md`).
-> Angka gameplay (harga, XP, level) ada di `01_GDD_Kampoeng_Tedoeh_v8.1.md`. File ini hanya urutan quest, feature gate, dan teks.
+> Angka gameplay (harga, XP, level) ada di `01_GDD_Kampoeng_Tedoeh_v8.2.md`. File ini hanya urutan quest, feature gate, dan teks.
 > Semua teks masuk `Locale/id.luau`. Tidak ada teks dialog di file kode.
 
 ---

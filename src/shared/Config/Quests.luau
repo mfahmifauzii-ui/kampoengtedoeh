@@ -364,7 +364,7 @@ local list: { Quest } = {
 	},
 }
 
--- Agenda Harian (docs/01_GDD_Kampoeng_Tedoeh_v8.1.md Bab 14.5, LOCKED): 5 tugas per hari, reset 05:00 WIB. Contoh: Panen 5 tanaman,
+-- Agenda Harian (docs/01_GDD_Kampoeng_Tedoeh_v8.2.md Bab 14.5, LOCKED): 5 tugas per hari, reset 05:00 WIB. Contoh: Panen 5 tanaman,
 -- Mancing 3 ikan, Masak 1 olahan, Bantu 1 lahan, Nambang 10 bahan. Hadiah 150-400 Koin per tugas, tanpa Bunga.
 -- Split per tugas di bawah ini USULAN interim (v7.3 cuma mengunci rentang 150-400); kunci final ikut playtest Bab 17.8.
 -- XP di bawah ini USULAN (v7.3 Bab 14.5 tidak memberi XP; contoh P1-9: Agenda cuma Koin) — butuh lock owner.

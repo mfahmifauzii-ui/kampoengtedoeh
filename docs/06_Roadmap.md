@@ -26,7 +26,7 @@
 
 ```
 Task R<id> — <title>
-Read first: docs/06_Roadmap.md (R<id>), docs/01_GDD_Kampoeng_Tedoeh_v8.1.md (Bab ...),
+Read first: docs/06_Roadmap.md (R<id>), docs/01_GDD_Kampoeng_Tedoeh_v8.2.md (Bab ...),
 docs/02_Audit_Perbaikan.md (K-.. must be DIPUTUSKAN), docs/05_GUI_Spec.md / 04_Asset_Bible.md if relevant.
 Goal: <one sentence>.
 Done when: <copy "Selesai kalau" from the roadmap row>.

@@ -1,5 +1,5 @@
 --!strict
--- Nambang + Crafting (docs/01_GDD_Kampoeng_Tedoeh_v8.1.md Bab 8.1 / 8.2, LOCKED).
+-- Nambang + Crafting (docs/01_GDD_Kampoeng_Tedoeh_v8.2.md Bab 8.1 / 8.2, LOCKED).
 -- 6 node per-player (instanced): tiap player punya sisa pukulan + respawn sendiri, jadi tidak
 -- rebutan walau part nodenya dipakai bersama. 1 node = 4 pukulan: biasa +1 bahan, Critical +2.
 -- Player selalu dapat bahan tiap pukulan yang diterima (tidak ada fail). Node habis -> respawn 4 menit.

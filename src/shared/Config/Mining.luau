@@ -1,5 +1,5 @@
 --!strict
--- Nambang + Crafting (docs/01_GDD_Kampoeng_Tedoeh_v8.1.md Bab 8.1 / 8.2, LOCKED).
+-- Nambang + Crafting (docs/01_GDD_Kampoeng_Tedoeh_v8.2.md Bab 8.1 / 8.2, LOCKED).
 -- Hutan Nambang (Lv 4): 6 node per-player (instanced, tidak rebutan). 1 node = 4 pukulan;
 -- normal +1 bahan, Critical +2 bahan. Node habis -> respawn 4 menit. Rata-rata 1 putaran
 -- Hutan (+-5 menit) = 30-45 bahan campuran (6 node x 4 pukulan = 24 base + Critical).

@@ -1,5 +1,5 @@
 --!strict
--- Ternak (docs/01_GDD_Kampoeng_Tedoeh_v8.1.md Bab 7.1, LOCKED): satu kandang per jenis hewan, beli hewan,
+-- Ternak (docs/01_GDD_Kampoeng_Tedoeh_v8.2.md Bab 7.1, LOCKED): satu kandang per jenis hewan, beli hewan,
 -- isi pakan, produksi jalan walau offline (timestamp), ambil semua, Mood Hujan.
 -- Hewan tidak mati/sakit/kabur. Tidak ada daging, tidak ada kasih minum/bar haus.
 -- Pakan Jagung (5 Jagung -> 6 jatah, kandang ayam) jalan di sini; resep Dapur penuhnya P2-3.

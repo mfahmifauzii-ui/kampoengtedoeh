@@ -1,4 +1,4 @@
-# KAMPOENG TEDOEH — Game Design Document v8.1
+# KAMPOENG TEDOEH — Game Design Document v8.2
 ## Single Source of Truth (gameplay, angka, aturan)
 
 > Menggantikan `Kampoeng_Tedoeh_v7.4.md`, `v7.5.md`, `v7.6.md`, `v7.7.md`, dan `Skill_Tree_Kampoeng_Tedoeh_v7.7.md` (sekarang Bab 4.5).
@@ -164,6 +164,9 @@ Contoh LOCKED: tanaman 30 mnt, siram −4,5 → sisa 25,5; hujan 3 mnt memotong 
 | Koin | Jual hasil, Warung, Agenda, Order, Bantu, Like, Kerja Bakti, Login, Hadiah Main, quest | Bibit, umpan, pakan, hewan, alat, petak, chunk, skill, bangunan | Ke Bunga |
 | Bunga | Login Mingguan, Peti Bunga, Album, Season, Event, Bundel, quest tertentu, Robux | Alat Bunga (QoL), kosmetik, dekor Bunga, instant Kolam, reroll Order, slot Blueprint, Season Premium | Ke Koin, XP, level, bahan mentah, hewan |
 | Bahan | Nambang, Jerami (Padi), Daun Pisang (Pisang) | Craft hias, alat, bangunan | Tidak dijual dan tidak dibeli di mana pun (✔ K-42) |
+
+- **Nilai awal (v8.2, ✔ K-48):** Koin awal 100, Bunga awal 10 (`Config/Economy`). Ikut kode, bukan angka desain baru.
+- **Hadiah kategori Album (v8.2, ✔ K-48):** kategori Ladang dan Sungai lengkap = 300 Koin masing-masing (`Config/Book`).
 
 ### 4.2 Level Pemain
 
@@ -386,7 +389,9 @@ Dekati spot → Tombol Mancing (bulat, ikon joran) → Lempar (0,6 dtk) → Tung
 
 ### 6.4 Ikan (20) — LOCKED
 
-Ukuran diacak: Kecil ×0,8 (40%), Sedang ×1,0 (40%), Besar ×1,2 (15%), Jumbo ×1,5 (5%). Harga = Sedang.
+Ukuran diacak: Kecil ×0,8 (40%), Sedang ×1,0 (40%), Besar ×1,2 (15%), Jumbo ×1,5 (5%). Harga = Sedang. Peluang ini adalah basis tanpa bonus skill Ikan Besar (✔ K-46, dicek 1.000 sampel).
+
+**Lokasi tambahan (✔ K-45):** ikan Mid **Mujair dan Nila** juga bisa didapat di **kolam** (aturan kolam Bab 7.2: ikan berasal dari stok pemain, bukan dari timer).
 
 | # | Ikan | Tier | Lokasi | Waktu | Jual | XP | Lv |
 |---|------|------|--------|-------|------|----|----|

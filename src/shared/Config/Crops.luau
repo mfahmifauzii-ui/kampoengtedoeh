@@ -1,5 +1,5 @@
 --!strict
--- Tanaman rilis: 18 tanaman (docs/01_GDD_Kampoeng_Tedoeh_v8.1.md Bab 5.3, LOCKED). Tambah tanaman: satu entri di sini + locale "crop.<id>".
+-- Tanaman rilis: 18 tanaman (docs/01_GDD_Kampoeng_Tedoeh_v8.2.md Bab 5.3, LOCKED). Tambah tanaman: satu entri di sini + locale "crop.<id>".
 -- growSeconds = waktu nyata (lanjut walau offline, Bab 5.1). yield = hasil per panen. regrows = panen ulang tambahan.
 -- seedPrice = bibit di Pak Udin (Bab 5.3 "Bibit"). sellPrice = Jual (Bab 5.3 "Jual"). xp = XP per panen (Bab 5.3).
 -- byproduct = bonus per panen (Bab 5.3: Padi -> 2 Jerami, Pisang -> 2 Daun Pisang).

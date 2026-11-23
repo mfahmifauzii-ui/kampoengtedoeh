@@ -1,5 +1,5 @@
 --!strict
--- Dapur (docs/01_GDD_Kampoeng_Tedoeh_v8.1.md Bab 9.1 / 9.2 / 9.4, LOCKED): bangun/upgrade Inti, slot masak,
+-- Dapur (docs/01_GDD_Kampoeng_Tedoeh_v8.2.md Bab 9.1 / 9.2 / 9.4, LOCKED): bangun/upgrade Inti, slot masak,
 -- 24 resep, Kualitas Olahan dari bahan tertinggi, makan = 1 buff aktif (ganti lama, tidak stack).
 -- 1 resep per slot, TIDAK ada antrean. Olahan jalan walau offline, tidak gosong/gagal.
 -- Pakan Jagung = pakan Ayam (bahan), BUKAN Olahan: tidak dijual di Warung, tidak memberi buff.

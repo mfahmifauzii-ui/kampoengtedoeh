@@ -356,17 +356,21 @@ Cara owner memberi masukan: lewat playtest (`09_Playtest_Checklist.md`). Masukan
 |----|---------|-----|--------|
 | K-43 | 2026-11-23 | Kolam Tanah dibuka **Lv 4** (kode Lv 3). Diubah di `Config/Ranch` (R0.4). | GDD 7.2 = target; kode yang berubah |
 | K-44 | 2026-11-23 | Pack Bunga 700 (GDD 18.4) ditambahkan sebagai `bunga_xl`, `id = 0` (Belum tersedia). `priceDraft` 459 = USULAN, hanya label cadangan. | Angka GDD; tanpa id tidak ada pembelian |
-| K-45 | 2026-11-23 | Ikan Mid (Mujair…Baung) di kode juga bisa di `kolam` (GDD 6.4: Kanal Barat). **Default: tetap** (kolam memakai stok, B-3). Dicek di playtest. | Mengubah lokasi bisa memutus stok kolam |
-| K-46 | 2026-11-23 | Ukuran ikan: GDD 6.4 Kecil 40% / Sedang 40% / Besar 15% / Jumbo 5%; kode memakai skor reel (≈50/30/15/5 bila skor merata). **Default: tetap** (skor = skill, GDD "ukuran diacak" tidak merinci). | Ubah = desain baru |
-| K-47 | 2026-11-23 | Peluang Legenda: kode bobot L=1 dari 100 (1%), GDD 0,5% per lemparan dengan syarat spot+waktu+level. **Default: tetap**, dicek di R1.2 (QA C-6, 1000 sampel). | Syarat berbeda, belum bisa dibandingkan |
+| K-45 | 2026-11-23 | **DIPUTUSKAN.** Ikan Mid **Mujair dan Nila** di kode juga bisa di `kolam` (Fish.locations). Kode dipertahankan; GDD 6.4 v8.2 menulis lokasi ini. Kolam memakai stok (B-3, K-26). | Mengubah lokasi bisa memutus stok kolam |
+| K-46 | 2026-11-23 | **DIPUTUSKAN.** Basis ukuran (skill 0) sekarang = GDD 40/40/15/5. Sebelum: ambang Sedang 0,5 → 50/30/15/5 (simulasi 1.000 skor merata: S 501 / M 298 / L 154 / Jumbo 47). Sesudah: ambang Sedang 0,4 → S 402 / M 393 / L 156 / Jumbo 49. Modifier skill Ikan Besar tetap di atas. | Dicek simulasi Studio (Play, server) |
+| K-47 | 2026-11-23 | **DIPUTUSKAN.** Bobot Legenda L = 0,5 (dari 1). Peluang per lemparan = 0,5% (basis 100k sampel: sebelum 1,019%, sesudah 0,479%; teoretis 0,5025%). GDD 6.5 tetap. | QA C-6 (sampel Studio) |
 | K-49 | 2026-11-23 | K-01 "jendela gigitan 2x": tidak ada batas waktu sejak keputusan owner 16 Nov (ikan menunggu di kail), jadi jendela itu sudah terpenuhi. Hujan **hanya** tidak lagi menggandakan waktu tunggu (`BITE_RAIN_MULT` dihapus). Tidak ada mekanik baru. | Tidak ada tombol tarik dengan batas waktu untuk diperlebar |
-| K-48 | 2026-11-23 | Angka tanpa sumber GDD: Koin awal 100 / Bunga awal 10 (`Config/Economy`), hadiah kategori Album ladang/sungai 300 Koin (`Config/Book`). **Default: tetap.** | Tidak ada angka di GDD untuk dicocokkan |
+| K-48 | 2026-11-23 | **DIPUTUSKAN.** Dokumen mengikuti kode: Koin awal 100, Bunga awal 10 (`Config/Economy`); hadiah kategori Album ladang & sungai 300 Koin (`Config/Book`). Ditulis di GDD v8.2 Bab 4.1. | Tidak ada angka desain lain |
+| K-50 | 2026-11-23 | Palet dinding Hias: satu warna ke-13 (`Config/Decor` WALL_PALETTE_EXTRA, muted hangat) dibuka Title "Dinding Spesial". Tidak ada palet 12 warna di kode dan tidak ada pemilih warna di UI. Pemilih warna = tugas terpisah (belum ada R). | Kode tidak punya palet Hias |
+| K-51 | 2026-11-23 | Dialog side quest: `prefixOf` memotong `side_*` menjadi `side` sehingga semua dialog side hilang. Sekarang id penuh. Naskah sesuai 03 Bab 6.3 (FINAL K-14). | Bug, bukan keputusan desain |
 
 ---
 
 ## 4. Keputusan Lama yang Sudah Final (dari Lampiran D v7.7 & Roadmap)
 
 Sudah dimasukkan ke GDD v8.0. Dicatat di sini supaya riwayat tidak hilang saat file lama dihapus.
+
+- **GDD v8.2 (2026-11-23):** K-45 (lokasi ikan Mid di kolam, Bab 6.4), K-46 (basis ukuran 40/40/15/5), K-47 (Legenda 0,5%), K-48 (angka awal Koin/Bunga dan hadiah Album ditulis di Bab 4.1). File dinamai ulang dari v8.1.
 
 | Asal | Keputusan final |
 |------|-----------------|

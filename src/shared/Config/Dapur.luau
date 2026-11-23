@@ -1,5 +1,5 @@
 --!strict
--- Dapur + Warung + Buff Olahan (docs/01_GDD_Kampoeng_Tedoeh_v8.1.md Bab 9.2 / 9.3 / 9.4, LOCKED).
+-- Dapur + Warung + Buff Olahan (docs/01_GDD_Kampoeng_Tedoeh_v8.2.md Bab 9.2 / 9.3 / 9.4, LOCKED).
 -- 24 resep persis tabel Bab 9.2. Tier Dapur = Tier resep (1/2/3, buka Lv 6/15/35).
 -- Kualitas Olahan dari bahan TERTINGGI (ada 1 Prima -> Prima, dst). Harga = base x Kualitas
 -- (Biasa x1,0 / Bagus x1,1 / Prima x1,25, pinjam mult Kualitas Panen). Resep branching (pakai
