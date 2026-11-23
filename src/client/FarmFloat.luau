@@ -51,8 +51,8 @@ local FarmFloat = {}
 
 local gui: ScreenGui
 local pills: { Pill } = {}
-local onAction: (part: BasePart, kind: string) -> () = function() end
-local onHold: (part: BasePart, kind: string) -> () = function() end -- long press: the bed menu (Pindah / Hapus Petak)
+local onAction: (part: BasePart, kind: string) -> () = function(_part: BasePart, _kind: string) end
+local onHold: (part: BasePart, kind: string) -> () = function(_part: BasePart, _kind: string) end -- long press: the bed menu (Pindah / Hapus Petak)
 local HOLD_SECONDS = 0.45
 local isBlocked: () -> boolean = function()
 	return false

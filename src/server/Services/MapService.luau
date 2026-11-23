@@ -1083,14 +1083,18 @@ local function buildNature(map: Folder, trees: { Model }, bushes: { Model }, roc
 	-- A mixed bit of forest at one spot: mostly trees, some bushes, a few rocks.
 	local function forestSpot(x: number, z: number, expansionOf: number?)
 		local roll = random:NextNumber()
-		if roll < 0.55 and #trees > 0 then
+		-- Pilih jenis dulu (urutan sama seperti sebelumnya: pohon, semak, batu, lalu pohon bila tak ada batu).
+		local kind: string? = if roll < 0.55 and #trees > 0 then "pohon"
+			elseif roll < 0.82 and #bushes > 0 then "semak"
+			elseif #rocks > 0 then "batu"
+			elseif #trees > 0 then "pohon"
+			else nil
+		if kind == "pohon" then
 			put(trees, "Pohon", x, z, random:NextNumber(16, 28), true, nil, expansionOf)
-		elseif roll < 0.82 and #bushes > 0 then
+		elseif kind == "semak" then
 			put(bushes, "Semak", x, z, random:NextNumber(4, 8), true, nil, expansionOf)
-		elseif #rocks > 0 then
+		elseif kind == "batu" then
 			put(rocks, "Batu", x, z, random:NextNumber(3, 8), false, nil, expansionOf)
-		elseif #trees > 0 then
-			put(trees, "Pohon", x, z, random:NextNumber(16, 28), true, nil, expansionOf)
 		end
 	end
 
