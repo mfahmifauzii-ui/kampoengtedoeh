@@ -1473,6 +1473,7 @@ UiKit.HUD = {
 	GAP = 8, -- between two HUD elements
 	CURRENCY_H = 42, -- top-centre currency bar (HudController)
 	TRACKER_W = 200, -- left column width (QuestController)
+	CURRENCY_TOP = 6, -- top of the currency bar (HudController: Position y = 6)
 	TRACKER_TOP = 118, -- left column top (under the bar and the goal chip)
 	MENU_TOP = 8, -- right column top
 	MENU_W = 50, -- right column item size
@@ -1505,6 +1506,10 @@ UiKit.TOAST_RIGHT = UiKit.HUD.MENU_W + UiKit.HUD.MARGIN + UiKit.HUD.GAP -- left 
 -- Chips stack downwards, newest at the bottom, at most TOAST_MAX_VISIBLE on screen (HudController queues the rest). Each chip
 -- fades in and out (CanvasGroup GroupTransparency, TOAST_FADE).
 UiKit.TOAST_FADE = 0.25 -- seconds: fade in and out of one chip (UI motion, Lampiran D #48)
+UiKit.TOAST_PAD_TOP = 12 -- px (A3, K-53): gap between the Koin/Bunga bar or a Bubble Instruksi and the toast stack
+-- Things the toast stack keeps clear of: { ScreenGui name, descendant name }. GuideUI "Hint" = Bubble Instruksi (K-40);
+-- CoachTop "Bubble" = the coachmark bubble.
+UiKit.TOAST_AVOID = { { "GuideUI", "Hint" }, { "CoachTop", "Bubble" } }
 UiKit.TOAST_PAD_X = 14 -- px: inside a chip, left and right
 UiKit.TOAST_PAD_Y = 8 -- px: inside a chip, top and bottom
 UiKit.TOAST_MIN_H = 40 -- px: the smallest chip (one line)
@@ -1545,10 +1550,21 @@ function UiKit.toastStack(screenGui: ScreenGui): Frame
 			return
 		end
 		local view = camera.ViewportSize
-		local bar = screenGui:FindFirstChild("CurrencyBar")
-		local top = 0
-		if bar and bar:IsA("GuiObject") then
-			top = bar.AbsolutePosition.Y + bar.AbsoluteSize.Y + UiKit.TOAST_GAP
+		-- A3 (playtest): the toast sits BELOW the Koin/Bunga bar (CurrencyBar, offset 6 px, HUD.CURRENCY_H tall) with
+		-- TOAST_PAD_TOP px between them. The old lookup was not recursive and read AbsolutePosition in mixed spaces, so the
+		-- stack could land at the very top. Offsets only (the same space as the bar), then the Bubble Instruksi below.
+		local top = UiKit.HUD.CURRENCY_TOP + UiKit.HUD.CURRENCY_H + UiKit.TOAST_PAD_TOP
+		local hudScale = screenGui:FindFirstChildOfClass("UIScale")
+		local scale = if hudScale then hudScale.Scale else 1
+		local playerGui = screenGui.Parent
+		for _, pair in UiKit.TOAST_AVOID do
+			local other = if playerGui then playerGui:FindFirstChild(pair[1]) else nil
+			local el = if other and other:IsA("ScreenGui") and other.Enabled then other:FindFirstChild(pair[2], true) else nil
+			if el and el:IsA("GuiObject") and el.Visible and el.AbsoluteSize.Y > 0 then
+				local inset = if other.IgnoreGuiInset then 0 else game:GetService("GuiService"):GetGuiInset().Y
+				local bottom = (el.AbsolutePosition.Y + el.AbsoluteSize.Y + inset) / scale
+				top = math.max(top, bottom + UiKit.TOAST_PAD_TOP)
+			end
 		end
 		-- Room between the tracker's right edge (TOAST_LEFT) and the menu column (TOAST_RIGHT), centred on the screen.
 		local width = UiKit.toastWidth(view.X)
@@ -1558,7 +1574,7 @@ function UiKit.toastStack(screenGui: ScreenGui): Frame
 			local questUi = if playerGui then playerGui:FindFirstChild("QuestUI") else nil
 			local tracker = if questUi then questUi:FindFirstChild("Tracker") else nil
 			if tracker and tracker:IsA("GuiObject") and tracker.Visible then
-				top = tracker.AbsolutePosition.Y + tracker.AbsoluteSize.Y + UiKit.TOAST_GAP
+				top = math.max(top, tracker.AbsolutePosition.Y + tracker.AbsoluteSize.Y + UiKit.TOAST_GAP) -- never above the bar / bubble floor
 			end
 			stack.Position = UDim2.fromOffset(UiKit.HUD.MARGIN + UiKit.HUD.TRACKER_W / 2, top)
 			stack.Size = UDim2.fromOffset(UiKit.HUD.TRACKER_W, 0)
