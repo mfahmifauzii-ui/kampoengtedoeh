@@ -1589,22 +1589,26 @@ function UiKit.toastStack(screenGui: ScreenGui): Frame
 	return stack
 end
 
--- One toast chip in the stack. Its height comes from the measured wrapped text (no clipping, no squeezed bar).
-function UiKit.toastChip(stack: Frame, text: string): CanvasGroup
+-- Toast kinds (GUI 4.2): "transient" (default, auto-hides), "pinned" (never evicted or auto-dismissed, sits above the
+-- transient chips; see HudController.SetPinned), "dismissible" (same style plus an "Ok" button, see onOk).
+-- opts.instant: no fade-in (used when a pinned chip is re-rendered with new numbers). opts.onOk: adds the Ok button.
+UiKit.TOAST_OK_W = 56 -- px: the Ok button (min 44 px touch height, UiKit.TOAST_MIN_H)
+function UiKit.toastChip(stack: Frame, text: string, opts: { instant: boolean?, onOk: (() -> ())? }?): CanvasGroup
 	local chip = Instance.new("CanvasGroup")
 	chip.Name = "Toast"
-	chip.GroupTransparency = 1 -- fades in
+	chip.GroupTransparency = if opts and opts.instant then 0 else 1 -- fades in unless instant
 	chip.Size = UDim2.new(1, 0, 0, UiKit.TOAST_MIN_H)
 	chip.ZIndex = 6
 	toastOrder += 1
 	chip.LayoutOrder = -toastOrder -- TB: newest at the top, under the Koin/Bunga bar
 	chip.Parent = stack
 	UiKit.parchmentBox(chip)
+	local okW = if opts and opts.onOk then UiKit.TOAST_OK_W else 0
 	local label = Instance.new("TextLabel")
 	label.Name = "Text"
 	label.BackgroundTransparency = 1
 	label.Position = UDim2.fromOffset(UiKit.TOAST_PAD_X, UiKit.TOAST_PAD_Y)
-	label.Size = UDim2.new(1, -2 * UiKit.TOAST_PAD_X, 1, -2 * UiKit.TOAST_PAD_Y)
+	label.Size = UDim2.new(1, -2 * UiKit.TOAST_PAD_X - okW, 1, -2 * UiKit.TOAST_PAD_Y)
 	label.Font = UiKit.FONT
 	label.TextSize = UiKit.TEXT_SMALL
 	label.TextColor3 = UiKit.TEXT
@@ -1618,13 +1622,34 @@ function UiKit.toastChip(stack: Frame, text: string): CanvasGroup
 	local camera = workspace.CurrentCamera
 	local viewWidth = if camera then camera.ViewportSize.X else 800
 	local width = UiKit.toastWidth(viewWidth)
-	local textWidth = math.max(1, width - 2 * UiKit.TOAST_PAD_X)
+	local textWidth = math.max(1, width - 2 * UiKit.TOAST_PAD_X - okW)
 	local ok, measured = pcall(function()
 		return game:GetService("TextService"):GetTextSize(text, UiKit.TEXT_SMALL, Enum.Font.FredokaOne, Vector2.new(textWidth, 1000))
 	end)
 	local textHeight = if ok then (measured :: Vector2).Y else UiKit.TEXT_SMALL
 	chip.Size = UDim2.new(1, 0, 0, math.max(UiKit.TOAST_MIN_H, textHeight + 2 * UiKit.TOAST_PAD_Y))
-	TweenService:Create(chip, TweenInfo.new(UiKit.TOAST_FADE), { GroupTransparency = 0 }):Play() -- fade in
+	if opts and opts.onOk then
+		local button = Instance.new("TextButton")
+		button.Name = "Ok"
+		button.AnchorPoint = Vector2.new(1, 0.5)
+		button.Position = UDim2.new(1, -UiKit.TOAST_PAD_X, 0.5, 0)
+		button.Size = UDim2.fromOffset(UiKit.TOAST_OK_W - UiKit.TOAST_PAD_X, UiKit.TOAST_MIN_H)
+		button.BackgroundColor3 = UiKit.BAMBOO
+		button.Font = UiKit.FONT
+		button.TextSize = UiKit.TEXT_SMALL
+		button.TextColor3 = UiKit.TEXT
+		button.Text = "Ok"
+		button.AutoButtonColor = true
+		button.ZIndex = 8
+		corner(button, 12)
+		button.Parent = chip
+		button.Activated:Connect(function()
+			opts.onOk()
+		end)
+	end
+	if not (opts and opts.instant) then
+		TweenService:Create(chip, TweenInfo.new(UiKit.TOAST_FADE), { GroupTransparency = 0 }):Play() -- fade in
+	end
 	return chip
 end
 

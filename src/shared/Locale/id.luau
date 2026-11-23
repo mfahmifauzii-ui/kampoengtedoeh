@@ -678,7 +678,7 @@ return {
 	["tut.ms.2"] = "Sekarang bikin {n} petak lagi ya, biar lahanmu makin ramai. Tap Garap, lalu Cangkul.",
 	["tut.ms.3"] = "Nah, coba tanam lagi {n} bibit dari Mak.",
 	["tut.ms.4"] = "Jangan lupa panen semuanya ya, Nak.",
-	["tut.ms.toast"] = "Tap Garap, lalu Cangkul: {done}/{total} petak baru",
+	["tut.ms.toast"] = "Tap Garap, lalu Cangkul: {n}/{N} petak baru",
 	["tut.t1.s5_tanam"] = "Tanam 5 bibit lagi di petak baru",
 	["tut.t1.s5_tunggu"] = "Tunggu semua tumbuh, lalu panen semuanya",
 	-- T1b (Config/Onboarding): the lines Mak Sari / Pak Udin / Kak Fajar actually say live in T1Ghost.client; these are

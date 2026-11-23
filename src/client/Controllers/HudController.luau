@@ -464,34 +464,107 @@ function HudController.Toast(text: string)
 	pumpToasts()
 end
 
--- MS-2: the step's guidance toast. Pinned at the top of the stack: other toasts stack below it or wait in the queue, and
--- only UnpinGuide (the step changed or completed) removes it. It does not count toward TOAST_MAX_VISIBLE.
-local pinnedChip: CanvasGroup? = nil
-local pinnedText = ""
+-- GUI 4.2 (the only toast rule). Kinds, all in the ONE stack under the Koin/Bunga bar:
+--   transient   HudController.Toast(text): auto-hides after TOAST_SECONDS, at most TOAST_MAX_VISIBLE, rest queued.
+--   pinned      SetPinned(key, template, n?, N?) / UpdatePinned(key, n, N) / ClearPinned(key): never evicted, never
+--               auto-dismissed, never counted toward TOAST_MAX_VISIBLE; sits ABOVE every transient chip. Only ClearPinned
+--               removes it. Template tokens {n} and {N} are filled from n and N (progress such as "2/5").
+--   dismissible  ToastDismissible(key, text): same style plus an "Ok" button; it stays until Ok or ClearDismissible(key).
+-- Updates re-render the chip at once (no polling, no fade-in); a key is one chip.
+type PinnedEntry = { chip: CanvasGroup?, template: string, n: number?, total: number?, dismissible: boolean }
+local pinnedEntries: { [string]: PinnedEntry } = {}
+local pinnedOrder: { string } = {}
+local PINNED_BASE = -1000000
 
+local function renderPinned(key: string)
+	local entry = pinnedEntries[key]
+	if not entry or not toastStack then
+		return
+	end
+	if entry.chip then
+		entry.chip:Destroy()
+		entry.chip = nil
+	end
+	local text = entry.template
+	if entry.n ~= nil and entry.total ~= nil then
+		text = text:gsub("{n}", tostring(entry.n)):gsub("{N}", tostring(entry.total))
+	end
+	local onOk = if entry.dismissible then function()
+		HudController.ClearDismissible(key)
+	end else nil
+	local chip = UiKit.toastChip(toastStack, text, { instant = true, onOk = onOk })
+	local index = table.find(pinnedOrder, key) or 1
+	chip.LayoutOrder = PINNED_BASE + index -- pinned chips first, in the order they were set
+	entry.chip = chip
+end
+
+function HudController.SetPinned(key: string, template: string, n: number?, total: number?)
+	local entry = pinnedEntries[key]
+	if not entry then
+		entry = { chip = nil, template = template, n = n, total = total, dismissible = false }
+		pinnedEntries[key] = entry
+		table.insert(pinnedOrder, key)
+	else
+		if entry.template == template and entry.n == n and entry.total == total and not entry.dismissible then
+			return -- unchanged (the tutorial re-states its pin on every refresh): no re-render
+		end
+		entry.template = template
+		entry.n = n
+		entry.total = total
+		entry.dismissible = false
+	end
+	renderPinned(key)
+end
+
+function HudController.UpdatePinned(key: string, n: number, total: number)
+	local entry = pinnedEntries[key]
+	if not entry then
+		return
+	end
+	if entry.n == n and entry.total == total then
+		return
+	end
+	entry.n = n
+	entry.total = total
+	renderPinned(key)
+end
+
+function HudController.ClearPinned(key: string)
+	local entry = pinnedEntries[key]
+	if not entry then
+		return
+	end
+	if entry.chip then
+		entry.chip:Destroy()
+	end
+	pinnedEntries[key] = nil
+	table.remove(pinnedOrder, table.find(pinnedOrder, key) or 1)
+	for index, other in pinnedOrder do
+		local kept = pinnedEntries[other]
+		if kept and kept.chip then
+			kept.chip.LayoutOrder = PINNED_BASE + index
+		end
+	end
+end
+
+-- Dismissible toast: stays until its Ok button (or ClearDismissible). Same key rules as SetPinned.
+function HudController.ToastDismissible(key: string, text: string)
+	HudController.SetPinned(key, text)
+	pinnedEntries[key].dismissible = true
+	renderPinned(key)
+end
+
+function HudController.ClearDismissible(key: string)
+	HudController.ClearPinned(key)
+end
+
+-- Tutorial guidance (MS-2) keeps its old name; it is the pinned kind under the key "guide".
 function HudController.PinGuide(text: string)
-	if pinnedChip and pinnedText == text then
-		return
-	end
-	if pinnedChip then
-		pinnedChip:Destroy()
-		pinnedChip = nil
-	end
-	pinnedText = text
-	if not toastStack then
-		return
-	end
-	local chip = UiKit.toastChip(toastStack, text)
-	chip.LayoutOrder = -1000000 -- above every transient toast
-	pinnedChip = chip
+	HudController.SetPinned("guide", text)
 end
 
 function HudController.UnpinGuide()
-	pinnedText = ""
-	if pinnedChip then
-		pinnedChip:Destroy()
-		pinnedChip = nil
-	end
+	HudController.ClearPinned("guide")
 end
 
 function HudController.SetGoal(text: string)
@@ -510,6 +583,9 @@ function HudController.Init()
 	xpFill = find(gui, "XPFill", "Frame")
 	goalLabel = find(gui, "GoalLabel", "TextLabel")
 	toastStack = UiKit.toastStack(gui)
+	for key in pinnedEntries do
+		renderPinned(key) -- pins set before the anchor existed (Init order)
+	end
 	UiKit.autoScale() -- every ScreenGui (now and later) gets a responsive UIScale
 end
 

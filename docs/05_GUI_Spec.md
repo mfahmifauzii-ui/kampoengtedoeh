@@ -115,15 +115,23 @@ Margin layar 12, gap 8.
 
 Dock pindah ke kolom kanan. Toast turun di bawah tracker, lebar 200 px. Kolom menu dilipat default.
 
-### 4.2 Toast — satu komponen (`UiKit.toastStack`, kode B-2/F-2)
+### 4.2 Toast — satu komponen, satu gaya, satu tempat (T0, aturan GUI TUNGGAL)
 
-- X tengah layar, Y = bawah CurrencyBar + 8 px.
-- Lebar = min(50% layar, ruang antara tracker kiri & kolom kanan). Hasil hitung: 844×390 → 404 px · 667×375 → 227 px · 1920×1080 → 960 px · portrait → di bawah tracker, 200 px.
-- Tinggi dari teks terukur, min 40 px. Maks 3 tampil, sisanya antre, tiap 1,8 dtk, fade 0,25 dtk.
+Ini satu-satunya aturan toast. Modul lain tidak boleh membuat label hint sendiri.
+
+- **Satu anchor:** `UiKit.toastStack` (`ToastStack` di HUD). X tengah layar, Y = bawah CurrencyBar + 12 px (K-53). Tidak mengikuti bubble coachmark, tidak menutupi dock.
+- **Satu gaya:** pill krem (`UiKit.toastChip`, parchmentBox). Tinggi dari teks terukur, min 40 px.
+- **Lebar:** min(50% layar, ruang antara tracker kiri & kolom kanan); portrait sempit = lebar tracker.
+- **Tiga jenis (kind):**
+  1. **transient** — `HudController.Toast(text)`: hilang sendiri tiap 1,8 dtk, fade 0,25 dtk, maks 2 tampil (`UiKit.TOAST_MAX_VISIBLE`), sisanya antre (maks 5; yang paling lama dibuang).
+  2. **pinned** — `HudController.SetPinned(key, template, n?, N?)`, `UpdatePinned(key, n, N)`, `ClearPinned(key)`. Tidak pernah dibuang, tidak hilang sendiri, tidak dihitung ke batas 2, selalu di atas transient. Hanya `ClearPinned` yang menghapus. Token `{n}` dan `{N}` di template diisi dari n dan N. Update sinkron pada event yang mengubah progres (tanpa polling); chip dirender ulang tanpa fade. `PinGuide`/`UnpinGuide` = pinned dengan key `"guide"`.
+  3. **dismissible** — `HudController.ToastDismissible(key, text)`, `ClearDismissible(key)`. Gaya sama + tombol **Ok** (tinggi 44 px = sentuh minimum). Tetap sampai di-Ok atau dibersihkan kode.
+- **Urutan:** pinned di atas; transient terbaru di atas di antara transient. Semua di satu stack.
+- **Yang dilarang:** label hint kedua (GuideUI "Hint" sebagai permukaan teks, brown pill coachmark, statusFrame gelap). Teks instruksi/hint wajib lewat stack.
+- **Bubble Instruksi / coachmark:** hanya untuk langkah pertama, tidak lewat stack. Stack turun di bawah GuideUI "Hint" bila tampil (`TOAST_AVOID`); coachmark bubble tidak diperhitungkan (TB).
 - Banner LEVEL n, reward popup, dan efek terbang **bukan** toast (K-38).
-- Saat Bubble Instruksi tampil, toast stack turun di bawah bubble (✔ K-40).
-**Toast dan "!" (K-53):**
-- Toast di bawah HUD Koin/Bunga, padding 12 px; di bawah Bubble Instruksi bila tampil.
+
+Status T0 (06 Bab 18): API pinned + dismissible dan hitungan garap_5 event-driven = DONE-CODE. Reroute GuideUI Hint, brown pill coachmark, dan statusFrame Memancing = TODO.
 
 ### 4.3 Bubble Dialog NPC (`T1Dialog`)
 n- **MS-2 (2026-11-23):** bubble NPC tutorial (`T1Dialog`) berada di atas dock: `T1Dialog.DOCK_CLEAR` = 92 px dari bawah, tidak menutupi tombol Garap atau Aksi. Ring Garap kuning bulat (tanpa gelap) saat garap_5. Lihat docs/03 Bab 4.2c.

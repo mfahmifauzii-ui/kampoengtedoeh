@@ -639,6 +639,20 @@ local function ownedBeds(): { BasePart }
 	return beds
 end
 
+-- garap_5 pin: new beds made so far = owned beds minus the old plot, clamped to N. Same source as the step's own
+-- completion check (evalCondition "tiles"), so the pin reads n/N exactly when the step completes.
+local garapPinShown = false
+local function garapBedsDone(): number
+	return math.clamp(#ownedBeds() - 1, 0, Onboarding.MS_EXTRA_BEDS)
+end
+
+-- Event-driven (no polling): a bed tile added or removed re-renders the garap_5 pin at once.
+local function onBedsChanged()
+	if garapPinShown then
+		HudController.UpdatePinned("guide", garapBedsDone(), Onboarding.MS_EXTRA_BEDS)
+	end
+end
+
 local function countBeds(test: (bed: BasePart, now: number) -> boolean): number
 	local now, count = Workspace:GetServerTimeNow(), 0
 	for _, bed in ownedBeds() do
@@ -1060,7 +1074,7 @@ function refreshTutorial()
 	elseif phase == "sell" then
 		text = Locale.t("tut.t1.s4_sell")
 	end
-	local beds, anyRipe = bedStates()
+	local _beds, anyRipe = bedStates()
 	-- MS-2: the yellow round ring on the Garap dock button while garap_5 runs and Garap is closed (no dim).
 	setStepRing(if stepDef.id == "garap_5" and not GarapController.Active then "GarapButton" else nil)
 	-- MS-2: Mak Sari's stage bubble comes first. Until it is dismissed nothing else shows for this step.
@@ -1071,12 +1085,16 @@ function refreshTutorial()
 		hint.Visible = false
 		return
 	end
-	-- MS-2: the pinned guidance toast. garap_5 keeps "n/N beds" until all N exist; tanam_5 keeps its planting line.
+	-- MS-2: the pinned guidance toast (GUI 4.2 pinned kind, key "guide"). garap_5 shows n/N new beds, kept live by
+	-- onBedsChanged (tile added/removed); tanam_5 keeps its planting line.
 	if stepDef.id == "garap_5" then
-		HudController.PinGuide(Locale.t("tut.ms.toast", { done = math.clamp(beds - 1, 0, Onboarding.MS_EXTRA_BEDS), total = Onboarding.MS_EXTRA_BEDS }))
+		garapPinShown = true
+		HudController.SetPinned("guide", Locale.t("tut.ms.toast"), garapBedsDone(), Onboarding.MS_EXTRA_BEDS)
 	elseif stepDef.id == "tanam_5" then
+		garapPinShown = false
 		HudController.PinGuide(Locale.t("tut.t1.s5_tanam"))
 	else
+		garapPinShown = false
 		HudController.UnpinGuide()
 	end
 	-- Rule 2 (GUI 4.6, locked): a REPEAT step (or mancing after its first catch) is toast only: no bubble, no ring, no spotlight.
@@ -1465,6 +1483,9 @@ function GuideController.Start()
 	-- Playtest 7 item 5: the hint line follows the menu and the intro as they end.
 	player:GetAttributeChangedSignal("KTMenu"):Connect(refreshTutorial)
 	player:GetAttributeChangedSignal("KTIntroPlaying"):Connect(refreshTutorial)
+	-- GUI 4.2: the garap_5 pin counts beds from the tag events, not from the 0.3 s poll below.
+	CollectionService:GetInstanceAddedSignal(TILE_TAG):Connect(onBedsChanged)
+	CollectionService:GetInstanceRemovedSignal(TILE_TAG):Connect(onBedsChanged)
 	State.Changed:Connect(function()
 		tutorialTick()
 		refresh()
