@@ -321,7 +321,7 @@ local function buildDrawer(parent: ScrollingFrame, order: number, levels: { [str
 	if def.breakpoint and lv < def.breakpoint then
 		text("From", 4, Locale.t("skill.effect_from", { n = def.breakpoint }), UiKit.TEXT_SMALL, UiKit.HEADER_DARK)
 	end
-	text("Cost", 5, Locale.t("skill.cost"), UiKit.TEXT_CAPTION)
+	text("Cost", 5, Locale.t("skill.cost", { koin = Skills.koinForLevel(lv + 1) }), UiKit.TEXT_CAPTION)
 
 	-- Status: the requirement of a locked node, or the state of a buyable one, or the last server answer.
 	local status: string? = nil
