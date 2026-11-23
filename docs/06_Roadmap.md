@@ -26,7 +26,7 @@
 
 ```
 Task R<id> — <title>
-Read first: docs/06_Roadmap.md (R<id>), docs/01_GDD_Kampoeng_Tedoeh_v8.2.md (Bab ...),
+Read first: docs/06_Roadmap.md (R<id>), docs/01_GDD_Kampoeng_Tedoeh_v8.3.md (Bab ...),
 docs/02_Audit_Perbaikan.md (K-.. must be DIPUTUSKAN), docs/05_GUI_Spec.md / 04_Asset_Bible.md if relevant.
 Goal: <one sentence>.
 Done when: <copy "Selesai kalau" from the roadmap row>.
@@ -153,6 +153,7 @@ Butuh: R0.3 selesai.
 | R3.5 | Pohon Skill: ikon per skill di node | K-35 | ★ | S |
 | R3.6 | Tas (8 tab + Drawer + Makan), Album rapi, Atur lengkap, Menu awal & loading | GUI 6.10 | ★ | M |
 | R3.7 | Pass layar & aksesibilitas: 4 resolusi, toast vs bubble (K-40), layer coachmark vs toast (A-72), kualitas pakai bentuk + warna, teks ≥ 12 | GUI 3, 4 | ★ | M |
+| R3.8 | **Lempar Gelang minigame:** bar bergerak, tap berhenti; zona 60/30/10% (kecil/sedang/besar); 3 lemparan per malam; Pasar Malam jadi tempat di dunia (K-57) | K-57 | Hadiah sesuai zona; 3 lemparan per malam; tidak ada menu jual | | S |
 | R3.8 | Pasang semua ikon dari R4.2 ke `Config/UiAssets`, hapus fallback pil teks | Asset Bible 10 | ★ | S |
 | R3.9 | `UiKit.sheet` kind list/grid/wide menggantikan `panel` di semua controller; hapus `Instance.new` manual yang punya komponen | GUI 5, 7 | | M |
 
@@ -280,3 +281,27 @@ Butuh: R0.3 selesai.
 | Aset AI tidak seragam gayanya | Gerbang R4.1 + satu atlas per kategori |
 | Animasi/audio tidak bisa diputar karena kepemilikan | Publish atas nama pemilik game yang sama (Asset Bible 3) |
 | Dokumen kembali berantakan | Aturan 1.1 #7 + README: satu file per topik, keputusan hanya di Audit Bab 3 |
+
+---
+
+## 19. Putaran Playtest 1 (K-53…K-57): dikerjakan sebelum Fase 2
+
+Urutan: A bug → B tutorial → C mancing UI → D quest → E event/pasar. Satu tugas = satu commit. Setiap tugas: Play test Studio dan "Tes AI:" di body commit. selene 0 error dan rojo build exit 0.
+
+| ID | Tugas | Dasar | Selesai kalau | Uk |
+|----|-------|-------|---------------|----|
+| RP1.A1 | Garap: tap = sorot, tap kedua = tanam, titik sama dengan ghost; outline hilang saat keluar mode (#15, #16) | K-53 | Sel tersorot = sel tertanam di 844×390, 667×375, 390×844 | S |
+| RP1.A2 | Toast di bawah HUD (12 px) dan di bawah Bubble; pill "Lv n"; buff kosong disembunyikan (#17, #18) | K-53 | Toast tidak menutupi HUD di 3 resolusi | S |
+| RP1.A3 | Marker "!" untuk semua pemberi quest; Bang Jali "Terbuka di Level n" / "Jual semua panen (90%)"; cek rantai S3 (#6, #14) | K-53 | "!" tampil untuk Nek Ani; S3 bisa dimulai di level yang ditulis | S |
+| RP1.A4 | Joran di tab Alat; teks Acara tidak terpotong; glyph "A·" diganti (#7) | K-53 | Layout Acara bersih di 390×844 | S |
+| RP1.B1 | Tutorial panen: 5 Garap, 6 bibit Kangkung ulang, tunggu semua panen, lalu Pak Udin; XP tetap Lv 2 (#1) | K-54 | Alur 4 langkah berurutan, Locale lengkap | M |
+| RP1.B2 | Tutorial mancing: 3 tangkapan, cutscene hanya di ke-3; umpan cukup 3 lemparan (#2) | K-54 | Tangkapan 1–2 tanpa cutscene | S |
+| RP1.C1 | Pakai di Tas, badge Dipakai, chip HUD, auto-ganti umpan + toast, `equippedRod`/`equippedBait` di save (#3) | K-55 | Server validasi; save lama terisi default | M |
+| RP1.C2 | Tombol Tarik di slot Tombol Aksi, terpisah dari Pancing (#4) | K-55 | Tarik bisa ditekan; Pancing tidak tertimpa | S |
+| RP1.D1 | Pool Harian/Mingguan dengan syarat; "Bantu lahan" pindah ke Season 500 Koin (#5) | K-56 | Tidak ada templat tak eligible; Bantu hanya di Season | M |
+| RP1.D2 | Blokir quest yang sistemnya belum ada (M1 sampai R2.2); baris langkah pemain (#10) | K-56 | M1 tersembunyi; tiap langkah punya baris | M |
+| RP1.D3 | Pohon Skill: bar bawah dengan Beli; tanpa scroll di 844×390 (#7) | K-56 | Tombol Beli selalu terlihat | S |
+| RP1.D4 | Quest Log: tab Main/Side/Harian/Pesanan, dua panel, Tandai, tracker maks 3 (#8, #9, #11) | K-56 | Sesuai 05 Bab 9.1 | L |
+| RP1.E1 | Tombol Event hanya saat event aktif (#12) | K-57 | Tidak tampil saat tidak ada event | S |
+| RP1.E2 | Pasar Malam tempat di dunia, Pak Kumis NPC, jual lewat bubble (#13) | K-57 | Tidak ada jual dari menu | M |
+| RP1.E3 | Lempar Gelang minigame (= R3.8) | K-57 | Zona 60/30/10; 3 lemparan | M |

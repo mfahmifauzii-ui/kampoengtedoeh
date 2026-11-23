@@ -203,7 +203,7 @@ Grid kartu rumus visual `[2 Kayu] → [1 Papan]`, jumlah dimiliki di bawah tiap 
 
 3 kartu Harian + 1 Mingguan (lebih lebar, bingkai emas). Kartu: foto NPC, barang `punya/butuh`, hadiah, `Setor` (aktif bila cukup), ikon `Ganti` (reroll 2 Bunga, dengan konfirmasi).
 
-### 6.8 Quest Log — Sheet List, tab **Main · Side** (kode Q-4)
+### 6.8 Quest Log — Sheet List, tab **Main · Side** (kode Q-4) — **diganti oleh 9.1 (K-56)**
 
 Dibuka dari tap baris tracker. Tab kosong tidak digambar. Bagian: **Aktif / Tersedia / Selesai / Berikutnya** (`???` sampai level). Kartu Main aktif: pemberi + foto, langkah bercentang, hadiah, `Tunjukkan`. Baris petunjuk khusus (Kerja Bakti: K-37).
 
@@ -260,3 +260,36 @@ Satu panel untuk hal harian: Agenda (5 tugas, R2.2), Surat Kakek hari ini, ringk
 | Batch F, UI-B1…B15 | Tas Umpan, toast, chip umpan, HUD map, perbaikan bug | Selesai (belum playtest) |
 
 Mockup lama (canvas "Mockup Season Pass & Pohon Skill (HP)", https://claude.ai/artifact/UuRgfWQfZCVCxA2iUQDZhf) tetap acuan bentuk, **bukan** angka: ukuran tombol ikut Bab 3.4, angka hadiah ikut `Config/Rewards`, Premium ikut status "Segera hadir".
+
+---
+
+## 9. Revisi Playtest Putaran 1 (K-53…K-57)
+
+### 9.1 Quest Log (K-56, menggantikan 6.8)
+- Tab: **Main · Side · Harian · Pesanan**. Pesanan = daftar order Villager yang sudah ada.
+- **Landscape, dua panel.** Kiri: daftar dikelompokkan **Berjalan / Tersedia / Berikutnya** (redup, "Terbuka di Level n") / **Selesai** (terlipat). Tiap baris punya tanda status.
+- Kanan (detail): judul, potret + nama pemberi, satu baris cerita, checklist **Tugas** dengan progres, chip **Hadiah**, tombol **Tandai** / **Lepas** dan **Tunjukkan**.
+- **Portrait:** daftar dulu; ketuk → detail dengan tombol Kembali.
+- Tracker kiri: hanya quest bertanda, maksimal 3. Quest Main aktif ditandai otomatis; Side dan Harian hanya saat pemain menekan Tandai.
+- Tombol scroll di dock bawah membuka Quest Log.
+
+### 9.2 Pohon Skill: bar bawah (K-56)
+- Tombol Beli selalu terlihat; panel muat tanpa scroll di 844×390.
+- Saat node ditekan muncul bar bawah tetap: nama, efek, biaya (SP + Koin), prasyarat, tombol Beli.
+
+### 9.3 Tas: Pakai / Dipakai (K-55)
+- Pancing dan umpan punya tombol **Pakai** di drawer; item terpasang diberi badge **Dipakai**.
+- Chip umpan di HUD menampilkan umpan terpasang.
+
+### 9.4 Mancing: tombol Tarik (K-55)
+- Kontrol tarik memakai slot Tombol Aksi yang sama dengan Pancing, label teks "Tarik" (ikon "Reel" di Fase 4). Tarik dan Pancing tidak pernah satu tombol.
+
+### 9.5 Toast, kartu pemain, "!" (K-53)
+- Toast di bawah HUD Koin/Bunga, padding 12 px; di bawah Bubble Instruksi bila tampil.
+- Kartu pemain: pill "Lv n" di sebelah nama. Slot buff kosong disembunyikan.
+- Marker "!" di atas semua pemberi quest yang menawarkan quest.
+
+### 9.6 Acara & Pasar Malam (K-57)
+- Tombol **Event** hanya tampil saat event musiman aktif. Sheet: progres, Pesanan Tamu, hadiah, hitung mundur.
+- Pasar Malam: tempat di dunia, buka sesuai jadwal. Pak Kumis = NPC; bubble "Jual semua" / "Jual 1", seperti Pak Udin.
+- Lempar Gelang: bar bergerak, tap untuk berhenti; zona 60/30/10% (kecil/sedang/besar); 3 lemparan per malam.

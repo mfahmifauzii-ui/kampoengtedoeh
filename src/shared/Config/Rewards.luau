@@ -1,5 +1,5 @@
 --!strict
--- Hadiah mingguan & jangka panjang (docs/01_GDD_Kampoeng_Tedoeh_v8.2.md Bab 15.1 Login, 15.3 Peti Bunga, 15.4 Title, Bab 19 Season).
+-- Hadiah mingguan & jangka panjang (docs/01_GDD_Kampoeng_Tedoeh_v8.3.md Bab 15.1 Login, 15.3 Peti Bunga, 15.4 Title, Bab 19 Season).
 -- Data + fungsi murni saja. Angka yang bukan dari dokumen ditandai USULAN dan dicatat di Lampiran D.
 --   Login Mingguan : 7 hari kumulatif per minggu (Senin 05:00 WIB, TimeKeys.week). Diulang tiap minggu. 10 Bunga per minggu.
 --   Peti Bunga     : 1 peti = PETI_BUNGA Bunga (Update owner 2026-11-22). Sumber peti (lihat RewardsService):

@@ -1,5 +1,5 @@
 --!strict
--- Warung Player (docs/01_GDD_Kampoeng_Tedoeh_v8.2.md Bab 9.3, LOCKED): 1 slot pajang di lahan sendiri (Lv 6,
+-- Warung Player (docs/01_GDD_Kampoeng_Tedoeh_v8.3.md Bab 9.3, LOCKED): 1 slot pajang di lahan sendiri (Lv 6,
 -- gratis). NPC pengunjung beli 1 olahan tiap 5-10 menit random. Harga = base x Kualitas Olahan.
 -- TANPA Reputasi Warung. Offline tetap jalan, max 5 penjualan per login. Hanya olahan
 -- (bukan mentah). Bukan pasar antar-player (tanpa tawar-menawar).

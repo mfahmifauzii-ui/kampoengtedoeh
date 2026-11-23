@@ -2,7 +2,7 @@
 
 > Menggantikan `Quest_Kampoeng_Tedoeh_v0.3.md` dan `Naskah_Dialog_Kampoeng_Tedoeh_v0.1.md`.
 > Status: rantai Lv 1–10 **disetujui owner** (2026-11-22) dan sudah di kode (Q-1…Q-5). Baris bertanda **[USULAN]** adalah teks baru dari audit, belum di kode, menunggu K-xx (`02_Audit_Perbaikan.md`).
-> Angka gameplay (harga, XP, level) ada di `01_GDD_Kampoeng_Tedoeh_v8.2.md`. File ini hanya urutan quest, feature gate, dan teks.
+> Angka gameplay (harga, XP, level) ada di `01_GDD_Kampoeng_Tedoeh_v8.3.md`. File ini hanya urutan quest, feature gate, dan teks.
 > Semua teks masuk `Locale/id.luau`. Tidak ada teks dialog di file kode.
 
 ---
@@ -431,3 +431,12 @@ Fitur Lv 10+ yang perlu quest pengenal (Main = gameplay baru, Side = lanjutan):
 | 50 | Set Joglo | Main cerita |
 
 Struktur cerita "Babak 2 & 3" dan rancangan quest-nya: `08_Penyempurnaan.md` P-03. Ditulis lengkap di Roadmap R8.1–R8.2 (P-03 dianggap diterima; masukan owner datang dari playtest).
+
+---
+
+## 8. Revisi Playtest Putaran 1 (v8.3, K-54 / K-56)
+
+- **Bantu lahan** dihapus dari pool Harian dan Mingguan. Quest Season baru: "Bantu 20 lahan (Season)", 500 Koin, tanpa Bunga, muncul setelah Bantu terbuka.
+- **Quest diblok** bila sistemnya belum ada: M1 "Kampung Hari Ini" tetap tersembunyi sampai Agenda UI (R2.2) berjalan.
+- **Baris langkah pemain** = kolom Langkah di bab ini, dipakai di tracker dan log (contoh: "Buka Agenda (1/3)", "Tanam 6 bibit Kangkung (3/6)"). Side quest juga menampilkan apa yang harus dilakukan dan di mana.
+- **Tutorial:** naskah Mak Sari dan Kak Fajar mengikuti K-54 (Bab 4 di atas).

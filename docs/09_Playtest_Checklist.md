@@ -115,7 +115,7 @@ Tempel juga **teks merah/kuning dari panel Output** bila ada. Tidak perlu meneba
 7. [ ] Kucing Alun-alun & Joran Hilang **tidak muncul** (ditunda, K-16).
 8. [ ] Tidak ada tombol yang mati / abu-abu.
 
-### B3. Fase 3 — GUI (R3.1 – R3.7)
+### B3. Fase 3 — GUI (R3.1 – R3.8)
 1. [ ] Kartu pemain di kiri atas; tombol Dapur tidak ada di HUD; Dapur dibuka dari Tombol Aksi dekat Tungku.
 2. [ ] Satu **Tombol Aksi** (84 px) berubah sesuai yang terdekat: Mancing / Pukul / Tebang / Kandang / Craft / Masak.
 3. [ ] Hadiah: kartu Login 7 hari, bar Peti Main, Peti Bunga besar, **Klaim Semua** berfungsi.
@@ -123,6 +123,9 @@ Tempel juga **teks merah/kuning dari panel Output** bila ada. Tidak perlu meneba
 5. [ ] Bubble Instruksi tampil → toast turun di bawahnya, tidak bertabrakan.
 6. [ ] Semua teks ≥ 12 px terbaca di 390×844; kualitas (Biasa/Bagus/Prima) terbedakan **tanpa mengandalkan warna saja**.
 7. [ ] Pakai satu tangan di HP: semua tombol utama terjangkau jempol.
+8. [ ] **Quest Log (K-56):** tombol scroll di dock membuka Quest Log; tab Main · Side · Harian · Pesanan; landscape dua panel (Berjalan / Tersedia / Berikutnya / Selesai); tombol Tandai/Lepas dan Tunjukkan berfungsi; tracker hanya quest bertanda, maks 3.
+9. [ ] **Pohon Skill (K-56):** tombol Beli selalu terlihat; bar bawah muncul saat node ditekan (efek, biaya SP + Koin, prasyarat).
+10. [ ] **Event (K-57):** tombol "Event" hanya ada saat event aktif; Pasar Malam ada di dunia; Lempar Gelang lewat minigame bar (3 lemparan).
 
 ### B4. Fase 4–7 — Aset, Animasi, VFX, Audio
 > Yang bisa dinilai hanya owner: **apakah terasa satu gaya & cozy.** Beri masukan untuk contoh pertama (R4.1, R7.1) **sebelum** batch massal bila bisa, tapi Claude Code tidak menunggu.
@@ -184,6 +187,19 @@ Tempel juga **teks merah/kuning dari panel Output** bila ada. Tidak perlu meneba
 
 ---
 
+### B9. Putaran Playtest 1 (K-53 … K-57)
+1. [ ] **Garap (K-53):** ketuk sekali = sorot; ketuk lagi = tanam; yang tertanam sama dengan sel yang disorot; outline hilang saat keluar mode.
+2. [ ] **Toast (K-53):** di bawah Koin/Bunga, tidak menutupi HUD; di bawah Bubble Instruksi bila tampil.
+3. [ ] **Kartu pemain (K-53):** pill "Lv n" terlihat; slot buff kosong tidak tampil.
+4. [ ] **"!" quest (K-53):** muncul di atas Nek Ani dan pemberi quest lain yang menawarkan quest.
+5. [ ] **Bang Jali (K-53):** sebelum S3 "Terbuka di Level n"; sesudah "Jual semua panen (90%)".
+6. [ ] **Tutorial panen (K-54):** setelah panen pertama, 5 Garap lagi, 6 bibit Kangkung gratis, tunggu semua panen, baru Pak Udin.
+7. [ ] **Tutorial mancing (K-54):** tangkapan 1–2 hanya bubble Instruksi; tangkapan ke-3 cutscene Kak Fajar, lalu jual.
+8. [ ] **Pakai di Tas (K-55):** Pancing dan umpan bisa dipakai; badge Dipakai; umpan habis pindah ke umpan lain + toast; setelah rejoin tetap terpasang.
+9. [ ] **Tarik (K-55):** tombol Tarik di slot Tombol Aksi; Pancing dan Tarik tidak tertimpa.
+10. [ ] **Harian & Mingguan (K-56):** tidak ada templat yang belum terbuka; "Bantu lahan" tidak ada di sana, tetapi ada di Season (500 Koin).
+11. [ ] **Event (K-57):** tombol "Event" hanya saat event aktif.
+
 ## G. Gate Checklist
 
 ### G1 — Vertical Slice (Lv 1–10 lengkap + aset + audio)
@@ -206,6 +222,6 @@ Tempel juga **teks merah/kuning dari panel Output** bila ada. Tidak perlu meneba
 
 | Putaran | Tanggal | Bagian diuji | Ringkasan temuan (jumlah B / M / S) | Keputusan revisi tercatat (K-nn rev.) |
 |---------|---------|--------------|-------------------------------------|----------------------------------------|
-| 1 | | | | |
+| 1 | 2026-11-23 | Owner, HP (844×390, 667×375, 390×844) | 18 temuan (#1–#18): A bug, B tutorial, C mancing UI, D quest, E event | K-53 … K-57 |
 
 > Masukan yang mengubah **aturan desain** (bukan bug) dicatat Claude sebagai `K-nn rev.` di `02_Audit_Perbaikan.md` Bab 3.6, lalu GDD naik versi (v8.2, …). Bug cukup jadi tugas `R…` baru.

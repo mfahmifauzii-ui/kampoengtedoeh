@@ -1,5 +1,5 @@
 --!strict
--- Cuaca server (docs/01_GDD_Kampoeng_Tedoeh_v8.2.md Bab 3.3, LOCKED). Server-local: every server runs its own
+-- Cuaca server (docs/01_GDD_Kampoeng_Tedoeh_v8.3.md Bab 3.3, LOCKED). Server-local: every server runs its own
 -- cycle, no cross-server state (Prinsip #16). WorldService runs the state machine; FarmService and FishService read it.
 --   Terik (8-15 menit, random) -> Hujan (3 menit: Gerimis 55% / Deres 30% / Petir 15%) -> Terik -> ...
 -- Tidak ada Pelangi di game (Bab 29). Tidak pernah hujan 2x berturut-turut.

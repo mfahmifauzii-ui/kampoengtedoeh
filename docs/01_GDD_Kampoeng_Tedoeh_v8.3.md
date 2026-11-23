@@ -1,4 +1,4 @@
-# KAMPOENG TEDOEH — Game Design Document v8.2
+# KAMPOENG TEDOEH — Game Design Document v8.3
 ## Single Source of Truth (gameplay, angka, aturan)
 
 > Menggantikan `Kampoeng_Tedoeh_v7.4.md`, `v7.5.md`, `v7.6.md`, `v7.7.md`, dan `Skill_Tree_Kampoeng_Tedoeh_v7.7.md` (sekarang Bab 4.5).
@@ -1013,6 +1013,16 @@ Gembor Bunga (siram 5 petak) 100 · Sabit Bunga (panen 5 petak) 100 · Kapak Bun
 Kolam: 1 Bunga per 10 menit sisa, maks 30. Bubu tidak bisa instant. Tidak ada instant panen / olahan.
 
 ---
+
+## Revisi Playtest Putaran 1 (v8.3, K-53…K-57)
+
+Aturan yang berubah dari v8.2 (detail di Audit Bab 3.6, tugas di Roadmap Bab 19):
+- **Tutorial (K-54):** setelah panen pertama, pemain membuat 5 Garap lagi, menanam ulang 6 bibit Kangkung gratis, menunggu semua panen, baru dikirim ke Pak Udin. Mancing: tangkapan 1–2 tanpa cutscene; tangkapan ke-3 cutscene Kak Fajar lalu jual.
+- **Peralatan (K-55):** pancing dan umpan dipilih lewat "Pakai" di Tas. Ini **mengganti D#42 / D#49** ("tanpa pemilihan umpan"). Umpan habis → pindah otomatis ke umpan berikutnya.
+- **Quest (K-56):** Harian dan Mingguan hanya memilih templat yang fitur dan levelnya sudah terbuka. "Bantu lahan" pindah ke Season (500 Koin, tanpa Bunga, K-28). Quest yang sistemnya belum ada diblok.
+- **Event (K-57):** Acara tampil sebagai "Event" hanya saat event aktif. Pasar Malam adalah tempat di dunia dengan NPC Pak Kumis; Lempar Gelang memakai minigame (zona 60/30/10%).
+
+Angka ekonomi lain tidak berubah. Yang baru: hadiah Season "Bantu 20 lahan" (500 Koin) dan total XP tutorial (disesuaikan K-54 agar tetap Lv 2).
 
 ## 19. SEASON PASS — "Musim Panen"
 
