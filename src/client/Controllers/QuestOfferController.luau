@@ -65,7 +65,10 @@ end
 -- shows only when the player has a real offer and has pressed Play (character spawned, data loaded, no talk/cutscene open).
 -- It is a small billboard above the head: AlwaysOnTop off, MaxDistance 40 studs, so nothing shows on the title screen,
 -- through the blur, or in the middle of the plaza without its NPC.
-local MARKER_MAX_DISTANCE = 40
+-- 2026-11-23 owner video: no "!" was seen although the Quest Log listed offers. The marker was built only for a giver within
+-- 40 studs of the player (and billboards hid past 40), so from across the plaza nothing showed. Now the nearest model of each
+-- wanted giver is used at any distance, and the billboard stays readable up to 200 studs.
+local MARKER_MAX_DISTANCE = 200
 
 local function makeMarker(head: BasePart): BillboardGui
 	local billboard = Instance.new("BillboardGui")
@@ -120,7 +123,7 @@ local function refreshMarkers()
 				local head = model:FindFirstChild("Head")
 				if head and head:IsA("BasePart") then
 					local d = (head.Position - root.Position).Magnitude
-					if d <= MARKER_MAX_DISTANCE and (chosenDist[giver] == nil or d < chosenDist[giver]) then
+					if d <= MARKER_MAX_DISTANCE and (chosenDist[giver] == nil or d < chosenDist[giver]) then -- nearest copy wins, within MARKER_MAX_DISTANCE
 						chosen[giver] = model
 						chosenDist[giver] = d
 					end
