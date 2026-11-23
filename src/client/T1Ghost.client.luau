@@ -660,7 +660,9 @@ local function ensureSink()
 			lineDismissed = false
 			showInstruction(line, key)
 		end
-		return true
+		-- The player pressed Next on this step's line but the step is still open: the text goes back to the hint /
+		-- coachmark (GuideController shows it when false), so the step never has no visible instruction (found in Play 2026-11-23).
+		return not lineDismissed
 	end)
 	sinkSet = true
 end
