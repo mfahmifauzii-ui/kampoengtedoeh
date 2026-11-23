@@ -309,3 +309,16 @@ Catatan: di Studio, profil yang gagal dimuat dipakai dari memori (tidak tersimpa
 5. [ ] **Tahap 3:** saat ada tanaman siap panen, bubble "Jangan lupa panen semuanya ya, Nak." muncul sekali.
 6. [ ] **Bisa jalan:** saat bubble tampil, joystick dan Garap tetap bisa dipakai. Layar tidak gelap.
 7. [ ] **Keluar-masuk:** setelah tahap ditutup lalu game dimasuki lagi, tahap itu tidak muncul lagi.
+
+### B15. Satu toast (T0, 2026-11-23): owner cek di HP dan PC
+
+Aturan: GUI 4.2. Satu tempat (di bawah Koin/Bunga), satu gaya krem.
+
+1. [ ] **Tidak tumpang tindih (844×390):** saat ada dua toast + toast tersemat, tidak ada yang menutupi bar Koin/Bunga, dock, atau tombol Aksi bulat.
+2. [ ] **Tidak tumpang tindih (667×375):** sama seperti 1.
+3. [ ] **Tidak tumpang tindih (390×844, portrait):** sama seperti 1.
+4. [ ] **Tersemat tidak tertutup:** saat tanam_5 / garap_5 aktif dan toast lain muncul (mis. "Bibit ditanam"), toast tersemat tetap terlihat di atas.
+5. [ ] **Ok menutup:** toast dengan tombol Ok (mis. "Bibit habis", bila sudah ada) menutup saat Ok ditekan, dan tidak hilang sendiri.
+6. [ ] **Hitungan garap_5:** "Tap Garap, lalu Cangkul: n/5" naik langsung setiap petak selesai digali; tidak pernah 4/5 saat sudah 5 petak.
+7. [ ] **Tidak ada dua instruksi:** satu langkah tutorial hanya menampilkan satu teks (bubble atau toast, bukan keduanya). Pil cokelat coachmark tidak ada lagi.
+8. [ ] **Mancing:** status "Menunggu…" di strip bawah berwarna krem dan tidak menutupi dock atau tombol Aksi.

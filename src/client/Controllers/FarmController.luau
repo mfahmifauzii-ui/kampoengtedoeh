@@ -21,6 +21,7 @@ local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local State = require(script.Parent.Parent.State)
 local UiKit = require(script.Parent.Parent.UiKit)
+local HudController = require(script.Parent.HudController)
 local Vfx = require(ReplicatedStorage.Shared.Vfx)
 local FarmFloat = require(script.Parent.Parent.FarmFloat)
 local FarmFx = require(script.Parent.Parent.FarmFx)
@@ -810,11 +811,9 @@ local BAMBOO_RING_IMAGE = "rbxassetid://86005759010163" -- the uploaded bamboo c
 local popupGui: ScreenGui? = nil
 local popupCard: Frame
 local popupArrow: TextLabel
-local popupTip: TextLabel
 local popupScale: UIScale
 local popupBed: BasePart? = nil
 local ringDots: { Frame } = {}
-local tipHideAt = 0
 
 local function bedEdgeDistance(root: BasePart, bed: BasePart): number
 	local localPoint = bed.CFrame:PointToObjectSpace(root.Position)
@@ -918,21 +917,6 @@ local function buildPopup()
 	popupArrow.Visible = false
 	popupArrow.Parent = gui
 
-	popupTip = Instance.new("TextLabel")
-	popupTip.Name = "Tip"
-	popupTip.AnchorPoint = Vector2.new(0.5, 1)
-	popupTip.AutomaticSize = Enum.AutomaticSize.X
-	popupTip.Size = UDim2.fromOffset(0, 22)
-	popupTip.BackgroundColor3 = Color3.fromRGB(48, 32, 20)
-	popupTip.BackgroundTransparency = 0.05
-	popupTip.TextColor3 = UiKit.CREAM
-	popupTip.Font = UiKit.FONT
-	popupTip.TextSize = 13
-	popupTip.Visible = false
-	popupTip.Parent = gui
-	local tipRound = Instance.new("UICorner")
-	tipRound.CornerRadius = UDim.new(0, 8)
-	tipRound.Parent = popupTip
 end
 
 local function hidePopup()
@@ -1030,10 +1014,8 @@ local function fillPopup(bed: BasePart)
 				return
 			end
 			-- Held (lit) or a grey icon: a tip near the card (only unlocked seeds are on the card).
-			popupTip.Text = if status == "empty" then Locale.t("seed.tip_none")
-				else Locale.t("seed.tip_have", { name = Locale.t("crop." .. crop.id), n = have })
-			popupTip.Visible = true
-			tipHideAt = os.clock() + 1.6
+			HudController.Toast(if status == "empty" then Locale.t("seed.tip_none")
+				else Locale.t("seed.tip_have", { name = Locale.t("crop." .. crop.id), n = have }))
 		end)
 	end
 	-- Staggered pop from the middle: icons scale 0 -> 1, 0.05 s apart, from the centre out (LayoutOrder 1..n).
@@ -1081,9 +1063,6 @@ local function updatePopup()
 			hidePopup()
 		end
 	end
-	if os.clock() > tipHideAt then
-		popupTip.Visible = false
-	end
 	if not popupBed then
 		for _, dot in ringDots do
 			dot.Visible = false
@@ -1104,7 +1083,6 @@ local function updatePopup()
 	popupArrow.Text = if above then "▼" else "▲"
 	popupArrow.Position = UDim2.fromOffset(math.clamp(top.X, 12, view.X - 12), if above then top.Y - 16 else top.Y + 16)
 	popupArrow.Visible = onScreen
-	popupTip.Position = UDim2.fromOffset(x, popupCard.AbsolutePosition.Y - 6)
 
 	-- Dashed white ring: 12 dots, one stud past the bed's edge.
 	for index, dot in ringDots do

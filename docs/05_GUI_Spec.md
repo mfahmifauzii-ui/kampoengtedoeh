@@ -127,8 +127,25 @@ Ini satu-satunya aturan toast. Modul lain tidak boleh membuat label hint sendiri
   2. **pinned** — `HudController.SetPinned(key, template, n?, N?)`, `UpdatePinned(key, n, N)`, `ClearPinned(key)`. Tidak pernah dibuang, tidak hilang sendiri, tidak dihitung ke batas 2, selalu di atas transient. Hanya `ClearPinned` yang menghapus. Token `{n}` dan `{N}` di template diisi dari n dan N. Update sinkron pada event yang mengubah progres (tanpa polling); chip dirender ulang tanpa fade. `PinGuide`/`UnpinGuide` = pinned dengan key `"guide"`.
   3. **dismissible** — `HudController.ToastDismissible(key, text)`, `ClearDismissible(key)`. Gaya sama + tombol **Ok** (tinggi 44 px = sentuh minimum). Tetap sampai di-Ok atau dibersihkan kode.
 - **Urutan:** pinned di atas; transient terbaru di atas di antara transient. Semua di satu stack.
-- **Yang dilarang:** label hint kedua (GuideUI "Hint" sebagai permukaan teks, brown pill coachmark, statusFrame gelap). Teks instruksi/hint wajib lewat stack.
-- **Bubble Instruksi / coachmark:** hanya untuk langkah pertama, tidak lewat stack. Stack turun di bawah GuideUI "Hint" bila tampil (`TOAST_AVOID`); coachmark bubble tidak diperhitungkan (TB).
+- **Yang dilarang:** label hint kedua di modul mana pun. Teks instruksi/hint wajib lewat stack.
+- **Bubble coachmark:** pil cokelat sudah dihapus (T0). Yang tersisa hanya panah kuning dan ring/outline. Teks langkah lewat pinned `coach`.
+- **Peta permukaan teks (T0, hasil audit):**
+
+| Permukaan | Sekarang | Alasan / status |
+|---|---|---|
+| GuideUI "Hint" (langkah tutorial dan first-loop) | pinned `guidehint` | rerouted |
+| Coachmark pil cokelat | pinned `coach` (panah tetap) | rerouted |
+| Tutorial garap_5 / tanam_5 | pinned `guide` | sudah (MS-2) |
+| Garap mode line (`GarapUI/Hint`) | pinned `garapHint` | rerouted |
+| Decor mode line (`DecorUI/Hint`) | pinned `decorHint` (saat DecorUI aktif) | rerouted |
+| Tip kartu bibit (FarmController `popupTip`) | transient toast | rerouted (sebelumnya pil cokelat 1,6 dtk) |
+| Status Memancing (`FishingController` statusFrame) | **slot tetap sendiri** di strip bawah, cream | bukan toast: status hidup ("Menunggu…", Cancel) selama mancing; tidak pernah di stack. Posisi = `stripPosition()` (strip bawah). Tidak menutupi dock/Aksi belum diverifikasi di Play (lihat 09 T0) |
+| Banner bab (BannerController) | tetap | banner penuh, bukan instruksi |
+| Tanda "!" pemberi quest (QuestOfferController) | tetap | marker dunia, bukan teks instruksi |
+| Angka + floating (FeedbackController) dan KualitasBanner | tetap | umpan balik sesaat, bukan instruksi |
+| Dialog NPC (T1Dialog) | tetap | dialog penuh |
+
+- **Bubble Instruksi / coachmark:** hanya untuk langkah pertama. Tidak ada GuideUI "Hint" lagi; `TOAST_AVOID` kosong.
 - Banner LEVEL n, reward popup, dan efek terbang **bukan** toast (K-38).
 
 Status T0 (06 Bab 18): API pinned + dismissible dan hitungan garap_5 event-driven = DONE-CODE. Reroute GuideUI Hint, brown pill coachmark, dan statusFrame Memancing = TODO.

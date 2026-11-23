@@ -34,6 +34,7 @@ local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local State = require(script.Parent.Parent.State)
 local FeatureClient = require(script.Parent.Parent.FeatureClient)
 local UiKit = require(script.Parent.Parent.UiKit)
+local HudController = require(script.Parent.HudController)
 
 local VALID_COLOR = Color3.fromRGB(104, 214, 84) -- bright green: clearly "can place" on grass (the ghost is a preview)
 local INVALID_COLOR = Color3.fromRGB(196, 72, 60) -- red: "not here" (a warm red, same family as Hapus Petak)
@@ -59,7 +60,24 @@ local gui: ScreenGui
 local toggleButton: GuiButton
 local kolamButton: GuiButton
 local refreshKolamButton: () -> ()
-local hintLabel: TextLabel
+-- GUI 4.2: the Garap mode line is a pinned toast (key "garapHint") in the ONE toast stack; no own label.
+local hintText = ""
+local hintShown = false
+local function syncHint()
+	if hintShown and hintText ~= "" then
+		HudController.SetPinned("garapHint", hintText)
+	else
+		HudController.ClearPinned("garapHint")
+	end
+end
+local function setHintText(text: string)
+	hintText = text
+	syncHint()
+end
+local function setHintShown(on: boolean)
+	hintShown = on
+	syncHint()
+end
 local ghost: Part? = nil
 local ghostLabel: TextLabel? = nil -- the green / gray arrow above the ghost (name kept from the old label)
 local gridFolder: Folder? = nil -- the white grid over your own land (only while Garap / Pindah is on)
@@ -72,20 +90,6 @@ local moveOutline: Highlight? = nil
 local moveSource: { cx: number, cz: number } = { cx = 0, cz = 0 }
 local pointer: Vector2? = nil -- last touch position (viewport px); the ghost follows it on phones
 local hintHidden = false -- the tutorial's coachmark is on: its bubble replaces this hint
-
--- A dark bamboo-brown rounded box with a bamboo outline: the Garap bar and its hint (cream text on it).
-local function darkBox(frame: GuiObject)
-	frame.BackgroundColor3 = UiKit.DARK
-	frame.BackgroundTransparency = 0.08
-	local round = Instance.new("UICorner")
-	round.CornerRadius = UDim.new(0, 16)
-	round.Parent = frame
-	local border = Instance.new("UIStroke")
-	border.Color = UiKit.BAMBOO
-	border.Thickness = 3
-	border.ApplyStrokeMode = Enum.ApplyStrokeMode.Border -- on a TextLabel the default (Contextual) outlines the LETTERS in gold
-	border.Parent = frame
-end
 
 -- Helpers ------------------------------------------------------------------------------------
 
@@ -414,7 +418,7 @@ local function setBedHover(part: BasePart?)
 		local outline = bedHighlight :: Highlight
 		outline.Adornee = part
 		outline.Parent = part
-		hintLabel.Text = Locale.t("garap.hint_bed")
+		setHintText(Locale.t("garap.hint_bed"))
 		lastGhostValid = nil
 	else
 		if bedHighlight then
@@ -437,7 +441,7 @@ local function setArrow(valid: boolean)
 		if valid then
 			refreshHint()
 		else
-			hintLabel.Text = Locale.t("garap.tip_not_grass")
+			setHintText(Locale.t("garap.tip_not_grass"))
 		end
 	end
 end
@@ -660,9 +664,9 @@ end
 
 function refreshHint()
 	if movingUid ~= nil then
-		hintLabel.Text = Locale.t("garap.hint_move")
+		setHintText(Locale.t("garap.hint_move"))
 	elseif mode == "till" and selected then
-		hintLabel.Text = Locale.t("garap.hint_tap_again") -- K-53: first tap picked a square, the second tap plants it
+		setHintText(Locale.t("garap.hint_tap_again")) -- K-53: first tap picked a square, the second tap plants it
 	elseif mode == "till" then
 		-- Once there is a bed, say what comes next (a new player used to be stuck here: the hint never changed).
 		-- T-04 TODO closed: the hint shows the price of the next bed (Bab 5.2: n x 150 after the first 6, Config/Farm).
@@ -670,9 +674,9 @@ function refreshHint()
 		local hint = Locale.t(if #tiles > 0 then "garap.hint_till_more" else "garap.hint_till")
 		local nextCost = Farm.tileCost(#tiles + 1)
 		local price = if nextCost <= 0 then Locale.t("garap.price_free") else Locale.t("garap.price", { n = Locale.formatNumber(nextCost) })
-		hintLabel.Text = `{hint} · {Locale.t("garap.next_price", { price = price })}`
+		setHintText(`{hint} · {Locale.t("garap.next_price", { price = price })}`)
 	else
-		hintLabel.Text = Locale.t("garap.hint_pond", { price = pondPriceText() })
+		setHintText(Locale.t("garap.hint_pond", { price = pondPriceText() }))
 	end
 end
 
@@ -768,7 +772,7 @@ end
 -- on = Garap mode with that tool; off = finished.
 local function setActive(on: boolean, newMode: string?)
 	GarapController.Active = on
-	hintLabel.Visible = on and not hintHidden
+	setHintShown(on and not hintHidden)
 	if not on then
 		-- F1c (2026-11-23 owner video, orange block after leaving Garap): leaving Garap resets EVERY selection visual.
 		-- The first-tap square (selected), the bed outline on the last plot, a Pindah copy in progress (movePreview,
@@ -885,7 +889,7 @@ end
 -- Hides the Garap hint line while the tutorial's coachmark is on (one instruction at a time).
 function GarapController.SetHintHidden(on: boolean)
 	hintHidden = on
-	hintLabel.Visible = GarapController.Active and not on
+	setHintShown(GarapController.Active and not on)
 end
 
 -- Closes Garap mode (the tutorial does this once tilling is over: the bed pills stay hidden while Garap is open).
@@ -914,18 +918,6 @@ function GarapController.Init()
 	local hud = player:WaitForChild("PlayerGui"):WaitForChild("HUD", 5)
 	toggleButton = UiKit.menuItem(hud :: Instance, "GarapButton", Locale.t("ui.garap"), 1) :: GuiButton
 
-	hintLabel = Instance.new("TextLabel")
-	hintLabel.Name = "Hint"
-	hintLabel.AnchorPoint = Vector2.new(0.5, 0)
-	hintLabel.Position = UDim2.new(0.5, 0, 0.12, 0) -- top of the screen, not the middle
-	hintLabel.Size = UDim2.new(0.4, 0, 0, 36) -- at most 40 % of the width
-	hintLabel.TextColor3 = UiKit.CREAM
-	hintLabel.Font = Enum.Font.FredokaOne
-	hintLabel.TextSize = 14
-	hintLabel.TextWrapped = true
-	hintLabel.Visible = false
-	hintLabel.Parent = gui
-	darkBox(hintLabel)
 
 	kolamButton = UiKit.menuItem(hud :: Instance, "KolamButton", Locale.t("garap.tool_pond"), 2) :: GuiButton
 	-- v7.4 Bab 16.5: the pond left Tutorial 1. The dock button only appears once MQ4 / Bundel Kakek opened the pond

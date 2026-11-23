@@ -35,6 +35,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local UiAssets = require(ReplicatedStorage.Shared.Config.UiAssets)
 local UiKit = require(script.Parent.Parent.UiKit)
+local HudController = require(script.Parent.HudController)
 
 local player = Players.LocalPlayer
 
@@ -64,7 +65,6 @@ local highlight: Frame
 local highlightStroke: UIStroke
 local highlightRound: UICorner
 local bubble: Frame
-local bubbleText: TextLabel
 local arrow: TextLabel
 local npcArrow: TextLabel
 local current: Spec? = nil
@@ -149,32 +149,12 @@ function CoachmarkController.Init()
 
 	bubble = Instance.new("Frame")
 	bubble.Name = "Bubble"
-	bubble.AutomaticSize = Enum.AutomaticSize.X
-	bubble.Size = UDim2.fromOffset(0, 40)
-	bubble.BackgroundColor3 = Color3.fromRGB(48, 32, 20)
+	bubble.Size = UDim2.fromOffset(30, 16)
+	bubble.BackgroundTransparency = 1 -- GUI 4.2: no brown pill; the arrow stays, the step text is in the toast stack
 	bubble.Active = false
 	bubble.Visible = false
 	bubble.Parent = topGui
-	local bubbleRound = Instance.new("UICorner")
-	bubbleRound.CornerRadius = UDim.new(0, 12)
-	bubbleRound.Parent = bubble
-	local bubbleEdge = Instance.new("UIStroke")
-	bubbleEdge.Color = GOLD
-	bubbleEdge.Thickness = 2
-	bubbleEdge.Parent = bubble
-	local bubblePad = Instance.new("UIPadding")
-	bubblePad.PaddingLeft, bubblePad.PaddingRight = UDim.new(0, 14), UDim.new(0, 14)
-	bubblePad.Parent = bubble
 
-	bubbleText = Instance.new("TextLabel")
-	bubbleText.Name = "Text"
-	bubbleText.AutomaticSize = Enum.AutomaticSize.X
-	bubbleText.Size = UDim2.fromScale(0, 1)
-	bubbleText.BackgroundTransparency = 1
-	bubbleText.TextColor3 = UiKit.CREAM
-	bubbleText.Font = UiKit.FONT
-	bubbleText.TextSize = 16
-	bubbleText.Parent = bubble
 
 	arrow = Instance.new("TextLabel")
 	arrow.Name = "Arrow"
@@ -206,7 +186,11 @@ end
 
 function CoachmarkController.Show(spec: Spec)
 	current = spec
-	bubbleText.Text = spec.text or ""
+	if spec.text then
+		HudController.SetPinned("coach", spec.text)
+	else
+		HudController.ClearPinned("coach")
+	end
 	bubble.Visible = spec.text ~= nil
 	if not topGui.Enabled then
 		fadeInFrom = os.clock() -- a coachmark that was hidden fades in, it does not pop in
@@ -220,6 +204,7 @@ end
 
 function CoachmarkController.Hide()
 	current = nil
+	HudController.ClearPinned("coach")
 	if overlayGui then
 		overlayGui.Enabled = false
 	end

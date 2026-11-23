@@ -102,13 +102,13 @@ local function buildUi()
 	statusFrame.Size = UDim2.fromOffset(196, UiKit.HUD.STRIP_H)
 	statusFrame.Visible = false
 	statusFrame.Parent = gui
-	darkBox(statusFrame, 16)
+	UiKit.parchmentBox(statusFrame) -- GUI 4.2: cream style, its own fixed bottom-strip slot (not a toast; never in the stack)
 
 	local rodIcon = UiKit.icon(statusFrame, "pancing", 24)
 	if rodIcon then
 		rodIcon.Position = UDim2.fromOffset(8, 6)
 	end
-	statusLabel = label(statusFrame, "", 13, Color3.fromRGB(255, 226, 120))
+	statusLabel = label(statusFrame, "", 13, UiKit.TEXT)
 	-- The text wraps inside the panel, between the rod icon (x 8..32) and the Batal button on the right (64 px + 8 px margin).
 	statusLabel.Position = UDim2.fromOffset(38, 6)
 	statusLabel.Size = UDim2.new(1, -118, 1, -12)

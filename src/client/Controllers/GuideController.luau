@@ -16,11 +16,10 @@
 -- analytics; this side only watches the world and asks. No progress for 45 s = stronger ring, 90 s = the explicit text.
 -- Replay (Atur > Panduan) runs the same steps with no save and no reward.
 --
--- UI CONTRACT: ScreenGui "GuideUI" > TextLabel "Hint"; the trail is the Folder "GuideTrail" in Workspace
+-- UI CONTRACT: the step text goes to the toast stack (HudController pinned key "guidehint"); GuideUI itself has no text label (GUI 4.2). The trail is the Folder "GuideTrail" in Workspace
 -- (client only); the ring is a Frame "GuideRing" parented to the highlighted HUD button.
 
 local CollectionService = game:GetService("CollectionService")
-local GuiService = game:GetService("GuiService")
 local PathfindingService = game:GetService("PathfindingService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -58,8 +57,14 @@ local GOLD = Color3.fromRGB(240, 196, 92)
 local OUTLINE = Color3.fromRGB(66, 46, 30) -- UiKit.DARK
 
 local gui: ScreenGui
-local hint: Frame -- the parchment chip (see hintText for the words)
-local hintText: TextLabel
+-- The step's instruction text is a pinned guidance toast in the ONE toast stack (GUI 4.2, key "guidehint"). nil clears it.
+local function setHint(text: string?)
+	if text == nil or text == "" then
+		HudController.ClearPinned("guidehint")
+	else
+		HudController.SetPinned("guidehint", text)
+	end
+end
 local trailFolder: Folder
 local chevrons: { { model: Model, parts: { BasePart } } } = {}
 local route: { Vector3 } = {} -- walking route from the last path computation (ground-ish points, start to goal)
@@ -99,7 +104,6 @@ local acked: { [string]: boolean } = {} -- welcome modal "Mulai" pressed, per st
 local welcomeShown = false -- the welcome modal of the current run has been opened
 local defs: { Onboarding.Tutorial } = {}
 local defById: { [string]: Onboarding.Tutorial } = {}
-local hintPad: UIPadding
 local ring: Frame? = nil
 local ringFor: string? = nil
 local ringStrong = false
@@ -244,8 +248,6 @@ local function refresh()
 		refreshTutorial()
 		return
 	end
-	hintPad.PaddingRight = UDim.new(0, 14)
-	hint.Position = UDim2.new(0.5, 0, 0.12, 0) -- top of the screen, under the coin bar (not the middle)
 	step = computeStep()
 	local npcName = Locale.t(`npc.{Onboarding.BUYER_NPC}`)
 	local text: string? = nil
@@ -268,8 +270,7 @@ local function refresh()
 			text = Locale.t(if step == "sell" then "guide.sell" elseif active() then "guide.buy" else "guide.buy_plain", { npc = npcName })
 		end
 	end
-	hint.Visible = text ~= nil and not GarapController.Active
-	hintText.Text = text or ""
+	setHint(if text ~= nil and not GarapController.Active then text else nil)
 end
 
 -- Trail --------------------------------------------------------------------------------------
@@ -809,21 +810,6 @@ local function endTutorial()
 	refresh()
 end
 
--- Garap and Decor mode show their own hint line at the top: the tutorial bar goes just under it (GuideUI ignores the inset, they do not).
-local function hintTop(): number
-	local top = math.floor((Workspace.CurrentCamera :: Camera).ViewportSize.Y * 0.12)
-	local playerGui = player:FindFirstChildOfClass("PlayerGui")
-	for _, name in { "GarapUI", "DecorUI" } do
-		local other = playerGui and playerGui:FindFirstChild(name)
-		local line = other and other:FindFirstChild("Hint")
-		local shown = other ~= nil and other:IsA("ScreenGui") and other.Enabled
-		if shown and line and line:IsA("GuiObject") and line.Visible then
-			top = math.max(top, line.AbsolutePosition.Y + line.AbsoluteSize.Y + GuiService:GetGuiInset().Y + 6)
-		end
-	end
-	return top
-end
-
 -- A button (or any GuiObject) by name in any open screen: the HUD, or a panel/bar such as Garap's "TillButton".
 function findHighlight(name: string): GuiObject?
 	local playerGui = player:FindFirstChildOfClass("PlayerGui")
@@ -1036,7 +1022,7 @@ function refreshTutorial()
 	if stepDef.target and stepDef.target.land and not inLandZone(stepDef.arrive or 60) then
 		CoachmarkController.Hide()
 		clearRing()
-		hint.Visible = false
+		setHint(nil)
 		return
 	end
 	local now = os.clock()
@@ -1082,7 +1068,7 @@ function refreshTutorial()
 	if stage then
 		msBubble(stage)
 		CoachmarkController.Hide()
-		hint.Visible = false
+		setHint(nil)
 		return
 	end
 	-- MS-2: the pinned guidance toast (GUI 4.2 pinned kind, key "guide"). garap_5 shows n/N new beds, kept live by
@@ -1103,7 +1089,7 @@ function refreshTutorial()
 		-- garap_5 and tanam_5 are pinned (see refreshTutorial): their words are not toasted a second time.
 		CoachmarkController.Hide()
 		GarapController.SetHintHidden(true)
-		hint.Visible = false
+		setHint(nil)
 		CoachmarkController.SetPaused(uiBusy())
 		local spoken = say(stepDef.id, stuckFor >= Onboarding.STUCK_TEXT)
 		if stepDef.id ~= "garap_5" and stepDef.id ~= "tanam_5" then
@@ -1138,7 +1124,7 @@ function refreshTutorial()
 		else
 			CoachmarkController.Hide()
 		end
-		hint.Visible = false
+		setHint(nil)
 		toastOnce(current.n, stepDef.id .. phase, if spoken then nil else text)
 		return
 	end
@@ -1175,7 +1161,7 @@ function refreshTutorial()
 		if stepDef.id == "siram" and select(2, bedStates()) then
 			coachText = Locale.t("tut.coach.panen_tap")
 		end
-		hint.Visible = false
+		setHint(nil)
 		clearRing()
 		GarapController.SetHintHidden(true)
 		-- A panel or modal is open (seed picker, Atur, a confirm): the coachmark steps aside until it closes.
@@ -1208,10 +1194,7 @@ function refreshTutorial()
 	-- A step that is a dialog of the intro (kind "ack"): T1Ghost speaks it in the dialog box, so no hint bar here, ever
 	-- (Playtest 7 item 5). The sink is still asked, so a line that is spoken is not doubled.
 	say(stepDef.id, false)
-	hintText.Text = text
-	hint.Visible = false
-	hint.Position = UDim2.new(0.5, 0, 0, hintTop())
-	hintPad.PaddingRight = UDim.new(0, 14)
+	setHint(nil)
 
 	-- Ring on a HUD button (created once per button, pulsed in RenderStepped).
 	local wanted = stepDef.highlight
@@ -1446,28 +1429,6 @@ function GuideController.Init()
 	gui.DisplayOrder = UiKit.LAYER.WORLD_BACK -- under the HUD and every panel
 	gui:SetAttribute("NoScale", true) -- real pixels (UiKit.autoScale must not scale it)
 
-	-- The parchment chip is the frame (UiKit.parchmentBox: rounded ends, bamboo skin); the text is a label on top of it.
-	hint = Instance.new("Frame")
-	hint.Name = "Hint"
-	hint.AnchorPoint = Vector2.new(0.5, 0)
-	hint.Position = UDim2.new(0.5, 0, 0.12, 0) -- top of the screen, under the coin bar (not the middle)
-	hint.Size = UDim2.new(0.4, 0, 0, 36) -- tutorial toast: at most 40 % of the width, 36 px tall
-	hint.Visible = false
-	hint.Parent = gui
-	parchmentBox(hint, 22)
-	hintText = Instance.new("TextLabel")
-	hintText.Name = "Text"
-	hintText.BackgroundTransparency = 1
-	hintText.Size = UDim2.fromScale(1, 1)
-	hintText.ZIndex = 2 -- above the parchment skin
-	hintText.TextColor3 = UiKit.TEXT -- dark brown ink
-	hintText.Font = Enum.Font.FredokaOne -- heavier weight so the ink reads on the parchment
-	hintText.TextSize = 14
-	hintText.TextWrapped = true
-	hintText.Parent = hint
-	hintPad = Instance.new("UIPadding")
-	hintPad.PaddingLeft, hintPad.PaddingRight = UDim.new(0, 14), UDim.new(0, 14)
-	hintPad.Parent = hintText
 
 	gui.Parent = player:WaitForChild("PlayerGui")
 

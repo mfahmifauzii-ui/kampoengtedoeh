@@ -24,6 +24,7 @@ local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local State = require(script.Parent.Parent.State)
 local FeatureClient = require(script.Parent.Parent.FeatureClient)
 local UiKit = require(script.Parent.Parent.UiKit)
+local HudController = require(script.Parent.HudController)
 
 type Item = Decor.Item
 
@@ -52,7 +53,19 @@ local highlight: Highlight? = nil
 local hiddenParts: { [BasePart]: number } = {}
 
 local gui: ScreenGui
-local hintLabel: TextLabel
+-- GUI 4.2: the Decor mode line is a pinned toast (key "decorHint") in the ONE toast stack; no own label.
+local hintText = ""
+local function syncHint()
+	if gui and gui.Enabled and hintText ~= "" then
+		HudController.SetPinned("decorHint", hintText)
+	else
+		HudController.ClearPinned("decorHint")
+	end
+end
+local function setHintText(text: string)
+	hintText = text
+	syncHint()
+end
 local countLabel: TextLabel
 local catalog: ScrollingFrame
 local actionBar: Frame
@@ -160,7 +173,7 @@ local function endPlacing()
 	restoreHidden()
 	ContextActionService:UnbindAction(ROTATE_ACTION)
 	actionBar.Visible = false
-	hintLabel.Text = Locale.t("decor.hint")
+	setHintText(Locale.t("decor.hint"))
 end
 
 local function rotate()
@@ -224,7 +237,7 @@ local function startPlacing(item: Item, existing: Model?)
 
 	storeButton.Visible = state.uid ~= nil
 	actionBar.Visible = true
-	hintLabel.Text = Locale.t(if UserInputService.TouchEnabled then "decor.hint_touch" else "decor.hint_mouse")
+	setHintText(Locale.t(if UserInputService.TouchEnabled then "decor.hint_touch" else "decor.hint_mouse"))
 	ContextActionService:BindAction(ROTATE_ACTION, function(_, inputState)
 		if inputState == Enum.UserInputState.Begin then
 			rotate()
@@ -425,20 +438,6 @@ local function buildUi()
 	gui.ResetOnSpawn = false
 	gui.Enabled = false
 
-	hintLabel = Instance.new("TextLabel")
-	hintLabel.Name = "Hint"
-	hintLabel.AnchorPoint = Vector2.new(0.5, 0)
-	hintLabel.Position = UDim2.new(0.5, 0, 0, 12)
-	hintLabel.Size = UDim2.new(0.6, 0, 0, 34)
-	hintLabel.BackgroundColor3 = UiKit.BG
-	hintLabel.BackgroundTransparency = 0.2
-	hintLabel.TextColor3 = UiKit.TEXT
-	hintLabel.Font = Enum.Font.FredokaOne
-	hintLabel.TextSize = 14
-	hintLabel.TextWrapped = true
-	hintLabel.Text = Locale.t("decor.hint")
-	hintLabel.Parent = gui
-	Instance.new("UICorner").Parent = hintLabel
 
 	local done = UiKit.button(gui, "Done", Locale.t("ui.done"), UiKit.BG)
 	done.AnchorPoint = Vector2.new(1, 0)
@@ -539,6 +538,7 @@ function DecorController.SetActive(value: boolean)
 		endPlacing()
 	end
 	gui.Enabled = value
+	syncHint()
 	if value then
 		renderCatalog()
 	end
