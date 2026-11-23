@@ -147,7 +147,7 @@ Reset harian (Agenda, Login, Bantu, Order, batas Kerja Bakti) = **05:00 WIB**. H
 
 **Efek hujan:**
 - Semua tanaman luar tersiram 1x (potong sisa 15%) dan tumbuh **2x lebih cepat** selama hujan.
-- Mancing ✔ K-01: waktu tunggu gigitan **normal**; **jendela gigitan 2x lebih panjang** (1,5 → 3 dtk). (Kode saat ini masih waktu tunggu 2x → R1.2.)
+- Mancing ✔ K-01 + K-49: tidak ada batas waktu gigitan (ikan menunggu di kail sejak keputusan 16 Nov). Hujan tidak lagi menggandakan waktu tunggu (K-49).
 - **Mood Hujan:** 5 menit setelah hujan, produk ternak yang diambil +10% Koin; breeding kolam yang dimulai di jendela itu −10% waktu.
 - Kerja Bakti Kilat setelah Deres / Petir (Bab 13.4).
 
@@ -351,7 +351,7 @@ Bibit ≈ 30% harga jual.
 
 ### 6.1 Loop
 
-Dekati spot → Tombol Mancing (bulat, ikon joran) → Lempar (0,6 dtk) → Tunggu gigitan → Gigitan: jendela **1,5 dtk** untuk mulai tarik → Mini-game tarik → Kartu ikan → ulangi.
+Dekati spot → Tombol Mancing (bulat, ikon joran) → Lempar (0,6 dtk) → Tunggu gigitan → Gigitan: ikan menunggu di kail sampai pemain mulai tarik (tidak ada batas waktu, ✔ K-49) → Mini-game tarik → Kartu ikan → ulangi.
 
 - Waktu tunggu: dengan umpan **3–6 dtk**, tanpa umpan **6–12 dtk**. Urutan pengali: dasar → joran (`rod.biteMult`, ✔ K-26: angka disalin dari kode ke tabel 6.3 di R0.4) → umpan (Jangkrik ×0,7) → Buff Pancing (×0,8) → hujan (**tidak ada pengali**; hujan memperlebar jendela gigitan ✔ K-01). Kolam = aturan tanpa umpan.
 - Umpan otomatis: umpan pertama yang dimiliki menurut urutan Cacing → Jangkrik → Pelet → Udang Kecil. Tidak ada pilih umpan (final).
@@ -444,7 +444,7 @@ Dijual di Pak Udin (bagian Kebutuhan) dengan harga Koin saja. Pasang di sungai d
 - **Pemetaan rarity (satu-satunya tempat):** C = Early, U = Mid, R = Late, L = Legenda. Bubu tidak pernah memberi L.
 - **Bahan material ditunda (K-66):** 10 Bambu, 20 Kayu, serta 15 Batu + 10 Kayu tidak dipungut; harga cukup Koin.
 - Maks 3 bubu total (semua tipe). Buka Lv 8 lewat M8.
-- Perbedaan dengan tabel lama: tabel lama menulis "5% 1 Late" untuk Besi. Kode memilih ikan acak dari pool U + R; persentase 5% belum ada di kode (lihat laporan D3, butuh keputusan owner).
+- Perbedaan dengan tabel lama: tabel lama menulis "5% 1 Late" untuk Besi. Kode memilih ikan acak dari pool U dan R (bobot rarity di Config/Fish). Aturan "5% 1 Late" tidak ada di kode dan butuh keputusan owner.
 
 ---
 
@@ -707,7 +707,7 @@ Album = GUI kartu, dibuka dari HUD. Bukan item, bukan bangunan.
 | Dapur | 24 resep × 3 kualitas | 72 | Ya ✔ K-05 |
 | Varian | 6 Bibit Varian + 2 Hewan Varian | 8 | Ya |
 | Kandang | 3 hewan + 2 varian | 5 | Tidak (Pencapaian) |
-| Rumah | 80 piece pernah dipasang | 80 | Tidak (Pencapaian, title Juragan Pondok) |
+| Rumah | piece pernah dipasang (kode: 33 entri, ✔ K-52; target konten 80 = R4.8) | 33 | Tidak (Pencapaian, title Juragan Pondok) |
 | **Total GUI utama** | | **214** | |
 
 - Entri baru: kartu kecil `ALBUM +1` 1 detik.
@@ -900,7 +900,7 @@ Dua tutorial: `t1_awal` (langkah 1–9) dan `t1b_kolam` (langkah 10–13). Id la
 | 8 | `tunggu_semua` | Lahan | Panen 6 bibit gratis (semua) | — | Toast saja (tidak pernah gelap) |
 | 9 | `panen_jual` | Lahan → Pak Udin | Jual 1 ke Pak Udin | 20 | Toast saja |
 | 10 | `warung` | Pak Udin | Ok (ack) | — | Dialog Pak Udin |
-| 11 | `kak_fajar` | Sungai Lahan | Terima Hadiah (`rodgift`) | — | Panah NPC + toast |
+| 11 | `kak_fajar` | Sungai Lahan | Terima Hadiah (`rodgift`): Joran Bambu + umpan Cacing (✔ K-21) | — | Panah NPC + toast |
 | 12 | `mancing` | Sungai Lahan | 3 ikan (B2 K-54) | 20 | Pertama: bubble coachmark + ring Aksi (Pancing); tangkapan ke-2 dan ke-3: toast |
 | 13 | `jual_ikan` | Sungai Lahan | Ok setelah jual ikan ke Kak Fajar | sampai Lv 2 (xpFill) | Dialog Kak Fajar |
 
