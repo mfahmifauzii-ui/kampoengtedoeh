@@ -3,7 +3,7 @@
 -- Dashboard (Monetization > Passes / Developer Products) and paste the ids here.
 -- id = 0 -> shown as "Belum tersedia" and never prompted.
 --
--- Principles (Kampoeng_Tedoeh_v7.3 Bab 18 & 29): Bunga buys style, comfort and time.
+-- Principles (docs/01_GDD_Kampoeng_Tedoeh_v8.1.md Bab 18 & 29): Bunga buys style, comfort and time.
 -- Nothing sold here is Koin, land, pond or kandang slots, or anything that blocks core progression.
 -- Tidak ada Backpack Pass (Bab 29): tas tanpa cap slot. Tidak ada Instant Panen (Bab 29).
 -- No popups: the store opens only when the player taps it.

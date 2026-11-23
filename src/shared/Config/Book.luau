@@ -1,5 +1,5 @@
 --!strict
--- Album Kampung (Kampoeng_Tedoeh_v7.3 Bab 11, LOCKED): GUI utama 214 entri.
+-- Album Kampung (docs/01_GDD_Kampoeng_Tedoeh_v8.1.md Bab 11, LOCKED): GUI utama 214 entri.
 --   Ladang 54 (18 tanaman x 3 Kualitas) + Sungai 80 (20 ikan x 4 ukuran) + Dapur 72 (24 resep x 3 Kualitas) + Varian 8 = 214.
 --   Kandang (3 hewan + 2 Hewan Varian) + Rumah (piece Decor, auto) = tab terpisah, tidak masuk 214.
 -- Entry id: ladang "{crop}:{biasa|bagus|prima}", sungai "{fish}@{S|M|L|Jumbo}", dapur "{resep}:{biasa|bagus|prima}",

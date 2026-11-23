@@ -1,5 +1,5 @@
 --!strict
--- Ternak + Kolam breeding (Kampoeng_Tedoeh_v7.3 Bab 7.1 / 7.2, LOCKED).
+-- Ternak + Kolam breeding (docs/01_GDD_Kampoeng_Tedoeh_v8.1.md Bab 7.1 / 7.2, LOCKED).
 -- Loop ternak: Beli hewan -> Isi pakan -> Produksi jalan walau offline -> Ambil -> Jual / olah (Dapur P2-3).
 -- Hewan tidak mati/sakit/kabur. Tidak ada daging. Tidak ada kasih minum / bar haus.
 -- Loop kolam: Simpan 2 ikan sejenis non-Legenda -> Pakan Ikan 20 Koin -> Tunggu -> 1 anak (@M/Sedang).

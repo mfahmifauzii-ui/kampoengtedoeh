@@ -1176,7 +1176,7 @@ return {
 	["data.load_failed"] = "Data kamu gagal dimuat. Coba masuk lagi sebentar, ya.",
 	["data.session_ended"] = "Datamu terbuka di server lain. Masuk lagi.",
 	["data.server_outdated"] = "Server versi lama. Masuk lagi.",
-	-- Dialog pemberi quest (Naskah Bab 2-3, Q-3). Salin dari docs/Naskah_Dialog_Kampoeng_Tedoeh_v0.1.md, jangan diubah di sini.
+	-- Dialog pemberi quest (Naskah Bab 2-3, Q-3). Salin dari docs/03_Quest_Naskah.md, jangan diubah di sini.
 	["dlg.m1.start.1"] = "Kamu cucunya Daeng, kan?",
 	["dlg.m1.start.2"] = "Tiap hari di kampung ada saja yang bisa dikerjakan, Cu. Nenek tulis di Agenda.",
 	["dlg.m1.start.3"] = "Oh, kalau ada gerobak lewat di alun-alun, mampir. Barangnya suka aneh-aneh.",
