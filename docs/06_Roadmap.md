@@ -269,6 +269,7 @@ Butuh: R0.3 selesai.
 | Placeholder suara Critical (`place_item` pitch-up) | R7.3 |
 | Dekor event sementara (Part) | R4.10 |
 | `ftue_super` di save (sengaja dipertahankan) | Hapus saat migrasi pertama R10.2 |
+| Stylua belum dikonfigurasi di repo (`aftman.toml` tidak mendaftar stylua); format tidak diperiksa otomatis. Diterima owner 2026-11-23. | Tidak ditutup; tinjau saat R10.x |
 
 ## 18. Risiko Utama
 

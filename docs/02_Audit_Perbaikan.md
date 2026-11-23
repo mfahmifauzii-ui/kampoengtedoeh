@@ -96,7 +96,7 @@ Ringkasan: **83 temuan** — 14 Tinggi, 37 Sedang, 32 Rendah.
 
 | ID | Sev | Lokasi | Masalah | Beres di |
 |----|-----|--------|---------|----------|
-| A-51 | Tinggi | Bab 9.2 | **Sambal Tomat rugi**: bahan 394 Koin (4 Tomat + 2 Cabai), jual 320. Lima resep lain di bawah aturan 1,5–1,8x (Bab 9.1): Tumis Kangkung 1,19x; Selai Stroberi 1,10x; Kopi Tubruk 1,09x; Teh Melati 1,07x; Es Krim Durian 1,30x. Pemain lebih untung jual mentah. | K-03 → R1.1 |
+| A-51 | Tinggi | Bab 9.2 | **Sambal Tomat rugi**: bahan 394 Koin (4 Tomat + 2 Cabai), jual 320. Lima resep lain di bawah aturan 1,5–1,8x (Bab 9.1): Tumis Kangkung 1,19x; Selai Stroberi 1,10x; Kopi Tubruk 1,09x; Teh Melati 1,07x; Es Krim Durian 1,30x. Pemain lebih untung jual mentah. (Total 6 resep di bawah aturan pada temuan ini; K-03 kemudian menyetel 9 harga, termasuk 3 turunan.) | K-03 → R1.1 |
 | A-52 | Sedang | Bab 7.1, 9.2 | Pakan Jagung: 5 Jagung (550 Koin) → 6 jatah pakan (nilai 90 Koin). Disebut "alternatif gratis", nyatanya rugi ±6x. | K-04 |
 | A-53 | Tinggi | Bab 9.1 vs Skill Rasa Prima, Bab 11 | Kualitas olahan = kualitas bahan tertinggi (pasti, tanpa roll). Ikan Early Goreng (ikan + Garam) dan Telur Asin (telur + Garam) **tidak punya bahan berkualitas** → hanya bisa Biasa → **4 entri Album Dapur mustahil**. Skill Rasa Prima "peluang Olahan Prima" bertentangan dengan aturan tanpa roll. | K-05 → R1.3 |
 | A-54 | Sedang | Prinsip 1 vs Bab 5.2, Lampiran D #14 | Prinsip 1 "hapus bangunan refund 100%" vs petak 50% dan Kolam memakai `REFUND_RATE` (bukan 100%). | K-09 |
@@ -207,7 +207,7 @@ Cara owner memberi masukan: lewat playtest (`09_Playtest_Checklist.md`). Masukan
 - (b) Biarkan; kartu resep tampil terkunci dengan alasan.
 - **Default: (a).** Buff Tukang dan resep energi jadi terpakai sejak awal.
 
-**K-03 Harga 6 resep di bawah aturan 1,5–1,8x** (A-51) — usulan angka (1,6x bahan, dibulatkan):
+**K-03 Harga 9 resep (6 resep biasa + 3 turunan) di bawah aturan 1,5–1,8x** (A-51) — usulan angka (1,6x bahan, dibulatkan):
 
 | Resep | Bahan | Jual lama | Jual baru |
 |-------|-------|-----------|-----------|
