@@ -167,6 +167,19 @@ local function rollFish(location: string, level: number, rareBonus: number, lege
 	return candidates[#candidates].fish.id
 end
 
+-- K-06 (b): tangkapan Legenda berikutnya = ukuran yang belum ada di Album Sungai (4 tangkapan = lengkap).
+-- Nil bila semua ukuran sudah ada (pakai ukuran biasa).
+local function unownedLegendSize(player: Player, fishId: string): string?
+	local data = DataService.Get(player)
+	local recorded = if data then (data.book :: any).sungai else nil
+	for _, entry in FishConfig.SIZES do
+		if recorded == nil or recorded[`{fishId}@{entry.id}`] == nil then
+			return entry.id
+		end
+	end
+	return nil
+end
+
 local function sizeFor(score: number): string
 	local size = FishConfig.SIZES[1].id
 	for _, entry in FishConfig.SIZES do
@@ -722,7 +735,8 @@ local function onReel(player: Player, score: any)
 	-- Kolam: ukuran ikan = ukuran yang sudah ada di stok (tidak diacak ulang).
 	local reelData = DataService.Get(player)
 	local ikanBesar = reelData and reelData.skill.ikan_besar or 0
-	local size = if session.pondItem then session.pondItem:match("@(.+)$") or "S" else sizeFor(math.clamp(score + 0.02 * ikanBesar, 0, 1))
+	local legendSize = if FishConfig.byId[session.fishId] and FishConfig.byId[session.fishId].rarity == "L" then unownedLegendSize(player, session.fishId) else nil
+	local size = if session.pondItem then session.pondItem:match("@(.+)$") or "S" else (legendSize or sizeFor(math.clamp(score + 0.02 * ikanBesar, 0, 1)))
 	local item = FishService.ItemId(session.fishId, size)
 	sessions[player] = nil
 	local caught = InventoryService.Add(player, item, 1)
