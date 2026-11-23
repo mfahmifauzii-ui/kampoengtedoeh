@@ -136,14 +136,15 @@ local function renderPasar(list: ScrollingFrame, order: number, snapshot: any): 
 	end
 	local price = math.floor(base * Repeat.PASAR.BUY_MULT + 0.5)
 	local title = `{Locale.t(`npc.{info.trader}`)}: {pasarItemName(info.item)}`
-	UiKit.row(list, order, title, `{moneyText(price, "koin")} (+50%) A· {info.sold}/{Repeat.PASAR.MAX_PER_NIGHT}`, Locale.t("pasar.jual"), info.sold < Repeat.PASAR.MAX_PER_NIGHT, function()
+	UiKit.row(list, order, title, `{moneyText(price, "koin")} (+50%) · {info.sold}/{Repeat.PASAR.MAX_PER_NIGHT}`, Locale.t("pasar.jual"), info.sold < Repeat.PASAR.MAX_PER_NIGHT, function()
 		Net.Send("PasarJual", 1)
 	end, Locale.t("pasar.jual_semua"), function()
 		Net.Send("PasarJual", 999)
 	end)
 	order += 1
 	local throwsLeft = Repeat.PASAR.GELANG_PER_NIGHT - (info.throws or 0)
-	UiKit.row(list, order, Locale.t("pasar.lempar", { n = math.max(throwsLeft, 0) }), nil, Locale.t("pasar.lempar", { n = math.max(throwsLeft, 0) }), throwsLeft > 0, function()
+	-- A7 (K-53): the title and the button used to show the same text, which overlapped. Title + "sisa" + short button.
+	UiKit.row(list, order, Locale.t("pasar.lempar_title"), Locale.t("pasar.lempar_left", { n = math.max(throwsLeft, 0) }), Locale.t("pasar.lempar_btn"), throwsLeft > 0, function()
 		Net.Send("GelangThrow")
 	-- Lempar Gelang tidak mengubah snapshot barang: hadiah masuk tas, toast yang bicara.
 	end)

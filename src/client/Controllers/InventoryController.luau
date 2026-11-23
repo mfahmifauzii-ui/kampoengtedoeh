@@ -119,7 +119,8 @@ local function render()
 	-- A3 (v6.2.3): the equipped rod is shown too. Rods are ownership flags (data.fishing), not bag items, so without this
 	-- the Joran Bambu from Kak Fajar never appeared in the Tas.
 	local snapshot2 = State.current :: any
-	if snapshot2 and typeof(snapshot2.rod) == "string" and snapshot2.rod ~= "" then
+	-- A7 (K-53): the rod belongs to tab Alat only (it used to appear in every tab, Umpan included).
+	if snapshot2 and typeof(snapshot2.rod) == "string" and snapshot2.rod ~= "" and (selectedTab == "all" or selectedTab == "tool") then
 		UiKit.cell(grid, #ids + 1, {
 			name = Locale.t(`rod.{snapshot2.rod}`),
 			badge = "×1",
