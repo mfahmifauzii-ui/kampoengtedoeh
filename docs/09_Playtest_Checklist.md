@@ -194,7 +194,7 @@ Tempel juga **teks merah/kuning dari panel Output** bila ada. Tidak perlu meneba
 2. [ ] **Toast (K-53):** di bawah Koin/Bunga, tidak menutupi HUD; di bawah Bubble Instruksi bila tampil.
 3. [ ] **Kartu pemain (K-53):** pill "Lv n" terlihat; slot buff kosong tidak tampil.
 4. [ ] **"!" quest (K-53):** muncul di atas Nek Ani dan pemberi quest lain yang menawarkan quest.
-5. [ ] **Bang Jali (K-53):** sebelum S3 "Terbuka di Level n"; sesudah "Jual semua panen (90%)".
+5. [ ] **Bang Jali (K-53):** sebelum S3 "Terbuka di Level n"; sesudah "Jual / Beli" (sejak 2026-11-23; "Jual semua panen" hanya tutorial).
 6. [ ] **Tutorial panen (K-54):** setelah panen pertama, 5 Garap lagi, 6 bibit Kangkung gratis, tunggu semua panen, baru Pak Udin.
 7. [ ] **Tutorial mancing (K-54):** tangkapan 1–2 hanya bubble Instruksi; tangkapan ke-3 cutscene Kak Fajar, lalu jual.
 8. [ ] **Pakai di Tas (K-55):** Pancing dan umpan bisa dipakai; badge Dipakai; umpan habis pindah ke umpan lain + toast; setelah rejoin tetap terpasang.
@@ -223,7 +223,7 @@ Tes AI sudah dijalankan di Studio untuk yang disebut "terverifikasi". Sisanya ha
 
 Cek ini untuk perbaikan dari video playthrough. Satu tugas F = satu centang. Tes Studio tidak menggantikan cek HP.
 1. [ ] **F1 Tanpa gelap (GUI 4.6):** di setiap langkah tutorial (Garap, Tanam, Siram, Panen, Tunggu semua, Jual, Mancing) tidak ada layar gelap atau kotak hitam di atas HUD. Joystick, tombol dock, kartu pemain, dan kolom kanan bisa ditekan.
-2. [ ] **F2 Satu permukaan instruksi (GUI 9.7):** di langkah pertama (aksi pertama) hanya bubble coachmark; di pengulangan hanya toast. Tidak pernah dua-duanya untuk teks yang sama. *Belum di kode: cek setelah F2 selesai.*
+2. [ ] **F2 Satu permukaan instruksi (GUI 4.6):** di langkah pertama (aksi pertama) hanya bubble coachmark; di pengulangan hanya toast. Tidak pernah dua-duanya untuk teks yang sama. *Belum di kode: cek setelah F2 selesai.*
 3. [ ] **F3 Aksi bulat (GUI 6.12):** Tarik sudah bulat sama dengan Pancing. Cek juga **Pasang**, **Ambil**, dan **Panen Semua**: semuanya bulat dengan ukuran dan cincin yang sama. *Pasang dan Panen Semua belum di kode.*
 4. [ ] **F4 Tracker stabil:** beli Bayam di Pak Udin → quest "Bibit Kedua" mulai → tracker tetap tampil dan memuat langkahnya. Tanam 2 Bayam → quest selesai → tracker berubah dan tidak hilang tanpa alasan.
 5. [ ] **F5 Quest Log dari dua pintu (GUI 6.8):** di tiga keadaan (ada quest aktif, baru selesai, tidak ada quest aktif), tap ikon bintang di kolom kanan dan tap tracker: Quest Log terbuka dua-duanya. Bintang punya badge untuk quest baru. Quest yang mulai otomatis dari pembelian muncul toast "Quest baru: <judul>".

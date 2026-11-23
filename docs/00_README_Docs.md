@@ -51,11 +51,11 @@ Beda antara dokumen dan kode yang **belum** tercatat = temuan baru → Claude Co
 
 Detail ada di bab yang ditunjuk; kalau ringkasan ini beda dengan bab tersebut, bab itu yang menang.
 
-- **Coachmark tidak pernah menggelapkan atau memblokir GUI** di langkah mana pun. Hanya ring, panah, dan bubble. → GDD 16.6, GUI 9.7.
-- **Satu permukaan instruksi per langkah.** Langkah pertama (aksi pertama) = bubble coachmark saja; pengulangan / langkah berikutnya = toast saja. → GUI 9.7, GDD 16.6.
-- **Tombol Aksi bulat dan satu komponen** (Pancing, Tarik, Pasang, Ambil, Panen Semua). → GUI 9.4 dan Aksi-slot.
-- **Tanda "!" di atas setiap pemberi quest** yang punya quest Tersedia atau siap diserahkan. → GUI 9.x, Quest 03.
-- **Pak Udin / pemberi shop setelah tutorial**: Jual / Beli + Sampai jumpa. "Jual semua panen (N%)" hanya untuk langkah jual tutorial. → GUI 9.x, GDD 16.
+- **Coachmark tidak pernah menggelapkan atau memblokir GUI** di langkah mana pun. Hanya ring, panah, dan bubble. → GDD 16.6, GUI 4.6.
+- **Satu permukaan instruksi per langkah.** Langkah pertama (aksi pertama) = bubble coachmark saja; pengulangan / langkah berikutnya = toast saja. → GUI 4.6, GDD 16.6.
+- **Tombol Aksi bulat dan satu komponen** (Pancing, Tarik, Pasang, Ambil, Panen Semua). → GUI 6.12 dan Aksi-slot.
+- **Tanda "!" di atas setiap pemberi quest** yang punya quest Tersedia atau siap diserahkan. → GUI 4.5, 6.8, Quest 03.
+- **Pak Udin / pemberi shop setelah tutorial**: Jual / Beli + Sampai jumpa. "Jual semua panen (N%)" hanya untuk langkah jual tutorial. → GUI 4.5, 6.8, GDD 16.
 
 Tanda lain di tiap dokumen: lihat bagian 6.
 

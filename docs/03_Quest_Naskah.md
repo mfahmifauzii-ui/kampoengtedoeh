@@ -366,7 +366,7 @@ Langkah `kak_fajar`: `tut.t1b.kak_fajar.1` (Pak Udin) — Kak Fajar ada di sunga
 | | `quest.s9.s1` | Tangkap 1 ikan di Kanal Timur |
 | | `dlg.s9.done.1` | Wah, kamu sudah jago! |
 
-### 6.3 Side Lama — Naskah [FINAL, ✔ K-14]
+### 6.3 Side Lama — Naskah [FINAL, ✔ K-14, ✔ K-51: id penuh `side_*` di dialog]
 
 | Quest | Kunci | Teks |
 |-------|-------|------|

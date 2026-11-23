@@ -118,7 +118,7 @@ Tagline: `Kampung lo, rumah lo, panen lo — tiap hujan bisa jadi panen Prima.`
 | Sungai Lahan | `sungai_lahan` | Lv 1 | 32 spot (8 per sungai sumbu, 4 per tepi), tanpa dermaga, penanda riak. Early saja. |
 | Kanal Barat | `sungai` | Lv 5 (S5) | Dermaga. Mid + Belut Emas. |
 | Kanal Timur | `empang` | Lv 10 (S9) | Dermaga. Late + Gurame Raja + Ikan Dewa. |
-| Kolam pemain | `kolam` | Lv 4 (M3) | Mancing dari stok kolam sendiri (Bab 7.2). |
+| Kolam pemain | `kolam` | Lv 4 (M3, ✔ K-43) | Mancing dari stok kolam sendiri (Bab 7.2). |
 | Empang & Dermaga Kakek | bundel | Lv 30 | Spot pribadi di lahan (Bab 14.6). |
 
 Danau dan Spot 4 **tidak ada** di map. ✔ K-22 (dihapus dari desain; Lv 18 = "Kanal Timur malam"). Kata "Empang" untuk pemain hanya dipakai di Bundel. ✔ K-23
@@ -517,7 +517,7 @@ Kumpul bahan → Menu Hias → pilih piece → Warna (12) + Material (Kayu, Bamb
 - Hanya di lahan sendiri; tidak saat memancing; tembus dinding sendiri saat mode Hias.
 - Validasi lembut: tanpa pintu → toast `Belum ada pintu nih` 1x, tetap boleh.
 - Hapus = refund 100%, bahan terbang ke Tas.
-- **Warna dinding (K-61):** pemilih warna = R3.9 (lihat Roadmap). Belum dibuat.
+- **Warna dinding (K-61):** pemilih warna = R3.9 (lihat Roadmap). Belum dibuat. Palet "Dinding Spesial" = warna ke-13, dibuka title (✔ K-50).
 
 
 ### 8.4 Dekor Berkah — LOCKED
@@ -888,7 +888,7 @@ Dari pencapaian permanen, bukan dibeli. Tanpa stat (kecuali tercantum di 17.6). 
 
 Dua tutorial: `t1_awal` (langkah 1–9) dan `t1b_kolam` (langkah 10–13). Id langkah = id di kode.
 
-| # | Langkah (id) | Tempat | Selesai saat | Hadiah XP (kode) | Permukaan instruksi (aturan GUI 9.7) |
+| # | Langkah (id) | Tempat | Selesai saat | Hadiah XP (kode) | Permukaan instruksi (aturan GUI 4.6) |
 |---|--------------|--------|--------------|------------------|--------------------------------------|
 | 1 | `sapa` | Lahan | Tombol Mulai (modal) | — | Modal sapaan (tanpa coachmark) |
 | 2 | `cangkul` | Lahan | Petak dibuat / tanam / panen | 1 | Pertama: bubble coachmark + ring Garap |
@@ -908,7 +908,7 @@ Dua tutorial: `t1_awal` (langkah 1–9) dan `t1b_kolam` (langkah 10–13). Id la
 - **Perubahan klaim lama:** versi sebelumnya menulis "158 XP" dan "Lv 2 ±3 menit setelah tutorial". Kode sekarang menutup tutorial tepat di Lv 2 lewat `xpFill` (K-54 B2).
 - Panjang tutorial ±3–4 menit (perkiraan dokumen, belum diukur).
 - Langkah lama (Bayam, Nambang, Hias, Surat #1, Agenda + Gerobak) sekarang quest S1, M2, M4, S2, M1.
-- Kolom "Permukaan": aturan dari GUI 9.7. Pemetaan per langkah di atas belum diverifikasi terhadap `GuideController` (lihat laporan D3).
+- Kolom "Permukaan": aturan dari GUI 4.6. Pemetaan per langkah di atas belum diverifikasi terhadap `GuideController` (lihat laporan D3).
 
 ### 16.3 Blok NPC selama tutorial — LOCKED
 
@@ -934,7 +934,7 @@ Dua tutorial: `t1_awal` (langkah 1–9) dan `t1b_kolam` (langkah 10–13). Id la
 
 - **Aturan baru (menggantikan aturan "gelap hanya pada aksi pertama"):** coachmark TIDAK PERNAH menggelapkan atau memblokir GUI, di langkah mana pun, termasuk langkah pertama.
 - Coachmark = ring sorot di target + panah/penanda + satu baris instruksi. Tidak ada lapisan gelap, tidak ada lubang, tidak ada zona blokir HUD.
-- Tiap langkah punya **satu** permukaan instruksi: langkah pertama = bubble coachmark saja; langkah berikutnya / pengulangan = toast saja. Tidak pernah keduanya untuk teks yang sama (lihat tabel di docs/05 9.7).
+- Tiap langkah punya **satu** permukaan instruksi: langkah pertama = bubble coachmark saja; langkah berikutnya / pengulangan = toast saja. Tidak pernah keduanya untuk teks yang sama (lihat tabel di docs/05 4.6).
 - Semua tombol HUD, dock, dan joystick selalu bisa ditekan di setiap langkah tutorial.
 - Alasan: video owner (2026-11-23) menunjukkan HUD tertutup kotak gelap dan kotak oranye di dock saat langkah Garap.
 - Sisa aturan lama yang tidak berlaku lagi: gelap pertama pada Tanam/Siram/Panen/Mancing, dan timer 25 detik. Cutscene yang menunggu pemain melepas kunci gerak setelah 60 detik tetap berlaku.
@@ -1043,7 +1043,7 @@ Gembor Bunga (siram 5 petak) 100 · Sabit Bunga (panen 5 petak) 100 · Kapak Bun
 
 ### 18.4 Robux
 
-- Pack Bunga: 50 / 120 / 300 / 700 Bunga (acuan Rp 15rb / 30rb / 60rb / 120rb; Robux ✔ K-32: **75 / 150 / 300 / 600 R$**).
+- Pack Bunga: 50 / 120 / 300 / 700 Bunga (✔ K-44: 700 = `bunga_xl`, id 0, belum bisa dibeli; acuan Rp 15rb / 30rb / 60rb / 120rb; Robux ✔ K-32: **75 / 150 / 300 / 600 R$**).
 - Season Premium: 150 Bunga.
 - Tidak ada loot box, iklan, Robux → Koin.
 

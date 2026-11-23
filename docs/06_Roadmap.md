@@ -148,6 +148,7 @@ Butuh: R0.3 selesai.
 | ID | Tugas | Dasar | Selesai kalau | ★ | Uk | Status | Commit |
 |----|-------|-------|---------------|---|----|---|---|
 | R2.1 | **Sistem Bubu** (pasang di air, 6 jam, isi per tipe, maks 3, tanpa instant) + buka M8 | GDD 6.6 | M8 tidak lagi `blocked`; panen bubu offline jalan | ★ | M | DONE-CODE | f877f4d |
+| R2.1b | Bubu bisa dibeli di Pak Udin (Koin), dipasang dan diambil dari layar (GDD 6.6, K-66) | K-66 | Tombol Pasang / Ambil di slot Aksi; tiang di sungai; alur 6 jam | | M | DONE-CODE | fad0c1b |
 | R2.2 | **Agenda UI** di Papan Hari Ini + langkah M1 "Buka Agenda" | GDD 14.5, GUI 6.9 | Agenda terlihat, 5 tugas, hadiah otomatis tercatat | ★ | M | DONE-CODE | be81d41 |
 | R2.3 | Sisa tutorial/quest: event Surat #1 dibaca, Gerobak terbuka di M1 (bukan `starter_pagar`), hapus sisa starter chain | Audit A-28 | Feature gate Agenda/Gerobak/Order hanya dari M1 | ★ | S | TODO | — |
 | R2.4 | Kucing Alun-alun + Joran Hilang: **belum di kode** (tidak ada di `Config/Quests`, tidak ada flag `released`). Ditunda ke R12.4 (K-16 b). Quest Log tidak menampilkannya karena tidak ada di data. | K-16 (b) | Tidak ada error; tidak tampil di Quest Log rilis; dibangun di R12.4 | | S | DITUNDA (R12.4) | — |
@@ -329,7 +330,7 @@ Urutan: A bug → B tutorial → C mancing UI → D quest → E event/pasar. Sat
 |----|-------|-------|---------------|----|---|---|
 | RP1.A1 | Garap: tap = sorot, tap kedua = tanam, titik sama dengan ghost; outline hilang saat keluar mode (#15, #16) | K-53 | Sel tersorot = sel tertanam di 844×390, 667×375, 390×844 | S | DONE-CODE | 24387c5 |
 | RP1.A2 | Toast di bawah HUD (12 px) dan di bawah Bubble; pill "Lv n"; buff kosong disembunyikan (#17, #18) | K-53 | Toast tidak menutupi HUD di 3 resolusi | S | DONE-CODE | e0da363, eb39486 |
-| RP1.A3 | Marker "!" untuk semua pemberi quest; Bang Jali "Terbuka di Level n" / "Jual semua panen (90%)"; cek rantai S3 (#6, #14) | K-53 | "!" tampil untuk Nek Ani; S3 bisa dimulai di level yang ditulis | S | DONE-CODE | 3efc8ff, fad8d0f |
+| RP1.A3 | Marker "!" untuk semua pemberi quest; Bang Jali "Terbuka di Level n" / "Jual / Beli" (ganti 2026-11-23); cek rantai S3 (#6, #14) | K-53 | "!" tampil untuk Nek Ani; S3 bisa dimulai di level yang ditulis | S | DONE-CODE | 3efc8ff, fad8d0f |
 | RP1.A4 | Joran di tab Alat; teks Acara tidak terpotong; glyph "A·" diganti (#7) | K-53 | Layout Acara bersih di 390×844 | S | DONE-CODE | 7fa99e3 |
 | RP1.B1 | Tutorial panen: 5 Garap, 6 bibit Kangkung ulang, tunggu semua panen, lalu Pak Udin; XP tetap Lv 2 (#1) | K-54 | Alur 4 langkah berurutan, Locale lengkap | M | DONE-CODE | 5645398 |
 | RP1.B2 | Tutorial mancing: 3 tangkapan, cutscene hanya di ke-3; umpan cukup 3 lemparan (#2) | K-54 | Tangkapan 1–2 tanpa cutscene | S | DONE-CODE | ece3ceb |
@@ -338,7 +339,7 @@ Urutan: A bug → B tutorial → C mancing UI → D quest → E event/pasar. Sat
 | RP1.D1 | Pool Harian/Mingguan dengan syarat; "Bantu lahan" pindah ke Season 500 Koin (#5) | K-56 | Tidak ada templat tak eligible; Bantu hanya di Season | M | CEK | — |
 | RP1.D2 | Blokir quest yang sistemnya belum ada (M1 sampai R2.2); baris langkah pemain (#10) | K-56 | M1 tersembunyi; tiap langkah punya baris | M | CEK | — |
 | RP1.D3 | Pohon Skill: bar bawah dengan Beli; tanpa scroll di 844×390 (#7) | K-56 | Tombol Beli selalu terlihat | S | CEK | — |
-| RP1.D4 | Quest Log: tab Main/Side/Harian/Pesanan, dua panel, Tandai, tracker maks 3 (#8, #9, #11) | K-56 | Sesuai 05 Bab 9.1 | L | CEK · F5 | — |
+| RP1.D4 | Quest Log: tab Main/Side/Harian/Pesanan, dua panel, Tandai, tracker maks 3 (#8, #9, #11) | K-56 | Sesuai 05 Bab 6.8 | L | CEK · F5 | — |
 | RP1.E1 | Tombol Event hanya saat event aktif (#12) | K-57 | Tidak tampil saat tidak ada event | S | DONE-CODE | 0368b15 |
 | RP1.E2 | Pasar Malam tempat di dunia, Pak Kumis NPC, jual lewat bubble (#13) | K-57 | Tidak ada jual dari menu | M | CEK | — |
 | RP1.E3 | Lempar Gelang minigame (= R3.8) | K-57 | Zona 60/30/10; 3 lemparan | M | → R3.8 | — |
