@@ -1041,6 +1041,12 @@ return {
 
 	-- Quest Harian / Mingguan + Album + Toko Bunga (Bab 9-10, P2-7)
 	["agenda.title"] = "Agenda Harian",
+	["agenda.button"] = "Papan",
+	["agenda.empty"] = "Agenda hari ini belum ada. Buka quest Kampung Hari Ini dulu.",
+	["agenda.today"] = "Tugas hari ini",
+	["agenda.done"] = "Selesai",
+	["agenda.progress"] = "{n}/{max}",
+	["agenda.rewards_note"] = "Hadiah masuk otomatis saat tugas selesai.",
 	["agenda.panen.title"] = "Agenda: Panen 5",
 	["agenda.pancing.title"] = "Agenda: Mancing 3",
 	["agenda.masak.title"] = "Agenda: Masak 1",

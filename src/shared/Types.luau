@@ -133,6 +133,7 @@ export type PlayerData = {
 		done: { [string]: boolean },
 		harian: { day: string, slots: { { kind: string, progress: number, claimed: boolean } } },
 		mingguan: { week: string, slots: { { kind: string, progress: number, claimed: boolean } } },
+		agenda: { day: string, tasks: { { id: string, progress: number, claimed: boolean } } },
 	},
 	surat: { lastDay: string, logins: number, progress: number, done: { [number]: boolean } },
 	bundel: { [string]: any }, -- Bundel Kakek (Bab 14.6): [id] = { given, done } + sumur_day

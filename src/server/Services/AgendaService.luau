@@ -33,43 +33,50 @@ function AgendaService.Eligible(data: Types.PlayerData, pool: { Quests.Daily }):
 	return out
 end
 
-local function rollAgenda(data: Types.PlayerData, now: number)
-	local day = TimeKeys.day(now - Quests.DAILY_RESET_HOUR * 3600)
-	if data.quests.daily.day == day then
-		return
-	end
-	local pool = AgendaService.Eligible(data, Quests.AGENDA)
-	if #pool == 0 then
-		return
-	end
-	local pick = pool[math.random(1, #pool)]
-	data.quests.daily = { day = day, kind = pick.id, progress = 0, claimed = false }
-end
-
--- Returns true when this report completed (claimed) one Agenda task; QuestService turns that into "agenda_done".
-local function reportAgenda(player: Player, data: Types.PlayerData, event: string, add: number): boolean
-	rollAgenda(data, os.time())
-	local daily = data.quests.daily
-	local def = nil
+-- R2.2 (GDD 14.5): all eligible tasks are active at once; each has its own progress. A task pays out by itself when it
+-- completes (no claim button). Returns true when this report completed one task (QuestService turns it into "agenda_done").
+local function findDef(id: string): Quests.Daily?
 	for _, candidate in Quests.AGENDA do
-		if candidate.id == daily.kind then
-			def = candidate
-			break
+		if candidate.id == id then
+			return candidate
 		end
 	end
-	if not def or def.event ~= event or daily.claimed then
-		return false
+	return nil
+end
+
+local function rollAgenda(data: Types.PlayerData, now: number)
+	local day = TimeKeys.day(now - Quests.DAILY_RESET_HOUR * 3600)
+	if data.quests.agenda.day == day then
+		return
 	end
-	daily.progress = math.min(daily.progress + add, def.count)
-	if daily.progress >= def.count then
-		daily.claimed = true
-		ProgressionService.Grant(player, def.reward, `agenda:{def.id}`)
-		Net.Fire("Notify", player, "quest.done", { title = `agenda.{def.id}.title` })
+	local tasks = {}
+	for _, def in AgendaService.Eligible(data, Quests.AGENDA) do
+		table.insert(tasks, { id = def.id, progress = 0, claimed = false })
+	end
+	data.quests.agenda = { day = day, tasks = tasks }
+end
+
+local function reportAgenda(player: Player, data: Types.PlayerData, event: string, add: number): boolean
+	rollAgenda(data, os.time())
+	local completed = false
+	local touched = false
+	for _, task in data.quests.agenda.tasks do
+		local def = findDef(task.id)
+		if def and def.event == event and not task.claimed then
+			touched = true
+			task.progress = math.min(task.progress + add, def.count)
+			if task.progress >= def.count then
+				task.claimed = true
+				completed = true
+				ProgressionService.Grant(player, def.reward, `agenda:{def.id}`)
+				Net.Fire("Notify", player, "quest.done", { title = `agenda.{def.id}.title` })
+			end
+		end
+	end
+	if touched then
 		InventoryService.Sync(player)
-		return true
 	end
-	InventoryService.Sync(player)
-	return false
+	return completed
 end
 
 -- Agenda terbuka saat quest M1 "Kampung Hari Ini" mulai atau sudah selesai (Quest v0.3 Bab 5: Tombol Agenda = M1).

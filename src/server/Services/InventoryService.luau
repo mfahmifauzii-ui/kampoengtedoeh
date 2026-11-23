@@ -131,6 +131,7 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 			active = table.clone(data.quests.active),
 			done = table.clone(data.quests.done),
 			daily = table.clone(data.quests.daily),
+			agenda = table.clone(data.quests.agenda),
 			harian = table.clone(data.quests.harian),
 			mingguan = table.clone(data.quests.mingguan),
 			surat = suratSnapshot(data),

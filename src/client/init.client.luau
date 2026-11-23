@@ -28,6 +28,7 @@ local ORDER = {
 	"DecorController",
 	"OrdersController",
 	"QuestController",
+	"AgendaController", -- R2.2: Papan Hari Ini (Agenda 5 tugas), HUD "Papan"
 	"BannerController", -- "Selesai" / "Dimulai" banner (owner 2026-11-22): after the quest list it reads
 	"BookController",
 	"RewardsController", -- Hadiah: kalender harian + peti main
