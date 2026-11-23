@@ -40,6 +40,7 @@ local levelLabel: TextLabel?
 local xpFill: Frame?
 local goalLabel: TextLabel?
 local levelBadge: TextLabel? -- level number on the photo's star
+local levelPill: TextLabel? -- A4 (K-53): "Lv n" pill next to the name on phones
 local toastStack: Frame? -- the one toast anchor (UiKit.toastStack)
 local visibleToasts = 0
 local hudGui: ScreenGui? = nil
@@ -134,6 +135,25 @@ local function buildPlaceholder(): ScreenGui
 		star.ZIndex = 4
 	end
 	levelBadge = badge
+
+	-- A4 (K-53): on phones the star is hidden, so the level is a pill next to the name (always visible).
+	local pill = Instance.new("TextLabel")
+	pill.Name = "LvPill"
+	pill.BackgroundColor3 = UiKit.DARK
+	pill.BackgroundTransparency = 0.15
+	pill.Size = UDim2.fromOffset(40, 18)
+	pill.Position = UDim2.fromOffset(80, 16)
+	pill.Font = UiKit.FONT
+	pill.TextSize = 11
+	pill.TextColor3 = UiKit.CREAM
+	pill.Text = "Lv 1"
+	pill.Visible = false
+	pill.ZIndex = 3
+	local pillRound = Instance.new("UICorner")
+	pillRound.CornerRadius = UDim.new(1, 0)
+	pillRound.Parent = pill
+	pill.Parent = card
+	levelPill = pill
 
 	local nameLabel = Instance.new("TextLabel")
 	nameLabel.Name = "PlayerName"
@@ -271,6 +291,8 @@ local function buildPlaceholder(): ScreenGui
 		set("PlayerName", { Position = if phone then UDim2.fromOffset(80, 16) else UDim2.fromOffset(76, 12), Size = if phone then UDim2.new(1, -94, 0, 18) else UDim2.new(1, -104, 0, 14), TextSize = if phone then 14 else 12 })
 		set("XPTrack", { Position = if phone then UDim2.fromOffset(80, 40) else UDim2.fromOffset(76, 30), Size = if phone then UDim2.new(1, -94, 0, 8) else UDim2.new(1, -104, 0, 12) })
 		set("LevelBadge", { Visible = not phone })
+		set("LvPill", { Visible = phone })
+		set("PlayerName", { Position = if phone then UDim2.fromOffset(126, 16) else UDim2.fromOffset(76, 12), Size = if phone then UDim2.new(1, -140, 0, 18) else UDim2.new(1, -104, 0, 14) })
 		set("Icon_bintang", { Visible = not phone }) -- the star under the photo: desktop only
 		for index, entry in buffSlots do
 			if phone then
@@ -283,7 +305,6 @@ local function buildPlaceholder(): ScreenGui
 				entry.slot.Position = UDim2.new(along, 76 - 127 * along, 0, 49)
 				entry.slot.Size = UDim2.fromOffset(23, 23)
 			end
-			entry.slot.Visible = true -- the buff icons stay visible on every screen
 		end
 	end
 	layoutCard()
@@ -322,6 +343,9 @@ local function refresh()
 	if levelBadge and typeof(level) == "number" then
 		levelBadge.Text = tostring(level)
 	end
+	if levelPill and typeof(level) == "number" then
+		levelPill.Text = `Lv {level}`
+	end
 end
 
 -- Buffs ------------------------------------------------------------------------------------
@@ -355,6 +379,8 @@ local function updateBuffs()
 		entry.clip.Size = UDim2.fromScale(1, math.clamp(remaining / duration, 0, 1))
 		entry.stroke.Color = if remaining > 0 then Color3.fromRGB(120, 200, 80) else Color3.fromRGB(150, 118, 76)
 		entry.slot.BackgroundTransparency = if remaining > 0 then 0.1 else 0.3
+		-- A4 (K-53): an empty buff chip is hidden; it shows only while that buff runs.
+		entry.slot.Visible = remaining > 0
 	end
 end
 
