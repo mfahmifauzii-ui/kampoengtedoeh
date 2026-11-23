@@ -124,7 +124,7 @@ Ini satu-satunya aturan toast. Modul lain tidak boleh membuat label hint sendiri
 - **Lebar:** min(50% layar, ruang antara tracker kiri & kolom kanan); portrait sempit = lebar tracker.
 - **Tiga jenis (kind):**
   1. **transient** — `HudController.Toast(text)`: hilang sendiri tiap 1,8 dtk, fade 0,25 dtk, maks 2 tampil (`UiKit.TOAST_MAX_VISIBLE`), sisanya antre (maks 5; yang paling lama dibuang).
-  2. **pinned** — `HudController.SetPinned(key, template, n?, N?)`, `UpdatePinned(key, n, N)`, `ClearPinned(key)`. Tidak pernah dibuang, tidak hilang sendiri, tidak dihitung ke batas 2, selalu di atas transient. Hanya `ClearPinned` yang menghapus. Token `{n}` dan `{N}` di template diisi dari n dan N. Update sinkron pada event yang mengubah progres (tanpa polling); chip dirender ulang tanpa fade. `PinGuide`/`UnpinGuide` = pinned dengan key `"guide"`.
+  2. **pinned** — `HudController.SetPinned(key, template, n?, N?)`, `UpdatePinned(key, n, N)`, `ClearPinned(key)`. Tidak pernah dibuang, tidak hilang sendiri, tidak dihitung ke batas 2, selalu di atas transient. Hanya `ClearPinned` yang menghapus. Token `{n}` dan `{N}` di template diisi dari n dan N; tanpa nilai tampil `?` (tidak pernah teks mentah). Update sinkron pada event yang mengubah progres (tanpa polling); chip dirender ulang tanpa fade. `PinGuide`/`UnpinGuide` = pinned dengan key `"guide"`.
   3. **dismissible** — `HudController.ToastDismissible(key, text)`, `ClearDismissible(key)`. Gaya sama + tombol **Ok** (tinggi 44 px = sentuh minimum). Tetap sampai di-Ok atau dibersihkan kode.
 - **Urutan:** pinned di atas; transient terbaru di atas di antara transient. Semua di satu stack.
 - **Yang dilarang:** label hint kedua di modul mana pun. Teks instruksi/hint wajib lewat stack.

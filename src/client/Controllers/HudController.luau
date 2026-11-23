@@ -485,10 +485,8 @@ local function renderPinned(key: string)
 		entry.chip:Destroy()
 		entry.chip = nil
 	end
-	local text = entry.template
-	if entry.n ~= nil and entry.total ~= nil then
-		text = text:gsub("{n}", tostring(entry.n)):gsub("{N}", tostring(entry.total))
-	end
+	-- Guard: a token with no value shows "?" instead of the raw {n} / {N} text.
+	local text = entry.template:gsub("{n}", tostring(entry.n or "?")):gsub("{N}", tostring(entry.total or "?"))
 	local onOk = if entry.dismissible then function()
 		HudController.ClearDismissible(key)
 	end else nil
