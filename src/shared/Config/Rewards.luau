@@ -59,7 +59,8 @@ Rewards.MILESTONE_PETI = { "p25", "p50", "p75", "p100" }
 -- dan memakai hadiah yang sama.
 Rewards.SEASON = {
 	DAYS = 30,
-	START = { year = 2026, month = 12, day = 1 }, -- USULAN
+	-- K-29: Season 1 mulai di HARI RILIS. Tanggal rilis diisi di R11.3; nilai di bawah hanya sementara.
+	START = { year = 2026, month = 12, day = 1 },
 	PREMIUM_PRICE = 150, -- Bunga per season (Bab 18.4 / Bab 19)
 	-- Premium dibeli (150 Bunga) hanya setelah kosmetik eksklusif season ada. Sampai itu: false (UI "Segera hadir").
 	PREMIUM_OPEN = false,
