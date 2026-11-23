@@ -78,6 +78,13 @@ local function isAvailable(fish: Fish, phase: string, raining: boolean): boolean
 	if fish.requireRain and not raining then
 		return false
 	end
+	-- Belut Emas (K-07): hanya saat Hujan Deres atau Petir, tidak saat Gerimis.
+	if fish.rainKinds then
+		local weather = Workspace:GetAttribute("Weather")
+		if not table.find(fish.rainKinds, weather) then
+			return false
+		end
+	end
 	return true
 end
 
@@ -445,9 +452,8 @@ local function zoneWidthFor(data: Types.PlayerData): number
 end
 
 -- B-1: waktu tunggu gigitan. Base: dengan umpan 3-6 dtk, tanpa umpan 6-12 dtk (Fishing.BITE_*). Lalu rod.biteMult (tabel joran),
--- umpan (biteReduction), buff Pancing (Dapur.BUFF_PANCING_BITE), dan hujan (Fishing.BITE_RAIN_MULT). Urutan ini sama dengan doc.
+-- umpan (biteReduction), dan buff Pancing (Dapur.BUFF_PANCING_BITE). Hujan TIDAK mengubah waktu tunggu (K-01, GDD 3.3).
 local function biteDelayFor(rod: Fishing.Rod, usedBait: Fishing.Bait?, data: Types.PlayerData): number
-	local _, raining = getConditions()
 	local low, high = Fishing.BITE_MIN, Fishing.BITE_MAX
 	if not usedBait then
 		low, high = Fishing.BITE_NO_BAIT_MIN, Fishing.BITE_NO_BAIT_MAX
@@ -458,9 +464,6 @@ local function biteDelayFor(rod: Fishing.Rod, usedBait: Fishing.Bait?, data: Typ
 	end
 	if Buffs.active(data.buff, "pancing", os.time()) then
 		delay *= Dapur.BUFF_PANCING_BITE
-	end
-	if raining then
-		delay *= Fishing.BITE_RAIN_MULT
 	end
 	return delay
 end

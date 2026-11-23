@@ -359,6 +359,7 @@ Cara owner memberi masukan: lewat playtest (`09_Playtest_Checklist.md`). Masukan
 | K-45 | 2026-11-23 | Ikan Mid (Mujair…Baung) di kode juga bisa di `kolam` (GDD 6.4: Kanal Barat). **Default: tetap** (kolam memakai stok, B-3). Dicek di playtest. | Mengubah lokasi bisa memutus stok kolam |
 | K-46 | 2026-11-23 | Ukuran ikan: GDD 6.4 Kecil 40% / Sedang 40% / Besar 15% / Jumbo 5%; kode memakai skor reel (≈50/30/15/5 bila skor merata). **Default: tetap** (skor = skill, GDD "ukuran diacak" tidak merinci). | Ubah = desain baru |
 | K-47 | 2026-11-23 | Peluang Legenda: kode bobot L=1 dari 100 (1%), GDD 0,5% per lemparan dengan syarat spot+waktu+level. **Default: tetap**, dicek di R1.2 (QA C-6, 1000 sampel). | Syarat berbeda, belum bisa dibandingkan |
+| K-49 | 2026-11-23 | K-01 "jendela gigitan 2x": tidak ada batas waktu sejak keputusan owner 16 Nov (ikan menunggu di kail), jadi jendela itu sudah terpenuhi. Hujan **hanya** tidak lagi menggandakan waktu tunggu (`BITE_RAIN_MULT` dihapus). Tidak ada mekanik baru. | Tidak ada tombol tarik dengan batas waktu untuk diperlebar |
 | K-48 | 2026-11-23 | Angka tanpa sumber GDD: Koin awal 100 / Bunga awal 10 (`Config/Economy`), hadiah kategori Album ladang/sungai 300 Koin (`Config/Book`). **Default: tetap.** | Tidak ada angka di GDD untuk dicocokkan |
 
 ---

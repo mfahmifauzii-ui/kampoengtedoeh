@@ -45,12 +45,11 @@ end
 
 return {
 	-- Waktu tunggu gigitan (Skill Tree / Gameplay Bab 6.1 dan 3.3). Urutan pengali (fishing bite): base (di bawah) x rod.biteMult
-	-- (tabel joran) x umpan (Jangkrik x0,7 lewat biteReduction) x buff Pancing (x0,8) x hujan (x2). Lihat FishService.biteDelayFor.
+	-- (tabel joran) x umpan (Jangkrik x0,7 lewat biteReduction) x buff Pancing (x0,8). Hujan tidak mengubah waktu (K-01). Lihat FishService.biteDelayFor.
 	BITE_MIN = 3, -- detik, dengan umpan (Bab 6.1: 3-6 dtk)
 	BITE_MAX = 6,
 	BITE_NO_BAIT_MIN = 6, -- detik, tanpa umpan (Bab 6.1: 6-12 dtk)
 	BITE_NO_BAIT_MAX = 12,
-	BITE_RAIN_MULT = 2, -- hujan: gigitan 2x lebih lama (Bab 3.3)
 	REEL_SECONDS = 3, -- client mini-game length
 	REEL_MIN_SECONDS = 2.5, -- server: earliest accepted reel after the bite
 	-- REEL_WINDOW removed (user, 16 Nov): NO TIMEOUT. The fish waits on the line until it is reeled in.

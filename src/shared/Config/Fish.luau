@@ -1,7 +1,7 @@
 --!strict
 -- All fish (docs/01_GDD_Kampoeng_Tedoeh_v8.1.md Bab 6.4, LOCKED: 20 ikan). Add a fish here + a "fish.<id>" locale key.
 -- Rarity = tier internal (C Early, U Mid, R Late, L Legenda): dipakai roll bobot, pond, FISH_FOR_SALE.
--- requirePhases / requireRain: the fish can ONLY be caught then.
+-- requirePhases / requireRain / rainKinds: the fish can ONLY be caught then (rainKinds = jenis hujan tertentu, K-07).
 -- unlockLevel = Buka Lv Bab 6.4. xp = XP per tangkapan Bab 6.4 (dipakai FishService).
 -- Day phases: "pagi" | "siang" | "sore" | "malam".
 -- Lokasi pakai id Studio yang ada (sungai/empang/kolam, map LOCKED): Kanal/Danau/Sungai v7.3 dipetakan ke
@@ -18,6 +18,7 @@ export type Fish = {
 	sellPrice: number, -- harga Sedang (Bab 6.4)
 	requirePhases: { string }?,
 	requireRain: boolean?,
+	rainKinds: { string }?, -- K-07: hanya saat cuaca ini ("deres" / "petir"); Gerimis tidak
 	boost: { phase: string?, rain: boolean?, mult: number }?,
 }
 
@@ -40,7 +41,7 @@ local list: { Fish } = {
 	{ id = "semah", rarity = "R", unlockLevel = 25, xp = 130, locations = { "empang" }, sellPrice = 520, requirePhases = { "pagi" } },
 	{ id = "belida", rarity = "R", unlockLevel = 30, xp = 170, locations = { "empang" }, sellPrice = 700 },
 	{ id = "gurame_raja", rarity = "L", unlockLevel = 15, xp = 550, locations = { "empang" }, sellPrice = 2200, requirePhases = { "pagi" } },
-	{ id = "belut_emas", rarity = "L", unlockLevel = 20, xp = 500, locations = { "sungai" }, sellPrice = 2000, requireRain = true },
+	{ id = "belut_emas", rarity = "L", unlockLevel = 20, xp = 500, locations = { "sungai" }, sellPrice = 2000, rainKinds = { "deres", "petir" } },
 	{ id = "ikan_dewa", rarity = "L", unlockLevel = 30, xp = 600, locations = { "empang" }, sellPrice = 2500, requirePhases = { "malam" } },
 }
 
