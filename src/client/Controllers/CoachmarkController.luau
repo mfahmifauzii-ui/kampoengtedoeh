@@ -67,8 +67,6 @@ local fadeInFrom = 0 -- os.clock() when the current coachmark appeared
 -- Safety net (2026-11-23, owner's phone stuck at tunggu_semua): a blocking coachmark (dim + spotlight, taps outside it swallowed,
 -- joystick included) releases itself after BLOCK_TIMEOUT seconds on the same instruction. The step still completes by its state;
 -- only the dim goes away. The bubble and the arrow stay.
-local BLOCK_TIMEOUT = 25
-local shownAt = 0 -- os.clock() when the current instruction (text / mode) started
 
 local function frame(name: string, parent: Instance): Frame
 	local piece = Instance.new("Frame")
@@ -201,9 +199,6 @@ function CoachmarkController.Init()
 end
 
 function CoachmarkController.Show(spec: Spec)
-	if current == nil or current.text ~= spec.text or current.mode ~= spec.mode then
-		shownAt = os.clock() -- a new instruction starts the block timer; the same one keeps it running
-	end
 	current = spec
 	bubbleText.Text = spec.text or ""
 	bubble.Visible = spec.text ~= nil
@@ -362,8 +357,9 @@ function CoachmarkController.Update()
 	end
 	bubble.Visible = spec.text ~= nil
 
-	-- Overlay: only when the step blocks, and only until the safety timer runs out (see BLOCK_TIMEOUT).
-	local blocking = spec.block and os.clock() - shownAt < BLOCK_TIMEOUT
+	-- LOCKED 2026-11-23 (owner phone video): a coachmark NEVER dims or blocks. No dark overlay, no hole, no ground zones,
+	-- on any step, first-time or not. Only the highlight ring, the arrow and the bubble are drawn. spec.block is ignored.
+	local blocking = false
 	overlayGui.Enabled = blocking
 	highlight.Visible = false
 	bubble.AnchorPoint = Vector2.new(0.5, 0)
