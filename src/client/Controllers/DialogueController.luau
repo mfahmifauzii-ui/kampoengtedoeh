@@ -14,6 +14,7 @@ local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Npcs = require(ReplicatedStorage.Shared.Config.Npcs)
+local Quests = require(ReplicatedStorage.Shared.Config.Quests)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Sfx = require(ReplicatedStorage.Shared.Sfx)
@@ -226,6 +227,27 @@ local function lockedFor(npcId: string): boolean
 	return npc ~= nil and npc.unlockLevel ~= nil and (typeof(level) ~= "number" or level < npc.unlockLevel)
 end
 
+-- A6 (K-53): Bang Jali's shop is closed until S3 "Tetangga di Depan" sells to him. Before its level: "Terbuka di Level {n}" plus
+-- where to go. From its level on: the line tells the player to sell 1 item to him first.
+local function gatedLine(): string
+	local need = Quests.byId["s3_tetangga"].unlockLevel
+	local level = player:GetAttribute("Level")
+	if typeof(level) == "number" and level >= need then
+		return Locale.t("npc.bang_jali.gated_quest")
+	end
+	return Locale.t("npc.bang_jali.gated", { level = need })
+end
+
+-- The sell choice names the cut like Pak Udin's: "Jual semua panen (100%)" / "(90%)" from the NPC's own config.
+local function tradeLabel(npcId: string): string
+	local npc = Npcs.byId[npcId]
+	local pct = if npc and npc.buys then npc.buys.crop else nil
+	if pct then
+		return Locale.t("dialog.sell_all", { pct = math.floor(pct * 100 + 0.5) })
+	end
+	return Locale.t("dialog.trade")
+end
+
 local function greetSuffix(npcId: string): string
 	return if lockedFor(npcId) then "locked" else "greet"
 end
@@ -260,7 +282,7 @@ local function refresh(npcId: string)
 		})
 	elseif not locked and not ShopController.Gated(npcId) then
 		table.insert(choices, {
-			text = Locale.t("dialog.trade"),
+			text = tradeLabel(npcId),
 			onChoose = function()
 				local id = currentNpc
 				-- Jual / Beli: no fade and no camera tween. The shop simply opens (only Sampai jumpa fades).
@@ -283,7 +305,7 @@ local function refresh(npcId: string)
 	T1Dialog.Show({
 		name = Locale.t(`npc.{npcId}`),
 		-- Gift mode (Kak Fajar's first visit) has its own line: the gift, not the shop greeting (playtest 2026-11-22).
-		text = if giftMode then Locale.t(`npc.{npcId}.gift`) else Locale.t(`npc.{npcId}.{greetSuffix(npcId)}`),
+		text = if giftMode then Locale.t(`npc.{npcId}.gift`) elseif ShopController.Gated(npcId) then gatedLine() else Locale.t(`npc.{npcId}.{greetSuffix(npcId)}`),
 		avatar = npcModel(npcId),
 		showNext = false,
 		bottom = 16,
