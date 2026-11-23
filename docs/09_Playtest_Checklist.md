@@ -187,6 +187,18 @@ Tempel juga **teks merah/kuning dari panel Output** bila ada. Tidak perlu meneba
 
 ---
 
+### B10. Putaran Playtest 2 (K-58 … K-65): owner cek di HP
+Tes AI sudah dijalankan di Studio untuk yang disebut "terverifikasi". Sisanya harus dicek di HP.
+1. [ ] **Papan (R2.2):** tombol "Papan" di HUD muncul setelah quest "Kampung Hari Ini" mulai; isi: tugas hari ini dengan progres x/n, Selesai bila tuntas.
+2. [ ] **Garap (K-53):** ketuk sekali sorot, ketuk lagi tanam; di 844x390, 667x375, 390x844.
+3. [ ] **Toast (K-53):** di bawah Koin/Bunga, tidak menutupi HUD.
+4. [ ] **Bang Jali (K-53):** di Lv 3 kepalanya ada "!" (terverifikasi di Studio); bubble "Terbuka di Level 3 ..." / "Jual 1 barang ke saya dulu ..." terbaca.
+5. [ ] **Pakai di Tas (K-55):** pancing dan umpan bisa dipakai; badge Dipakai.
+6. [ ] **Tarik (K-55):** tombol Tarik di slot Tombol Aksi saat ikan menarik.
+7. [ ] **Skill (K-56):** tombol Tingkatkan terlihat saat node ditekan (bar bawah).
+8. [ ] **Quest (K-56):** Harian dan Mingguan hanya memuat quest yang bisa dikerjakan.
+9. [ ] **DEV (K-64):** akun owner bisa memakai `!state`, `!skenario`, `!skip tutorial` di game terbit. Sebelum rilis: `LIVE_ENABLED = false`.
+
 ### B9. Putaran Playtest 1 (K-53 … K-57)
 1. [ ] **Garap (K-53):** ketuk sekali = sorot; ketuk lagi = tanam; yang tertanam sama dengan sel yang disorot; outline hilang saat keluar mode.
 2. [ ] **Toast (K-53):** di bawah Koin/Bunga, tidak menutupi HUD; di bawah Bubble Instruksi bila tampil.
