@@ -1011,14 +1011,17 @@ local function fillPopup(bed: BasePart)
 		count.Parent = icon
 
 		-- Tap: a lit icon plants (the card closes); a grey/locked one explains itself in a small tip.
-		local pressedAt = 0
+		-- Same rule as the pills (FarmFloat): the press time is used once. No press time seen = a tap, not a hold.
+		local pressedAt: number? = nil
 		icon.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 				pressedAt = os.clock()
 			end
 		end)
 		icon.Activated:Connect(function()
-			local held = os.clock() - pressedAt >= HOLD_TIP_SECONDS
+			local startedAt = pressedAt
+			pressedAt = nil
+			local held = startedAt ~= nil and os.clock() - startedAt >= HOLD_TIP_SECONDS
 			if status == "lit" and not held then
 				-- The bed stays "empty" on this screen until the server confirms the planting: do not re-show the card for it.
 				pendingPlant[bed] = os.clock() + 2
