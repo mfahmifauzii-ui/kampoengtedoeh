@@ -156,6 +156,7 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		end)(),
 		titles = data.titles,
 		guideSells = data.guide.sells,
+		guideHarvests = data.guide.harvests or 0,
 		guide = {
 			step = { id = data.guide.step.id, n = data.guide.step.n },
 			done = table.clone(data.guide.done),

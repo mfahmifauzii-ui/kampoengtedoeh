@@ -590,6 +590,7 @@ function FarmService.HarvestFor(owner: Player, data: Types.PlayerData, tile: Typ
 		data.guide.done.ftue_super = true -- marked only after the item is in the bag (a full bag must not waste it)
 	end
 	data.onboarding.first_harvest = true -- A1: the tutorial treats a harvest as done for the planting and watering steps
+	data.guide.harvests = (data.guide.harvests or 0) + 1 -- B1 (K-54): counts harvests for the tutorial steps (panen_1, tunggu_semua)
 
 	local harvestsLeft = tile.harvestsLeft or 0
 	if harvestsLeft > 0 then

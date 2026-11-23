@@ -127,6 +127,34 @@ local TUTORIALS: { Tutorial } = {
 				reward = { xp = 1 },
 			},
 			{
+				-- B1 (K-54): after the first harvest, the player plants the free seeds again on new plots.
+				id = "panen_1",
+				text = "tut.t1.s4_harvest",
+				done = { kind = "harvests", n = 1 },
+				highlight = "PanenButton",
+			},
+			{
+				id = "garap_5",
+				text = "tut.t1.s5_garap",
+				coach = "tut.coach.garap",
+				done = { kind = "tiles", n = 6 }, -- 1 old plot + 5 new ones
+				highlight = "GarapButton",
+			},
+			{
+				id = "tanam_5",
+				text = "tut.t1.s5_tanam",
+				coach = "tut.coach.tanam",
+				done = { kind = "planted", n = 5 }, -- the 5 free seeds still in the bag
+				highlight = "TanamButton",
+			},
+			{
+				-- All six free seeds harvested (the first harvest counts): never fewer.
+				id = "tunggu_semua",
+				text = "tut.t1.s5_tunggu",
+				done = { kind = "harvests", n = 6 },
+				highlight = "PanenButton",
+			},
+			{
 				id = "panen_jual",
 				text = "tut.t1.s4",
 				coach = "tut.coach.panen",
@@ -187,10 +215,7 @@ local TUTORIALS: { Tutorial } = {
 				done = { kind = "ack", id = "jual_ikan" },
 				target = { npc = "kak_fajar" },
 				arrive = 14,
-				-- XP top-up so the tutorial ends just under Lv 2 (230 XP, Config/Progression xpToNext(1)). Tutorial XP before
-				-- this step: 1+1+1 (cangkul/tanam/siram) + 20 (panen_jual) + 20 (mancing) = 43. Free seeds: 6 x kangkung (12 XP
-				-- each) = 72. 230 - 72 - 43 = 115. After the tutorial the player is at 158 + the 1st harvest (12) = 170, and
-				-- harvesting the 5 seeds left (5 x 12 = 60) reaches 230 -> Lv 2 -> the Kolam quest (Config/Quests m3_kolam_kakek).
+				-- B1 recount (K-54): 1+1+1 + 6 harvests x 12 + 20 (Jual) + 20 (first fish) = 115, the top-up that ends at Lv 2.
 				reward = { xp = 115 },
 			},
 		},

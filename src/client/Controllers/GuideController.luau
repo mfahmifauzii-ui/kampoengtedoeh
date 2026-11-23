@@ -377,10 +377,13 @@ local function currentGoal(): Goal?
 	if running then
 		local current = running.def.steps[running.n + 1]
 		-- T1 bed steps: the arrow is ONLY on the bed the step needs (never to Pak Udin before the harvest is in the Tas).
-		if current and current.id == "tanam" then
+		if current and (current.id == "tanam" or current.id == "tanam_5") then
 			return t1BedGoal("empty")
 		elseif current and current.id == "siram" then
 			return t1BedGoal("dry")
+		elseif current and current.id == "tunggu_semua" then
+			-- B1 (K-54): the arrow shows the beds that are ripe (harvest them), else the ones still growing
+			return t1BedGoal("ripe") or t1BedGoal("growing")
 		elseif current and current.id == "panen_jual" then
 			local phase = t1Phase()
 			if phase ~= "sell" then
@@ -664,6 +667,10 @@ local function evalCondition(condition: Onboarding.Condition): boolean
 		return panel ~= nil and panel:IsA("ScreenGui") and panel.Enabled
 	elseif kind == "garap" then
 		return GarapController.Active
+	elseif kind == "harvests" then
+		-- B1 (K-54): harvests counted by the server (guide.harvests), all of them since the save began.
+		local snap = snapshot()
+		return snap ~= nil and typeof(snap.guideHarvests) == "number" and snap.guideHarvests >= need
 	elseif kind == "sells" then
 		local snap = snapshot()
 		return snap ~= nil and typeof(snap.guideSells) == "number" and snap.guideSells >= need

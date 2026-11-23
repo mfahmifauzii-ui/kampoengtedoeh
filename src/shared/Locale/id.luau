@@ -658,6 +658,9 @@ return {
 	["tut.t1.s2"] = "Pilih bibit, tap petak kosong",
 	["tut.t1.s3"] = "Tap petak, lalu Siram",
 	["tut.t1.s4"] = "Panen, lalu jual ke Pak Udin",
+	["tut.t1.s5_garap"] = "Buat 5 petak lagi: tap Garap, lalu Cangkul",
+	["tut.t1.s5_tanam"] = "Tanam 5 bibit lagi di petak baru",
+	["tut.t1.s5_tunggu"] = "Tunggu semua tumbuh, lalu panen semuanya",
 	-- T1b (Config/Onboarding): the lines Mak Sari / Pak Udin / Kak Fajar actually say live in T1Ghost.client; these are
 	-- the Panduan list title and the plain fallback when nobody can speak.
 	["tut.t1b.title"] = "Joran dan Mancing",
