@@ -2,7 +2,7 @@
 -- Skill Tree panel (UI-4, GUI doc Bab 6.2 and the approved mockup Bab 10; Skill Tree Bab 3). Opened from the HUD (SkillButton).
 --   Six branches side by side (Bertani, Mancing, Ternak, Tukang, Masak, Sosial). In each branch the Root is at the bottom,
 --   the Cabang in the middle, and the Capstone at the top; lines join the tiers and light up once a node has a level.
---   Tap a node: the drawer shows the skill, its effect, its requirement or breakpoint, its cost (1 SP + 3.000 Koin) and the
+--   Tap a node: the drawer shows the skill, its effect, its requirement or breakpoint, its cost (1 SP + Koin 1.000 x level berikutnya, K-12) and the
 --   Tingkatkan button. The server decides every purchase: SkillBuy returns the reason ("ok" / "max" / "locked" / "noSP" /
 --   "noKoin"), and the drawer shows it. The client only reflects the snapshot.
 -- The panel is built on open and destroyed on close (UiKit.closePanel): no instance stays behind.
@@ -110,7 +110,7 @@ local function nodeState(def: Skills.SkillDef, levels: { [string]: number }): (s
 	if spBalance() < Skills.SP_PER_LEVEL then
 		return "noSP", nil
 	end
-	if koinBalance() < Skills.KOIN_PER_LEVEL then
+	if koinBalance() < Skills.koinForLevel(lv + 1) then
 		return "noKoin", nil
 	end
 	return "buyable", nil

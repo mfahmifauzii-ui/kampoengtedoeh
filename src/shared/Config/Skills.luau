@@ -1,6 +1,6 @@
 --!strict
 -- Skill Tree (docs/01_GDD_Kampoeng_Tedoeh_v8.1.md Bab 4.5, the single source of truth). 16 skill, 6 cabang, max Lv 5 each.
---   Beli: 1 SP + 3.000 Koin per level (Bab 1). Tidak ada reset. Tidak pakai Bunga / Robux.
+--   Beli: 1 SP + Koin naik per level, 1.000 x level berikutnya (K-12, GDD 4.5.1). Tidak ada reset. Tidak pakai Bunga / Robux.
 --   Prasyarat (Bab 2), semua opsional kecuali yang tertulis:
 --     level   = Player Lv minimum
 --     all     = daftar { id, lv }: SEMUA harus terpenuhi (skill Lv minimum)
@@ -68,7 +68,10 @@ local CABANG_ORDER = { "bertani", "mancing", "ternak", "tukang", "masak", "sosia
 
 -- Biaya (Skill Tree Bab 1): per level.
 local SP_PER_LEVEL = 1
-local KOIN_PER_LEVEL = 3000
+-- K-12 (a): biaya Koin naik per level: Lv 1 = 1.000 ... Lv 5 = 5.000 (total per skill 15.000, semua 240.000).
+local function koinForLevel(nextLevel: number): number
+	return 1000 * nextLevel
+end
 
 -- The first unmet requirement, or nil when the skill can be bought (Player Lv and prerequisites only; SP and Koin and max
 -- are checked by SkillService). `levels` = { [skillId] = level }, `playerLevel` = Player Lv, `totalLevels` = sum of levels.
@@ -141,7 +144,7 @@ return {
 	byId = byId,
 	CABANG_ORDER = CABANG_ORDER,
 	SP_PER_LEVEL = SP_PER_LEVEL,
-	KOIN_PER_LEVEL = KOIN_PER_LEVEL,
+	koinForLevel = koinForLevel,
 	missing = missing,
 	effectLevel = effectLevel,
 	tetanggaBonus = tetanggaBonus,

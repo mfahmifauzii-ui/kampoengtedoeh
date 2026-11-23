@@ -44,10 +44,11 @@ local function buy(player: Player, skillId: any): BuyResult
 	if data.sp < Skills.SP_PER_LEVEL then
 		return "noSP"
 	end
-	if not EconomyService.CanAfford(player, "koin", Skills.KOIN_PER_LEVEL) then
+	local cost = Skills.koinForLevel(level + 1)
+	if not EconomyService.CanAfford(player, "koin", cost) then
 		return "noKoin"
 	end
-	if not EconomyService.TrySpend(player, "koin", Skills.KOIN_PER_LEVEL, `skill:{skillId}`) then
+	if not EconomyService.TrySpend(player, "koin", cost, `skill:{skillId}`) then
 		return "noKoin"
 	end
 	data.sp -= Skills.SP_PER_LEVEL

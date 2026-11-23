@@ -729,7 +729,7 @@ return {
 	["skill.req_level"] = "Butuh Player Lv {n}",
 	["skill.req_skill"] = "Butuh {skill} Lv {n}",
 	["skill.req_any"] = "Butuh {a} Lv {na} atau {b} Lv {nb}",
-	["skill.cost"] = "Biaya: 1 SP + 3.000 Koin",
+	["skill.cost"] = "Biaya: 1 SP + {koin} Koin",
 	["skill.effect_from"] = "Efek mulai Lv {n}",
 	["skill.tingkatkan"] = "Tingkatkan",
 	["skill.sp_chip"] = "SP: {n}",
