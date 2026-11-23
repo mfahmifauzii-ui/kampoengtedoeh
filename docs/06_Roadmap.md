@@ -330,3 +330,15 @@ Urutan (satu tugas = satu commit, selene 0 error, rojo exit 0):
 | RP2.6–9, 12 | R2.6 Blueprint, R2.7 Akuarium, R2.8 Saung, R2.9 event, R2.12 Tabel Bunga | K-31 | Sesuai GDD, placeholder di Asset Bible 12 |
 
 Catatan: ada dua baris R3.8 di tabel Fase 3 (Lempar Gelang dan ikon UiAssets). ID bentrok; yang ikon perlu diberi ID baru.
+
+---
+
+## 21. DEV ONLY (dipantau sampai sebelum rilis publik)
+
+| Item | Ditutup oleh |
+|------|--------------|
+| `DevService` perintah `!` (`!state`, `!give`, `!skenario`, ...) dan panel DEV | R10.5 (+ `Config/DevAccess.LIVE_ENABLED = false`, K-64) |
+| `Config/DevAccess.UserIds` (akun owner) | R10.5 (hapus sebelum rilis atau pindahkan ke Config rilis) |
+| `DataService` mode studioMock (profil di memori di Studio, K-65) | R10.5 (tetap aman: hanya di Studio) |
+| Atribut Workspace `DevSaveSuffix` (kunci simpan Studio) | R10.5 |
+| Gerbang G3 "perintah DEV dimatikan" | G3 (AUTO check) |

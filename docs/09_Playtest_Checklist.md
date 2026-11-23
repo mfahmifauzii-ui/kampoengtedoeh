@@ -226,3 +226,16 @@ Tempel juga **teks merah/kuning dari panel Output** bila ada. Tidak perlu meneba
 | 2 | 2026-11-23 | Owner (lanjutan putaran 1), HP | Lanjutan: R2.x, Quest Log, Season, E2/E3, Gembor (lihat Roadmap Bab 20) | K-58 … K-63 |
 
 > Masukan yang mengubah **aturan desain** (bukan bug) dicatat Claude sebagai `K-nn rev.` di `02_Audit_Perbaikan.md` Bab 3.6, lalu GDD naik versi (v8.2, …). Bug cukup jadi tugas `R…` baru.
+
+---
+
+## DEV (cara pakai untuk owner)
+
+Perintah ini hanya untuk akun owner (dan Studio). Diisi di chat game, diawali `!`.
+
+- Panel DEV: tombol di layar (hanya untuk akun owner). Isinya sama dengan perintah di bawah.
+- `!state`: cetak level, Koin, fitur terbuka, quest aktif, dan barang terpasang.
+- `!skenario <nama>`: isi cepat, contoh `pasca_tutorial`, `lv6_dapur`, `lv10_penuh`, `mancing`, `kandang`, `hujan_deres`, `event_agustusan`, `pasar_malam`, `solo_server`.
+- `!reset`, `!level N`, `!xp N`, `!koin N`, `!bunga N`, `!sp N`, `!buka <fitur|semua>`, `!quest <id> [langkah]`, `!quest selesai <id>`, `!give <item> [n]`, `!equip <item>`, `!cuaca <cerah|gerimis|deres|petir>`, `!waktu <pagi|siang|sore|malam>`, `!tumbuh`, `!hari +N`, `!event <nama|off>`, `!pasar on|off`, `!teleport <npc|lokasi>`.
+
+Catatan: di Studio, profil yang gagal dimuat dipakai dari memori (tidak tersimpan).

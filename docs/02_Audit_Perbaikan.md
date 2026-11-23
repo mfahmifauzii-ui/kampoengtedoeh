@@ -375,6 +375,8 @@ Cara owner memberi masukan: lewat playtest (`09_Playtest_Checklist.md`). Masukan
 | K-61 | 2026-11-23 | **DIPUTUSKAN (Putaran 2).** Pemilih warna dinding belum dibuat sekarang. Tugas baru R3.9: Hias GUI "Warna Dinding" dengan 12 warna muted dari Asset Bible Bab 1 + "Dinding Spesial". | Keputusan owner |
 | K-62 | 2026-11-23 | **DIPUTUSKAN (Putaran 2, Gembor Emas).** Item `gembor_emas` di tab Alat: kosmetik saja (tint emas), statistik identik, penyiraman mengabaikannya. Dipasang dengan tombol "Pakai" (K-55). Quest side_prima memberi item ini, bukan 200 Koin. PLACEHOLDER di Asset Bible bagian 12. | Keputusan owner |
 | K-63 | 2026-11-23 | **DIPUTUSKAN (Putaran 2, A7).** "Jual Semua" yang terpotong hilang bersama E2 (penjualan pindah ke bubble lapak Pak Kumis). Tidak diperbaiki terpisah. | Keputusan owner |
+| K-64 | 2026-11-23 | **DIPUTUSKAN (Putaran 2, DEV).** Akses perintah DEV: `DevService.IsAllowed(player)` = `RunService:IsStudio()` ATAU UserId ada di `Config/DevAccess.UserIds` (akun owner). Satu fungsi dipakai semua perintah dan remote DEV. `Config/DevAccess.LIVE_ENABLED = true` sekarang; R10.5 dan gerbang G3 mewajibkan `false` plus cek otomatis (AUTO) sebelum rilis publik. Semua item DEV ONLY dicatat di Roadmap Bab 17. | Owner mengetes game terbit dengan akunnya sendiri |
+| K-65 | 2026-11-23 | **DIPUTUSKAN (Putaran 2, Studio).** Bila di Studio profil tidak bisa dimuat (kunci sesi karena owner memainkan akun yang sama, atau API off), dibuat profil dari DataTemplate di memori dengan `studioMock = true`. Profil ini tidak pernah disimpan. Satu baris log. Di server live tidak berlaku (tetap kick). | Tes Play di Studio tidak boleh mati karena data |
 
 ---
 

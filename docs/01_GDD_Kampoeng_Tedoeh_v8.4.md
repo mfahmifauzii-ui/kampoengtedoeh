@@ -1017,6 +1017,9 @@ Kolam: 1 Bunga per 10 menit sisa, maks 30. Bubu tidak bisa instant. Tidak ada in
 
 ## Revisi Putaran 2 (v8.4, K-58…K-63)
 
+- **Akses DEV (K-64):** perintah `!` aktif untuk Studio dan akun owner (Config/DevAccess). Dimatikan sebelum rilis (R10.5).
+- **Mode studioMock (K-65):** di Studio, profil yang gagal dimuat dibuat di memori; tidak disimpan.
+
 - **Quest Season "Bantu 20 lahan" (K-58):** 500 Koin, tanpa Bunga; kartu di Hadiah > Musim; hanya setelah Bantu terbuka.
 - **Album dekor (K-59):** hanya entri yang sudah dibangun dihitung; piece yang belum ada disembunyikan. Isi 80 piece = R4.8.
 - **Order Mingguan (K-60):** lihat 14.7.
