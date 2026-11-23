@@ -9,7 +9,7 @@
 ## Handoff (update setiap selesai tugas; sesi baru mulai dari sini)
 
 - **Terakhir selesai:** T0 (`03c643b` + fix `995d049`, DONE-CODE, Play belum). Lalu `06521d5` (CLAUDE.md + handoff), `6c5e593` (gitignore Obsidian), `1f562d0` (vault Obsidian).
-- **Berikutnya:** Task 2 = MS-2 verifikasi di Play dari `!reset` (termasuk reproduksi lalu perbaikan bug garap_5 4/5), lalu Task 3–6 dan antrean.
+- **Berikutnya:** Task 2 = MS-2 Play (`!reset` lalu klik Play). Percobaan 2026-11-24: klik mouse di layar judul tidak mengenai tombol PLAY (`KTMenu`), jadi tidak sampai HUD. Coba klik di judul lagi dengan koordinat dari screenshot, atau sediakan jalur remote untuk masuk ke game. Lalu bug 4/5 garap_5, Mak Sari tiga tahap, F1c, Ok toast. Lalu Task 3 (seed-out) dan seterusnya.
 - **Branch:** `feat/v.7`. Sudah di-push sampai `1f562d0`; `6c5e593`, `06521d5`, `995d049` belum.
 - **Baseline:** selene 0 error / 86 warning; rojo build exit 0.
 - **Keputusan owner terbuka:** tidak ada yang menunggu. Gerbang rilis di bawah (Bab 23) belum dikerjakan.
