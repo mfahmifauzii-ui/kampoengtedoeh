@@ -29,7 +29,7 @@ local offers: { string } = {}
 local accepting: { [string]: boolean } = {} -- accepted here, waiting for the server's next QuestOffers
 local playing = false -- the start dialog is on screen
 local token = 0 -- bumped by Cancel(): a running start dialog stops at its next Next
-local markers: { [string]: GuiObject } = {} -- npc id -> "!" marker (a child of the NPC name billboard)
+local markers: { [string]: BillboardGui } = {} -- npc id -> "!" marker (a child of the NPC name billboard)
 local seenDone: { [string]: boolean } = {}
 local doneSeeded = false
 
@@ -61,18 +61,21 @@ end
 -- The "!" marker: a small parchment pill with a bamboo "!" above the giver's overhead name label. The marker is a child of
 -- that label's BillboardGui and sits ABOVE it in pixels (Bug 2: it used to cover the name). Without a label it falls back to
 -- its own billboard on the head.
--- A4-style fix (playtest K-53): the marker used to be a child of the name billboard (220 x 36 px). When that billboard was
--- small or hidden the "!" was gone too. Now it is its own billboard on the head, always on top, so it does not depend on
--- the name label's size. Markers are checked every second (see Start), so a late-streamed NPC gets its marker too.
-local function makeMarker(head: BasePart): GuiObject
+-- The "!" marker (Putaran 2 fix). One marker per GIVER, on the NPC model of that giver that is nearest to the player. It
+-- shows only when the player has a real offer and has pressed Play (character spawned, data loaded, no talk/cutscene open).
+-- It is a small billboard above the head: AlwaysOnTop off, MaxDistance 40 studs, so nothing shows on the title screen,
+-- through the blur, or in the middle of the plaza without its NPC.
+local MARKER_MAX_DISTANCE = 40
+
+local function makeMarker(head: BasePart): BillboardGui
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "QuestMarker"
 	billboard.Adornee = head
-	billboard.Size = UDim2.fromOffset(34, 40)
-	billboard.StudsOffset = Vector3.new(0, 3.6, 0) -- just above the overhead name label (2.6 studs + its 36 px)
-	billboard.AlwaysOnTop = true
+	billboard.Size = UDim2.fromOffset(26, 30)
+	billboard.StudsOffset = Vector3.new(0, 3.6, 0) -- just above the overhead name label
+	billboard.AlwaysOnTop = false
+	billboard.MaxDistance = MARKER_MAX_DISTANCE
 	billboard.Parent = head
-	local gui: GuiObject = billboard
 	local label = Instance.new("TextLabel")
 	label.Name = "Bang"
 	label.Size = UDim2.fromScale(1, 1)
@@ -81,17 +84,25 @@ local function makeMarker(head: BasePart): GuiObject
 	label.TextColor3 = MARKER_TEXT_COLOR
 	label.Font = Enum.Font.FredokaOne
 	label.TextScaled = true
-	label.Parent = gui
+	label.Parent = billboard
 	local corner = Instance.new("UICorner")
 	corner.CornerRadius = UDim.new(0.5, 0)
 	corner.Parent = label
-	return gui
+	return billboard
+end
+
+-- The player has pressed Play: the character exists, the save is loaded, and no talk or cutscene is open.
+local function pressedPlay(): boolean
+	return player.Character ~= nil and player:GetAttribute("DataLoaded") == true and player:GetAttribute("NpcTalkOpen") ~= true
+		and player:GetAttribute("FishingActive") ~= true
 end
 
 local function refreshMarkers()
-	-- Givers that have an offer now (the tutorial hides every "!").
+	local root = if player.Character then player.Character:FindFirstChild("HumanoidRootPart") else nil
+	local folder = Workspace:FindFirstChild("Npcs")
+	-- givers with a real offer now (none during the tutorial, none before Play)
 	local wanted: { [string]: boolean } = {}
-	if not tutorialRunning() then
+	if pressedPlay() and not tutorialRunning() then
 		for _, id in offers do
 			local quest = Quests.byId[id]
 			if quest and not accepting[id] then
@@ -99,29 +110,36 @@ local function refreshMarkers()
 			end
 		end
 	end
-	-- A4 (K-53): one "!" per NPC MODEL (bang_jali_1 .. _8 each get one). Markers used to be keyed by the giver id, so
-	-- Bang Jali's models (named bang_jali_N) never matched "bang_jali" and never got a "!".
-	local folder = Workspace:FindFirstChild("Npcs")
-	local show: { [string]: boolean } = {}
-	if folder then
+	-- the nearest model of each wanted giver
+	local chosen: { [string]: Model } = {}
+	local chosenDist: { [string]: number } = {}
+	if folder and root and root:IsA("BasePart") then
 		for _, model in folder:GetChildren() do
-			if model:IsA("Model") and wanted[giverOf(model.Name)] then
-				show[model.Name] = true
+			local giver = giverOf(model.Name)
+			if model:IsA("Model") and wanted[giver] then
+				local head = model:FindFirstChild("Head")
+				if head and head:IsA("BasePart") then
+					local d = (head.Position - root.Position).Magnitude
+					if d <= MARKER_MAX_DISTANCE and (chosenDist[giver] == nil or d < chosenDist[giver]) then
+						chosen[giver] = model
+						chosenDist[giver] = d
+					end
+				end
 			end
 		end
 	end
-	for npcId, gui in markers do
-		if not show[npcId] or not gui:IsDescendantOf(game) then
+	for giver, gui in markers do
+		local model = chosen[giver]
+		if model == nil or not gui:IsDescendantOf(game) or gui.Adornee ~= model:FindFirstChild("Head") then
 			gui:Destroy()
-			markers[npcId] = nil
+			markers[giver] = nil
 		end
 	end
-	for npcId in show do
-		if not markers[npcId] then
-			local model = folder and folder:FindFirstChild(npcId)
-			local head = if model and model:IsA("Model") then (model:FindFirstChild("Head") or model.PrimaryPart) else nil
+	for giver, model in chosen do
+		if not markers[giver] then
+			local head = model:FindFirstChild("Head")
 			if head and head:IsA("BasePart") then
-				markers[npcId] = makeMarker(head)
+				markers[giver] = makeMarker(head)
 			end
 		end
 	end
