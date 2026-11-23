@@ -157,7 +157,7 @@ Ringkasan: **83 temuan** — 14 Tinggi, 37 Sedang, 32 Rendah.
 
 ---
 
-## 3. Keputusan Desain K-01…K-42 (SEMUA DIPUTUSKAN)
+## 3. Keputusan Desain K-01…K-66 (SEMUA DIPUTUSKAN)
 
 **Status: semua `DIPUTUSKAN`.** Owner tidak punya pekerjaan di bab ini. Keputusan diambil oleh Claude (atas mandat owner: "putuskan semuanya"), memakai **Default** tiap butir, dengan **satu pengecualian: K-16 = (b)**. Claude Code langsung menerapkan; tidak perlu menunggu jawaban.
 
@@ -188,6 +188,37 @@ Cara owner memberi masukan: lewat playtest (`09_Playtest_Checklist.md`). Masukan
 | K-19 | event selesai = semua Pesanan Tamu disetor | K-40 | toast turun di bawah bubble |
 | K-20 | terima 3 baris perkenalan | K-41 | Diskon Warga: Pak Udin + Kak Fajar |
 | K-21 | (a) hadiah tutorial = Cacing | K-42 | bahan tidak bisa dijual |
+
+### 3.0b Tabel Keputusan K-43…K-66 (ditambahkan 2026-11-23)
+
+Keputusan Putaran 2 dan keputusan otomatis (detail lengkap di 3.6). Kolom "Diterapkan di" = bab dokumen yang memuatnya.
+
+| K | Hasil (ringkas) | Diterapkan di |
+|---|-----------------|---------------|
+| K-43 | Kolam Tanah dibuka Lv 4 (kode Lv 3 → Lv 4) | GDD 6 (lokasi "Kolam pemain Lv 4"); `Config/Ranch` |
+| K-44 | Pack Bunga 700 = `bunga_xl` (id 0, belum bisa dibeli) | GDD 18.4 |
+| K-45 | Mujair dan Nila juga bisa di kolam | GDD 6.4 (Lokasi tambahan) |
+| K-46 | Basis ukuran ikan 40 / 40 / 15 / 5 | GDD 6.4 |
+| K-47 | Legenda 0,5% per lemparan | GDD 6.5 |
+| K-48 | Koin awal 100, Bunga awal 10; Album ladang & sungai 300 Koin | GDD 4.1 |
+| K-49 | Hujan tidak menggandakan waktu tunggu; tidak ada batas waktu gigitan | Audit 3.6; GDD 6 (lihat koreksi D3) |
+| K-50 | Dinding Spesial = warna ke-13 (title) | GDD 8 (tabel title) |
+| K-51 | Dialog side quest memakai id penuh (bug) | 03 Bab 6.3 |
+| K-52 | Album Rumah = 33 entri di kode; 47 piece = konten | GDD 11 (lihat koreksi D3) |
+| K-53 | Garap: sorot dan tanam pada titik yang sama (bug) | Audit 3.6 (perilaku, tidak mengubah angka GDD) |
+| K-54 | Tutorial: 5 Garap lagi, 6 bibit gratis, tunggu semua, baru Pak Udin | GDD 16.2 |
+| K-55 | Pancing dan umpan lewat Pakai di Tas; umpan habis → pindah | GDD 6.3 |
+| K-56 | Harian/Mingguan: templat eligible saja; Bantu lahan → Season | GDD 14.1 |
+| K-57 | Event hanya saat aktif; Pasar Malam tempat dunia; Lempar Gelang minigame | GDD 13.2, 13.4 |
+| K-58 | Quest Season "Bantu 20 lahan" 500 Koin | GDD 19 |
+| K-59 | Album dekor hanya entri yang sudah dibangun | GDD 11 |
+| K-60 | Order mingguan 4 jenis, ×3, XP ×0,5 | GDD 14.7 |
+| K-61 | Pemilih warna dinding = R3.9 | GDD 8.3 |
+| K-62 | Gembor Emas kosmetik di tab Alat | GDD 5.5 |
+| K-63 | Jual Semua hilang bersama E2 | GDD 10.2 |
+| K-64 | Akses DEV: Studio atau UserId owner | GDD 29 |
+| K-65 | Studio: profil gagal dimuat dibuat di memori | GDD 29 |
+| K-66 | Bubu dijual Koin saja; bahan ditunda | GDD 6.6 |
 
 **Alasan K-16 = (b):** game dibuat 100% lewat Claude Code, jadi scope rilis dijaga. Kucing Alun-alun dan Joran Hilang butuh sistem baru yang kecil tapi tidak dibutuhkan jalan cerita. Dampak: Title "Penyayang Kucing" ikut tertunda; kedua quest tidak muncul di Quest Log rilis; dikerjakan di Update 1 (R12.4b).
 
