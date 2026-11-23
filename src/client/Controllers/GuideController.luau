@@ -11,7 +11,7 @@
 --
 -- TUTORIAL ENGINE (on top of the above): runs the tutorials of Config/Onboarding TUTORIALS, one at a time. While one runs
 -- it owns the hint bar (text of the current step; there is no skip button), the ground trail (step.target), and a pulsing ring on
--- a HUD button (step.highlight); the old guide stays quiet. Steps are NEVER blocking: every step whose condition already
+-- a HUD button (step.highlight); the old guide stays quiet. Steps never take a tap (the spotlight in CoachmarkController is visual only): every step whose condition already
 -- holds is ticked at once, conditions are ">=". The server (TutorialService) saves the step counter, pays rewards and logs
 -- analytics; this side only watches the world and asks. No progress for 45 s = stronger ring, 90 s = the explicit text.
 -- Replay (Atur > Panduan) runs the same steps with no save and no reward.

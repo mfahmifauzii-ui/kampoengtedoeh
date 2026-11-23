@@ -69,7 +69,7 @@ Tombol HUD lain tetap: dock 58, Tombol Aksi 84. Jarak antar target ≥ 6 px. (Ge
 | HUD | 20 | Mata uang, kartu pemain, dock, kolom menu, tracker |
 | GUIDE | 30 | Panah dunia, hint |
 | PANEL | 40 | Semua sheet |
-| COACHMARK | 50 / 60 | Ring + bubble. **Tanpa overlay** sejak 2026-11-23 (4.6). A-72 (bentrok angka 50/60) tidak berlaku lagi karena tidak ada lapisan gelap. |
+| COACHMARK | 50 / 60 | Ring + bubble. Spotlight (satu lubang, 60 % gelap) hanya untuk tombol HUD tetap pada langkah pertama (4.6). Angka 60 % dipakai bersama toast (A-72). |
 | TOAST | 60 | Toast, reward popup |
 | BANNER | 80 | Dimulai / Selesai |
 | MODAL | 100 | `UiKit.confirm` |
@@ -332,7 +332,7 @@ Status per tugas ada di `06_Roadmap` (kolom Status). Tabel ini hanya ringkasan p
 | Papan Hari Ini (Agenda) | Tombol HUD Papan, 5 tugas | Kode selesai (R2.2); belum playtest |
 | Bubu Pasang / Ambil | Tombol di slot Aksi, tiang di sungai | Kode selesai (R2.1b); cek HP owner pending |
 | Tarik bulat | Plate 84 px di slot Aksi (6.12) | Kode selesai (0fb8032); cek HP pending (F3) |
-| Coachmark tanpa gelap (4.6) | Overlay dan zona blokir dihapus | Kode selesai (00e8cdf); cek HP pending (F1) |
+| Sorot tutorial (4.6) | Spotlight satu lubang hanya tombol HUD tetap, pertama kali; overlay tidak menelan sentuhan | F1a kode (08d788e); Play belum (F1) |
 | Pak Udin Jual / Beli (GDD 16) | Dialog pasca-tutorial | Kode selesai (5641d7a); cek HP pending (F7) |
 | "!" jarak 200 studs (4.5) | Marker terlihat dari jauh | Kode selesai (43b4719); tabel per pemberi pending (F6) |
 | Toast satu permukaan (9.7, F2) | Bubble atau toast per langkah | **Belum di kode** (F2) |
@@ -357,3 +357,13 @@ Isi bab ini sudah dipindah ke bab fitur (aturan tidak hilang). Nomor lama di sin
 | 9.5 Toast, kartu pemain, "!" | 4.2, 4.5 | K-53 |
 | 9.6 Acara & Pasar Malam | 6.6 | K-57 |
 | 9.7 Coachmark tutorial | 4.6 | LOCKED 2026-11-23 |
+
+### 9.7 Aturan sorot tutorial (LOCKED, 2026-11-23 batch F1)
+
+Rujukan utama: **4.6** (aturan dan tabel klasifikasi per langkah). Ringkasan:
+
+- Tombol HUD tetap (Garap, Aksi Pancing) pada langkah pertama = spotlight: satu overlay gelap dengan satu lubang.
+- GUI mengambang dan objek dunia (pill Tanam / Siram / Panen, ghost Garap, NPC) = outline kuning saja, tanpa gelap.
+- Pengulangan = toast saja, tanpa gelap dan tanpa bubble.
+- Overlay tidak pernah menelan sentuhan (joystick dan kamera bebas) dan lepas sendiri setelah 25 detik di langkah yang sama.
+- Satu permukaan instruksi per langkah.

@@ -897,7 +897,7 @@ Dua tutorial: `t1_awal` (langkah 1–9) dan `t1b_kolam` (langkah 10–13). Id la
 | 5 | `panen_1` | Lahan | Panen 1 | — | Pertama: bubble coachmark + ring Panen |
 | 6 | `garap_5` | Lahan | 6 petak total (1 lama + 5 baru) | — | Pengulangan: toast saja |
 | 7 | `tanam_5` | Lahan | Tanam 5 lagi (bibit gratis di tas) | — | Pengulangan: toast saja |
-| 8 | `tunggu_semua` | Lahan | Panen 6 bibit gratis (semua) | — | Toast saja (tidak pernah gelap) |
+| 8 | `tunggu_semua` | Lahan | Panen 6 bibit gratis (semua) | — | Toast saja (tanpa gelap) |
 | 9 | `panen_jual` | Lahan → Pak Udin | Jual 1 ke Pak Udin | 20 | Toast saja |
 | 10 | `warung` | Pak Udin | Ok (ack) | — | Dialog Pak Udin |
 | 11 | `kak_fajar` | Sungai Lahan | Terima Hadiah (`rodgift`): Joran Bambu + umpan Cacing (✔ K-21) | — | Panah NPC + toast |
@@ -930,15 +930,21 @@ Dua tutorial: `t1_awal` (langkah 1–9) dan `t1b_kolam` (langkah 10–13). Id la
 - Jual ikan tutorial hanya diterima server saat langkah `jual_ikan` dan dalam 25 stud dari spot milik pemain (✔ K-27).
 - Cutscene hadiah mulai di frame trigger (target < 0,3 dtk, log `[beat-timing]`).
 
-### 16.6 Coachmark tidak pernah menggelapkan atau memblokir GUI — LOCKED (2026-11-23, revisi owner video HP)
+### 16.6 Sorot tutorial: dua gaya, hanya pertama kali — LOCKED (2026-11-23, batch F1, menggantikan aturan "tanpa gelap" sebelumnya)
 
-- **Aturan baru (menggantikan aturan "gelap hanya pada aksi pertama"):** coachmark TIDAK PERNAH menggelapkan atau memblokir GUI, di langkah mana pun, termasuk langkah pertama.
-- Coachmark = ring sorot di target + panah/penanda + satu baris instruksi. Tidak ada lapisan gelap, tidak ada lubang, tidak ada zona blokir HUD.
-- Tiap langkah punya **satu** permukaan instruksi: langkah pertama = bubble coachmark saja; langkah berikutnya / pengulangan = toast saja. Tidak pernah keduanya untuk teks yang sama (lihat tabel di docs/05 4.6).
-- Semua tombol HUD, dock, dan joystick selalu bisa ditekan di setiap langkah tutorial.
-- Alasan: video owner (2026-11-23) menunjukkan HUD tertutup kotak gelap dan kotak oranye di dock saat langkah Garap.
-- Sisa aturan lama yang tidak berlaku lagi: gelap pertama pada Tanam/Siram/Panen/Mancing, dan timer 25 detik. Cutscene yang menunggu pemain melepas kunci gerak setelah 60 detik tetap berlaku.
-- Riwayat (sudah digantikan): 2026-11-23, HP owner terkunci di tunggu_semua karena gelap menutupi joystick.
+Aturan (owner, video PC dan rekaman HP):
+
+1. **Dua gaya sorot, dipilih dari jenis target, hanya untuk pertama kali:**
+   - **Tombol HUD tetap** (dock Garap, tombol Aksi Pancing): **spotlight** = satu overlay gelap dengan **satu lubang** di sekeliling tombol, supaya pemain tahu tombol mana yang ditekan. Hanya dua langkah yang memakainya: `cangkul` (Garap) dan `mancing` tangkapan pertama (Aksi).
+   - **GUI mengambang atau objek dunia** (pill Tanam / Siram / Panen di atas petak, ghost dan kotak pilihan Garap, NPC, tanah, panah tanah): **tanpa gelap**. Hanya outline kuning yang sudah ada (ring) dan baris instruksi.
+2. **Pengulangan** (langkah yang sudah pernah dilakukan sekali, misal `garap_5`, `tanam_5`, `tunggu_semua`, `panen_jual`, mancing tangkapan ke-2 dan ke-3): **toast saja**. Tanpa gelap, tanpa outline, tanpa bubble.
+3. Spotlight adalah **satu bidang dengan lubang**, tidak pernah kotak gelap terpisah per elemen GUI. Piece overlay tidak menelan sentuhan, jadi joystick dan area sentuh kamera selalu bebas dan pemain tidak pernah terkunci. Spotlight lepas sendiri saat langkah berganti, saat langkah selesai, atau setelah 25 detik di langkah yang sama (timeout pengaman). Bubble dan outline tetap tampil.
+4. **Satu permukaan instruksi per langkah:** pertama kali = bubble coachmark (+ sorot sesuai aturan 1); pengulangan = toast. Tidak pernah keduanya untuk teks yang sama.
+5. Tabel klasifikasi per langkah (jenis target, gaya, pertama kali, permukaan, bisa gerak): **GUI 4.6**. Angka XP dan urutan langkah tetap di 16.2.
+
+- Alasan: video owner (2026-11-23) menunjukkan kotak gelap menutupi HUD dan dock saat langkah Garap, dan di HP tahap `tunggu_semua` pemain terkunci karena gelap menutupi joystick. Dengan aturan ini, gelap hanya ada pada dua tombol HUD yang memang harus ditunjuk, dan hanya sekali.
+- Cutscene yang menunggu pemain melepas kunci gerak setelah 60 detik (`Cutscene.UNTIMED_RELEASE_SECONDS`) tetap berlaku.
+- Riwayat (sudah digantikan): aturan "tanpa gelap sama sekali" (2026-11-23 pagi, setelah HP owner terkunci) dan aturan "gelap hanya pada aksi pertama" (sebelumnya).
 
 ---
 

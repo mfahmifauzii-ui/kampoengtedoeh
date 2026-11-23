@@ -222,7 +222,7 @@ Tes AI sudah dijalankan di Studio untuk yang disebut "terverifikasi". Sisanya ha
 ### B11. Putaran 3 (2026-11-23, video dan HP): F1–F8
 
 Cek ini untuk perbaikan dari video playthrough. Satu tugas F = satu centang. Tes Studio tidak menggantikan cek HP.
-1. [ ] **F1 Tanpa gelap (GUI 4.6):** di setiap langkah tutorial (Garap, Tanam, Siram, Panen, Tunggu semua, Jual, Mancing) tidak ada layar gelap atau kotak hitam di atas HUD. Joystick, tombol dock, kartu pemain, dan kolom kanan bisa ditekan.
+1. [ ] **F1 Sorot tutorial (GUI 4.6):** di langkah Garap (pertama) dan Aksi Pancing (tangkapan pertama) ada gelap dengan **satu lubang** di tombol itu saja. Di langkah Tanam, Siram, Panen (pill di atas petak), dan Jual tidak ada gelap, hanya outline kuning. Joystick, kamera, dan semua tombol bisa ditekan di setiap langkah. *Kode F1a selesai; cek HP belum.*
 2. [ ] **F2 Satu permukaan instruksi (GUI 4.6):** di langkah pertama (aksi pertama) hanya bubble coachmark; di pengulangan hanya toast. Tidak pernah dua-duanya untuk teks yang sama. *Belum di kode: cek setelah F2 selesai.*
 3. [ ] **F3 Aksi bulat (GUI 6.12):** Tarik sudah bulat sama dengan Pancing. Cek juga **Pasang**, **Ambil**, dan **Panen Semua**: semuanya bulat dengan ukuran dan cincin yang sama. *Pasang dan Panen Semua belum di kode.*
 4. [ ] **F4 Tracker stabil:** beli Bayam di Pak Udin → quest "Bibit Kedua" mulai → tracker tetap tampil dan memuat langkahnya. Tanam 2 Bayam → quest selesai → tracker berubah dan tidak hilang tanpa alasan.
@@ -232,9 +232,9 @@ Cek ini untuk perbaikan dari video playthrough. Satu tugas F = satu centang. Tes
 8. [ ] **F8 Pill normal tap:** di HP, satu ketukan biasa pada pill Tanam, Siram, atau Panen langsung menjalankan aksi (pada petak kosong, siap panen, dan kering). Tahan setengah detik membuka menu hanya untuk petak kosong. Ulangi 5 kali.
 9. [ ] **Bubu fisik:** di HP, tap tombol **Ambil** saat bubu siap (bukan lewat remote Studio). Ikan masuk, tiang hilang.
 
-**Tutorial penuh di HP (dulu B12, BLOCKER 2026-11-23):** tidak ada gelap di langkah mana pun (F1). Pastikan joystick bisa dipakai.
+**Tutorial penuh di HP (dulu B12, BLOCKER 2026-11-23):** gelap hanya satu lubang di tombol Garap dan Aksi Pancing, pertama kali (F1). Joystick selalu bisa dipakai.
 T1. [ ] **Akun baru**, mulai tutorial dari awal (Mak Sari). Setiap langkah ada satu kalimat yang terlihat (toast atau bubble) dan satu target (panah atau tombol berkedip).
-T2. [ ] **Tunggu semua tumbuh:** layar TIDAK gelap, joystick bisa dipakai, pill Panen bisa diketuk, panen semua selesai, lalu langkah lanjut ke Jual.
+T2. [ ] **Tunggu semua tumbuh:** tidak ada gelap (langkah pengulangan = toast), joystick bisa dipakai, pill Panen bisa diketuk, panen semua selesai, lalu langkah lanjut ke Jual.
 T3. [ ] **Jual ke Pak Udin:** panah di tanah terlihat, joystick bisa dipakai saat berjalan.
 T4. [ ] **Mancing:** tangkapan pertama lewat bubble coachmark; tangkapan ke-2 dan ke-3 hanya toast.
 T5. [ ] **Tidak pernah terkunci:** tidak ada langkah di mana karakter tidak bisa jalan. Bila itu terjadi, catat langkahnya dan kirim screenshot.
@@ -264,7 +264,7 @@ T6. [ ] **Cutscene Jual Pertama:** setelah sekitar 1 menit tanpa menjual, gerak 
 |---------|---------|--------------|-------------------------------------|----------------------------------------|
 | 1 | 2026-11-23 | Owner, HP (844×390, 667×375, 390×844) | 18 temuan (#1–#18): A bug, B tutorial, C mancing UI, D quest, E event | K-53 … K-57 |
 | 2 | 2026-11-23 | Owner (lanjutan putaran 1), HP | Lanjutan: R2.x, Quest Log, Season, E2/E3, Gembor (lihat Roadmap Bab 20) | K-58 … K-63 |
-| 3 | 2026-11-23 | Owner, video PC 8:21 + HP | F1–F8 (no dim, satu permukaan instruksi, Aksi bulat, tracker, Quest Log, "!", Pak Udin, pill) | K-66 (auto), GUI 4.6, 6.12 |
+| 3 | 2026-11-23 | Owner, video PC 8:21 + HP | F1–F8 (sorot satu lubang pertama kali, satu permukaan instruksi, Aksi bulat, tracker, Quest Log, "!", Pak Udin, pill) | K-66 (auto), GUI 4.6, 6.12 |
 
 > Masukan yang mengubah **aturan desain** (bukan bug) dicatat Claude sebagai `K-nn rev.` di `02_Audit_Perbaikan.md` Bab 3.6, lalu GDD naik versi (v8.2, …). Bug cukup jadi tugas `R…` baru.
 
