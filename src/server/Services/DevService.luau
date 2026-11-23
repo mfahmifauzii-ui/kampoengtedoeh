@@ -23,6 +23,7 @@ local MonetizationService = require(script.Parent.MonetizationService)
 local EventService = require(script.Parent.EventService)
 local QuestService = require(script.Parent.QuestService)
 local TutorialService = require(script.Parent.TutorialService)
+local BubuService = require(script.Parent.BubuService)
 local DevAccess = require(ReplicatedStorage.Shared.Config.DevAccess)
 local DevScenarios = require(ReplicatedStorage.Shared.Config.DevScenarios)
 
@@ -71,6 +72,11 @@ local function printState(player: Player)
 	print(`[DEV] quest aktif: {table.concat(active, " ")}`)
 	print(`[DEV] quest selesai: {table.concat(done, " ")}`)
 	print(`[DEV] tas: {table.concat(items, " ")}`)
+	local bubuParts = {}
+	for _, entry in data.bubu.list do
+		table.insert(bubuParts, `#{entry.uid}:{entry.kind}@{entry.spot}/{os.time() - entry.placedAt}s`)
+	end
+	print(`[DEV] bubu: {table.concat(bubuParts, " ")}`)
 	local agendaParts = {}
 	for _, task in data.quests.agenda.tasks do
 		table.insert(agendaParts, `{task.id}={task.progress}{if task.claimed then "*" else ""}`)
@@ -156,6 +162,14 @@ local function onChatted(player: Player, message: string)
 			onChatted(player, `!{line}`)
 		end
 		print(`[DEV] skenario {scenario} selesai`)
+		return
+	end
+	local bubuAction, bubuArg = normalized:match("^!bubu%s+(%a+)%s*(%S*)%s*$")
+	if bubuAction == "pasang" then
+		print(`[DEV] bubu pasang: {BubuService.Place(player, bubuArg)}`)
+		return
+	elseif bubuAction == "ambil" then
+		print(`[DEV] bubu ambil: {BubuService.Collect(player, tonumber(bubuArg))}`)
 		return
 	end
 	local npcId = normalized:match("^!teleport%s+(%S+)%s*$")
@@ -286,9 +300,10 @@ local function onChatted(player: Player, message: string)
 		end
 	elseif command == "orders" then
 		OrderService.DevNewOrders(player)
-	elseif command == "grow" then
+	elseif command == "grow" or command == "tumbuh" then
 		FarmService.DevFinishAll(player)
-	elseif command == "time" and table.find({ "pagi", "siang", "sore", "malam" }, arg) then
+		BubuService.DevFinishAll(player)
+	elseif (command == "time" or command == "waktu") and table.find({ "pagi", "siang", "sore", "malam" }, arg) then
 		WorldService.DevSetPhase(arg)
 	elseif command == "rain" then
 		WorldService.DevToggleRain()

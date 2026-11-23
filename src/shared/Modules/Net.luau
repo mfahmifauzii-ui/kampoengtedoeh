@@ -38,6 +38,8 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 	ShopBuy = "Event", -- C->S (npcId: string, kind: "rod"|"bait"|"upgrade"|"seed"|"fish"|"tool", id: string, amount: number?)
 	ShopEquipRod = "Event", -- C->S (rodId: string)
 	EquipBait = "Event", -- C->S (baitId: string): umpan yang dipakai, hanya yang masih dimiliki (K-55)
+	BubuPlace = "Event", -- C->S (kind: string): pasang bubu di sungai dekat titik mancing (R2.1)
+	BubuCollect = "Event", -- C->S (uid: number): ambil bubu yang sudah siap (R2.1)
 	DevCmd = "Event", -- C->S (text: string): perintah DEV seperti chat "!..."; server cek DevService.IsAllowed (K-64)
 
 	DecorPlace = "Event", -- C->S (itemId: string, x: number, z: number, r: number)

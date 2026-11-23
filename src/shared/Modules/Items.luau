@@ -55,6 +55,10 @@ local TERNAK: { [string]: { name: string, sell: number } } = {
 }
 
 function Items.info(itemId: string): ItemInfo?
+	-- R2.1: a Bubu in the bag (Alat tab, "tool" kind), named item.bubu_<tipe>
+	if string.match(itemId, "^bubu_%a+$") then
+		return { id = itemId, kind = "tool", nameKey = `item.{itemId}` }
+	end
 	local crop = Crops.byId[itemId]
 	if crop then
 		return { id = itemId, kind = "crop", nameKey = `crop.{crop.id}`, sellPrice = crop.sellPrice }

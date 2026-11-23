@@ -141,7 +141,6 @@ local list: { Quest } = {
 		giver = "kak_fajar",
 		unlockLevel = 8,
 		after = "m7_warung",
-		blocked = "Sistem Bubu belum ada di src (Bab 6.6). Quest tidak dimulai sampai sistem Bubu dibuat.",
 		steps = {
 			{ event = "bubu_place", count = 1, reveals = "bubu" }, -- selesai saat bubu terpasang (bubu 6 jam tidak ditunggu)
 		},

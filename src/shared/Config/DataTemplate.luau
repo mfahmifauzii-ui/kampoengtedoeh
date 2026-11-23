@@ -122,6 +122,7 @@ local template: Types.PlayerData = {
 		harian = { day = "", slots = {} }, -- Quest Harian 3/hari (P2-7)
 		mingguan = { week = "", slots = {} }, -- Quest Mingguan 3/minggu (P2-7), reset Senin 05:00 WIB
 	},
+	bubu = { list = {}, nextUid = 1 }, -- R2.1 (GDD 6.6): { uid, kind, spot, placedAt } per Bubu in the river
 	surat = { lastDay = "", logins = 0, progress = 0, done = {} }, -- Surat Kakek 30 (Bab 14.3): 1/hari login
 	bundel = { sumur_day = "" }, -- Bundel Kakek (Bab 14.6): [id] = { given, done } + sumur_day
 

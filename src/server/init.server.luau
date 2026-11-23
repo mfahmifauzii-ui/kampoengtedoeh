@@ -41,6 +41,7 @@ local ORDER = {
 	"SocialService",
 	"SettingsService",
 	"DevService",
+	"BubuService", -- R2.1: Bubu di sungai (6 jam)
 }
 
 local loaded = {}
