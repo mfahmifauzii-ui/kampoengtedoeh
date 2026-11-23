@@ -139,7 +139,7 @@ Ringkasan: **83 temuan** — 14 Tinggi, 37 Sedang, 32 Rendah.
 | A-69 | Tinggi | Bab 23 vs kode F-1, Test Plan B-UI-6 | Tab Tas: GDD (Tanaman / Ikan / Olahan / Bahan / Lainnya) vs kode (Semua / Bibit / Panen / Ikan / Alat / Umpan). **Olahan dan Bahan tidak punya tab**, padahal Makan olahan lewat Tas (GUI 6.3, 6.9). | K-33 → R1.7 |
 | A-70 | Sedang | GUI 5.1 vs kode F-2/B-2 | Zona atas-tengah dipakai dua komponen: Bubble Instruksi dan toast stack. Bisa saling timpa. | K-40 |
 | A-71 | Sedang | GUI 6.2 vs Bab 10 vs kode | Ukuran node skill: 64 px (GUI 6.2), 44 px mockup / 40 implementasi (GUI 10), kode 40. | GUI v1.0 (40) |
-| A-72 | Rendah | GUI 4.5 vs Changelog 0.3.4 #7 | Coachmark 50/55 (GUI) vs 50/60 (kode); toast juga 60 → dua lapisan di angka sama. | GUI v1.0 (tabel ikut kode, catatan bentrok) + R3.7 |
+| A-72 | Rendah | GUI 4.5 vs Changelog 0.3.4 #7 | Coachmark 50/55 (GUI) vs 50/60 (kode); toast juga 60 → dua lapisan di angka sama. | GUI v1.0 (tabel ikut kode, catatan bentrok) + R3.7 | **Status 2026-11-23: tertutup.** Overlay coachmark dihapus (GUI 4.6); tidak ada lagi lapisan gelap yang bertabrakan dengan toast.
 | A-73 | Rendah | GUI 5.1 vs UI-B1 | Tinggi maks bubble 72 / 96 px sudah dihapus di kode (tinggi ikut teks). Dokumen belum diubah. | GUI v1.0 |
 | A-74 | Sedang | GUI 6.3, §9 vs Q-2 | GUI: tombol HUD Dapur dihapus; kode Q-2 masih menggerbang "tombol HUD Dapur". Keputusan GUI §9 #2–#5 belum ada. | K-34 |
 | A-75 | Rendah | Lampiran D #39, #43 | Ikon Acara, Skill, umpan belum ada (placeholder teks / ikon "tas"). | R4.2 |

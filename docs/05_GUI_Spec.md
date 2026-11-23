@@ -69,7 +69,7 @@ Tombol HUD lain tetap: dock 58, Tombol Aksi 84. Jarak antar target ≥ 6 px. (Ge
 | HUD | 20 | Mata uang, kartu pemain, dock, kolom menu, tracker |
 | GUIDE | 30 | Panah dunia, hint |
 | PANEL | 40 | Semua sheet |
-| COACHMARK | 50 / 60 | Overlay / ring + bubble ⚠ bentrok angka dengan toast (Audit A-72, R3.7) |
+| COACHMARK | 50 / 60 | Ring + bubble. **Tanpa overlay** sejak 2026-11-23 (4.6). A-72 (bentrok angka 50/60) tidak berlaku lagi karena tidak ada lapisan gelap. |
 | TOAST | 60 | Toast, reward popup |
 | BANNER | 80 | Dimulai / Selesai |
 | MODAL | 100 | `UiKit.confirm` |
@@ -122,6 +122,8 @@ Dock pindah ke kolom kanan. Toast turun di bawah tracker, lebar 200 px. Kolom me
 - Tinggi dari teks terukur, min 40 px. Maks 3 tampil, sisanya antre, tiap 1,8 dtk, fade 0,25 dtk.
 - Banner LEVEL n, reward popup, dan efek terbang **bukan** toast (K-38).
 - Saat Bubble Instruksi tampil, toast stack turun di bawah bubble (✔ K-40).
+**Toast dan "!" (K-53):**
+- Toast di bawah HUD Koin/Bunga, padding 12 px; di bawah Bubble Instruksi bila tampil.
 
 ### 4.3 Bubble Dialog NPC (`T1Dialog`)
 
@@ -146,6 +148,47 @@ Dock pindah ke kolom kanan. Toast turun di bawah tracker, lebar 200 px. Kolom me
 `UiKit.hideOthers` / `restoreOthers`: HUD dan tracker disembunyikan selama banner, dikembalikan persis seperti sebelumnya. Pemain dikunci ±3 dtk.
 
 ---
+
+### 4.5 Kartu pemain dan marker "!"
+
+- Kartu pemain: pill "Lv n" di sebelah nama. Slot buff kosong disembunyikan. (K-53)
+- Marker "!" di atas setiap pemberi quest yang menawarkan quest Tersedia atau siap diserahkan. Terlihat dari jarak jauh (`MARKER_MAX_DISTANCE` 200 studs, sejak 2026-11-23). Satu marker per pemberi. (F6)
+
+### 4.6 Coachmark tutorial: tanpa gelap, satu permukaan instruksi — LOCKED (2026-11-23)
+
+- **Tidak ada gelap, tidak ada lubang, tidak ada zona blokir HUD** di langkah mana pun (CoachmarkController: `blocking = false`). Coachmark = ring sorot + panah + bubble.
+- **Satu permukaan instruksi per langkah.** Langkah pertama (aksi pertama) = bubble coachmark saja. Langkah berikutnya / pengulangan = toast saja. Tidak pernah keduanya untuk teks yang sama. Toast hilang saat langkah berganti atau setelah langkah selesai; umur toast tidak bergantung pada coachmark.
+- Tabel per langkah (diisi saat verifikasi Play; kolom "permukaan" adalah aturan, belum tervalidasi di Play):
+
+| Langkah | Permukaan | Catatan |
+|---|---|---|
+| tanam (pertama) | bubble coachmark | target: tanah kosong |
+| tanam_5 dst | toast | |
+| garap (pertama) | bubble coachmark | ring pada tombol Garap |
+| garap_5 | toast | |
+| siram, panen_1 (pertama) | bubble coachmark | |
+| tunggu_semua, panen_jual | toast | |
+| tangkapan ke-1 mancing | bubble coachmark | |
+| tangkapan ke-2 dan ke-3 | toast | |
+
+- Cutscene yang menunggu pemain melepas kunci gerak setelah 60 detik (Cutscene.UNTIMED_RELEASE_SECONDS) tetap berlaku.
+- Lihat juga GDD Bab 16.6.
+- **Satu permukaan instruksi per langkah.** Langkah pertama (aksi pertama) = bubble coachmark saja. Langkah berikutnya / pengulangan = toast saja. Tidak pernah keduanya untuk teks yang sama. Toast hilang saat langkah berganti atau setelah langkah selesai; umur toast tidak bergantung pada coachmark.
+- Tabel per langkah (diisi saat verifikasi Play; kolom "permukaan" adalah aturan, belum tervalidasi di Play):
+
+| Langkah | Permukaan | Catatan |
+|---|---|---|
+| tanam (pertama) | bubble coachmark | target: tanah kosong |
+| tanam_5 dst | toast | |
+| garap (pertama) | bubble coachmark | ring pada tombol Garap |
+| garap_5 | toast | |
+| siram, panen_1 (pertama) | bubble coachmark | |
+| tunggu_semua, panen_jual | toast | |
+| tangkapan ke-1 mancing | bubble coachmark | |
+| tangkapan ke-2 dan ke-3 | toast | |
+
+- Cutscene yang menunggu pemain melepas kunci gerak setelah 60 detik (Cutscene.UNTIMED_RELEASE_SECONDS) tetap berlaku.
+- Lihat juga GDD Bab 16.6.
 
 ## 5. Bentuk Sheet
 
@@ -177,6 +220,9 @@ Status kode (UI-3): 3 tab ada; Musim = 2 track horizontal (node 64 px, milestone
 - Header dahan: ikon cabang + nama + total (`Bertani 7/20`, tampilan saja).
 - Chip **SP** dan **Koin** kanan atas.
 - Tap node = Drawer Detail: nama, efek sekarang → berikutnya, biaya **1 SP + Koin** (GDD 4.5.1), prasyarat yang kurang, `Efek mulai Lv 3` untuk skill bertahap, tombol **Tingkatkan 40 px**. Alasan server (`locked / noSP / noKoin / max`) tampil di drawer. Tidak ada tombol beli di node.
+**Bar bawah (K-56):**
+- Tombol Beli selalu terlihat; panel muat tanpa scroll di 844×390.
+- Saat node ditekan muncul bar bawah tetap: nama, efek, biaya (SP + Koin), prasyarat, tombol Beli.
 
 ### 6.3 Dapur + Warung — Sheet Lebar, tab **Masak · Warung** (UI-5)
 
@@ -198,14 +244,25 @@ Grid kartu rumus visual `[2 Kayu] → [1 Papan]`, jumlah dimiliki di bawah tiap 
 
 - **Hari Ini:** 3 kartu Gerobak Kaget (Bibit / Dekor / Langka) + countdown restock; kartu Pasar Malam (buka / tutup + sisa waktu); kartu Kerja Bakti (progres kampung % + poin pribadi `x/20`).
 - **Kalender:** strip bulan horizontal, 5 event sebagai pita; event aktif menyala; tap = drawer (Pesanan Tamu, hadiah).
+**Acara & Pasar Malam (K-57):**
+- Tombol **Event** hanya tampil saat event musiman aktif. Sheet: progres, Pesanan Tamu, hadiah, hitung mundur.
+- Pasar Malam: tempat di dunia, buka sesuai jadwal. Pak Kumis = NPC; bubble "Jual semua" / "Jual 1", seperti Pak Udin.
+- Lempar Gelang: bar bergerak, tap untuk berhenti; zona 60/30/10% (kecil/sedang/besar); 3 lemparan per malam.
 
 ### 6.7 Pesanan (Order Villager) — Sheet Grid (UI-6)
 
 3 kartu Harian + 1 Mingguan (lebih lebar, bingkai emas). Kartu: foto NPC, barang `punya/butuh`, hadiah, `Setor` (aktif bila cukup), ikon `Ganti` (reroll 2 Bunga, dengan konfirmasi).
 
-### 6.8 Quest Log — Sheet List, tab **Main · Side** (kode Q-4) — **diganti oleh 9.1 (K-56)**
+### 6.8 Quest Log — dua panel landscape, tab Main · Side · Harian · Pesanan (K-56, F5)
 
-Dibuka dari tap baris tracker. Tab kosong tidak digambar. Bagian: **Aktif / Tersedia / Selesai / Berikutnya** (`???` sampai level). Kartu Main aktif: pemberi + foto, langkah bercentang, hadiah, `Tunjukkan`. Baris petunjuk khusus (Kerja Bakti: K-37).
+Dibuka dari **ikon bintang** di kolom kanan dan dari **tap tracker**, di semua keadaan (ada quest aktif, baru selesai, atau tidak ada quest aktif). Badge pada bintang untuk quest baru atau siap diserahkan.
+
+- Tab: **Main · Side · Harian · Pesanan**. Pesanan = daftar order Villager yang sudah ada.
+- **Landscape, dua panel.** Kiri: daftar dikelompokkan **Berjalan / Tersedia / Berikutnya** (redup, "Terbuka di Level n") / **Selesai** (terlipat). Tiap baris punya tanda status.
+- Kanan (detail): judul, potret + nama pemberi, satu baris cerita, checklist **Tugas** dengan progres, chip **Hadiah**, tombol **Tandai** / **Lepas** dan **Tunjukkan**.
+- **Portrait:** daftar dulu; ketuk → detail dengan tombol Kembali.
+- Tracker kiri: hanya quest bertanda, maksimal 3. Quest Main aktif ditandai otomatis; Side dan Harian hanya saat pemain menekan Tandai.
+- Tombol scroll di dock bawah membuka Quest Log.
 
 ### 6.9 Papan Hari Ini (baru, ✔ K-34 / Penyempurnaan P-04)
 
@@ -225,6 +282,18 @@ Satu panel untuk hal harian: Agenda (5 tugas, R2.2), Surat Kakek hari ini, ringk
 | Mancing | Panel reel | Tetap (disetujui). |
 
 ---
+
+### 6.11 Tas: Pakai / Dipakai (K-55)
+
+- Pancing dan umpan punya tombol **Pakai** di drawer; item terpasang diberi badge **Dipakai**.
+- Chip umpan di HUD menampilkan umpan terpasang.
+
+### 6.12 Aksi-slot: satu komponen bulat (K-55, F3)
+
+Pancing, Tarik, Pasang (bubu), Ambil (bubu), dan Panen Semua memakai **satu komponen tombol bulat** di slot Aksi: plate 84 px dengan cincin bambu, sama seperti Pancing. Label teks ("Tarik", "Pasang", "Ambil", "Panen Semua") ada di tengah; ikon memakai plate kalau ada.
+
+- Tarik dan Pancing tidak pernah satu tombol. Tarik hanya tampil saat ikan menarik.
+- **Status:** Tarik sudah bulat (kode 0fb8032). Pasang (`BubuController`, `UiKit.button` persegi) dan Panen Semua (`FarmController`, `HarvestAllButton`, `UiKit.button` persegi) **belum** diseragamkan: tugas F3 di Roadmap.
 
 ## 7. Komponen UiKit
 
@@ -249,66 +318,42 @@ Satu panel untuk hal harian: Agenda (5 tugas, R2.2), Surat Kakek hari ini, ringk
 
 ## 8. Status Implementasi GUI
 
-| Tahap | Isi | Status |
-|-------|-----|--------|
-| UI-1 Fondasi | Token, touch tier, bubble 2 varian, layer | Selesai (belum playtest) |
-| UI-2 HUD | Ikon Acara/Skill, kartu pemain kiri atas, slot Aksi, label tombol + tekan lama | **R3.1** |
-| UI-3 Hadiah | 3 tab + track Season | Sebagian selesai → sisa **R3.4** |
-| UI-4 Skill | Pohon + drawer (dikerjakan sebagai ST-3) | Selesai → ikon & label **R3.5** |
-| UI-5 Stasiun | Dapur + Warung, Crafting, Kandang, Kolam | **R3.2** |
-| UI-6 Lainnya | Acara, Pesanan, Quest Log penuh, Papan Hari Ini | **R3.3** |
-| Batch F, UI-B1…B15 | Tas Umpan, toast, chip umpan, HUD map, perbaikan bug | Selesai (belum playtest) |
+Status per tugas ada di `06_Roadmap` (kolom Status). Tabel ini hanya ringkasan per tahap.
 
-Mockup lama (canvas "Mockup Season Pass & Pohon Skill (HP)", https://claude.ai/artifact/UuRgfWQfZCVCxA2iUQDZhf) tetap acuan bentuk, **bukan** angka: ukuran tombol ikut Bab 3.4, angka hadiah ikut `Config/Rewards`, Premium ikut status "Segera hadir".
+| Tahap / fitur | Isi | Status |
+|---------------|-----|--------|
+| UI-1 Fondasi | Token, touch tier, bubble 2 varian, layer | Selesai (belum playtest) |
+| UI-2 HUD | Ikon Acara/Skill, kartu pemain, slot Aksi, label tombol | R3.1 |
+| UI-3 Hadiah | 3 tab + track Season | Sebagian selesai, sisa R3.4 |
+| UI-4 Skill | Pohon + drawer (ST-3) | Selesai; ikon & label R3.5 |
+| UI-5 Stasiun | Dapur + Warung, Crafting, Kandang, Kolam | R3.2 |
+| UI-6 Lainnya | Acara, Pesanan, Quest Log penuh, Papan Hari Ini | Papan R2.2 ada di kode; Quest Log penuh R3.3 |
+| Batch F, UI-B1…B15 | Tas Umpan, toast, chip umpan, HUD map, bug | Selesai (belum playtest) |
+| Papan Hari Ini (Agenda) | Tombol HUD Papan, 5 tugas | Kode selesai (R2.2); belum playtest |
+| Bubu Pasang / Ambil | Tombol di slot Aksi, tiang di sungai | Kode selesai (R2.1b); cek HP owner pending |
+| Tarik bulat | Plate 84 px di slot Aksi (6.12) | Kode selesai (0fb8032); cek HP pending (F3) |
+| Coachmark tanpa gelap (4.6) | Overlay dan zona blokir dihapus | Kode selesai (00e8cdf); cek HP pending (F1) |
+| Pak Udin Jual / Beli (GDD 16) | Dialog pasca-tutorial | Kode selesai (5641d7a); cek HP pending (F7) |
+| "!" jarak 200 studs (4.5) | Marker terlihat dari jauh | Kode selesai (43b4719); tabel per pemberi pending (F6) |
+| Toast satu permukaan (9.7, F2) | Bubble atau toast per langkah | **Belum di kode** (F2) |
+| Quest Log: bintang + tracker (6.8, F5) | Dua pintu masuk, badge | **Belum di kode** (F5) |
+| Tracker tidak berkedip (F4) | Akar penyebab | Guard pcall saja (425d393); akar belum direproduksi |
+| Pasang / Panen Semua bulat (6.12, F3) | Satu komponen Aksi | **Belum di kode** (F3) |
+
+Mockup lama (canvas "Mockup Season Pass & Pohon Skill (HP)") tetap acuan bentuk, **bukan** angka: ukuran tombol ikut Bab 3.4, angka hadiah ikut `Config/Rewards`.
 
 ---
 
-## 9. Revisi Playtest Putaran 1 (K-53…K-57)
+## 9. Pindahan (revisi Putaran 1 dan 2)
 
-### 9.1 Quest Log (K-56, menggantikan 6.8)
-- Tab: **Main · Side · Harian · Pesanan**. Pesanan = daftar order Villager yang sudah ada.
-- **Landscape, dua panel.** Kiri: daftar dikelompokkan **Berjalan / Tersedia / Berikutnya** (redup, "Terbuka di Level n") / **Selesai** (terlipat). Tiap baris punya tanda status.
-- Kanan (detail): judul, potret + nama pemberi, satu baris cerita, checklist **Tugas** dengan progres, chip **Hadiah**, tombol **Tandai** / **Lepas** dan **Tunjukkan**.
-- **Portrait:** daftar dulu; ketuk → detail dengan tombol Kembali.
-- Tracker kiri: hanya quest bertanda, maksimal 3. Quest Main aktif ditandai otomatis; Side dan Harian hanya saat pemain menekan Tandai.
-- Tombol scroll di dock bawah membuka Quest Log.
+Isi bab ini sudah dipindah ke bab fitur (aturan tidak hilang). Nomor lama di sini hanya penunjuk, supaya komentar kode dan dokumen lama tetap bisa dicari.
 
-### 9.2 Pohon Skill: bar bawah (K-56)
-- Tombol Beli selalu terlihat; panel muat tanpa scroll di 844×390.
-- Saat node ditekan muncul bar bawah tetap: nama, efek, biaya (SP + Koin), prasyarat, tombol Beli.
-
-### 9.3 Tas: Pakai / Dipakai (K-55)
-- Pancing dan umpan punya tombol **Pakai** di drawer; item terpasang diberi badge **Dipakai**.
-- Chip umpan di HUD menampilkan umpan terpasang.
-
-### 9.4 Mancing: tombol Tarik (K-55)
-- Kontrol tarik memakai slot Tombol Aksi yang sama dengan Pancing, label teks "Tarik" (ikon "Reel" di Fase 4). Tarik dan Pancing tidak pernah satu tombol.
-
-### 9.5 Toast, kartu pemain, "!" (K-53)
-- Toast di bawah HUD Koin/Bunga, padding 12 px; di bawah Bubble Instruksi bila tampil.
-- Kartu pemain: pill "Lv n" di sebelah nama. Slot buff kosong disembunyikan.
-- Marker "!" di atas semua pemberi quest yang menawarkan quest.
-
-### 9.6 Acara & Pasar Malam (K-57)
-- Tombol **Event** hanya tampil saat event musiman aktif. Sheet: progres, Pesanan Tamu, hadiah, hitung mundur.
-- Pasar Malam: tempat di dunia, buka sesuai jadwal. Pak Kumis = NPC; bubble "Jual semua" / "Jual 1", seperti Pak Udin.
-- Lempar Gelang: bar bergerak, tap untuk berhenti; zona 60/30/10% (kecil/sedang/besar); 3 lemparan per malam.
-
-### 9.7 Coachmark tutorial: tanpa gelap, satu permukaan instruksi — LOCKED (2026-11-23, revisi owner video HP)
-- **Tidak ada gelap, tidak ada lubang, tidak ada zona blokir HUD** di langkah mana pun (CoachmarkController: `blocking = false`). Coachmark = ring sorot + panah + bubble.
-- **Satu permukaan instruksi per langkah.** Langkah pertama (aksi pertama) = bubble coachmark saja. Langkah berikutnya / pengulangan = toast saja. Tidak pernah keduanya untuk teks yang sama. Toast hilang saat langkah berganti atau setelah langkah selesai; umur toast tidak bergantung pada coachmark.
-- Tabel per langkah (diisi saat verifikasi Play; kolom "permukaan" adalah aturan, belum tervalidasi di Play):
-
-| Langkah | Permukaan | Catatan |
-|---|---|---|
-| tanam (pertama) | bubble coachmark | target: tanah kosong |
-| tanam_5 dst | toast | |
-| garap (pertama) | bubble coachmark | ring pada tombol Garap |
-| garap_5 | toast | |
-| siram, panen_1 (pertama) | bubble coachmark | |
-| tunggu_semua, panen_jual | toast | |
-| tangkapan ke-1 mancing | bubble coachmark | |
-| tangkapan ke-2 dan ke-3 | toast | |
-
-- Cutscene yang menunggu pemain melepas kunci gerak setelah 60 detik (Cutscene.UNTIMED_RELEASE_SECONDS) tetap berlaku.
-- Lihat juga GDD Bab 16.6.
+| Nomor lama | Pindah ke | K |
+|------------|-----------|---|
+| 9.1 Quest Log | 6.8 | K-56 |
+| 9.2 Pohon Skill: bar bawah | 6.2 | K-56 |
+| 9.3 Tas: Pakai / Dipakai | 6.11 | K-55 |
+| 9.4 Mancing: tombol Tarik | 6.12 (Aksi-slot) | K-55 |
+| 9.5 Toast, kartu pemain, "!" | 4.2, 4.5 | K-53 |
+| 9.6 Acara & Pasar Malam | 6.6 | K-57 |
+| 9.7 Coachmark tutorial | 4.6 | LOCKED 2026-11-23 |
