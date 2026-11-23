@@ -67,6 +67,7 @@ local TILE_TAG = "FarmTile"
 local movingUid: number? = nil -- Pindah: the bed being moved (nil = not moving)
 local movePart: BasePart? = nil -- the original bed part being moved
 local movePreview: Model? = nil -- the translucent copy that follows the pointer
+local clearMove: () -> () -- defined below (forward declaration: setActive uses it, F1c)
 local moveOutline: Highlight? = nil
 local moveSource: { cx: number, cz: number } = { cx = 0, cz = 0 }
 local pointer: Vector2? = nil -- last touch position (viewport px); the ghost follows it on phones
@@ -769,9 +770,13 @@ local function setActive(on: boolean, newMode: string?)
 	GarapController.Active = on
 	hintLabel.Visible = on and not hintHidden
 	if not on then
-		movingUid = nil
+		-- F1c (2026-11-23 owner video, orange block after leaving Garap): leaving Garap resets EVERY selection visual.
+		-- The first-tap square (selected), the bed outline on the last plot, a Pindah copy in progress (movePreview,
+		-- its MoveOutline) and the placement ghost all go; re-entering starts from nothing.
+		clearMove()
 		selected = nil
 		setBedHover(nil) -- A2: leaving Garap clears the yellow outline on the last plot
+		hideGhost()
 	end
 	refreshGrid()
 	UiKit.setMenuLabel(toggleButton, Locale.t(if on and (newMode or mode) == "till" then "garap.done" else "ui.garap"))
@@ -799,7 +804,7 @@ local function setMoveTransparency(part: BasePart, value: number)
 	end
 end
 
-local function clearMove()
+clearMove = function()
 	if movePart and movePart.Parent then
 		setMoveTransparency(movePart, 0)
 	end

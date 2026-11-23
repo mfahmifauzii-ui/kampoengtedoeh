@@ -313,7 +313,7 @@ Sumber: video dan HP owner (playthrough 8:21 di PC + screenshot). Setiap F = sat
 
 | ID | Perbaikan | Status | Commit | Catatan |
 |----|-----------|--------|--------|---------|
-| F1 | Sorot tutorial: satu lubang hanya tombol HUD tetap pertama kali; GUI mengambang tanpa gelap (GDD 16.6, GUI 4.6, 9.7) | F1a+F1b DONE-CODE (cek Play belum) | 00e8cdf, lalu commit feat(F1a) | Play belum diverifikasi: input Studio timeout di sesi ini. Cek HP: joystick dan HUD bisa dipakai (docs/09) |
+| F1 | Sorot tutorial: satu lubang hanya tombol HUD tetap pertama kali; GUI mengambang tanpa gelap (GDD 16.6, GUI 4.6, 9.7) · F1c: Garap tutup = reset semua seleksi | F1a+F1b+F1c DONE-CODE (Play belum: input Studio timeout; sumber oranye belum direproduksi) | 00e8cdf, lalu commit feat(F1a) | Play belum diverifikasi: input Studio timeout di sesi ini. Cek HP: joystick dan HUD bisa dipakai (docs/09) |
 | F2 | Satu permukaan instruksi per langkah: pertama = bubble, pengulangan = toast; toast hilang saat langkah berganti | TODO | — | Tabel per langkah ada di GUI 4.6 dan GDD 16.2; belum diterapkan di kode |
 | F3 | Tombol Aksi bulat satu komponen: Tarik (done), Pasang, Ambil, Panen Semua (GUI 6.12) | DONE-CODE (Tarik) · TODO (Pasang, Panen Semua) | 0fb8032 | Pasang: `BubuController` ~106; Panen Semua: `FarmController` ~1165 |
 | F4 | Tracker tidak berkedip; hilang hanya bila tidak ada quest dilacak | DONE-CODE (sebagian) | 425d393 | Guard pcall saja. Akar penyebab belum direproduksi di Play |
