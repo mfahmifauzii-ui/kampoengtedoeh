@@ -246,6 +246,13 @@ local function render()
 	end
 end
 
+-- E1 (K-57): the menu button is "Event" and shows only while a seasonal (calendar) event is active (EventAktif).
+local function refreshEventButton()
+	if button then
+		(button :: GuiObject).Visible = (Workspace:GetAttribute("EventAktif") or "") ~= ""
+	end
+end
+
 -- Titik merah: Kerja Bakti aktif atau Tamu menunggu diantar.
 local function updateDot()
 	if not button then
@@ -277,6 +284,7 @@ function RepeatController.Start()
 	end)
 	Workspace:GetAttributeChangedSignal("EventAktif"):Connect(function()
 		render()
+		refreshEventButton()
 	end)
 	player:GetAttributeChangedSignal("Koin"):Connect(render)
 	player:GetAttributeChangedSignal("Bunga"):Connect(render)
@@ -288,6 +296,7 @@ function RepeatController.Start()
 		local item = UiKit.menuItem(hud, "AcaraButton", Locale.t("ui.acara"), 9)
 		if item then
 			button = item
+			refreshEventButton()
 			item.Activated:Connect(function()
 				panel.gui.Enabled = not panel.gui.Enabled
 				render()

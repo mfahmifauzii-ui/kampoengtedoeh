@@ -988,7 +988,7 @@ return {
 	["store.hint_unavailable"] = "Belum tersedia",
 
 	-- Acara Berulang: Gerobak Kaget, Pasar Malam, Kerja Bakti, Tamu Event (Bab 13, P2-6)
-	["ui.acara"] = "Acara",
+	["ui.acara"] = "Event",
 	["repeat.tab.gerobak"] = "Gerobak",
 	["repeat.tab.pasar"] = "Pasar",
 	["repeat.tab.tamu"] = "Tamu",
