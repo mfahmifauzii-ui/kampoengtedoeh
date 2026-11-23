@@ -1,6 +1,8 @@
 # Test Report — Kampoeng Tedoeh — full regression pass 2026-11-23
 
-Plan: `docs/Test_Plan_Kampoeng_Tedoeh_v0.1.md` (v0.1)
+> **Snapshot 2026-11-23, sudah digantikan oleh run yang lebih baru. Bukan sumber kebenaran.**
+
+Plan: `docs/07_QA_Test_Plan.md` (file lama `Test_Plan_Kampoeng_Tedoeh_v0.1.md` sudah dihapus; isi ada di 07)
 Branch: `feat/v.7`
 Baseline (last playtest log): `68da23a` "docs: Roadmap (status Q/B, §12 bug playtest 2026-11-22)". No git tags exist in the repo, so the range `68da23a..HEAD` (54 commits) is the scope.
 Tooling present: `selene` 0.32.0, `rojo` 7.7.1, `stylua` (Aftman, `~/.aftman/bin`). Absent: `luau-analyze`, `luau-lsp`, `lune`, `luau`, TestEZ/Jest (`wally.toml` does not exist).
