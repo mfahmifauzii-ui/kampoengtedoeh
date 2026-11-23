@@ -71,6 +71,21 @@ local function printState(player: Player)
 	print(`[DEV] quest aktif: {table.concat(active, " ")}`)
 	print(`[DEV] quest selesai: {table.concat(done, " ")}`)
 	print(`[DEV] tas: {table.concat(items, " ")}`)
+	local agendaParts = {}
+	for _, task in data.quests.agenda.tasks do
+		table.insert(agendaParts, `{task.id}={task.progress}{if task.claimed then "*" else ""}`)
+	end
+	print(`[DEV] agenda {data.quests.agenda.day}: {table.concat(agendaParts, " ")}`)
+	local harianParts = {}
+	for _, slot in data.quests.harian.slots do
+		table.insert(harianParts, `{slot.kind}={slot.progress}{if slot.claimed then "*" else ""}`)
+	end
+	print(`[DEV] harian {data.quests.harian.day}: {table.concat(harianParts, " ")}`)
+	local mingguanParts = {}
+	for _, slot in data.quests.mingguan.slots do
+		table.insert(mingguanParts, `{slot.kind}={slot.progress}{if slot.claimed then "*" else ""}`)
+	end
+	print(`[DEV] mingguan {data.quests.mingguan.week}: {table.concat(mingguanParts, " ")}`)
 end
 
 local function currencyCommand(player: Player, currency: any, amount: number)
