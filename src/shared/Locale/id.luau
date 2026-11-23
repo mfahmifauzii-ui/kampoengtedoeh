@@ -98,7 +98,7 @@ return {
 	["quest.new"] = "Misi baru: {title}",
 	["quest.step"] = "Misi maju: {title}",
 	["quest.done"] = "Misi selesai: {title}!",
-	["quest.more"] = "+{n} lainnya",
+	["quest.more"] = "+{n} quest lain · buka Quest Log",
 	["quest.point"] = "Tunjukkan",
 	-- Quest Log (Q-4, GUI doc 6.8). "Tersedia" is not in the docs: label to confirm (Lampiran D #28).
 	["quest.log.title"] = "Quest Log",

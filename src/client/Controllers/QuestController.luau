@@ -228,7 +228,9 @@ end
 
 local MAX_HEIGHT_PX = 200 -- top limit in px (stops above the Craft button)
 local MAX_HEIGHT_SCREEN = 0.25 -- top limit as a share of the screen height (Update owner 2026-11-22, Task 5)
-local MAX_ROWS = 3 -- at most 3 quest rows; the rest collapse into one "+N lainnya" row
+-- At most 3 rows. Main and side quests come first (each row shows its current step line), then the daily rows, so a daily
+-- row never takes the place of a quest. The rest collapse into one "+N quest lain · buka Quest Log" row (Task tracker, 2026-11-23).
+local MAX_ROWS = 3
 
 -- The tracker is as tall as its rows (plus padding), never more than min(MAX_HEIGHT_PX, MAX_HEIGHT_SCREEN x screen height).
 local function maxHeight(): number
