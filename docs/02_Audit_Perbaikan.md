@@ -220,7 +220,7 @@ Keputusan Putaran 2 dan keputusan otomatis (detail lengkap di 3.6). Kolom "Diter
 | K-65 | Studio: profil gagal dimuat dibuat di memori | GDD 29 |
 | K-66 | Bubu dijual Koin saja; bahan ditunda | GDD 6.6 |
 
-**Alasan K-16 = (b):** game dibuat 100% lewat Claude Code, jadi scope rilis dijaga. Kucing Alun-alun dan Joran Hilang butuh sistem baru yang kecil tapi tidak dibutuhkan jalan cerita. Dampak: Title "Penyayang Kucing" ikut tertunda; kedua quest tidak muncul di Quest Log rilis; dikerjakan di Update 1 (R12.4b).
+**Alasan K-16 = (b):** game dibuat 100% lewat Claude Code, jadi scope rilis dijaga. Kucing Alun-alun dan Joran Hilang butuh sistem baru yang kecil tapi tidak dibutuhkan jalan cerita. Dampak: Title "Penyayang Kucing" ikut tertunda; kedua quest tidak muncul di Quest Log rilis; dikerjakan di Update 1 (R12.4).
 
 **K-32 Robux (Pack Bunga):** 50 Bunga = 75 R$ · 120 = 150 R$ · 300 = 300 R$ · 700 = 600 R$ (≈ acuan Rp 15rb / 30rb / 60rb / 120rb). Nilai ini ada di `Config` dan boleh disetel saat R10.4 setelah melihat tabel harga Roblox saat itu; tidak perlu persetujuan owner.
 
