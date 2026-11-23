@@ -1,6 +1,7 @@
 # KAMPOENG TEDOEH — Peta Dokumen (baca ini dulu)
 
 > Versi sekarang: **GDD v8.4 + Audit K-01…K-66** (diperbarui 2026-11-23). Semua dokumen di `docs/` mengacu ke versi ini.
+> Buka `docs/` sebagai vault Obsidian; mulai dari `Home.md`.
 > Game ini dibuat 100% lewat Claude Code. Dokumen ini ditulis supaya Claude Code tidak menebak. **Owner hanya playtest dan memberi masukan**; tidak ada dokumen yang menunggu jawaban owner.
 
 ## 1. Daftar File
