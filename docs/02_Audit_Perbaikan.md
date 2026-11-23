@@ -363,6 +363,7 @@ Cara owner memberi masukan: lewat playtest (`09_Playtest_Checklist.md`). Masukan
 | K-48 | 2026-11-23 | **DIPUTUSKAN.** Dokumen mengikuti kode: Koin awal 100, Bunga awal 10 (`Config/Economy`); hadiah kategori Album ladang & sungai 300 Koin (`Config/Book`). Ditulis di GDD v8.2 Bab 4.1. | Tidak ada angka desain lain |
 | K-50 | 2026-11-23 | Palet dinding Hias: satu warna ke-13 (`Config/Decor` WALL_PALETTE_EXTRA, muted hangat) dibuka Title "Dinding Spesial". Tidak ada palet 12 warna di kode dan tidak ada pemilih warna di UI. Pemilih warna = tugas terpisah (belum ada R). | Kode tidak punya palet Hias |
 | K-51 | 2026-11-23 | Dialog side quest: `prefixOf` memotong `side_*` menjadi `side` sehingga semua dialog side hilang. Sekarang id penuh. Naskah sesuai 03 Bab 6.3 (FINAL K-14). | Bug, bukan keputusan desain |
+| K-52 | 2026-11-23 | Album Rumah: GDD 11 "80 piece", kode 33 entri. **Default: album pakai 33 entri.** 47 piece baru = konten (Fase 4 / Asset Bible), bukan angka yang bisa disetel. Kategori "Rumah lengkap" (title Juragan Pondok) mengikuti jumlah entri kode. | Konten belum ada |
 
 ---
 
