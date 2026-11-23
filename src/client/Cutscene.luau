@@ -42,6 +42,10 @@ end
 
 -- Holds the player and takes the camera for the beat. head: the NPC's head part (the shot is aimed at it).
 -- interactive: this beat waits for the player, so the Bab 16.2 length check does not apply to it (see `untimed`).
+-- Safety net (2026-11-23): an untimed beat waits for the player; it must not hold his movement for longer than this.
+-- After it, the hold is released (the beat itself stays; only the movement comes back).
+local UNTIMED_RELEASE_SECONDS = 60
+
 function Cutscene.Begin(npc: Model, head: BasePart, interactive: boolean?): () -> ()
 	local camera = Workspace.CurrentCamera :: Camera
 	local character = player.Character
@@ -49,6 +53,15 @@ function Cutscene.Begin(npc: Model, head: BasePart, interactive: boolean?): () -
 	untimed = interactive == true
 	beatStartedAt = os.clock()
 	PlayerLock.Set(true)
+	if untimed then
+		local startedAt = beatStartedAt
+		task.delay(UNTIMED_RELEASE_SECONDS, function()
+			if held and beatStartedAt == startedAt then
+				held = false
+				PlayerLock.Set(false)
+			end
+		end)
+	end
 	-- Playtest 2026-11-22: no "Ngobrol" / nameplate prompt over a cutscene. Back on in End().
 	PromptGate.Hide()
 
