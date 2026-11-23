@@ -13,8 +13,12 @@ return {
 		pond = { costs = { 1500, 5000 }, unlockLevel = 6 }, -- Fishing.POND.CAPS
 	} :: { [string]: { costs: { number }, unlockLevel: number } },
 
+	-- Pak Udin: Garam (bahan masak) dan Bubu (GDD 6.6, R2.1). Bubu harga = Koin saja (lihat Config/Bubu TYPES).
 	SUPPLIES = {
 		garam = { price = 10 }, -- Garam di Pak Udin (Bab 9.2): bahan masak
+		bubu_bambu = { price = 400 },
+		bubu_kayu = { price = 1500 },
+		bubu_besi = { price = 4000 },
 	} :: { [string]: { price: number } },
 
 	-- Toko Bunga (Bab 9-10, P2-7): tukar Bunga dengan dekor langka / bibit varian.

@@ -257,5 +257,5 @@ Catatan: di Studio, profil yang gagal dimuat dipakai dari memori (tidak tersimpa
 
 ### B11. Putaran 2 (lanjutan): owner cek di HP
 1. [ ] **Marker "!" (fix):** hanya satu per pemberi, di dekat NPC, tidak tampak di layar judul, tidak melayang di tengah plaza (Studio: 0 sebelum main, 1 untuk Bang Jali saat dekat).
-2. [ ] **Bubu:** pasang di sungai dekat titik mancing, tunggu 6 jam, ambil; tidak bisa diambil sebelum siap. (Pembelian dan tombol pasang belum ada; pakai DEV.)
+2. [ ] **Bubu (R2.1b):** beli Bubu Bambu di Pak Udin (400 Koin, bagian Kebutuhan); berdiri di sungai dekat titik mancing, tombol **Pasang** muncul di kiri tombol Pancing; setelah dipasang ada tiang di sungai berlabel "belum siap"; setelah 6 jam label jadi hijau **SIAP!** dan tombol berubah **Ambil**; Ambil memberi ikan dan tiang hilang. Cek juga: tidak bisa Ambil sebelum siap; maks 3 bubu. (Tes Studio: beli → pasang → !tumbuh → ambil sudah lulus lewat jalur remote.)
 3. [ ] **Panel DEV:** tab "DEV" bisa dibuka dan tombolnya berfungsi (Studio tidak bisa menekan tombol; cek di HP).

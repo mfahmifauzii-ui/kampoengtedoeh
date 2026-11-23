@@ -18,6 +18,7 @@ export type Snapshot = {
 	landChunks: { [string]: boolean }, -- bought chunks of your plot ("ix,iz" keys, Modules/Land)
 	landExtra: number, -- how many chunks you bought
 	landPrice: number, -- price of the next chunk (with the game pass discount)
+	bubu: { max: number, list: { { uid: number, kind: string, pos: { number }?, ready: boolean } } }?, -- R2.1: bubu terpasang (BubuController)
 	rod: string,
 	ownedRods: { [string]: boolean },
 	tools: { [string]: boolean },

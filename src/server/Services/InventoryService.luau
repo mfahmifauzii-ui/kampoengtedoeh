@@ -8,6 +8,7 @@ local DecorConfig = require(ReplicatedStorage.Shared.Config.Decor)
 local FeatureGate = require(script.Parent.FeatureGate)
 local FarmConfig = require(ReplicatedStorage.Shared.Config.Farm)
 local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
+local Bubu = require(ReplicatedStorage.Shared.Config.Bubu)
 local RewardsConfig = require(ReplicatedStorage.Shared.Config.Rewards)
 local RepeatConfig = require(ReplicatedStorage.Shared.Config.Repeat)
 local SuratConfig = require(ReplicatedStorage.Shared.Config.Surat)
@@ -118,6 +119,17 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 			end
 			return out
 		end)(),
+		bubu = { -- R2.1: bubu terpasang (pos = titik di sungai, ready = sudah 6 jam) untuk tombol Pasang/Ambil dan label di dunia
+			max = Bubu.MAX,
+			list = (function()
+				local now = os.time()
+				local out = {}
+				for _, entry in data.bubu.list do
+					table.insert(out, { uid = entry.uid, kind = entry.kind, pos = entry.pos, ready = Bubu.isReady(entry.placedAt, now) })
+				end
+				return out
+			end)(),
+		},
 		ranch = data.ranch, -- kandang + hewan + mood untuk panel Ternak
 		bundel = data.bundel, -- Bundel Kakek (Bab 14.6): [id] = { given, done } + sumur_day (UI mendatang)
 		dapur = { tier = data.dapur.tier, slots = table.clone(data.dapur.slots) },

@@ -16,6 +16,7 @@ local ORDER = {
 	"CoachmarkController", -- before GuideController: the tutorial's overlay / ring / bubble (GuideController drives it)
 	"GuideController", -- after Garap: stays quiet while Garap mode shows its own hint
 	"FishingController",
+	"BubuController", -- R2.1b: Aksi Pasang / Ambil bubu, left of the Pancing button
 	"MiningController", -- after FishingController: tombol Pukul + ritme + panel craft
 	"RanchController", -- Ternak: tombol Kelola + panel kandang (Bab 7.1)
 	"PondController", -- Kolam: tombol Breeding + panel tier/breed/instant (Bab 7.2)

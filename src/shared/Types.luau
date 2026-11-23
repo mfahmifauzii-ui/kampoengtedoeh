@@ -122,7 +122,7 @@ export type PlayerData = {
 		tiles: { FarmTile },
 		nextUid: number,
 	},
-	bubu: { list: { { uid: number, kind: string, spot: string, placedAt: number } }, nextUid: number },
+	bubu: { list: { { uid: number, kind: string, spot: string, placedAt: number, pos: { number }? } }, nextUid: number },
 	fishing: {
 		rod: string,
 		equippedBait: string,
