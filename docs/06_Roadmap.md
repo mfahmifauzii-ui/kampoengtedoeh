@@ -6,6 +6,14 @@
 
 ---
 
+## Handoff (update setiap selesai tugas; sesi baru mulai dari sini)
+
+- **Terakhir selesai:** T0 (`03c643b`, DONE-CODE, Play belum). Lalu `6c5e593` (gitignore Obsidian), `1f562d0` (vault Obsidian).
+- **Berikutnya:** Task 2 = MS-2 verifikasi di Play dari `!reset` (termasuk reproduksi lalu perbaikan bug garap_5 4/5), lalu Task 3–6 dan antrean.
+- **Branch:** `feat/v.7`. Sudah di-push sampai `1f562d0`; `6c5e593` belum.
+- **Baseline:** selene 0 error / 86 warning; rojo build exit 0.
+- **Keputusan owner terbuka:** tidak ada yang menunggu. Gerbang rilis di bawah (Bab 23) belum dikerjakan.
+
 ## 1. Cara Kerja
 
 ### 1.1 Aturan (LOCKED)
@@ -322,7 +330,7 @@ Sumber: video dan HP owner (playthrough 8:21 di PC + screenshot). Setiap F = sat
 | F7 | Pak Udin setelah tutorial: Jual / Beli + Sampai jumpa | DONE-CODE | 5641d7a | Cek HP pending |
 | F8 | docs/09: cek HP per perbaikan F1–F7 | TODO | — | Dikerjakan di tugas D8 (lihat 09 bagian baru) |
 | TB | Toast tepat di bawah bar Koin/Bunga, tidak ikut bubble coachmark atau dock; maks 2 chip, terbaru di atas; langkah pengulangan = toast saja (tanpa bubble, tanpa ring) | DONE-CODE (TB; kode dicek terhadap keempat poin owner) | d4c3e55 | Akar: `UiKit.TOAST_AVOID` mendorong stack ke bawah bubble coachmark (CoachTop) sampai menutupi dock. Dihapus. Garap_5 dan tanam_5 sekarang toast. Visual Play sebagian: posisi stack y=60 (UI tree), gambar belum |
-| T0 | Satu toast (GUI 4.2): pinned (`SetPinned`/`UpdatePinned`/`ClearPinned`) dan dismissible (`ToastDismissible`, tombol Ok 44 px); garap_5 "n/N" dihitung dari event tile (`GetInstanceAddedSignal`), bukan poll | DONE-CODE: API, garap_5, reroute GuideUI Hint, pil coachmark, Garap/Decor line, tip kartu bibit (FarmController). Status Memancing = slot tetap cream (GUI 4.2 tabel). Audit: GUI 4.2 tabel "Peta permukaan teks". Grep bukti: lihat laporan. Play belum | fix(T0) commit ini | Cek AI: selene 0 error / 88 warning (baseline), rojo build exit 0. Tes AI: belum (Play belum dijalankan untuk T0). Bug 4/5 belum direproduksi di Play |
+| T0 | Satu toast (GUI 4.2): pinned (`SetPinned`/`UpdatePinned`/`ClearPinned`) dan dismissible (`ToastDismissible`, tombol Ok 44 px); garap_5 "n/N" dihitung dari event tile (`GetInstanceAddedSignal`), bukan poll | DONE-CODE: API, garap_5, reroute GuideUI Hint, pil coachmark, Garap/Decor line, tip kartu bibit (FarmController). Status Memancing = slot tetap cream (GUI 4.2 tabel). Audit: GUI 4.2 tabel "Peta permukaan teks". Grep bukti: lihat laporan. Play belum | fix(T0) commit ini | Cek AI: selene 0 error / 86 warning (baseline), rojo build exit 0. Tes AI: belum (Play belum dijalankan untuk T0). Bug 4/5 belum direproduksi di Play |
 | MS | Setelah panen pertama (panen_1 selesai), Mak Sari meminta {n}=5 petak lagi lewat bubble dialog (bukan toast). Next sekali per save (`guide.mkSariHarvestSeen`); pengingat sesudahnya toast; tidak ada gelap, pemain tetap bisa jalan | DONE-CODE (MS) | (lihat git log: feat(MS)) | Play sebagian: bubble tampil dengan dua baris benar ("5 petak"), Next dua kali, flag tersimpan di server (ms_seen). Toast pengingat setelah dismiss belum dilihat; uji ulang di save baru | 
 | MS-2 | Bubble Mak Sari di atas dock (`T1Dialog.DOCK_CLEAR` 92 px); tiga tahap sekali per save (panen pertama, bibit ulang, panen semua); ring Garap kuning di garap_5; toast tersemat sampai N petak | DONE-CODE (MS-2) | (lihat git log: feat(MS-2)) | Play belum: uji ulang dari !reset sampai panen pertama. Config bibit = 6 (owner menulis 5), dicatat di 03 4.2c |
 
@@ -399,3 +407,13 @@ Semua baris di sini berstatus TODO kecuali disebut lain. Tidak ada yang VERIFIED
 | Dokumen kembali berantakan | Aturan 1.1 #7 + README: satu file per topik, keputusan hanya di Audit Bab 3 |
 
 ---
+
+---
+
+## 23. Gerbang rilis (dicatat, belum dikerjakan)
+
+| ID | Gerbang | Status | Ditutup oleh |
+|----|---------|--------|--------------|
+| GR-1 | Perintah DEV dimatikan untuk akun owner di server live (`Config/DevAccess.LIVE_ENABLED = false`). Audit 2026-11-24: sekarang `true`. | TODO | R10.5 |
+| GR-2 | Tes otomatis minimal: skrip assert (lune atau Studio) untuk harga `Trade` dan `ShopService.validPack`. Belum ada file tes di repo. | TODO | R10.x (sebelum perubahan ekonomi berikutnya) |
+| GR-3 | Loop polling di `GuideController` (0.3 s) diganti event. Dijadwalkan setelah F8. | TODO | setelah F8 |
