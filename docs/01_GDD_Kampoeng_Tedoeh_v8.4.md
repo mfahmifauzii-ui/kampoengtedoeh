@@ -902,6 +902,15 @@ Dari pencapaian permanen, bukan dibeli. Tanpa stat (kecuali tercantum di 17.6). 
 - Jual ikan tutorial hanya diterima server saat langkah `jual_ikan` dan dalam 25 stud dari spot milik pemain (✔ K-27).
 - Cutscene hadiah mulai di frame trigger (target < 0,3 dtk, log `[beat-timing]`).
 
+### 16.6 Coachmark hanya untuk aksi pertama — LOCKED (2026-11-23)
+
+- Coachmark (lapisan gelap + lubang sorot) dipakai **hanya saat pemain pertama kali melakukan aksi** di tutorial.
+- Aksi yang sama di langkah sesudahnya, atau pengulangan aksi yang sama, memakai **toast / bubble petunjuk saja**: tidak ada gelap, tidak ada lubang sorot, tidak ada kunci gerak.
+- Tiap langkah tetap punya **satu** instruksi kalimat biasa (toast atau hint bar) dan **satu** target visual (panah dunia atau pill/tombol berkedip), jadi menghapus coachmark tidak menghapus petunjuk.
+- Penerapan: Tanam (gelap pada tanam pertama saja; tanam_5 toast). Garap (cangkul gelap; garap_5 toast). Siram dan panen_1 gelap pertama kali; tunggu_semua dan panen_jual toast. Mancing gelap sebelum tangkapan pertama saja; tangkapan ke-2 dan ke-3 toast.
+- Pengaman: gelap yang memblok melepas dirinya sendiri setelah 25 detik pada instruksi yang sama. Cutscene yang menunggu pemain melepas kunci gerak setelah 60 detik.
+- Alasan: 2026-11-23, HP owner terkunci di tunggu_semua (gelap menutupi joystick).
+
 ---
 
 ## 17. EKONOMI

@@ -293,3 +293,10 @@ Mockup lama (canvas "Mockup Season Pass & Pohon Skill (HP)", https://claude.ai/a
 - Tombol **Event** hanya tampil saat event musiman aktif. Sheet: progres, Pesanan Tamu, hadiah, hitung mundur.
 - Pasar Malam: tempat di dunia, buka sesuai jadwal. Pak Kumis = NPC; bubble "Jual semua" / "Jual 1", seperti Pak Udin.
 - Lempar Gelang: bar bergerak, tap untuk berhenti; zona 60/30/10% (kecil/sedang/besar); 3 lemparan per malam.
+
+### 9.7 Coachmark tutorial: hanya aksi pertama — LOCKED (2026-11-23)
+- Lapisan gelap + lubang sorot (coachmark) hanya untuk **aksi pertama** pemain di tutorial. Pengulangan aksi yang sama memakai toast / bubble saja: tanpa gelap, tanpa lubang, tanpa kunci gerak.
+- Setiap langkah: satu instruksi kalimat biasa (toast atau hint bar) + satu target visual (panah dunia, ring, atau pill).
+- Matriks: Tanam gelap pada tanam pertama, tanam_5 toast. Garap gelap pada cangkul, garap_5 toast. Siram dan panen_1 gelap pertama, tunggu_semua dan panen_jual toast. Mancing gelap sebelum tangkapan pertama, tangkapan ke-2 dan ke-3 toast.
+- Gelap yang memblok lepas sendiri setelah 25 detik pada instruksi yang sama (CoachmarkController.BLOCK_TIMEOUT). Cutscene yang menunggu pemain lepas kunci gerak setelah 60 detik (Cutscene.UNTIMED_RELEASE_SECONDS).
+- Lihat juga GDD Bab 16.6.
