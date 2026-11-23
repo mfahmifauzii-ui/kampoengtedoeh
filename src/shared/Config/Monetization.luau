@@ -18,6 +18,7 @@ return {
 		{ key = "bunga_s", id = 0, priceDraft = 49, kind = "bunga", amount = 50 },
 		{ key = "bunga_m", id = 0, priceDraft = 99, kind = "bunga", amount = 120 },
 		{ key = "bunga_l", id = 0, priceDraft = 229, kind = "bunga", amount = 300 },
+		{ key = "bunga_xl", id = 0, priceDraft = 459, kind = "bunga", amount = 700 }, -- K-44: pack 700 Bunga (GDD 18.4); id 0 = Belum tersedia
 	} :: { Product },
 
 	-- Instant Kolam (Bab 18.5): instant kolam pakai Bunga, 1 Bunga per 10 menit sisa, max 30 Bunga.
