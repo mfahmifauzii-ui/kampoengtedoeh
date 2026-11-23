@@ -129,7 +129,7 @@ return {
 
 	FEED_MAX = 3, -- jatah per ekor TANPA skill (lihat FeedMax di bawah)
 	PROD_MAX = 3, -- produk menumpuk per ekor
-	PAKAN_JAGUNG = { jagung = 5, jatah = 6 }, -- 5 Jagung -> 6 jatah Pakan Ayam (kandang ayam saja)
+	PAKAN_JAGUNG = { jagung = 1, jatah = 6 }, -- 1 Jagung -> 6 jatah Pakan Ayam (kandang ayam saja, K-04)
 	BREED_FEED_KOIN = 20, -- Pakan Ikan per 1x breeding
 	KAKEK_MULT = 0.9, -- Kolam Kakek breeding 10% lebih cepat
 	MOOD_SECONDS = 300, -- 5 menit setelah hujan selesai (Bab 7.1 Mood Hujan, LOCKED)
