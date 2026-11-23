@@ -517,7 +517,7 @@ Kumpul bahan → Menu Hias → pilih piece → Warna (12) + Material (Kayu, Bamb
 - Hanya di lahan sendiri; tidak saat memancing; tembus dinding sendiri saat mode Hias.
 - Validasi lembut: tanpa pintu → toast `Belum ada pintu nih` 1x, tetap boleh.
 - Hapus = refund 100%, bahan terbang ke Tas.
-- **Warna dinding (K-61):** pemilih warna = R3.10 (ID lama R3.9 bentrok; lihat Roadmap). Belum dibuat.
+- **Warna dinding (K-61):** pemilih warna = R3.9 (lihat Roadmap). Belum dibuat.
 
 
 ### 8.4 Dekor Berkah — LOCKED
