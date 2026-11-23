@@ -161,6 +161,13 @@ local function computeStep(): string
 	elseif growing then
 		return "wait"
 	elseif beds == 0 then
+		-- "Tap Garap" is a tutorial instruction: once the first tutorial is done or skipped it must not come back
+		-- (found in Play 2026-11-23: after "!skip tutorial" the bar kept saying "Tap Garap, lalu tap rumput").
+		local guide = snap.guide
+		local t1Finished = guide ~= nil and ((guide.done and guide.done.t1_awal == true) or (guide.skipped and guide.skipped.t1_awal == true))
+		if t1Finished then
+			return "none"
+		end
 		return "till"
 	elseif not seeds then
 		return "buy" -- beds but no bibit and nothing growing: go and buy some
@@ -1161,6 +1168,11 @@ local function tutorialTick()
 	local snap = snapshot()
 	if not snap or not snap.guide then
 		return
+	end
+	-- The server can finish or skip the running tutorial without the client's steps (DEV "!skip tutorial", a
+	-- reset). Then the coachmark must close too, not keep pointing at the last step (found in Play 2026-11-23).
+	if running and isFinished(running.def.id) then
+		endTutorial()
 	end
 	autoStart(snap)
 	advance()
