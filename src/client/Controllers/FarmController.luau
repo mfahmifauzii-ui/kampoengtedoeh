@@ -408,8 +408,21 @@ local function act(part: BasePart, kind: string)
 		return
 	end
 	if kind == "empty" then
-		-- Planting is by proximity only (SeedPopup): standing within 1 stud of the empty bed shows the seed row. A tap on the
-		-- bed does not open a picker any more.
+		-- Planting is by proximity (SeedPopup, PROXIMITY studs from the bed's edge). Tapping an empty bed you are not next to
+		-- walks you to it (Humanoid:MoveTo, a movement shortcut); the seed row opens when you arrive. (Tutorial fix, 2026-11-23)
+		local character = player.Character
+		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		if humanoid and root and root:IsA("BasePart") then
+			local localPoint = part.CFrame:PointToObjectSpace(root.Position)
+			local dx = math.max(math.abs(localPoint.X) - part.Size.X / 2, 0)
+			local dz = math.max(math.abs(localPoint.Z) - part.Size.Z / 2, 0)
+			if math.sqrt(dx * dx + dz * dz) > 2 then
+				local away = Vector3.new(root.Position.X - part.Position.X, 0, root.Position.Z - part.Position.Z)
+				local dir = if away.Magnitude > 0.01 then away.Unit else Vector3.new(0, 0, 1)
+				humanoid:MoveTo(part.Position + dir * (math.max(part.Size.X, part.Size.Z) / 2 + 0.5))
+			end
+		end
 		return
 	elseif kind == "ripe" then
 		FarmFloat.setPending(part, 1.1)

@@ -847,6 +847,40 @@ local function hintAllowed(): boolean
 	return player:GetAttribute("KTIntroPlaying") ~= true
 end
 
+-- The bed a bed step asks for, as a world point (for the floating arrow). Used when the step's button is not on screen
+-- (the seed row / Siram / Panen only show next to the bed): tanam and tanam_5 want an empty bed, siram a dry one, panen_1 a
+-- ripe one. Nearest one to the player, or nil.
+local function targetBedPoint(stepId: string): Vector3?
+	-- siram: a dry bed, or a ripe one (the crop can ripen before the player waters it: then the step says Panen).
+	local wants: { string }? = if stepId == "tanam" or stepId == "tanam_5" then { "empty" } elseif stepId == "siram" then { "dry", "ripe" } elseif stepId == "panen_1" then { "ripe" } else nil
+	if not wants then
+		return nil
+	end
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") then
+		return nil
+	end
+	local now = Workspace:GetServerTimeNow()
+	local best: BasePart? = nil
+	local bestDistance = math.huge
+	for _, bed in CollectionService:GetTagged(TILE_TAG) do
+		if bed:IsA("BasePart") and bed:GetAttribute("Owner") == player.UserId then
+			local crop = bed:GetAttribute("Crop")
+			local readyAt = bed:GetAttribute("ReadyAt")
+			local state = if crop == nil then "empty" elseif typeof(readyAt) == "number" and now >= readyAt then "ripe" elseif bed:GetAttribute("Watered") ~= true then "dry" else "growing"
+			if table.find(wants, state) then
+				local distance = (bed.Position - root.Position).Magnitude
+				if distance < bestDistance then
+					best = bed
+					bestDistance = distance
+				end
+			end
+		end
+	end
+	return if best then best.Position + Vector3.new(0, 4, 0) else nil
+end
+
 function refreshTutorial()
 	local current = running
 	if not current then
@@ -965,6 +999,10 @@ function refreshTutorial()
 			highlight = nil
 			coachText = Locale.t("tut.coach.jual")
 		end
+		-- siram while a bed is already ripe: the words are Panen (the ripe bed is what to tap), not Siram.
+		if stepDef.id == "siram" and select(2, bedStates()) then
+			coachText = Locale.t("tut.coach.panen_tap")
+		end
 		hint.Visible = false
 		clearRing()
 		GarapController.SetHintHidden(true)
@@ -982,6 +1020,9 @@ function refreshTutorial()
 			npcPoint = if npcId then function(): Vector3?
 				local root = npcRootOf(npcId)
 				return if root then root.Position + Vector3.new(0, 5, 0) else nil
+			end elseif not onGround and highlight and findHighlight(highlight) == nil and targetBedPoint(stepDef.id) ~= nil then function(): Vector3?
+				-- The step's button is not on screen yet: the arrow points at the bed the step wants (walk there, the button shows).
+				return targetBedPoint(stepDef.id)
 			end else nil,
 		})
 		return
