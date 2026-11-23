@@ -36,6 +36,33 @@ local function saveKey(player: Player): string
 	return tostring(player.UserId) .. (if typeof(suffix) == "string" then "_" .. suffix else "")
 end
 
+-- K-65 (Putaran 2): in Studio, a profile that cannot load (session lock, API off) or that another session takes over is
+-- replaced by an in-memory copy of DataTemplate with studioMock = true. It never saves. Live servers still kick.
+local function deepCopy(value: any): any
+	if typeof(value) ~= "table" then
+		return value
+	end
+	local out = {}
+	for key, item in value do
+		out[key] = deepCopy(item)
+	end
+	return out
+end
+
+local function studioMock(player: Player, reason: string): any
+	print(`[DataService] studioMock untuk {player.Name}: {reason} (tidak disimpan)`)
+	local data = deepCopy(DataTemplate)
+	data.stats.firstJoin = os.time()
+	data.inventory.seed_kangkung = 6 -- same start as a new save (see onPlayerAdded)
+	return {
+		Data = data,
+		studioMock = true,
+		AddUserId = function() end,
+		EndSession = function() end,
+		Save = function() end,
+	}
+end
+
 local function onPlayerAdded(player: Player)
 	local profile = PlayerStore:StartSessionAsync(saveKey(player), {
 		Cancel = function()
@@ -44,19 +71,25 @@ local function onPlayerAdded(player: Player)
 	})
 
 	if profile == nil then
-		-- Another server holds the lock and didn't release in time, or Roblox DataStores are down.
-		player:Kick(Locale.t("data.load_failed"))
-		return
+		if RunService:IsStudio() then
+			profile = studioMock(player, "profil tidak bisa dimuat")
+		else
+			-- Another server holds the lock and didn't release in time, or Roblox DataStores are down.
+			player:Kick(Locale.t("data.load_failed"))
+			return
+		end
+	else
+		profile:AddUserId(player.UserId) -- GDPR / right-to-erasure support
+		profile:Reconcile()
+		profile.OnSessionEnd:Connect(function()
+			if RunService:IsStudio() then
+				profiles[player] = studioMock(player, "sesi diambil alih")
+				return
+			end
+			profiles[player] = nil
+			player:Kick(Locale.t("data.session_ended"))
+		end)
 	end
-
-	profile:AddUserId(player.UserId) -- GDPR / right-to-erasure support
-
-	profile:Reconcile()
-
-	profile.OnSessionEnd:Connect(function()
-		profiles[player] = nil
-		player:Kick(Locale.t("data.session_ended"))
-	end)
 
 	if player.Parent ~= Players then
 		profile:EndSession() -- left while loading
