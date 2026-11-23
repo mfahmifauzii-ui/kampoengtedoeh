@@ -1592,7 +1592,8 @@ end
 -- Toast kinds (GUI 4.2): "transient" (default, auto-hides), "pinned" (never evicted or auto-dismissed, sits above the
 -- transient chips; see HudController.SetPinned), "dismissible" (same style plus an "Ok" button, see onOk).
 -- opts.instant: no fade-in (used when a pinned chip is re-rendered with new numbers). opts.onOk: adds the Ok button.
-UiKit.TOAST_OK_W = 56 -- px: the Ok button (min 44 px touch height, UiKit.TOAST_MIN_H)
+UiKit.TOAST_OK_W = 56 -- px: the Ok button width
+UiKit.TOAST_OK_H = 44 -- px: touch minimum; a dismissible chip is at least this tall
 function UiKit.toastChip(stack: Frame, text: string, opts: { instant: boolean?, onOk: (() -> ())? }?): CanvasGroup
 	local chip = Instance.new("CanvasGroup")
 	chip.Name = "Toast"
@@ -1627,13 +1628,13 @@ function UiKit.toastChip(stack: Frame, text: string, opts: { instant: boolean?, 
 		return game:GetService("TextService"):GetTextSize(text, UiKit.TEXT_SMALL, Enum.Font.FredokaOne, Vector2.new(textWidth, 1000))
 	end)
 	local textHeight = if ok then (measured :: Vector2).Y else UiKit.TEXT_SMALL
-	chip.Size = UDim2.new(1, 0, 0, math.max(UiKit.TOAST_MIN_H, textHeight + 2 * UiKit.TOAST_PAD_Y))
+	chip.Size = UDim2.new(1, 0, 0, math.max(if okW > 0 then UiKit.TOAST_OK_H else UiKit.TOAST_MIN_H, textHeight + 2 * UiKit.TOAST_PAD_Y))
 	if opts and opts.onOk then
 		local button = Instance.new("TextButton")
 		button.Name = "Ok"
 		button.AnchorPoint = Vector2.new(1, 0.5)
 		button.Position = UDim2.new(1, -UiKit.TOAST_PAD_X, 0.5, 0)
-		button.Size = UDim2.fromOffset(UiKit.TOAST_OK_W - UiKit.TOAST_PAD_X, UiKit.TOAST_MIN_H)
+		button.Size = UDim2.fromOffset(UiKit.TOAST_OK_W - UiKit.TOAST_PAD_X, UiKit.TOAST_OK_H)
 		button.BackgroundColor3 = UiKit.BAMBOO
 		button.Font = UiKit.FONT
 		button.TextSize = UiKit.TEXT_SMALL
