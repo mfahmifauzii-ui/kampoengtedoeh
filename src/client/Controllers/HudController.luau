@@ -16,6 +16,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local State = require(script.Parent.Parent.State)
 local Workspace = game:GetService("Workspace")
 
 local Buffs = require(ReplicatedStorage.Shared.Config.Buffs)
@@ -321,6 +322,87 @@ local function find(gui: Instance, name: string, class: string): any
 	return if found and found:IsA(class) then found else nil
 end
 
+-- K-121: XP feedback. A gain shows "+N XP" rising from the XP bar (inside the player card), the fill slides to the new
+-- value and the bar flashes once. "Kurangi gerak" (settings.reduceMotion, GUI 4.11): no slide, no rise, no flash; the
+-- "+N XP" text stays still for a moment and goes away.
+local XP_FLOAT_SECONDS = 0.9
+local XP_FILL_SECONDS = 0.35
+local XP_FLASH_COLOR = Color3.fromRGB(204, 242, 130)
+local XP_FILL_COLOR = Color3.fromRGB(104, 168, 64)
+local lastXp: { level: number, xp: number, xpNext: number }? = nil
+
+local function reduceMotion(): boolean
+	local snapshot = State.current :: any
+	return snapshot ~= nil and snapshot.settings ~= nil and snapshot.settings.reduceMotion == true
+end
+
+local function xpFraction(xp: number, xpNext: number): number
+	return if xpNext > 0 then math.clamp(xp / xpNext, 0, 1) else 1
+end
+
+-- The gain since the last refresh (a level-up counts the rest of the old bar plus the new XP; one level at a time).
+local function xpGainedSince(level: number, xp: number, xpNext: number): (number?, boolean)
+	local before = lastXp
+	lastXp = { level = level, xp = xp, xpNext = xpNext }
+	if not before then
+		return nil, false
+	end
+	if level > before.level then
+		return (before.xpNext - before.xp) + xp, true
+	end
+	local gained = xp - before.xp
+	return if gained > 0 then gained else nil, false
+end
+
+local function showXpGain(gained: number)
+	local track = xpFill and xpFill.Parent
+	if not track or not track:IsA("GuiObject") then
+		return
+	end
+	local still = reduceMotion()
+	local float = Instance.new("TextLabel")
+	float.Name = "XpGain"
+	float.AnchorPoint = Vector2.new(1, 1)
+	float.Position = UDim2.new(1, 0, 0, -4)
+	float.Size = UDim2.fromOffset(80, 16)
+	float.BackgroundTransparency = 1
+	float.Font = UiKit.FONT
+	float.TextSize = 13
+	float.TextColor3 = Color3.fromRGB(204, 242, 130)
+	float.TextStrokeColor3 = Color3.fromRGB(60, 36, 14)
+	float.TextStrokeTransparency = 0.25
+	float.TextXAlignment = Enum.TextXAlignment.Right
+	float.ZIndex = 8
+	float.Text = Locale.t("hud.xp_gain", { n = Locale.formatNumber(gained) })
+	float.Parent = track
+	if still then
+		task.delay(XP_FLOAT_SECONDS, function()
+			float:Destroy()
+		end)
+		return
+	end
+	local info = TweenInfo.new(XP_FLOAT_SECONDS, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	TweenService:Create(float, info, { Position = UDim2.new(1, 0, 0, -26), TextTransparency = 1, TextStrokeTransparency = 1 }):Play()
+	task.delay(XP_FLOAT_SECONDS, function()
+		float:Destroy()
+	end)
+end
+
+local function flashXpBar()
+	if not xpFill or reduceMotion() then
+		return
+	end
+	local flash = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	local settle = TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	local up = TweenService:Create(xpFill, flash, { BackgroundColor3 = XP_FLASH_COLOR })
+	up.Completed:Connect(function()
+		if xpFill then
+			TweenService:Create(xpFill, settle, { BackgroundColor3 = XP_FILL_COLOR }):Play()
+		end
+	end)
+	up:Play()
+end
+
 local function refresh()
 	local koin = player:GetAttribute("Koin")
 	local bunga = player:GetAttribute("Bunga")
@@ -336,8 +418,19 @@ local function refresh()
 	if levelLabel and typeof(level) == "number" and typeof(xp) == "number" and typeof(xpNext) == "number" then
 		local progress = if xpNext > 0 then Locale.t("hud.xp", { xp = Locale.formatNumber(xp), next = Locale.formatNumber(xpNext) }) else Locale.t("hud.xp_max")
 		levelLabel.Text = progress -- the star on the photo already shows the level
+		local frac = xpFraction(xp, xpNext)
+		local gained, levelUp = xpGainedSince(level, xp, xpNext)
 		if xpFill then
-			xpFill.Size = UDim2.fromScale(if xpNext > 0 then math.clamp(xp / xpNext, 0, 1) else 1, 1)
+			-- A gain slides the fill (a level-up jumps: the bar starts again from the bottom); no gain = set directly.
+			if gained and not levelUp and not reduceMotion() then
+				TweenService:Create(xpFill, TweenInfo.new(XP_FILL_SECONDS, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.fromScale(frac, 1) }):Play()
+			else
+				xpFill.Size = UDim2.fromScale(frac, 1)
+			end
+		end
+		if gained then
+			showXpGain(math.floor(gained + 0.5))
+			flashXpBar()
 		end
 	end
 	if levelBadge and typeof(level) == "number" then

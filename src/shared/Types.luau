@@ -234,7 +234,7 @@ export type PlayerData = {
 		helpRecv: { day: string, siram: boolean, panen: boolean },
 		gifts: { day: string, sent: number }, -- kirim hadiah max 3/hari
 	},
-	settings: { music: boolean, ambient: boolean, sfx: boolean, musicVol: number, sfxVol: number, quality: number }, -- vol 0..1, quality 1..3 (Rendah / Sedang / Tinggi)
+	settings: { music: boolean, ambient: boolean, sfx: boolean, musicVol: number, sfxVol: number, quality: number, reduceMotion: boolean? },-- vol 0..1, quality 1..3 (Rendah / Sedang / Tinggi)
 	passes: { [string]: boolean },
 	onboarding: { [string]: boolean },
 	guide: {

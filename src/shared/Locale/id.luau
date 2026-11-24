@@ -631,6 +631,7 @@ return {
 	["tut.start"] = "Mulai",
 	["tut.stuck_suffix"] = " Ikuti cincin dan panah.",
 	["settings.guide"] = "Panduan",
+	["settings.reduceMotion"] = "Kurangi gerak", -- K-121: tanpa geser / naik / kedip (XP dan animasi UI)
 	["settings.guide_open"] = "Buka",
 	["ui.guide"] = "Panduan",
 	["tut.replay"] = "Ulang",
@@ -755,6 +756,7 @@ return {
 	-- Progression
 	["hud.level"] = "Lv {level}",
 	["hud.xp"] = "{xp}/{next} XP",
+	["hud.xp_gain"] = "+{n} XP", -- K-121: angka XP yang baru didapat, naik dari bar XP
 	["hud.xp_max"] = "Level maksimal",
 	["hud.level_banner"] = "LEVEL {level}!",
 	["level.up"] = "Naik ke Level {level}!",

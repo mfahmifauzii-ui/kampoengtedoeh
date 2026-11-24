@@ -167,7 +167,7 @@ local template: Types.PlayerData = {
 		gifts = { day = "", sent = 0 }, -- kirim hadiah max 3/hari
 	},
 
-	settings = { music = true, ambient = true, sfx = true, gerobak = true, musicVol = 1, sfxVol = 1, quality = 2 }, -- volumes are a share (0..1) of Audio.VOLUME; quality 1 Rendah, 2 Sedang, 3 Tinggi; gerobak = toast Gerobak Kaget (P2-6)
+	settings = { music = true, ambient = true, sfx = true, gerobak = true, reduceMotion = false, musicVol = 1, sfxVol = 1, quality = 2 }, -- volumes are a share (0..1) of Audio.VOLUME; quality 1 Rendah, 2 Sedang, 3 Tinggi; gerobak = toast Gerobak Kaget (P2-6); reduceMotion = Kurangi gerak (K-121)
 
 	passes = {}, -- [passKey] = true; cache of confirmed game pass ownership (fallback if API is down)
 	onboarding = {}, -- [stepNumber] = true (analytics funnel, logged once)

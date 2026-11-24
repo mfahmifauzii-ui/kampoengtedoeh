@@ -300,6 +300,19 @@ Kartu bibit (`FarmController`, muncul di atas petak kosong) menampilkan **8 bibi
 | Baris | 3 baris untuk 12 | 2 baris |
 | Tombol halaman | tidak ada | 2 chevron 32 px |
 
+### 4.11 Umpan XP dan Kurangi gerak (K-121, owner 2026-11-24)
+
+Saat XP bertambah, kartu pemain (kiri bawah) menampilkan **"+N XP"** yang naik dan pudar dari ujung kanan bar XP. Bar mengisi dengan geser 0,35 dtk, lalu kilat hijau muda 0,5 dtk. Naik level: bar langsung mulai dari awal (tanpa geser), kilat tetap. Angka dan kilat hanya dari perubahan XP di layar, jadi tidak ada teks ganda dengan toast Notify.
+
+**Kurangi gerak** (Atur, baris sebelum Panduan, off secara default; `settings.reduceMotion`): saat on, bar langsung diset, "+N XP" diam 0,9 dtk lalu hilang, dan tidak ada kilat. Sama untuk animasi UI yang memakai pengaturan ini.
+
+| Ukuran | Nilai |
+|--------|-------|
+| Teks XP | 13 px, tepi gelap, rata kanan |
+| Naik | 26 px dalam 0,9 dtk, pudar bersamaan |
+| Geser bar | 0,35 dtk, Quad out |
+| Kilat | naik 0,12 dtk, kembali 0,35 dtk |
+
 ## 5. Bentuk Sheet
 
 | Bentuk | Kapan | HP | PC |

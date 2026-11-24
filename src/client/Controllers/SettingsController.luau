@@ -90,7 +90,14 @@ local function render()
 			Net.Send("SettingsSet", "gerobak", value)
 		end)
 	end
-	local guide = card(#KEYS + 2, Locale.t("settings.guide"), UiKit.CAT.tool)
+	-- K-121: Kurangi gerak (off by default). On = no sliding or flashing in the UI (GUI 4.11).
+	do
+		local cell = card(#KEYS + 2, Locale.t("settings.reduceMotion"), UiKit.CAT.tool)
+		UiKit.switch(cell, settings.reduceMotion == true, function(value)
+			Net.Send("SettingsSet", "reduceMotion", value)
+		end)
+	end
+	local guide = card(#KEYS + 3, Locale.t("settings.guide"), UiKit.CAT.tool)
 	local open = UiKit.button(guide, "Open", Locale.t("settings.guide_open"), UiKit.BUTTON)
 	open.AnchorPoint = Vector2.new(1, 0.5)
 	open.Position = UDim2.new(1, -8, 0.5, 0)
@@ -103,7 +110,7 @@ local function render()
 
 	-- Shrink the panel to its content (AutomaticSize behaviour for Atur only): 2 columns of cards, 58 px per row. The frame
 	-- keeps the title ribbon above and a small margin below; it never grows past the screen (UISizeConstraint in UiKit).
-	local rows = #KEYS + 2 -- 3 toggles + gerobak + panduan
+	local rows = #KEYS + 3 -- 3 toggles + gerobak + kurangi gerak + panduan
 	local body = rows * 58
 	panel.list.Size = UDim2.new(1, -52, 0, body)
 	panel.list.ScrollBarThickness = 0 -- the content fits: no scrollbar

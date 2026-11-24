@@ -336,9 +336,9 @@ Status 2026-11-24: **semua 15 langkah sudah verified by owner** (centang di hala
 
 Owner cek dengan telinga. Suara panen (`farm_harvest` = "cartoon pluck", 0.267 s) dan gigitan (`fish_bite` = "cartoon plop sound", 0.540 s) sudah berisi id dari toolbox, belum pernah dimainkan di Play. Owner cek volume dan karakternya.
 
-1. [ ] **Siram:** satu suara air saat siram satu petak, tidak keras (di HP dengan volume sedang). Drag siram di banyak petak sekaligus terdengar **satu** suara, tidak bertumpuk.
-2. [ ] **Panen:** satu suara pluck saat panen satu petak. Panen banyak (jika dibuka) juga satu suara, tidak bertumpuk.
-3. [ ] **Gigitan:** satu suara plop saat ikan menggigit, sebelum mini-game tarik. Tidak keras dan tidak menimpa suara reel.
+1. [x] **Siram:** satu suara air saat siram satu petak, tidak keras (di HP dengan volume sedang). Drag siram di banyak petak sekaligus terdengar **satu** suara, tidak bertumpuk.
+2. [x] **Panen:** satu suara pluck saat panen satu petak. Panen banyak (jika dibuka) juga satu suara, tidak bertumpuk.
+3. [x] **Gigitan:** satu suara plop saat ikan menggigit, sebelum mini-game tarik. Tidak keras dan tidak menimpa suara reel.
 
 ### B18. Hujan visual (R6.5, 2026-11-24): cek di HP
 
@@ -471,3 +471,6 @@ Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 1. [ ] **Kartu bibit 2 x 4 (K-120):** tap petak kosong di dekat petak. Kartu menampilkan 8 bibit: 2 baris, 4 kolom. Bibit yang punya stok ada di depan; x0 redup dan di belakang.
 2. [ ] **Halaman (K-120):** dengan lebih dari 8 bibit, chevron ‹ › dan teks "1/2" tampil. › pindah ke halaman 2; ‹ mati di halaman 1. Chevron 32 px mudah ditekan jempol.
 3. [ ] **Tanam dari halaman 2 (K-120):** tanam bibit di halaman 2 berhasil dan kartu tutup seperti biasa.
+4. [ ] **Umpan XP (K-121):** panen atau jual sesuatu. "+N XP" naik dari bar XP di kartu pemain dan hilang dalam 1 dtk; bar bergeser dan berkilat sekali.
+5. [ ] **Naik level (K-121):** saat naik Lv, bar mulai dari awal tanpa geser panjang; "+N XP" tetap muncul.
+6. [ ] **Kurangi gerak (K-121):** Atur, nyalakan "Kurangi gerak". Ulangi butir 4: angka diam, bar langsung terisi, tanpa kilat. Matikan lagi untuk kembali.
