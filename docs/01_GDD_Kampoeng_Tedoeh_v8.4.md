@@ -1089,6 +1089,7 @@ Daftar lengkap (VFX, SFX, musik, haptic, animasi, model 3D) ada di **`04_Asset_B
 - Kerja Bakti: sampah visual di alun-alun, hilang saat dipungut.
 - Banner server hanya: Legenda + Prima Late.
 - Semua suara cozy, tanpa jumpscare. Haptic bisa dimatikan.
+- Suara panen (`pop` pada panen Prima) dan gigitan ikan belum punya id audio, jadi diam sampai diisi (R7.3, Asset Bible 7). Satu suara per aksi, termasuk siram satu gerakan dan panen banyak.
 
 ---
 

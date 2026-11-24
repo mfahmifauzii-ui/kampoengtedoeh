@@ -332,6 +332,14 @@ Status 2026-11-24: **semua 15 langkah sudah verified by owner** (centang di hala
 14. [x] **jual_ikan:** jual ikan ke Kak Fajar, Ok, dan naik ke Lv 2 (230 XP). *Verified by owner.*
 15. [x] **Waktu:** 2 menit dari PLAY sampai Lv 2 (catatan owner). *Verified by owner.*
 
+### B17. SFX pertama: panen, siram, gigitan (R7.3, 2026-11-24): dengar di HP
+
+Owner cek dengan telinga. Dua suara (panen dan gigitan) masih diam sampai id audionya diisi, jadi langkah 1 dan 3 baru bisa lulus setelah itu.
+
+1. [ ] **Siram:** satu suara air saat siram satu petak, tidak keras (di HP dengan volume sedang). Drag siram di banyak petak sekaligus terdengar **satu** suara, tidak bertumpuk.
+2. [ ] **Panen:** satu suara pluck saat panen satu petak. Setelah id `farm_harvest` diisi. Panen banyak (jika dibuka) juga satu suara, tidak bertumpuk.
+3. [ ] **Gigitan:** satu suara saat ikan menggigit, sebelum mini-game tarik. Setelah id `fish_bite` diisi. Tidak keras dan tidak menimpa suara reel.
+
 ### B15. Satu toast (T0, 2026-11-23): owner cek di HP dan PC
 
 Aturan: GUI 4.2. Satu tempat (di bawah Koin/Bunga), satu gaya krem.

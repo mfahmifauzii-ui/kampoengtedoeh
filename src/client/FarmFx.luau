@@ -20,6 +20,8 @@ local ACTIONS = {
 	water = { clip = "FarmWater", sound = "water_pour" },
 }
 
+local SOUND_JITTER = 0.06 -- small random pitch per action (+-6%), so repeated harvests and waterings don't sound mechanical
+
 FarmFx.PLANT_SECONDS = 0.55 -- when the seed "goes in": the caller sends FarmPlant then
 FarmFx.WATER_SECONDS = 0.95 -- when the first water lands: the caller sends FarmWater then
 
@@ -238,21 +240,23 @@ function FarmFx.plant(bed: BasePart)
 end
 
 -- Watering: the character takes out a watering can, pours onto the bed, water falls and splashes there.
-function FarmFx.water(bed: BasePart)
+-- `silent` (a drag stroke after its first bed): the animation plays, the sound does not (one sound per action).
+function FarmFx.water(bed: BasePart, silent: boolean?)
 	faceBed(bed)
 	playClip("water")
 	pourFromCan(bed, 1.7)
+	if silent then return end
 	task.delay(0.55, function()
-		Sfx.play("water_pour", bed)
+		Sfx.play("water_pour", bed, SOUND_JITTER)
 	end)
 end
 
--- Harvest: a sparkle and a quick pluck sound where the crop was.
-function FarmFx.harvest(bed: BasePart)
+-- Harvest: a sparkle where the crop was; the pluck sound is one per action (`silent` for the rest of a batch).
+function FarmFx.harvest(bed: BasePart, silent: boolean?)
 	faceBed(bed)
 	Vfx.burst("harvest", bedTop(bed, 2))
-	local sound = Sfx.play("plant_seed", bed)
-	if sound then sound.PlaybackSpeed = 1.45 end
+	if silent then return end
+	Sfx.play("farm_harvest", bed, SOUND_JITTER)
 end
 
 -- Garap: turning grass into a bed (deep dig) or back into grass (soft dig).

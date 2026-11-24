@@ -139,6 +139,7 @@ Net.Listen("FishState", function(state, spot)
 		if tutorialRod then
 			equip()
 		end
+		Sfx.play("fish_bite", rootPart()) -- one-shot when the bite starts, before the pull (needs asset: silent until then)
 		Sfx.stop(reelSound)
 		reelSound = Sfx.play("fish_reel", rootPart())
 		local biteCF = spotCF(lastSpot)

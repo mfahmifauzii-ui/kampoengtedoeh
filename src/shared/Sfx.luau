@@ -22,6 +22,7 @@ local function template(role: string): Sound?
 		warn(`[Sfx] no such role: {role}`)
 		return nil
 	end
+	if entry.id == nil then return nil end -- needs asset: nothing to load
 	local folder = templates()
 	local existing = folder:FindFirstChild(role)
 	if existing and existing:IsA("Sound") then
@@ -43,11 +44,23 @@ function Sfx.preload()
 	end
 	pcall(function() ContentProvider:PreloadAsync(list) end)
 end
+-- Same role again within MIN_GAP seconds is dropped: rapid actions must not stack into noise.
+local MIN_GAP = 0.08
+local lastPlayed: { [string]: number } = {}
+
 function Sfx.play(role: string, parent: Instance?, pitchVary: number?): Sound?
 	local ok, result = pcall(function(): Sound?
+		local entry = SoundBank[role]
+		if not entry then
+			warn(`[Sfx] no such role: {role}`)
+			return nil
+		end
+		if entry.id == nil then return nil end -- needs asset: silent, no warning
+		local now = os.clock()
+		if lastPlayed[role] and now - lastPlayed[role] < MIN_GAP then return nil end
+		lastPlayed[role] = now
 		local source = template(role)
 		if not source then return nil end
-		local entry = SoundBank[role]
 		local clone = source:Clone()
 		if pitchVary and pitchVary > 0 then
 			clone.PlaybackSpeed = 1 + (math.random() * 2 - 1) * pitchVary

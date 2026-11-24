@@ -402,6 +402,10 @@ end
 
 -- Tile interaction -------------------------------------------------------------
 
+-- One sound per action: a drag stroke plays its water sound only on its first bed; a harvest batch only on its first bed.
+local waterSilent = false
+local harvestQuiet = false
+
 -- What a tap on a bed (or its floating pill) does, by the bed's state.
 local function act(part: BasePart, kind: string)
 	local index = part:GetAttribute("Index")
@@ -427,7 +431,7 @@ local function act(part: BasePart, kind: string)
 		return
 	elseif kind == "ripe" then
 		FarmFloat.setPending(part, 1.1)
-		FarmFx.harvest(part)
+		FarmFx.harvest(part, harvestQuiet)
 		-- The harvested crop flies from its bed to the Bag, and the coins of this harvest fly from the same spot.
 		local cropId = part:GetAttribute("Crop")
 		local crop = if typeof(cropId) == "string" then Crops.byId[cropId] else nil
@@ -439,7 +443,7 @@ local function act(part: BasePart, kind: string)
 		Net.Send("FarmHarvest", index)
 	elseif kind == "dry" then
 		FarmFloat.setPending(part, 2.4)
-		FarmFx.water(part)
+		FarmFx.water(part, waterSilent)
 		task.delay(FarmFx.WATER_SECONDS, function()
 			Net.Send("FarmWater", index)
 		end)
@@ -1128,7 +1132,9 @@ local function harvestAll()
 	for index, part in parts do
 		task.delay((index - 1) * HARVEST_GAP, function()
 			if getStage(part) == READY_STAGE then
+				harvestQuiet = index > 1 -- one pluck sound for the whole batch
 				act(part, "ripe")
+				harvestQuiet = false
 			end
 		end)
 	end
@@ -1198,7 +1204,9 @@ local function waterStrokeAt(position: Vector2)
 		return
 	end
 	dragWaterDone[part] = true
+	waterSilent = true -- the stroke already made its sound on the first bed
 	act(part, "dry")
+	waterSilent = false
 end
 
 local function setupDragWater()

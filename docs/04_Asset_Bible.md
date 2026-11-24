@@ -328,6 +328,8 @@ Key di `Config/Audio`. Grup suara: `Musik`, `SFX`, `Ambience`, `UI` (masing-masi
 | Hias | `decor.place`, `decor.rotate`, `decor.delete`, `decor.refund` | | ★ |
 | Sosial | `social.like`, `social.gesture` | | |
 | Event | `event.cart_bell`, `event.night_market`, `event.toss`, `event.kerjabakti_pick` | | ★ cart, pick |
+
+**Pemetaan SFX Kebun & Mancing (2026-11-24, R7.3):** key di atas dipetakan ke role `Config/SoundBank` (satu tempat untuk id). `farm.water` = `water_pour` (id ada). `farm.plant` = `plant_seed` (id ada). `farm.harvest` = `farm_harvest` (**needs asset**, belum ada id, diam). `fish.bite` = `fish_bite` (**needs asset**, belum ada id, diam). `fish.reel` = `fish_reel` (loop, saat gigitan). Id kosong = diam, tanpa error.
 | Cuaca | `wx.drizzle` (loop), `wx.heavy` (loop), `wx.thunder_far`, `wx.sign_rumble` | | ★ |
 
 ## 8. Ambience & Musik
