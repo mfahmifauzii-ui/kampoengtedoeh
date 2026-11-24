@@ -878,7 +878,7 @@ Dari pencapaian permanen, bukan dibeli. Tanpa stat (kecuali tercantum di 17.6). 
 | Penakluk Legenda | MQ11 `mq11_legenda` (syarat ATAU ✔ K-13) |
 | Dinding Spesial | `side_rumah_rapi` (20 piece) |
 | Raja Jumbo | `side_jumbo` (1 ikan Jumbo) |
-| Pekerja Bakti | `side_kerjabakti` (10 Kerja Bakti) |
+| Pekerja Bakti | `side_kerjabakti` (10 Kerja Bakti), mulai Lv 2 (K-81) |
 | Juragan Pondok | Kategori Album Rumah lengkap + klaim |
 | Kebun Favorit | 200 like; **tanpa Peti Bunga** ✔ K-28 |
 | Penyayang Kucing | Side Kucing Alun-alun — **Update 1** (✔ K-16 b; tidak ada di rilis) |

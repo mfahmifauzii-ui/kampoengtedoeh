@@ -351,7 +351,7 @@ local list: { Quest } = {
 		id = "side_kerjabakti",
 		kind = "side",
 		giver = "nek_ani",
-		unlockLevel = 1,
+		unlockLevel = 2, -- K-81: the pickup prompt opens with the Gerobak gate (M1 step 3, Lv 2)
 		steps = {
 			{ event = "kb", count = 10 }, -- Ikut 10 Kerja Bakti
 		},

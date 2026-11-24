@@ -25,7 +25,8 @@
 - **R2.G5 (fix(R2.G5), 2026-11-24, K-79):** dokumen only. Kerja Bakti tetap dipicu hujan Deres/Petir (tidak diubah); GDD 13.4 dan Quest 03 menulis ketergantungan cuaca; 09 B22 butir 5 menegaskan tidak ada tes solo yang menunggunya. DONE-DOC.
 - **R2.G6 (fix(R2.G6), 2026-11-24, K-80):** dokumen only. Agenda tetap dari pool dengan syarat (kode tidak diubah); GDD 14.5 dan checklist menulis 3–5 sesuai fitur. DONE-DOC.
 - **Walk ulang Lv 0–10 (2026-11-24, setelah R2.G1–G6):** 3 gap baru, R2.G7 (Kerja Bakti Lv 1 tidak bisa maju), R2.G8 (solo tanpa konten sosial), R2.G9 (surat dibayar tanpa toast). Lihat `reports/Quest_Gate_Walk_2026-11-24.md` bagian 2b. Tidak diperbaiki.
-- **Berikutnya:** owner yang cek B20–B22 di HP. Pilih urutan R2.G7–R2.G9 (atau biarkan sebagai TODO). Keputusan terbuka: K-72 (default konservatif, owner belum meninjau).
+- **R2.G7 (fix(R2.G7), 2026-11-24, K-81):** Pekerja Bakti (`side_kerjabakti`) mulai di Lv 2, sama dengan gerbang prompt pungut. DONE-CODE, Play belum; owner cek di 09 B22 butir 6.
+- **Berikutnya:** R2.G8 (diterima, K-82) dan R2.G9 (toast hadiah surat, K-83), lalu walk akhir Lv 0–10. Keputusan terbuka: K-72 (default konservatif, owner belum meninjau).
 - **Branch:** `feat/v.7`. Sudah di-push sampai `1f562d0`; `6c5e593`, `06521d5`, `995d049` belum.
 - **Baseline:** selene 0 error / 85 warning (turun dari 86 di feat R7.x); rojo build exit 0. Dicek ulang 24 Nov 2026 setelah id SFX dipasang.
 - **Keputusan owner terbuka:** tidak ada yang menunggu. Gerbang rilis di bawah (Bab 23) belum dikerjakan.
@@ -190,7 +191,7 @@ Butuh: R0.3 selesai.
 | R2.G4 | Season "Bantu 20 lahan" (K-58) belum ada di kode: dokumen diberi tanda "aktif saat BANTU_ENABLED" (K-78); kartu tidak dibangun | K-58, K-78, walk G4 | GDD 19, Quest 03, RP2.S menyebut syarat flag; tidak ada yang menjanjikan kartu tanpa flag | | M | DONE-DOC | fix(R2.G4) |
 | R2.G5 | side_kerjabakti (Lv 1) hanya mulai saat hujan Deres/Petir berakhir. Pemicu tidak diubah (K-79); dokumen menulis ketergantungan cuaca dan checklist tidak menunggunya | walk G5, K-79 | GDD 13.4 dan Quest 03 menyebut cuaca; B22 butir 5 | ★ | S | DONE-DOC | fix(R2.G5) |
 | R2.G6 | Agenda hanya 3–4 tugas sebelum Lv 6 (GDD 14.5 minta 5): GDD 14.5 dan docs ditulis 3–5 sesuai fitur (K-80); kode tidak diubah | walk G6, K-80 | GDD 14.5 dan checklist tidak mengharapkan 5 sebelum Lv 6 | | S | DONE-DOC | fix(R2.G6) |
-| R2.G7 | side_kerjabakti (Lv 1) tidak bisa maju di Lv 1: prompt pungut menunggu gerbang Gerobak (M1 langkah 3, Lv 2). Samakan `unlockLevel` atau gerbang | walk 2b N1 | Quest Lv 1 bisa maju atau `unlockLevel` = 2 | | S | TODO | — |
+| R2.G7 | side_kerjabakti tidak bisa maju di Lv 1: `unlockLevel` dinaikkan ke 2 agar sama dengan gerbang prompt Gerobak (K-81). Gerbang Gerobak tidak diubah | walk 2b N1, K-81 | Quest muncul di Lv 2, bukan Lv 1 | | S | DONE-CODE | fix(R2.G7) |
 | R2.G8 | Solo tidak punya konten sosial (Warga butuh 2 pemain, K-75). Tentukan konten solo atau biarkan dan catat | walk 2b N2, K-75 | Ada sesuatu yang bisa dilakukan solo di Sosial, atau keputusan tertulis | | M | TODO | — |
 | R2.G9 | Surat 6/13/20/29 dibayar tanpa toast saat fitur Surat belum terbuka (sebelum S2). Tampilkan toast saat fitur terbuka atau tunda bayaran | walk 2b N3, K-73 | Pemain tahu surat yang dibayar | | S | TODO | — |
 

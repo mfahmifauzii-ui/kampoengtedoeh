@@ -248,7 +248,7 @@ Langkah `kak_fajar`: `tut.t1b.kak_fajar.1` (Pak Udin) — Kak Fajar ada di sunga
 | Panen Prima | `side_prima` | Mak Sari | Panen 5 Prima | Skin Gembor Emas ✔ K-15 | Ada, tanpa naskah |
 | Ikan Jumbo | `side_jumbo` | Kak Fajar | Dapat 1 ikan Jumbo | 200 Koin + Title Raja Jumbo | Ada, tanpa naskah |
 | Kolektor Album | `side_kolektor` | Nek Ani | Album 25% | 10 Bunga | Ada, auto |
-| Kerja Bakti 10x | `side_kerjabakti` | Nek Ani | Ikut 10 Kerja Bakti | 500 Koin + Title Pekerja Bakti | Ada; naskah tidak ada di v0.1 (cek kode R0.4). K-79: Kerja Bakti hanya mulai setelah hujan Deres/Petir berakhir dan prompt pungut hanya terbuka setelah M1 langkah 3 (gerbang Gerobak). Quest ini menunggu cuaca, tidak bisa dipaksa. |
+| Kerja Bakti 10x | `side_kerjabakti` | Nek Ani | Ikut 10 Kerja Bakti | 500 Koin + Title Pekerja Bakti | Ada; naskah tidak ada di v0.1 (cek kode R0.4). K-79: Kerja Bakti hanya mulai setelah hujan Deres/Petir berakhir dan prompt pungut hanya terbuka setelah M1 langkah 3 (gerbang Gerobak). Quest mulai di Lv 2 (K-81, sama dengan gerbang prompt pungut). Quest ini menunggu cuaca, tidak bisa dipaksa. |
 | Warung Laris | (cek kode, naskah pakai `side_warung`) | Mak Sari | Jual 10 olahan di Warung | 300 Koin | Cek kode (R0.4) |
 
 ---
