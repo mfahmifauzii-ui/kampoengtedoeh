@@ -390,6 +390,7 @@ Rujukan utama: **4.6** (aturan dan tabel klasifikasi per langkah). Ringkasan:
 
 - Tombol HUD tetap (Garap, Aksi Pancing) pada langkah pertama = spotlight: satu overlay gelap dengan satu lubang.
 - GUI mengambang dan objek dunia (pill Tanam / Siram / Panen, ghost Garap, NPC) = outline kuning saja, tanpa gelap.
+- Pill Siram di bed tanam cepat tutorial yang ditahan (K-71, atribut part `FastHold`): hanya menampilkan nama tanaman, tanpa hitung mundur. Hitung mundur mulai saat siram pertama.
 - Pengulangan = toast saja, tanpa gelap dan tanpa bubble.
 - Overlay tidak pernah menelan sentuhan (joystick dan kamera bebas) dan lepas sendiri setelah 25 detik di langkah yang sama.
 - Satu permukaan instruksi per langkah.

@@ -908,9 +908,11 @@ Dua tutorial: `t1_awal` (langkah 1–9) dan `t1b_kolam` (langkah 10–13). Id la
 
 - **XP tutorial:** reward eksplisit = 1 + 1 + 1 + 20 + 20 = **43 XP**. Langkah 13 (`xpFill`) menambal sisa sampai batas Lv 1→2 (230 XP), jadi tutorial selesai **tepat di Lv 2**. Sisa XP dari ikan tangkapan ikut dihitung sebelum langkah 13. Total akhir = 230 XP (bukan 158 seperti versi lama).
 - **Perubahan klaim lama:** versi sebelumnya menulis "158 XP" dan "Lv 2 ±3 menit setelah tutorial". Kode sekarang menutup tutorial tepat di Lv 2 lewat `xpFill` (K-54 B2).
-- Panjang tutorial ±3–4 menit (perkiraan dokumen, belum diukur).
+- Panjang tutorial: diukur owner 2026-11-24, **2 menit** dari PLAY sampai Lv 2 (perkiraan awal ±3–4 menit).
 - Langkah lama (Bayam, Nambang, Hias, Surat #1, Agenda + Gerobak) sekarang quest S1, M2, M4, S2, M1.
 - Kolom "Permukaan" dan gaya sorot: aturan dari GUI 4.6 (tabel klasifikasi per langkah: jenis target, spotlight atau outline, pertama kali atau ulang, bisa gerak). Spotlight hanya untuk `cangkul` (tombol Garap) dan `mancing` tangkapan pertama (tombol Aksi Pancing), diterapkan di kode F1a (`Config/Onboarding` `spotlight = true`). Verifikasi per langkah di Play belum dilakukan (lihat kolom Play di GUI 4.6).
+- **Tanam cepat (K-71, owner 2026-11-24):** 6 tanam pertama save baru tumbuh 20 detik, tetapi timer **ditahan sampai bed disiram**. Siram pertama memulai timer 20 detik dikurangi 15%. Selama ditahan, pill hanya menampilkan "Siram" dan nama tanaman, tanpa hitung mundur. Langkah `siram` hanya selesai lewat siram, jadi pemain yang lambat tetap bisa menyelesaikannya.
+- **Verifikasi owner (2026-11-24):** ke-15 langkah tutorial sudah diuji owner di Play dan centang di checklist (`09_Playtest_Checklist.md` B16).
 
 ### 16.3 Blok NPC selama tutorial — LOCKED
 
