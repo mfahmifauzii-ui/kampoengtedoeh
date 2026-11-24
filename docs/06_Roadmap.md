@@ -12,10 +12,10 @@
 - **MS-2 selesai (2026-11-24), verified by owner:** tutorial 15 langkah (GDD 16.2 + langkah 15 waktu) sudah dites owner di Play dan dicentang di checklist (`09_Playtest_Checklist.md` B16, artifact `A6NTqsiwqJZVHRYCZJFetx`). Waktu PLAY sampai Lv 2: 2 menit. Claude tidak menandai apa pun VERIFIED; centang itu dari owner.
 - **Kode MS-2 hari ini:** `!masuk` / `DevService.Enter` (DEV, dikunci `IsAllowed`, `77c3e17`); K-71 tanam cepat ditahan sampai siram (`ddc0230`, `b78b635`, pill tanpa hitung mundur). Owner menyetujui K-71 dan K-70 ditutup. K-71 status DIPUTUSKAN (opsi a), baris dipindah setelah K-70 di `02_Audit_Perbaikan.md`.
 - **Hasil tes Claude (remote path, not UI, sebelum owner mengambil alih):** `sapa`, `cangkul`, `tanam`, `siram`, `panen_1` lolos; `garap_5` macet di 4/5 petak baru (penyebab belum dibuktikan; owner lulus garap_5 di tangannya).
-- **SFX pertama (feat R7.x, 2026-11-24):** panen, siram, gigitan dipasang (DONE-CODE, Play belum; owner cek di 09 B17). Suara panen dan gigitan **needs asset** (`farm_harvest`, `fish_bite`, diam). Selene 85 peringatan (turun dari 86), rojo 0. CLAUDE.md masih menulis 86; baseline baru perlu dicatat di sana.
+- **SFX pertama (feat R7.x, 2026-11-24):** panen, siram, gigitan dipasang (DONE-CODE, Play belum; owner cek di 09 B17). Id panen dan gigitan sudah dipilih dari toolbox (`farm_harvest` = 126130663615387, `fish_bite` = 18145114696); `farm_harvest` punya fallback `plant_seed` yang hanya dipakai saat id kosong. Selene 85 peringatan, rojo 0. Baseline di CLAUDE.md sekarang 85.
 - **Berikutnya:** owner yang tes Play. Claude menunggu hasil tes/keputusan owner untuk langkah berikutnya: bug 4/5 garap_5 (sudah lulus owner), Mak Sari tiga tahap, F1c, Ok toast, lalu Task 3 (seed-out) dan seterusnya.
 - **Branch:** `feat/v.7`. Sudah di-push sampai `1f562d0`; `6c5e593`, `06521d5`, `995d049` belum.
-- **Baseline:** selene 0 error / 85 warning (turun dari 86 di feat R7.x); rojo build exit 0.
+- **Baseline:** selene 0 error / 85 warning (turun dari 86 di feat R7.x); rojo build exit 0. Dicek ulang 24 Nov 2026 setelah id SFX dipasang.
 - **Keputusan owner terbuka:** tidak ada yang menunggu. Gerbang rilis di bawah (Bab 23) belum dikerjakan.
 
 ## 1. Cara Kerja
@@ -238,7 +238,7 @@ Butuh: R0.3 selesai.
 |----|-------|---|----|---|---|
 | R7.1 | Contoh suara: 5 SFX UI + 1 musik menu → diperiksa terhadap Asset Bible Bab 7–8 (tanpa menunggu owner) | ★ | S | TODO | — |
 | R7.2 | `SoundService` 4 grup + volume Settings + `Config/Audio` | ★ | S | TODO | — |
-| R7.3 | SFX UI & aksi (Asset Bible 7), ganti placeholder Critical. **Sfx pertama (2026-11-24):** panen, siram, gigitan lewat `Shared/Sfx` + `Config/SoundBank` (satu tempat untuk id), satu suara per aksi, jitter pitch kecil, throttle 0.08 s, grup `KT_sfx` (Atur > Efek suara). **Needs asset:** `farm_harvest` (panen) dan `fish_bite` (gigitan) belum punya id, jadi diam sampai diisi. Placeholder Critical dan SFX lain belum | ★ | L | DONE-CODE (panen, siram, gigitan; Play belum diverifikasi, owner cek dengan telinga) | feat(R7.x): sfx harvest, water, fish bite |
+| R7.3 | SFX UI & aksi (Asset Bible 7), ganti placeholder Critical. **Sfx pertama (2026-11-24):** panen, siram, gigitan lewat `Shared/Sfx` + `Config/SoundBank` (satu tempat untuk id), satu suara per aksi, jitter pitch kecil, throttle 0.08 s, grup `KT_sfx` (Atur > Efek suara). **Id dipilih (2026-11-24, edit mode, toolbox):** `farm_harvest` = "cartoon pluck" 126130663615387 (0.267 s, fallback `plant_seed` tidak dipakai lagi); `fish_bite` = "cartoon plop sound" 18145114696 (0.540 s). Kepemilikan akun owner belum dicek di luar IsLoaded. Placeholder Critical dan SFX lain belum | ★ | L | DONE-CODE (panen, siram, gigitan; Play belum diverifikasi, owner cek dengan telinga) | feat(R7.x): sfx harvest, water, fish bite |
 | R7.4 | Ambience 4 fase + sungai + hutan; suara cuaca | ★ | M | TODO | — |
 | R7.5 | Musik: menu + 1 lagu fase (★), lalu 3 lagu fase, hujan, pasar malam | ★ (2 lagu) | M | TODO | — |
 | R7.6 | Haptic (cek dukungan perangkat) | | S | TODO | — |

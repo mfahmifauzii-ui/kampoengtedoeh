@@ -48,9 +48,16 @@ end
 local MIN_GAP = 0.08
 local lastPlayed: { [string]: number } = {}
 
+-- A role with no id may name a fallback role; the fallback plays only while the role's own id is empty.
+local function resolve(role: string): string
+	local entry = SoundBank[role]
+	if entry and entry.id == nil and entry.fallback then return entry.fallback end
+	return role
+end
 function Sfx.play(role: string, parent: Instance?, pitchVary: number?): Sound?
 	local ok, result = pcall(function(): Sound?
-		local entry = SoundBank[role]
+		local key = resolve(role)
+		local entry = SoundBank[key]
 		if not entry then
 			warn(`[Sfx] no such role: {role}`)
 			return nil
@@ -59,7 +66,7 @@ function Sfx.play(role: string, parent: Instance?, pitchVary: number?): Sound?
 		local now = os.clock()
 		if lastPlayed[role] and now - lastPlayed[role] < MIN_GAP then return nil end
 		lastPlayed[role] = now
-		local source = template(role)
+		local source = template(key)
 		if not source then return nil end
 		local clone = source:Clone()
 		if pitchVary and pitchVary > 0 then
