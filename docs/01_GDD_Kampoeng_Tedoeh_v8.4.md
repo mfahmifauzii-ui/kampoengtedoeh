@@ -1084,7 +1084,7 @@ Daftar lengkap (VFX, SFX, musik, haptic, animasi, model 3D) ada di **`04_Asset_B
 
 - Panen Biasa: partikel daun kecil. Bagus: kilau lembut. Prima: partikel emas + `pop` + haptic kecil.
 - Legenda: fanfare kecil + banner ke server.
-- Hujan: partikel 30 (Gerimis), 60 (Deres), 90 + kilat (Petir). Tidak ada salju.
+- Hujan: partikel 30 (Gerimis), 60 (Deres), 90 + kilat (Petir). Tidak ada salju. Hujan masuk dan keluar pelan (3 dtk, tanpa muncul atau hilang mendadak). Kualitas gambar Rendah = tanpa hujan (R6.5).
 - Firasat: gelembung emas di pelampung.
 - Kerja Bakti: sampah visual di alun-alun, hilang saat dipungut.
 - Banner server hanya: Legenda + Prima Late.

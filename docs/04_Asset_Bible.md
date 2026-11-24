@@ -38,7 +38,7 @@
 Aturan umum:
 - Pakai **MeshPart**. Collision `Box` untuk dekor kecil, `Hull` untuk bangunan. `CastShadow = false` untuk dekor < 2 stud.
 - Satu lahan penuh (800 piece + 36 tanaman + bangunan) target ≤ **2.500 instance**. Model dekor `ModelStreamingMode = Atomic` / streaming per lahan.
-- Partikel: ≤ 40 partikel hidup per efek, ≤ 300 total di layar; hujan ikut GDD (30/60/90). Setting **"Efek rendah"** memotong semua rate 50%.
+- Partikel: ≤ 40 partikel hidup per efek, ≤ 300 total di layar; hujan ikut GDD (30/60/90). Setting **"Efek rendah"** memotong semua rate 50%. Di kode, setting ini adalah **Kualitas gambar Rendah** (`settings.quality` = 1, R6.5): hujan dimatikan sama sekali, tidak ada setting baru. Hujan Deres (60) dan Petir (90) di atas 40 karena dikecualikan oleh aturan hujan di atas; kalau FPS turun di HP (B18), turunkan `Config/Weather` PARTICLES dulu.
 - Audio: SFX mono, ≤ 3 dtk (kecuali loop), normalisasi −14 LUFS. Musik stereo, loop mulus.
 - Kalau FPS < 30 di R10.3: turunkan dulu partikel & jarak streaming, baru cap piece (Config).
 
@@ -281,7 +281,7 @@ Semua lewat satu modul (`FxService` klien, pool emitter, dipanggil dengan id efe
 | Produk ternak siap | `fx.product` | Ikon telur/susu melayang kecil di atas kandang | ★ |
 | Mood Hujan | `fx.mood` | Tetes air kecil berkilau di kandang (BUKAN pelangi) | |
 | Breeding selesai | `fx.breed` | Gelembung + ikan kecil melompat | |
-| Hujan Gerimis / Deres / Petir | `fx.rain.*` | 30 / 60 / 90 partikel + kilat untuk Petir; genangan decal | ★ |
+| Hujan Gerimis / Deres / Petir | `fx.rain.*` | 30 / 60 / 90 partikel + kilat untuk Petir; genangan decal. **Kode (R6.5):** satu `ParticleEmitter` di `WorldController` ikut kamera, rate naik-turun 3 dtk (`Config/Weather` RAIN_FADE_SECONDS), Kualitas Rendah = mati. Kilat dan genangan belum (di luar R6.5) | ★ |
 | Tanda hujan | `fx.rain_sign` | Langit menggelap (Lighting tween 10 dtk) | ★ |
 | Kabut pagi, kunang-kunang malam | `fx.ambient.*` | Rate sangat rendah | |
 | Pasang hias | `fx.place` | Debu kecil + "tok" | ★ |

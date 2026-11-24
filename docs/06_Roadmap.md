@@ -13,6 +13,7 @@
 - **Kode MS-2 hari ini:** `!masuk` / `DevService.Enter` (DEV, dikunci `IsAllowed`, `77c3e17`); K-71 tanam cepat ditahan sampai siram (`ddc0230`, `b78b635`, pill tanpa hitung mundur). Owner menyetujui K-71 dan K-70 ditutup. K-71 status DIPUTUSKAN (opsi a), baris dipindah setelah K-70 di `02_Audit_Perbaikan.md`.
 - **Hasil tes Claude (remote path, not UI, sebelum owner mengambil alih):** `sapa`, `cangkul`, `tanam`, `siram`, `panen_1` lolos; `garap_5` macet di 4/5 petak baru (penyebab belum dibuktikan; owner lulus garap_5 di tangannya).
 - **SFX pertama (feat R7.x, 2026-11-24):** panen, siram, gigitan dipasang (DONE-CODE, Play belum; owner cek di 09 B17). Id panen dan gigitan sudah dipilih dari toolbox (`farm_harvest` = 126130663615387, `fish_bite` = 18145114696); `farm_harvest` punya fallback `plant_seed` yang hanya dipakai saat id kosong. Selene 85 peringatan, rojo 0. Baseline di CLAUDE.md sekarang 85.
+- **Hujan visual (R6.5, feat(R6.x): rain vfx, 2026-11-24):** satu emitter yang sudah ada di `WorldController` sekarang naik-turun rate 3 dtk, dan Kualitas gambar Rendah mematikannya. DONE-CODE, Play belum; owner cek di 09 B18. Tanda hujan, kabut, kunang, kilat, genangan belum.
 - **Berikutnya:** owner yang tes Play. Claude menunggu hasil tes/keputusan owner untuk langkah berikutnya: bug 4/5 garap_5 (sudah lulus owner), Mak Sari tiga tahap, F1c, Ok toast, lalu Task 3 (seed-out) dan seterusnya.
 - **Branch:** `feat/v.7`. Sudah di-push sampai `1f562d0`; `6c5e593`, `06521d5`, `995d049` belum.
 - **Baseline:** selene 0 error / 85 warning (turun dari 86 di feat R7.x); rojo build exit 0. Dicek ulang 24 Nov 2026 setelah id SFX dipasang.
@@ -228,7 +229,7 @@ Butuh: R0.3 selesai.
 | R6.2 | Kebun: till, plant, water, harvest ×3, ready, market | ★ | M | TODO | — |
 | R6.3 | Mancing: cast, bite, catch, escape, firasat, legend | ★ (kecuali legend) | M | TODO | — |
 | R6.4 | Hutan & craft & dapur: hit per bahan, crit, node gone/back, craft, cook, cook_done, buff | ★ | M | TODO | — |
-| R6.5 | Cuaca & waktu: hujan ×3, tanda hujan, kabut, kunang | ★ (hujan) | S | TODO | — |
+| R6.5 | Cuaca & waktu: hujan ×3, tanda hujan, kabut, kunang | ★ (hujan) | S | DONE-CODE (hujan: fade 3 dtk, Rendah = tanpa hujan; tanda hujan, kabut, kunang belum; Play belum diverifikasi, owner cek di 09 B18) | feat(R6.x): rain vfx |
 | R6.6 | Progres: fly Koin/Bunga/XP, levelup, album, banner, restore, set_done | ★ | M | TODO | — |
 | R6.7 | Sosial & event: like, cart, trash, night market, firework | | S | TODO | — |
 

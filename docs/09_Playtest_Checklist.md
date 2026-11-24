@@ -340,6 +340,14 @@ Owner cek dengan telinga. Suara panen (`farm_harvest` = "cartoon pluck", 0.267 s
 2. [ ] **Panen:** satu suara pluck saat panen satu petak. Panen banyak (jika dibuka) juga satu suara, tidak bertumpuk.
 3. [ ] **Gigitan:** satu suara plop saat ikan menggigit, sebelum mini-game tarik. Tidak keras dan tidak menimpa suara reel.
 
+### B18. Hujan visual (R6.5, 2026-11-24): cek di HP
+
+Partikel hujan dibuat Claude di kode (client, satu emitter), belum pernah dimainkan di Play. Owner cek di HP dengan Pengaturan > Kualitas gambar.
+
+1. [ ] **Lembut, tidak keras:** hujan terlihat tipis dan tidak menutupi layar, di Sedang dan Tinggi.
+2. [ ] **FPS tidak turun saat hujan:** main satu hujan penuh (3 menit) tanpa patah-patah yang terasa. Coba juga saat Deres atau Petir.
+3. [ ] **Berhenti rapi:** saat hujan selesai, partikel memudar sekitar 3 detik lalu hilang, tanpa muncul atau hilang mendadak. Kualitas Rendah: tidak ada hujan sama sekali.
+
 ### B15. Satu toast (T0, 2026-11-23): owner cek di HP dan PC
 
 Aturan: GUI 4.2. Satu tempat (di bawah Koin/Bunga), satu gaya krem.

@@ -13,6 +13,7 @@ local Workspace = game:GetService("Workspace")
 local World = require(ReplicatedStorage.Shared.Config.World)
 local WeatherConfig = require(ReplicatedStorage.Shared.Config.Weather)
 local WorldClock = require(ReplicatedStorage.Shared.Modules.WorldClock)
+local State = require(script.Parent.Parent.State)
 
 local LIGHT_TAG = "DecorLight"
 local CLOCK_UPDATE_SECONDS = 0.25
@@ -24,6 +25,7 @@ local colorCorrection: ColorCorrectionEffect
 local clouds: Clouds?
 local rainPart: Part
 local rainEmitter: ParticleEmitter
+local rainTween: Tween?
 local lampsOn = false
 
 -- Reuses ANY existing instance of the class: the place already has the Studio-template Atmosphere / Bloom /
@@ -95,8 +97,8 @@ local function setupRain()
 
 	rainEmitter = Instance.new("ParticleEmitter")
 	rainEmitter.Enabled = false
-	-- Rate is set per weather kind in applyRainRate (Config/Weather PARTICLES, low counts for phones).
-	rainEmitter.Rate = WeatherConfig.PARTICLES.gerimis
+	-- One emitter for the whole session, rate eased by fadeRain (Config/Weather PARTICLES, low counts for phones).
+	rainEmitter.Rate = 0
 	rainEmitter.Lifetime = NumberRange.new(0.9, 1.1)
 	rainEmitter.Speed = NumberRange.new(55, 65)
 	rainEmitter.EmissionDirection = Enum.NormalId.Bottom
@@ -110,9 +112,33 @@ local function setupRain()
 	rainEmitter.Parent = rainPart
 end
 
-local function applyRainRate()
+-- Target rate for the current weather. Picture quality Rendah (1) draws no rain at all: the cheapest setting on a 4 GB phone.
+local function rainTarget(): number
+	local snapshot = State.current :: any
+	local quality = snapshot and snapshot.settings and snapshot.settings.quality
+	if quality == 1 or Workspace:GetAttribute("Raining") ~= true then
+		return 0
+	end
 	local kind = Workspace:GetAttribute("Weather")
-	rainEmitter.Rate = (typeof(kind) == "string" and WeatherConfig.PARTICLES[kind]) or WeatherConfig.PARTICLES.gerimis
+	return (typeof(kind) == "string" and WeatherConfig.PARTICLES[kind]) or WeatherConfig.PARTICLES.gerimis
+end
+
+-- Eases the rate toward its target; a new target cancels the running tween. Disables the emitter once faded out.
+local function fadeRain()
+	if rainTween then
+		rainTween:Cancel()
+	end
+	local target = rainTarget()
+	if target > 0 then
+		rainEmitter.Enabled = true
+	end
+	rainTween = TweenService:Create(rainEmitter, TweenInfo.new(WeatherConfig.RAIN_FADE_SECONDS, Enum.EasingStyle.Sine), { Rate = target })
+	rainTween.Completed:Once(function(playback)
+		if playback == Enum.PlaybackState.Completed and target == 0 then
+			rainEmitter.Enabled = false
+		end
+	end)
+	rainTween:Play()
 end
 
 -- Petir: one flash every LIGHTNING_INTERVAL seconds, at most LIGHTNING_FLASH_SECONDS long (Bab 21.3).
@@ -148,8 +174,7 @@ local function applyLighting(instant: boolean)
 		TweenService:Create(clouds, info, { Cover = if raining then World.RAIN_CLOUD_COVER else World.CLOUD_COVER }):Play()
 	end
 
-	rainEmitter.Enabled = raining
-	applyRainRate()
+	fadeRain()
 end
 
 local function setLamp(part: Instance, on: boolean)
@@ -192,6 +217,7 @@ function WorldController.Start()
 	Workspace:GetAttributeChangedSignal("Weather"):Connect(function()
 		applyLighting(false)
 	end)
+	State.Changed:Connect(fadeRain) -- picture quality changed in Pengaturan
 	task.spawn(function()
 		while true do
 			task.wait(WeatherConfig.LIGHTNING_INTERVAL)
