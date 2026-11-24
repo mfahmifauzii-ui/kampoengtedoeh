@@ -310,7 +310,7 @@ Catatan: di Studio, profil yang gagal dimuat dipakai dari memori (tidak tersimpa
 6. [ ] **Bisa jalan:** saat bubble tampil, joystick dan Garap tetap bisa dipakai. Layar tidak gelap.
 7. [ ] **Keluar-masuk:** setelah tahap ditutup lalu game dimasuki lagi, tahap itu tidak muncul lagi.
 
-### B16. Tutorial 13 langkah (GDD 16.2): verified by owner (2026-11-24)
+### B16. Tutorial 15 langkah (GDD 16.2): verified by owner (2026-11-24)
 
 Claude tidak menjalankan Play lagi untuk bagian ini. Owner yang tes dan menandai tiap langkah dengan **verified by owner** (`[x]`). Dari fresh save (`!reset`), mulai dari PLAY.
 

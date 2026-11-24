@@ -10,7 +10,7 @@
 
 - **Terakhir selesai:** T0 (`03c643b` + fix `995d049`, DONE-CODE, Play belum). Lalu `06521d5` (CLAUDE.md + handoff), `6c5e593` (gitignore Obsidian), `1f562d0` (vault Obsidian).
 - **MS-2 selesai (2026-11-24), verified by owner:** tutorial 15 langkah (GDD 16.2 + langkah 15 waktu) sudah dites owner di Play dan dicentang di checklist (`09_Playtest_Checklist.md` B16, artifact `A6NTqsiwqJZVHRYCZJFetx`). Waktu PLAY sampai Lv 2: 2 menit. Claude tidak menandai apa pun VERIFIED; centang itu dari owner.
-- **Kode MS-2 hari ini:** `!masuk` / `DevService.Enter` (DEV, dikunci `IsAllowed`, `77c3e17`); K-71 tanam cepat ditahan sampai siram (`ddc0230`, `b78b635`, pill tanpa hitung mundur). Owner menyetujui K-71 dan K-70 ditutup.
+- **Kode MS-2 hari ini:** `!masuk` / `DevService.Enter` (DEV, dikunci `IsAllowed`, `77c3e17`); K-71 tanam cepat ditahan sampai siram (`ddc0230`, `b78b635`, pill tanpa hitung mundur). Owner menyetujui K-71 dan K-70 ditutup. K-71 status DIPUTUSKAN (opsi a), baris dipindah setelah K-70 di `02_Audit_Perbaikan.md`.
 - **Hasil tes Claude (remote path, not UI, sebelum owner mengambil alih):** `sapa`, `cangkul`, `tanam`, `siram`, `panen_1` lolos; `garap_5` macet di 4/5 petak baru (penyebab belum dibuktikan; owner lulus garap_5 di tangannya).
 - **Berikutnya:** owner yang tes Play. Claude menunggu hasil tes/keputusan owner untuk langkah berikutnya: bug 4/5 garap_5 (sudah lulus owner), Mak Sari tiga tahap, F1c, Ok toast, lalu Task 3 (seed-out) dan seterusnya.
 - **Branch:** `feat/v.7`. Sudah di-push sampai `1f562d0`; `6c5e593`, `06521d5`, `995d049` belum.
