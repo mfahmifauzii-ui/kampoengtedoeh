@@ -1593,7 +1593,7 @@ end
 -- transient chips; see HudController.SetPinned), "dismissible" (same style plus an "Ok" button, see onOk).
 -- opts.instant: no fade-in (used when a pinned chip is re-rendered with new numbers). opts.onOk: adds the Ok button.
 UiKit.TOAST_OK_W = 56 -- px: the Ok button width
-UiKit.TOAST_OK_H = 44 -- px: touch minimum; a dismissible chip is at least this tall
+UiKit.TOAST_OK_H = UiKit.TOUCH + 2 * UiKit.TOAST_PAD_Y -- px: the Ok button is the standard TOUCH height (GUI 3.4, owner); the chip keeps its padding around it
 function UiKit.toastChip(stack: Frame, text: string, opts: { instant: boolean?, onOk: (() -> ())? }?): CanvasGroup
 	local chip = Instance.new("CanvasGroup")
 	chip.Name = "Toast"
@@ -1630,20 +1630,12 @@ function UiKit.toastChip(stack: Frame, text: string, opts: { instant: boolean?, 
 	local textHeight = if ok then (measured :: Vector2).Y else UiKit.TEXT_SMALL
 	chip.Size = UDim2.new(1, 0, 0, math.max(if okW > 0 then UiKit.TOAST_OK_H else UiKit.TOAST_MIN_H, textHeight + 2 * UiKit.TOAST_PAD_Y))
 	if opts and opts.onOk then
-		local button = Instance.new("TextButton")
-		button.Name = "Ok"
+		-- The standard UiKit button (same look and click as every panel button); only its place and width are the toast's.
+		local button = UiKit.button(chip, "Ok", "Ok")
 		button.AnchorPoint = Vector2.new(1, 0.5)
 		button.Position = UDim2.new(1, -UiKit.TOAST_PAD_X, 0.5, 0)
-		button.Size = UDim2.fromOffset(UiKit.TOAST_OK_W - UiKit.TOAST_PAD_X, UiKit.TOAST_OK_H)
-		button.BackgroundColor3 = UiKit.BAMBOO
-		button.Font = UiKit.FONT
-		button.TextSize = UiKit.TEXT_SMALL
-		button.TextColor3 = UiKit.TEXT
-		button.Text = "Ok"
-		button.AutoButtonColor = true
+		button.Size = UDim2.fromOffset(UiKit.TOAST_OK_W - UiKit.TOAST_PAD_X, UiKit.TOUCH)
 		button.ZIndex = 8
-		corner(button, 12)
-		button.Parent = chip
 		button.Activated:Connect(function()
 			opts.onOk()
 		end)
