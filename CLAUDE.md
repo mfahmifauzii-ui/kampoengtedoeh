@@ -8,7 +8,7 @@ Roblox farming game in Luau, built with Rojo. Owner plays it and gives feedback;
 - Status source of truth: `docs/06_Roadmap.md`, the **Status** and **Commit** columns. Start each session at its **Handoff** block.
 
 ## Checks (run before every commit)
-- `selene src`: 0 errors. Warning baseline is **85**; it must not go up.
+- `selene src`: 0 errors. Warning baseline is **75**; it must not go up.
 - `rojo build default.project.json -o "$TEMP/kt_check.rbxl"`: exit 0.
 
 ## Rules

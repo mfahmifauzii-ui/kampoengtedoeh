@@ -44,7 +44,7 @@
 - **Berikutnya:** owner menjalankan tes end-to-end lewat gerbang G1 di docs/09 (dan B20–B22 di HP). Tidak ada tugas kode yang menunggu. Keputusan terbuka: K-72 dan K-73…K-83 adalah default pilihan Claude (konservatif), belum ditinjau owner.
 - **Branch:** `feat/v.7`. Semua sudah di-push sampai `9546190` (2026-11-24). Tidak ada commit yang belum di-push selain commit yang memuat baris ini.
 - **Sinkron dokumen (docs(sync), 2026-11-24):** README dan Home ke K-01…K-83; laporan `Quest_Gate_Walk_2026-11-24` masuk Home; Audit Bab 3.6 K-70…K-83 berurutan (hanya urutan baris, teks tidak diubah).
-- **Baseline:** selene 0 error / 85 warning (turun dari 86 di feat R7.x); rojo build exit 0. Dicek ulang 24 Nov 2026 setelah id SFX dipasang.
+- **Baseline (2026-11-24, setelah quest butir 1–8):** selene 0 error / **75 warning** (turun dari 85); rojo build exit 0. CLAUDE.md sudah 75. Angka 85 di baris sejarah di bawah tetap apa adanya.
 - **Keputusan owner terbuka:** tidak ada yang menunggu. Gerbang rilis di bawah (Bab 23) belum dikerjakan.
 
 ## 1. Cara Kerja
