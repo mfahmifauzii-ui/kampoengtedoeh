@@ -109,7 +109,7 @@ Tempel juga **teks merah/kuning dari panel Output** bila ada. Tidak perlu meneba
 
 ### B2. Fase 2 — Sistem Baru (R2.1 – R2.12)
 1. [ ] **Bubu (M8):** pasang malam, ambil pagi, hasil masuk Tas.
-2. [ ] **Agenda Harian (M1):** UI terbuka, 5 kategori terlihat, klaim hadiah jalan; **Papan Hari Ini** menampung Agenda + Surat + Order.
+2. [ ] **Agenda Harian (M1):** UI terbuka, semua tugas yang sudah terbuka terlihat (Lv 2–3: 3 tugas; Lv 6+: 5; K-80), klaim hadiah jalan; **Papan Hari Ini** menampung Agenda + Surat + Order.
 3. [x] **Bantu disembunyikan (K-73, diganti Kebun Warga yang dibatalkan):** lihat B21. Tidak lagi diuji di sini.
 4. [ ] **Blueprint:** simpan desain, pasang ulang di lahan sendiri dengan bahan sendiri; **Kirim ke pemain** ke akun kedua; kode tidak bisa dikirim lewat chat.
 5. [ ] **Pajangan:** pasang ikan/hasil di pajangan, terlihat oleh pemain lain.

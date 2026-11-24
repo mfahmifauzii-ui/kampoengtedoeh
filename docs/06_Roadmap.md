@@ -23,7 +23,8 @@
 - **R2.G3 (fix(R2.G3), 2026-11-24, K-77):** surat 6/13/20/29 punya teks alt tanpa Bantu selama flag mati, dipakai saat dibayar dan saat dibaca (`SuratService.TextKey`). DONE-CODE, Play belum; owner cek di 09 B22 butir 4.
 - **R2.G4 (fix(R2.G4), 2026-11-24, K-78):** dokumen only. Season "Bantu 20 lahan" tidak dibangun; GDD 19 dan Quest 03 menandai syarat flag. DONE-DOC, tidak ada yang perlu dicek di HP.
 - **R2.G5 (fix(R2.G5), 2026-11-24, K-79):** dokumen only. Kerja Bakti tetap dipicu hujan Deres/Petir (tidak diubah); GDD 13.4 dan Quest 03 menulis ketergantungan cuaca; 09 B22 butir 5 menegaskan tidak ada tes solo yang menunggunya. DONE-DOC.
-- **Berikutnya:** R2.G6, lalu walk ulang Lv 0–10. Keputusan terbuka: K-72 (default konservatif, owner belum meninjau).
+- **R2.G6 (fix(R2.G6), 2026-11-24, K-80):** dokumen only. Agenda tetap dari pool dengan syarat (kode tidak diubah); GDD 14.5 dan checklist menulis 3–5 sesuai fitur. DONE-DOC.
+- **Berikutnya:** walk ulang Lv 0–10 di atas kertas, gap baru dilaporkan tanpa diperbaiki. Keputusan terbuka: K-72 (default konservatif, owner belum meninjau).
 - **Branch:** `feat/v.7`. Sudah di-push sampai `1f562d0`; `6c5e593`, `06521d5`, `995d049` belum.
 - **Baseline:** selene 0 error / 85 warning (turun dari 86 di feat R7.x); rojo build exit 0. Dicek ulang 24 Nov 2026 setelah id SFX dipasang.
 - **Keputusan owner terbuka:** tidak ada yang menunggu. Gerbang rilis di bawah (Bab 23) belum dikerjakan.
@@ -171,7 +172,7 @@ Butuh: R0.3 selesai.
 |----|-------|-------|---------------|---|----|---|---|
 | R2.1 | **Sistem Bubu** (pasang di air, 6 jam, isi per tipe, maks 3, tanpa instant) + buka M8 | GDD 6.6 | M8 tidak lagi `blocked`; panen bubu offline jalan | ★ | M | DONE-CODE | f877f4d |
 | R2.1b | Bubu bisa dibeli di Pak Udin (Koin), dipasang dan diambil dari layar (GDD 6.6, K-66) | K-66 | Tombol Pasang / Ambil di slot Aksi; tiang di sungai; alur 6 jam | | M | DONE-CODE | fad0c1b |
-| R2.2 | **Agenda UI** di Papan Hari Ini + langkah M1 "Buka Agenda" | GDD 14.5, GUI 6.9 | Agenda terlihat, 5 tugas, hadiah otomatis tercatat | ★ | M | DONE-CODE | be81d41 |
+| R2.2 | **Agenda UI** di Papan Hari Ini + langkah M1 "Buka Agenda" | GDD 14.5, GUI 6.9 | Agenda terlihat, tugas sesuai fitur (3–5, K-80), hadiah otomatis tercatat | ★ | M | DONE-CODE | be81d41 |
 | R2.3 | Sisa tutorial/quest: event Surat #1 dibaca, Gerobak terbuka di M1 (bukan `starter_pagar`), hapus sisa starter chain | Audit A-28, K-74 | Feature gate Agenda/Gerobak/Order hanya dari M1 | ★ | S | DONE-CODE | feat(R2.3) |
 | R2.4 | Kucing Alun-alun + Joran Hilang: **belum di kode** (tidak ada di `Config/Quests`, tidak ada flag `released`). Ditunda ke R12.4 (K-16 b). Quest Log tidak menampilkannya karena tidak ada di data. | K-16 (b) | Tidak ada error; tidak tampil di Quest Log rilis; dibangun di R12.4 | | S | DITUNDA (R12.4) | — |
 | R2.5 | Sembunyikan Bantu Tetangga lewat `Config/Features.BANTU_ENABLED = false`. **Kebun Warga CANCELLED** (K-73, ganti K-17). | K-73 (ganti K-17) | Flag false: tidak ada UI/remote/quest Bantu; Agenda 5 tugas tanpa Bantu; S6 dan side Bantu `blocked` | ★ | S | DONE-CODE | feat(R2.5) |
@@ -187,7 +188,7 @@ Butuh: R0.3 selesai.
 | R2.G3 | Teks surat 6, 13, 20, 29 yang menyebut Bantu: teks alt tanpa Bantu selama flag mati (asli dipakai saat flag hidup) | walk G3, K-77 | Toast surat memakai teks alt; tidak ada kata Bantu | | S | DONE-CODE | fix(R2.G3) |
 | R2.G4 | Season "Bantu 20 lahan" (K-58) belum ada di kode: dokumen diberi tanda "aktif saat BANTU_ENABLED" (K-78); kartu tidak dibangun | K-58, K-78, walk G4 | GDD 19, Quest 03, RP2.S menyebut syarat flag; tidak ada yang menjanjikan kartu tanpa flag | | M | DONE-DOC | fix(R2.G4) |
 | R2.G5 | side_kerjabakti (Lv 1) hanya mulai saat hujan Deres/Petir berakhir. Pemicu tidak diubah (K-79); dokumen menulis ketergantungan cuaca dan checklist tidak menunggunya | walk G5, K-79 | GDD 13.4 dan Quest 03 menyebut cuaca; B22 butir 5 | ★ | S | DONE-DOC | fix(R2.G5) |
-| R2.G6 | Agenda hanya 3–4 tugas sebelum Lv 6 (GDD 14.5 minta 5): tambah tugas Lv 1 atau catat keputusan | walk G6, K-56 | Lv 1 punya 5 tugas, atau K-nn mencatat aturan baru | | S | TODO | — |
+| R2.G6 | Agenda hanya 3–4 tugas sebelum Lv 6 (GDD 14.5 minta 5): GDD 14.5 dan docs ditulis 3–5 sesuai fitur (K-80); kode tidak diubah | walk G6, K-80 | GDD 14.5 dan checklist tidak mengharapkan 5 sebelum Lv 6 | | S | DONE-DOC | fix(R2.G6) |
 
 ---
 

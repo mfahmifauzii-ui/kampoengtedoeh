@@ -293,7 +293,7 @@ Dibuka dari **ikon bintang** di kolom kanan dan dari **tap tracker**, di semua k
 
 ### 6.9 Papan Hari Ini (baru, ✔ K-34 / Penyempurnaan P-04)
 
-Satu panel untuk hal harian: Agenda (5 tugas, R2.2), Surat Kakek hari ini, ringkasan Order, Login hari ini, Album (%). Mengurangi jumlah tombol HUD.
+Satu panel untuk hal harian: Agenda (3–5 tugas sesuai fitur, R2.2, K-80), Surat Kakek hari ini, ringkasan Order, Login hari ini, Album (%). Mengurangi jumlah tombol HUD.
 
 R2.3 (K-74): baris Surat di tracker bisa di-tap = baca surat (event Quest S2); surat yang sama tampil lagi sebagai toast. Tombol Pesanan tampil hanya saat tutorial selesai dan fitur `agenda` terbuka (M1 mulai).
 
@@ -360,7 +360,7 @@ Status per tugas ada di `06_Roadmap` (kolom Status). Tabel ini hanya ringkasan p
 | UI-5 Stasiun | Dapur + Warung, Crafting, Kandang, Kolam | R3.2 |
 | UI-6 Lainnya | Acara, Pesanan, Quest Log penuh, Papan Hari Ini | Papan R2.2 ada di kode; Quest Log penuh R3.3 |
 | Batch F, UI-B1…B15 | Tas Umpan, toast, chip umpan, HUD map, bug | Selesai (belum playtest) |
-| Papan Hari Ini (Agenda) | Tombol HUD Papan, 5 tugas | Kode selesai (R2.2); belum playtest |
+| Papan Hari Ini (Agenda) | Tombol HUD Papan, 3–5 tugas sesuai fitur terbuka (K-80) | Kode selesai (R2.2); belum playtest |
 | Bubu Pasang / Ambil | Tombol di slot Aksi, tiang di sungai | Kode selesai (R2.1b); cek HP owner pending |
 | Tarik bulat | Plate 84 px di slot Aksi (6.12) | Kode selesai (0fb8032); cek HP pending (F3) |
 | Sorot tutorial (4.6) | Spotlight satu lubang hanya tombol HUD tetap, pertama kali; overlay tidak menelan sentuhan | F1a kode (08d788e); Play belum (F1) |

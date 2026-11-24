@@ -802,7 +802,7 @@ Rantai Main / Side Quest (dulu Bab 14.2 & 14.4), feature gate, dan naskah ada di
 | Main Quest | Membuka gameplay baru atau milestone cerita. Banner Dimulai/Selesai. Maks 1 aktif. |
 | Side Quest | Lanjutan gameplay yang sudah terbuka. Tanpa banner. |
 | Surat Kakek | 30 surat, 1 per hari login, kumulatif. |
-| Agenda Harian | 5 tugas/hari. |
+| Agenda Harian | 3–5 tugas/hari, sesuai fitur yang terbuka (K-80). |
 | Order Villager | Daily 3 + Weekly 1. |
 | Quest Harian / Mingguan | 3 + 3 (USULAN, P2-7). |
 | Bundel Kakek | 5 proyek pemulihan. |
@@ -818,9 +818,11 @@ K-77: surat 6, 13, 20, 29 meminta Bantu. Selama Bantu disembunyikan, hadiahnya d
 
 ### 14.5 Agenda Harian — ada di kode (R2.2: tombol HUD "Papan", AgendaController)
 
-5 tugas/hari, reset 05:00 WIB. Hadiah: Panen 200 / Pancing 250 / Masak 300 / Bantu 150 / Nambang 400 Koin (USULAN). Tanpa XP, tanpa Bunga. Hadiah otomatis saat tugas selesai.
+Reset 05:00 WIB. Hadiah: Panen 200 / Pancing 250 / Masak 300 / Bantu 150 / Nambang 400 Koin (USULAN); Tanam 150 (K-73). Tanpa XP, tanpa Bunga. Hadiah otomatis saat tugas selesai.
 
-K-73: selama Bantu disembunyikan, slot Bantu diganti **Tanam 5** (150 Koin + 25 XP, event `plant`), sehingga tetap 5 tugas dari yang lain (Panen, Mancing, Tanam, Masak, Nambang). Yang muncul sesuai level dan fitur.
+**K-80 (jumlah tugas):** tugas yang muncul = tugas yang level dan fiturnya sudah terbuka, jadi **3–5 per hari**, bukan 5 sejak awal. Lv 1–3: Panen, Mancing, Tanam (3). Lv 4–5 (Hutan terbuka): + Nambang (4). Lv 6+ (Dapur terbuka): + Masak (5). Bantu menambah satu tugas saat flag hidup (K-73). Aturannya ada di `Config/Quests` (DAILY, `requires`).
+
+K-73: selama Bantu disembunyikan, slot Bantu diganti **Tanam 5** (150 Koin + 25 XP, event `plant`). Dengan Tanam, pool Lv 6+ tetap 5 tugas.
 
 ### 14.6 Bundel Kakek
 
