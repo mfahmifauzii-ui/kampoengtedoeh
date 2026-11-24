@@ -306,7 +306,7 @@ Grid kartu rumus visual `[2 Kayu] → [1 Papan]`, jumlah dimiliki di bawah tiap 
 
 ### 6.8 Quest Log — satu panel, tab Main · Side · Harian · Pesanan (K-56, F5; owner 2026-11-24 butir 2–3)
 
-Satu panel (`QuestLog`). Dibuka dari tombol **Quest** di dock bawah (tempat tombol Pesanan dulu), dari tombol **Quest** kecil di kartu pemain (pojok kanan atas kartu), dan dari tap tracker. Tombol Pesanan yang terpisah dihapus; daftar order jadi tab **Pesanan** di log.
+Satu panel (`QuestLog`). Dibuka dari tombol **Quest** di dock bawah (tempat tombol Pesanan dulu, ikon gulungan), dan dari tap tracker. Tidak ada tombol Quest di kartu pemain (K-112; dulu menimpa bar XP). Tombol Pesanan yang terpisah dihapus; daftar order jadi tab **Pesanan** di log.
 
 - Tab: **Main · Side · Harian · Pesanan**. Tab Harian memuat slot Harian dan Mingguan yang masih terbuka. Tab Pesanan memuat order Villager (`OrdersController.Fill`).
 - Tiap baris quest: judul, sub (langkah, "Siap diserahkan ke <pemberi>", "Temui <pemberi>", "Selesai", atau "Lv n" untuk yang belum terbuka). Tombol **Track** (atau **Lepas** bila sudah dilacak), dan **Tunjukkan** bila quest punya tujuan.

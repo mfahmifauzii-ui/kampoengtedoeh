@@ -756,31 +756,6 @@ local function syncButtons()
 	if dock and dock:IsA("GuiObject") then
 		dock.Visible = tutorialDone(snapshot())
 	end
-	local cardButton = hud and hud:FindFirstChild("QuestCardButton", true)
-	if cardButton and cardButton:IsA("GuiObject") then
-		cardButton.Visible = tutorialDone(snapshot())
-	end
-end
-
--- Quest button on the player card (top right of the card). Same Log as the dock button.
-local function addCardButton()
-	task.spawn(function()
-		local hud = player:WaitForChild("PlayerGui"):WaitForChild("HUD", 30)
-		local card = hud and hud:WaitForChild("StatusCard", 30)
-		if not card or not card:IsA("GuiObject") then
-			return
-		end
-		local button = UiKit.button(card, "QuestCardButton", Locale.t("ui.quest"), UiKit.BUTTON)
-		button.AnchorPoint = Vector2.new(1, 0)
-		button.Position = UDim2.new(1, -10, 0, 8)
-		button.Size = UDim2.fromOffset(58, UiKit.TOUCH_MIN)
-		button.TextSize = 12
-		button.ZIndex = 6
-		button.Visible = false
-		button.Activated:Connect(function()
-			openLog(logTab)
-		end)
-	end)
 end
 
 function QuestController.Update()
@@ -866,7 +841,6 @@ function QuestController.Init()
 			end
 		end
 	end)
-	addCardButton()
 end
 
 function QuestController.Start()

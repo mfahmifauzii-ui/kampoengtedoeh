@@ -444,3 +444,4 @@ Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 5. [ ] **Ikon Quest (K-109):** tombol Quest di dock memakai ikon gulungan (seperti Pesanan dulu). Bintang di kolom kanan (Hadiah) tetap bintang. Keduanya tampak berbeda.
 6. [ ] **Lepas bersih (K-110):** lacak quest yang punya tujuan NPC lalu Lepas. Panah dan "!" di NPC hilang, dan tidak ada label nama yang tersisa. Panah di layar tampil di atas kepala, di luar layar di tepi.
 7. [ ] **Tracker terlihat di kiri (K-111):** di Lv 2 dengan quest aktif, tracker tampil di kiri atas dengan baris quest Main. Kalau tidak, kirim screenshot dan nama quest yang aktif. Catatan: kartu pemain di kode masih kiri bawah (lihat K-111).
+8. [ ] **Tidak ada tombol Quest di kartu (K-112):** kartu pemain di kiri hanya foto, level, nama, bar XP, dan buff. Tidak ada tombol Quest. Quest Log dibuka dari dock.
