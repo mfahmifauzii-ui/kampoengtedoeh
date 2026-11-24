@@ -1082,7 +1082,7 @@ Kolam: 1 Bunga per 10 menit sisa, maks 30. Bubu tidak bisa instant. Tidak ada in
 - Kosmetik Premium tidak dijual lagi (satu-satunya barang terbatas, dan itu kosmetik).
 
 ---
-- **Quest Season "Bantu 20 lahan" (K-58):** 500 Koin, tanpa Bunga; kartu di Hadiah > Musim; hanya setelah Bantu terbuka.
+- **Quest Season "Bantu 20 lahan" (K-58):** 500 Koin, tanpa Bunga; kartu di Hadiah > Musim; hanya setelah Bantu terbuka. **Belum ada di kode (K-78, R2.G4):** tidak dibangun. Aktif hanya saat `BANTU_ENABLED = true` dan kartunya sudah dibuat (RP2.S).
 
 
 
