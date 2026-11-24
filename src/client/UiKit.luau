@@ -1705,7 +1705,7 @@ end
 local MENU_ICON = {
 	BagButton = "tas",
 	DecorButton = "hias",
-	QuestButton = "bintang", -- Quest Log (owner 2026-11-24 butir 2): the dock slot that was Pesanan
+	QuestButton = "pesanan", -- Quest Log: the scroll (the old Pesanan icon), not the star of Hadiah (owner 2026-11-24 butir 5)
 	BookButton = "koleksi",
 	SettingsButton = "atur",
 	StoreButton = "toko",
