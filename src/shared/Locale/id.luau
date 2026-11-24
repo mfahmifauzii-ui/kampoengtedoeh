@@ -691,6 +691,7 @@ return {
 	["tut.t1b.ok_fajar"] = "Ok, Kak Fajar",
 	["tut.t1b.mancing"] = "Tangkap 3 ikan di sungai buat Kak Fajar",
 	["tut.t1b.mancing_retry"] = "Coba lagi, {n} ikan lagi ya!",
+	["tut.t1b.mancing_pin"] = "Tangkap 3 ikan buat Kak Fajar: {n}/{N}",
 	["tut.coach.mancing"] = "Ketuk Mancing, lalu tarik saat ikan menggigit",
 	["tut.coach.tarik"] = "Tahan Tarik! Jaga ikan tetap di zona hijau",
 

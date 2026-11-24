@@ -805,6 +805,7 @@ local function endTutorial()
 	lastFinish = os.clock()
 	clearRing()
 	HudController.UnpinGuide()
+	HudController.ClearPinned("mancing") -- the fishing count stops with the tutorial (skip, !reset or finish)
 	garapPinShown = false -- the garap_5 count stops with the tutorial (no stale pin on skip, !reset or finish)
 	CoachmarkController.Hide()
 	GuideController.Changed:Fire()
@@ -1084,6 +1085,13 @@ function refreshTutorial()
 		garapPinShown = false
 		HudController.UnpinGuide()
 	end
+	-- Owner 2026-11-24 (item 2): the fishing step's "3 ikan" line is a pinned toast with the count (1/3, 2/3, 3/3), kept until
+	-- the step ends. The count is read from the Tas on every refresh, so each fish moves it.
+	if stepDef.id == "mancing" then
+		HudController.SetPinned("mancing", Locale.t("tut.t1b.mancing_pin"), math.min(fishCaughtCount(), 3), 3)
+	else
+		HudController.ClearPinned("mancing")
+	end
 	-- Rule 2 (GUI 4.6, locked): a REPEAT step (or mancing after its first catch) is toast only: no bubble, no ring, no spotlight.
 	local repeatNow = stepDef.repeatStep == true or (stepDef.id == "mancing" and fishCaughtCount() > 0)
 	if repeatNow and phase == nil and stepDef.done.kind ~= "ack" then
@@ -1093,7 +1101,7 @@ function refreshTutorial()
 		setHint(nil)
 		CoachmarkController.SetPaused(uiBusy())
 		local spoken = say(stepDef.id, stuckFor >= Onboarding.STUCK_TEXT)
-		if stepDef.id ~= "garap_5" and stepDef.id ~= "tanam_5" then
+		if stepDef.id ~= "garap_5" and stepDef.id ~= "tanam_5" and stepDef.id ~= "mancing" then
 			toastOnce(current.n, stepDef.id, if spoken then nil else text)
 		end
 		return

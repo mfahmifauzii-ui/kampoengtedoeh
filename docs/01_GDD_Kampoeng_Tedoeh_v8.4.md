@@ -914,7 +914,7 @@ Dua tutorial: `t1_awal` (langkah 1–9) dan `t1b_kolam` (langkah 10–13). Id la
 | 9 | `panen_jual` | Lahan → Pak Udin | Jual 1 ke Pak Udin | 20 | Toast saja |
 | 10 | `warung` | Pak Udin | Ok (ack) | — | Dialog Pak Udin |
 | 11 | `kak_fajar` | Sungai Lahan | Terima Hadiah (`rodgift`): Joran Bambu + umpan Cacing (✔ K-21) | — | Panah NPC + toast |
-| 12 | `mancing` | Sungai Lahan | 3 ikan (B2 K-54) | 20 | Pertama: bubble coachmark + ring Aksi (Pancing); tangkapan ke-2 dan ke-3: toast |
+| 12 | `mancing` | Sungai Lahan | 3 ikan (B2 K-54) | 20 | Pertama: bubble coachmark + ring Aksi (Pancing); selama langkah: toast tersemat "Tangkap 3 ikan buat Kak Fajar: n/3" (K-85), tidak hilang sampai langkah selesai |
 | 13 | `jual_ikan` | Sungai Lahan | Ok setelah jual ikan ke Kak Fajar | sampai Lv 2 (xpFill) | Dialog Kak Fajar |
 
 - **XP tutorial:** reward eksplisit = 1 + 1 + 1 + 20 + 20 = **43 XP**. Langkah 13 (`xpFill`) menambal sisa sampai batas Lv 1→2 (230 XP), jadi tutorial selesai **tepat di Lv 2**. Sisa XP dari ikan tangkapan ikut dihitung sebelum langkah 13. Total akhir = 230 XP (bukan 158 seperti versi lama).
