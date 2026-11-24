@@ -454,7 +454,7 @@ Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 
 ### B26. Putaran 7 (owner playtest 2026-11-24, Kerja Bakti dan Gerobak): cek di HP
 
-Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED. Peti Bunga di lahan (butir ketiga owner) belum dikerjakan; lihat Handoff.
+Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 
 1. [ ] **Kerja Bakti tersebar (K-117):** saat event jalan, sampah tersebar di seluruh alun-alun, tidak menumpuk di pohon. Tidak ada dua sampah yang berdempet.
 2. [ ] **Sampah sendiri (K-117):** di HP kedua (pemain lain), sampah yang kamu lihat tidak sama dengan milik orang lain. Pungutanmu tidak menghapus sampah di layar mereka.
