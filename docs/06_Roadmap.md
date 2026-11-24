@@ -10,6 +10,7 @@
 
 - **Owner playtest 2026-11-24, butir 6 (fix, K-89):** toast naik level dan toast "Terbuka" berurutan satu chip sekaligus (1,8–5 dtk sesuai panjang). DONE-CODE, Play belum; owner cek di 09 B23 butir 6.
 - **Owner playtest 2026-11-24, butir 5 (fix, K-88):** tombol Ok toast "Bibit habis" = tombol UiKit standar, tinggi `TOUCH` 32 (GUI 4.2 44 px diganti). DONE-CODE, Play belum; owner cek di 09 B23 butir 5.
+- **Follow-up owner (K-91, 2026-11-24):** potret Pak Kumis tetap kosong (tidak ada placeholder yang tepat); Roadmap R4.5 `needs asset: Pak Kumis portrait`. DONE-CODE (teks saja), Play NOT verified.
 - **Follow-up owner (K-90, 2026-11-24):** hadiah tutorial langkah 11 kembali ke Cacing ×5 (sesuai K-21). DONE-CODE, Play NOT verified; owner cek di 09 B23 butir 2.
 - **Owner playtest 2026-11-24, butir 4 (fix, K-87, sebagian):** teks sapaan Pak Kumis dan 5 pedagang Pasar Malam lain ditambah (kunci mentah hilang). Portret Pak Kumis BELUM: tidak ada gambar, butuh dari owner. DONE-CODE (teks), Play belum; owner cek di 09 B23 butir 4.
 - **Owner playtest 2026-11-24, butir 3 (fix, K-86):** sungai dan empang wajib umpan (server tolak, tombol mati, chip "Umpan habis, beli di Kak Fajar"). Kolam tetap 6–12 dtk tanpa umpan. Hadiah tutorial = Cacing x5 (K-90, sesuai K-21). DONE-CODE, Play belum; owner cek di 09 B23 butir 3. Selene 0 error / 85 warning, rojo 0.
@@ -234,6 +235,7 @@ Butuh: R0.3 selesai.
 | R4.2 | Ikon: HUD (Acara, Skill, dll.), Tombol Aksi, item Lv 1–10, umpan ×4, skill ×16, kualitas, skin bambu tipis bubble | ★ | L | TODO | — |
 | R4.3 | Objek fungsi wajib: **Meja Crafting**, 6 node Hutan (penuh + habis, part `Mining` + `NodeId`), Tungku T1, Warung, Kandang Ayam Lv1, Kolam Tanah, Bubu Bambu, Kebun Warga | ★ | L | TODO | — |
 | R4.4 | NPC: cek 6 utama + Bang Jali (siluet, potret); buat 6 Pedagang Tamu, Tamu Event, 3 pengunjung Warung, kucing | ★ (utama) | L | TODO | — |
+| R4.5 | needs asset: Pak Kumis portrait. Potret kosong sampai gambar ada; lalu tambah `UiAssets.PORTRAIT_IMAGES.pak_kumis` (K-87, K-91) | ★ | S | TODO | — |
 | R4.5 | Tanaman 18 × 3 tahap + 6 varian | ★ (9 pertama) | L | TODO | — |
 | R4.6 | Hewan 3 + 2 varian, produk, ikan 20 | ★ (Ayam, ikan Early) | L | TODO | — |
 | R4.7 | Bundel 5 (rusak + pulih), Akuarium, Bingkai, Tungku T2/T3, Kandang lain, Kolam Semen/Keramik, Bubu Kayu/Besi | ★ (Kolam & Sumur) | L | TODO | — |
