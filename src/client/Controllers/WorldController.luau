@@ -92,7 +92,7 @@ local function setupRain()
 	rainPart.CanQuery = false
 	rainPart.CanTouch = false
 	rainPart.Transparency = 1
-	rainPart.Size = Vector3.new(40, 1, 40)
+	rainPart.Size = Vector3.new(1, 36, 40) -- thin wall: X is the emission axis (horizontal rain)
 	rainPart.Parent = Workspace
 
 	rainEmitter = Instance.new("ParticleEmitter")
@@ -101,10 +101,13 @@ local function setupRain()
 	rainEmitter.Rate = 0
 	-- K-129 (rain visibility): a 40-stud box 18 studs above the camera. Drops fall through the view and stay in it ~1 s.
 	-- (The earlier 80-stud box at 30 studs spread ~40 drops over an area the camera barely sees.)
-	rainEmitter.Lifetime = NumberRange.new(1.0, 1.3)
-	rainEmitter.Speed = NumberRange.new(25, 30)
-	rainEmitter.EmissionDirection = Enum.NormalId.Bottom
-	rainEmitter.SpreadAngle = Vector2.new(4, 4)
+	-- Horizontal rain (owner's request, 2026-11-24): drops fly sideways across the view from a thin wall at the left edge
+	-- (rainPart: local +X = camera right), with no gravity, so each streak lies flat.
+	rainEmitter.Lifetime = NumberRange.new(0.9, 1.1)
+	rainEmitter.Speed = NumberRange.new(38, 46)
+	rainEmitter.EmissionDirection = Enum.NormalId.Right
+	rainEmitter.Acceleration = Vector3.zero
+	rainEmitter.SpreadAngle = Vector2.new(3, 8)
 	-- K-129 (rain visibility): 0.12 studs drew 1-2 px at play distance, so the rain was not seen. 0.22 with a stronger stretch.
 	-- K-129 (rain visibility, tested in Studio): 0.12-0.25 studs grey drops were not readable; 0.35 pale-blue streaks are.
 	rainEmitter.Size = NumberSequence.new(0.35)
@@ -243,7 +246,7 @@ function WorldController.Start()
 	RunService.RenderStepped:Connect(function()
 		if rainEmitter.Enabled then
 			local camera = Workspace.CurrentCamera
-			rainPart.CFrame = CFrame.new(camera.CFrame.Position + Vector3.new(0, 18, 0))
+			rainPart.CFrame = camera.CFrame * CFrame.new(-24, 0, 0) -- wall just outside the left edge of the view
 		end
 	end)
 

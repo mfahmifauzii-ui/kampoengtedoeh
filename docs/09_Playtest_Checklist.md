@@ -494,3 +494,4 @@ Belum pernah dilihat owner. Claude hanya memeriksa di Studio (lihat Handoff). Ti
 4. [ ] **Langit berubah (K-129):** saat hujan, cahaya sedikit lebih redup dan kabut sedikit naik. Saat terik, kembali seperti biasa.
 5. [ ] **Kurangi gerak (K-129):** Atur, nyalakan "Kurangi gerak". Tetes lebih jarang tetapi hujan tetap ada.
 6. [ ] **Perintah DEV (K-130):** sebagai akun DEV: `!cuaca gerimis` memulai hujan 3 menit, `!clear` menghentikannya. Hanya berfungsi untuk akun yang lolos IsAllowed.
+7. [ ] **Garis hujan horizontal (K-131, belum terverifikasi):** saat hujan, tetes mengalir mendatar dari kiri layar. Owner cek bentuk garis di HP, apakah sudah tampak horizontal, tidak tegak lurus.
