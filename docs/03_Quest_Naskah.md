@@ -467,7 +467,7 @@ Struktur cerita "Babak 2 & 3" dan rancangan quest-nya: `08_Penyempurnaan.md` P-0
 ## 8. Revisi Playtest Putaran 1 (v8.3, K-54 / K-56)
 
 - **Bantu lahan** dihapus dari pool Harian dan Mingguan. Quest Season baru: "Bantu 20 lahan (Season)", 500 Koin, tanpa Bunga, muncul setelah Bantu terbuka.
-- **K-73 (Bantu disembunyikan):** S6 dan Ringan Tangan `blocked`; Agenda pakai Tanam 5 selama Bantu mati; surat 6, 13, 20, 29 (minta Bantu) dibayar langsung saat jatuh tempo, tanpa toast. K-77: teks alt (`surat.<n>.alt`) dipakai selama Bantu mati; teks asli tetap untuk saat flag hidup.
+- **K-73 (Bantu disembunyikan):** S6 dan Ringan Tangan `blocked`; Agenda pakai Tanam 5 selama Bantu mati; surat 6, 13, 20, 29 (minta Bantu) dibayar langsung saat jatuh tempo, dengan toast hadiah (K-83). K-77: teks alt (`surat.<n>.alt`) dipakai selama Bantu mati; teks asli tetap untuk saat flag hidup.
 - **K-78 (Season "Bantu 20 lahan" belum di kode):** quest ini tidak dibangun. Aktif hanya saat `BANTU_ENABLED = true` dan kartunya sudah dibuat (RP2.S).
 - **Quest diblok** hanya bila `blocked` di `Config/Quests` terisi. Saat ini tidak ada quest yang diblok (Agenda R2.2 dan Bubu R2.1 sudah ada di kode). Dua quest yang belum ada di kode (Kucing Alun-alun, Joran Hilang) tidak ada di `Config/Quests` sama sekali; lihat 5.3.
 - **Baris langkah pemain** = kolom Langkah di bab ini, dipakai di tracker dan log (contoh: "Buka Agenda (1/3)", "Tanam 6 bibit Kangkung (3/6)"). Side quest juga menampilkan apa yang harus dilakukan dan di mana.

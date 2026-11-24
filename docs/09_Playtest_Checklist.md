@@ -372,7 +372,7 @@ Belum pernah dimainkan di Play. Pakai akun yang sudah Lv 6 dengan Hutan dan Dapu
 
 1. [ ] **Bantu tidak ada di mana pun:** tidak ada tombol Warga di HUD, tidak ada baris "Bantu Tetangga" saat berdiri di lahan orang lain, tidak ada quest "Tetangga Baik" di tracker.
 2. [ ] **Agenda 5 tugas tanpa Bantu:** Papan Hari Ini menampilkan Panen, Mancing, Tanam 5, Masak 1, Nambang 10. Tidak ada "Bantu 1".
-3. [ ] **Surat tetap jalan:** surat 6 (dan 13, 20, 29) tidak berhenti. Surat berikutnya bisa dicapai; tidak ada toast untuk surat yang minta Bantu.
+3. [ ] **Surat tetap jalan:** surat 6 (dan 13, 20, 29) tidak berhenti. Surat berikutnya bisa dicapai; toast hadiah surat (K-83) tampil untuk surat yang minta Bantu, dengan kalimat tanpa kata "Bantu".
 
 ### B22. Gerbang Lv 0–10 (R2.G1–G3, K-75–K-77): cek di HP
 
@@ -383,6 +383,7 @@ Belum pernah dimainkan di Play.
 3. [ ] **Skill Tetangga Baik tidak ada:** di Pohon Skill (Sosial) tidak ada skill Tetangga Baik. Skill lain tetap bisa dibeli.
 4. [ ] **Surat tanpa Bantu:** surat 6, 13, 20, 29 tidak menyebut Bantu. Jika toast surat muncul di layar, kalimatnya wajar tanpa kata "Bantu".
 5. [ ] **Kerja Bakti bukan langkah tes solo (K-79):** tidak ada langkah di B22 yang menunggu Kerja Bakti. Ia hanya muncul setelah hujan Deres atau Petir berakhir dan setelah M1 langkah 3. Quest "Pekerja Bakti" (Lv 2, K-81) boleh menunggu cuaca; jangan dihitung sebagai gagal.
+7. [ ] **Toast hadiah surat (K-83):** saat surat 6 jatuh tempo (login ke-6, atau setelah ada kejadian kebun), muncul satu toast "Surat Kakek #6: ... Hadiah +80 Koin." Koin benar-benar bertambah, walau Surat belum dibuka di Lv 1. Surat 13, 20, 29 sama (20 dan 29 juga menyebut Bunga).
 6. [ ] **Pekerja Bakti mulai di Lv 2 (K-81):** di Lv 1 Nek Ani belum menawarkan "Kerja Bakti 10x". Di Lv 2 (setelah M1 mulai) tawaran muncul di daftar quest.
 
 ### B15. Satu toast (T0, 2026-11-23): owner cek di HP dan PC

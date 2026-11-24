@@ -48,7 +48,7 @@ function SuratService.TextKey(n: number): string
 end
 
 -- K-73: while Bantu is hidden, a letter that asks for Bantu is paid out at once, so the letters after it are not stuck.
--- Only letters already due (n <= logins). The alt text is shown as a toast when the surat feature is open (K-77).
+-- Only letters already due (n <= logins). The payout toast shows the alt text and the reward, whatever the surat gate (K-83).
 local function skipBantuLetters(player: Player, data: Types.PlayerData)
 	if Features.BANTU_ENABLED then
 		return
@@ -59,9 +59,14 @@ local function skipBantuLetters(player: Player, data: Types.PlayerData)
 		data.surat.done[n] = true
 		data.surat.progress = 0
 		grant(player, Surat.byN[n])
-		if FeatureGate.IsUsable(data, "surat") then
-			Net.Fire("Notify", player, "surat.new", { n = n, text = SuratService.TextKey(n) })
-		end
+		-- K-83 (G9): the payout always shows its toast, whatever the surat gate says. The text is the letter's, the reward is what came in.
+		local key = if Surat.byN[n].reward.bunga then "surat.got_bunga" else "surat.got"
+		Net.Fire("Notify", player, key, {
+			n = n,
+			text = SuratService.TextKey(n),
+			koin = Surat.byN[n].reward.koin or 0,
+			bunga = Surat.byN[n].reward.bunga or 0,
+		})
 		skipped = true
 		n = current(data)
 	end

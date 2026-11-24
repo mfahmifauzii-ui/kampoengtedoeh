@@ -61,11 +61,11 @@ Gap ditulis sebagai baris TODO di Roadmap (R2.G1–R2.G6). Tidak ada yang diperb
 
 Dibaca ulang dari kode yang sudah berubah (K-75–K-80). Tidak ada perbaikan di bagian ini; setiap gap baru jadi baris TODO di Roadmap.
 
-| ID | Celah baru | Tingkat | Baris Roadmap |
-|----|-----------|---------|---------------|
-| N1 | **side_kerjabakti ditawarkan di Lv 1, tapi prompt pungut hanya terbuka setelah M1 langkah 3 (gerbang `gerobak`, Lv 2).** Quest tidak bisa maju di Lv 1. `unlockLevel` tidak cocok dengan gerbangnya. | Sedang | R2.G7 |
-| N2 | **Solo tidak punya konten sosial sama sekali** (Warga butuh 2 pemain, K-75). Tidak ada quest yang macet karenanya, tapi tidak ada sesuatu yang bisa dilakukan solo di sisi sosial. | Rendah | R2.G8 |
-| N3 | **Surat 6/13/20/29 dibayar tanpa toast saat fitur Surat belum terbuka** (sebelum S2, Lv 2). Pemain mendapat Koin/Bunga tanpa tahu sebabnya, dan surat itu tidak pernah terbaca. | Rendah | R2.G9 |
+| ID | Celah baru | Tingkat | Baris Roadmap | Ditutup oleh |
+|----|-----------|---------|---------------|--------------|
+| N1 | **side_kerjabakti ditawarkan di Lv 1, tapi prompt pungut hanya terbuka setelah M1 langkah 3 (gerbang `gerobak`, Lv 2).** Quest tidak bisa maju di Lv 1. `unlockLevel` tidak cocok dengan gerbangnya. | Sedang | R2.G7 | fix(R2.G7) `f2ca487`, K-81 |
+| N2 | **Solo tidak punya konten sosial sama sekali** (Warga butuh 2 pemain, K-75). Tidak ada quest yang macet karenanya, tapi tidak ada sesuatu yang bisa dilakukan solo di sisi sosial. | Rendah | R2.G8 | fix(R2.G8) `825680e`, K-82 (diterima) |
+| N3 | **Surat 6/13/20/29 dibayar tanpa toast saat fitur Surat belum terbuka** (sebelum S2, Lv 2). Pemain mendapat Koin/Bunga tanpa tahu sebabnya, dan surat itu tidak pernah terbaca. | Rendah | R2.G9 | fix(R2.G9) (commit berikutnya), K-83 |
 
 Sudah diperiksa dan tidak ada gap baru: M1–M9 dan S1–S9 Lv 0–10 (gerbang dan event punya sumber), S6 dan Ringan Tangan `blocked`, Agenda 3/4/5 tugas sesuai syarat (K-80), Tetangga Baik tidak tampil, surat text alt, Season Bantu tidak dibangun (K-78).
 

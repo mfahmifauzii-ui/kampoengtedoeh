@@ -1237,6 +1237,9 @@ return {
 	["surat.13.alt"] = "Hari ini genap 13. Cek kebunmu sendiri, ada yang haus.",
 	["surat.20.alt"] = "Dua puluh surat! Kakek bangga padamu.",
 	["surat.29.alt"] = "Kebaikan kembali padamu. Jangan lupa makan, Nak.",
+	-- K-83: toast when a letter is paid out (text = the letter's line, shown through the normal toast).
+	["surat.got"] = "Surat Kakek #{n}: {text} Hadiah +{koin} Koin.",
+	["surat.got_bunga"] = "Surat Kakek #{n}: {text} Hadiah +{koin} Koin, +{bunga} Bunga.",
 	["surat.30.text"] = "Surat terakhir. Terima kasih sudah menjaga kampung, Nak.",
 	["bundel.give"] = "Setor +{n} {item}",
 	["bundel.done"] = "{bundel} pulih!",
