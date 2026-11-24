@@ -45,6 +45,7 @@ local BAHAN: { [string]: string } = {
 	kaca = "item.kaca",
 	garam = "item.garam", -- beli di Pak Udin 10 Koin (Bab 9.2); bahan masak, tidak dijual
 	pakan_jagung = "item.pakan_jagung", -- 6 jatah Pakan Ayam (Dapur / RanchService); bukan Olahan
+	tungku = "item.tungku", -- Inti Dapur Tier 1, dicraft di Meja Crafting (R5.8a, K-95); dipasang lewat Aksi
 }
 
 -- Produk ternak (Bab 7.1 v7.3): dijual ke Bang Jali (npc.buys.ternak), diolah di Dapur (P2-3).

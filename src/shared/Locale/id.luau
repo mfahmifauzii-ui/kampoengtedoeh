@@ -105,7 +105,11 @@ return {
 	["quest.track"] = "Track",
 	["quest.untrack"] = "Lepas",
 	["quest.ready_to"] = "Siap diserahkan ke {npc}",
-	["quest.too_far"] = "Dekati {npc} dulu untuk menyerahkan quest.", -- K-100
+	["dapur.no_tungku"] = "Belum punya Tungku. Craft di Meja Crafting (Lv 6).", -- R5.8a
+	["dapur.tungku_once"] = "Tungku hanya satu. Pasang yang sudah kamu punya dulu.", -- K-95
+	["dapur.need_tungku"] = "Belum ada Tungku. Craft di Meja Crafting, lalu pasang di lahan.", -- R5.8a
+	["item.tungku"] = "Tungku",
+	["quest.too_far"] ="Dekati {npc} dulu untuk menyerahkan quest.", -- K-100
 	["quest.offer_to"] = "Temui {npc}",
 	["quest.read"] = "Baca",
 	["quest.log.tab_harian"] = "Harian",

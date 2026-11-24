@@ -89,14 +89,8 @@ local function rebuild()
 	-- Dapur.
 	order += 1
 	if dapur.tier < 1 then
-		local cost = Dapur.TIERS[1]
-		local bits = {}
-		for _, mat in cost.mats do
-			table.insert(bits, `{mat.count} {Locale.t(`item.{mat.id}`)}`)
-		end
-		UiKit.row(list, order, Locale.t("dapur.build"), `{Locale.t("dapur.title")} Tier 1 (Lv 6): {table.concat(bits, " + ")}`, Locale.t("dapur.build"), true, function()
-			Net.Send("DapurBuild")
-		end)
+		-- R5.8a (K-95): Tier 1 is no longer built from materials here. Craft the Tungku at Meja Crafting; Aksi places it.
+		UiKit.header(list, Locale.t("dapur.need_tungku"), order)
 	else
 		UiKit.header(list, `{Locale.t("dapur.title")} Tier {dapur.tier}`, order)
 		if dapur.tier < #Dapur.TIERS then

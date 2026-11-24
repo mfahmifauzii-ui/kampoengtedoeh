@@ -189,6 +189,11 @@ local function onCraft(player: Player, recipeId: any, times: any)
 		Net.Fire("Notify", player, "fish.locked", { level = recipe.unlockLevel })
 		return
 	end
+	-- K-95: Tungku is one at a time (no x10), and only while the player has no kitchen and no spare Tungku in the bag.
+	if recipe.once == true and (times ~= 1 or data.dapur.tier > 0 or InventoryService.Count(player, recipe.itemId) > 0) then
+		Net.Fire("Notify", player, "dapur.tungku_once")
+		return
+	end
 	for _, input in recipe.inputs do
 		if InventoryService.Count(player, input.id) < input.count * (times :: number) then
 			Net.Fire("Notify", player, "mine.no_mats")

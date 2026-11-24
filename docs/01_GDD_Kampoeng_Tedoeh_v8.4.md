@@ -558,7 +558,7 @@ Panel Stats menampilkan `Set Kampung 3/5`.
 
 ## 9. DAPUR & OLAHAN
 
-- Inti Dapur (Tungku + Meja Olah) dicraft, ditaruh bebas di lahan (auto-place 2×2). Bangunan sekitarnya murni Hias.
+- Inti Dapur (Tungku + Meja Olah) dicraft, ditaruh bebas di lahan (auto-place 2×2). Bangunan sekitarnya murni Hias. **Tier 1 (Tungku) dicraft di Meja Crafting** (Lv 6; 10 Kayu + 8 Batu + 5 Tanah Liat), satu per dapur; dipasang lewat Aksi di lahan (K-101).
 - Olahan jalan walau offline. Tidak bisa gosong. **Tanpa antrean.**
 - Dapur dibuka lewat Tombol Aksi dekat Tungku (✔ K-34).
 

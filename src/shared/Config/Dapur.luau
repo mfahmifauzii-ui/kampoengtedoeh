@@ -33,7 +33,8 @@ export type DapurTier = {
 }
 
 local TIERS: { DapurTier } = {
-	{ unlockLevel = 6, mats = { { id = "kayu", count = 10 }, { id = "batu", count = 8 }, { id = "tanah_liat", count = 5 } }, slots = 1, timeMult = 1 },
+	-- Tier 1 dicraft di Meja Crafting (Config/Mining recipe "tungku": 10 Kayu + 8 Batu + 5 Tanah Liat, R5.8a, K-95), bukan dari panel.
+	{ unlockLevel = 6, mats = {}, slots = 1, timeMult = 1 },
 	{ unlockLevel = 15, mats = { { id = "papan", count = 15 }, { id = "bata", count = 10 } }, slots = 2, timeMult = 0.85 },
 	{ unlockLevel = 35, mats = { { id = "papan", count = 20 }, { id = "bata", count = 15 }, { id = "semen", count = 10 } }, slots = 3, timeMult = 0.7 },
 }

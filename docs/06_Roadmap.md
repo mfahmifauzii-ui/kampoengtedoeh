@@ -8,6 +8,7 @@
 
 ## Handoff (update setiap selesai tugas; sesi baru mulai dari sini)
 
+- **Tungku (R5.8a, K-101):** craft Tungku di Meja Crafting (resep `tungku`, 10 Kayu + 8 Batu + 5 Tanah Liat, Lv 6), `DapurBuild` memakai item tungku, bukan bahan. DONE-CODE, Play belum; owner cek di 09 B24 butir 11. Aksi (R5.8b) menyusul.
 - **Quest butir 8 (Q5.8, K-95), walk selesai:** M6 s2/s3 pakai panah ke Tungku (Config), teks M6 s1 dibetulkan. Dua hal M6 belum ada di kode dan belum dibangun: craft Tungku di Meja Crafting (R5.8a) dan Aksi dapur dekat Tungku (R5.8b), menunggu keputusan owner. Gap pointer M1–M9 dan S1–S9 di `reports/Quest_Pointer_Walk_2026-11-24.md`, TODO R5.8c–e.
 - **Quest butir 2, 3, 5, 6 (Q5.2, Q5.3, Q5.5, Q5.6, K-94, K-95, K-96), commit C3:** satu Quest Log dengan tab Main · Side · Harian · Pesanan (dock Quest, tombol Quest di kartu pemain); Track / Lepas (maks 3); tracker dengan baris siap diserahkan dan panah layar-tepi; Baca di baris Surat dan S2; baris Kerja Bakti kosong dihapus. DONE-CODE, Play belum; owner cek di 09 B24 butir 5–8. Selene 0 error, rojo 0.
 - **Quest butir 4 dan 7 (Q5.4, Q5.7, K-93, K-94, K-97), commit C2:** server punya status siap diserahkan, daftar tracked (maks 3), dan remote QuestTurnIn/QuestTrack; "!" pemberi dan dialog penyerahan jalan; baris level-up Kanal Barat menyebut Kak Fajar. Panah dan UI Quest Log menyusul di C3 (Q5.2, Q5.3). DONE-CODE, Play belum; owner cek di 09 B24 butir 2–4.
@@ -477,7 +478,7 @@ Satu butir = satu commit. Selene 0 error / 85 warning, rojo exit 0 di tiap commi
 | Q5.6 | Hapus baris kosong "Tidak ada Kerja Bakti sekarang" | Butir 6, K-96 | Kerja Bakti hanya muncul saat aktif | DONE-CODE | C3 |
 | Q5.7 | Lv 5 Kanal Barat: baris level-up menyebut Kak Fajar; Kak Fajar "!"; quest masuk tracker | Butir 7, K-97, K-94 | Pemain tahu harus menemui Kak Fajar | DONE-CODE | f775f63, C3 |
 | Q5.8 | M6 Dapur: langkah ke Meja Crafting, Tungku di lahan, Aksi di dekat Tungku, masing-masing ada petunjuk. Jalan ulang M1–M9 dan S1–S9 di atas kertas | Butir 8, K-95 | Celah tercatat di `docs/reports/Quest_Pointer_Walk_2026-11-24.md` dan baris TODO | PARTIAL: M6 s2/s3 pakai panah ke Tungku, teks s1 dibetulkan. Walk selesai, gap di bawah | — |
-| R5.8a | Craft Tungku di Meja Crafting (resep baru, Tier 1 tidak lagi dibangun langsung dari bahan) | Butir 8, K-95 | Resep tungku ada di Mining, `DapurBuild` memakai item tungku | TODO (keputusan owner: fitur baru) | — |
+| R5.8a | Craft Tungku di Meja Crafting (resep baru, Tier 1 tidak lagi dibangun langsung dari bahan) | Butir 8, K-95 | Resep tungku ada di Mining, `DapurBuild` memakai item tungku | DONE-CODE, Play belum (K-101) | R5.8a |
 | R5.8b | Aksi dapur dekat Tungku (tombol Aksi membuka dapur, bukan dock) | Butir 8, K-95 | Tombol Aksi muncul dekat Tungku dan membuka panel Dapur | TODO (keputusan owner: fitur baru) | — |
 | R5.8c | Isi `target` langkah yang sudah punya tempat: M2 s3 (Meja Crafting), S4 (pak_amran), S1 s1 (pak_udin), S3 s1 (bang_jali) | Walk butir 8, GAP-C dan GAP-E | Panah ke NPC atau Meja pada langkah itu | TODO | — |
 | R5.8d | Tempat dunia untuk langkah tanpa objek (hutan, kolam, sungai, kandang, petak, warung, sumur, bubu, Kanal Timur, Gerobak) | Walk butir 8, GAP-B | Nama objek di Workspace untuk tiap tempat | TODO (perlu nama dari Studio/owner) | — |

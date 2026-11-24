@@ -335,7 +335,8 @@ end
 
 -- Aksi --------------------------------------------------------------------------
 
--- Bangun Inti Tier 1 (Lv 6). Tanpa Koin, hanya bahan (v7.3 tak memberi harga Koin).
+-- Pasang Tungku (Inti Tier 1, Lv 6). R5.8a (K-95): the Tungku is crafted at Meja Crafting (Mining recipe "tungku"); this
+-- places the one in the bag on the lahan (auto-place 2×2). No materials are taken here any more.
 local function onBuild(player: Player)
 	if not FeatureGate.Check(player, "dapur") then return end
 	local data = DataService.Get(player)
@@ -350,8 +351,8 @@ local function onBuild(player: Player)
 		Net.Fire("Notify", player, "fish.locked", { level = tierDef.unlockLevel })
 		return
 	end
-	if not payMats(player, tierDef.mats) then
-		Net.Fire("Notify", player, "dapur.no_mats")
+	if InventoryService.Count(player, "tungku") < 1 then
+		Net.Fire("Notify", player, "dapur.no_tungku")
 		return
 	end
 	local cx, cz = findSpot(data)
@@ -359,6 +360,7 @@ local function onBuild(player: Player)
 		Net.Fire("Notify", player, "ranch.no_space")
 		return
 	end
+	InventoryService.Remove(player, "tungku", 1)
 	data.dapur.tier = 1
 	data.dapur.slots = { false, false, false }
 	data.dapur.spot = { cx = cx :: number, cz = cz :: number }

@@ -211,7 +211,7 @@ local function rebuildCraft()
 		local text = Locale.t(`item.{recipe.itemId}`)
 		local sub = matsText(recipe, items)
 		local ok = canCraft(recipe, items, 1)
-		local ok10 = canCraft(recipe, items, 10)
+		local ok10 = not recipe.once and canCraft(recipe, items, 10) -- K-95: Tungku is never x10
 		UiKit.row(list, order, text, sub, Locale.t("mine.make"), ok, function()
 			Net.Send("MineCraft", recipe.id, 1)
 		end, if ok10 then "x10" else nil, if ok10

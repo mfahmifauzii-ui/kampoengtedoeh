@@ -21,6 +21,7 @@ export type Recipe = {
 	itemId: string, -- olahan yang jadi
 	inputs: { RecipeInput },
 	unlockLevel: number, -- Kaca Lv 25, sisanya tanpa gate (v7.3 tidak memberi angka)
+	once: boolean?, -- satu per craft, tidak bisa x10; Tungku: satu per dapur (K-95)
 }
 
 local NODES: { NodeDef } = {
@@ -40,6 +41,8 @@ local RECIPES: { Recipe } = {
 	{ id = "atap_ijuk", itemId = "atap_ijuk", inputs = { { id = "ijuk", count = 3 } }, unlockLevel = 1 },
 	{ id = "genteng", itemId = "genteng", inputs = { { id = "tanah_liat", count = 3 } }, unlockLevel = 1 },
 	{ id = "kaca", itemId = "kaca", inputs = { { id = "pasir", count = 3 } }, unlockLevel = 25 },
+	-- Inti Dapur Tier 1 (GDD 9, Tungku Lv 6). Semua bahan dari Hutan Nambang (Lv 4), jadi bisa didapat sebelum Lv 6.
+	{ id = "tungku", itemId = "tungku", inputs = { { id = "kayu", count = 10 }, { id = "batu", count = 8 }, { id = "tanah_liat", count = 5 } }, unlockLevel = 6, once = true },
 }
 
 local byNode: { [string]: NodeDef } = {}
