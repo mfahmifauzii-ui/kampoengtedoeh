@@ -210,7 +210,7 @@ Langkah `kak_fajar`: `tut.t1b.kak_fajar.1` (Pak Udin) — Kak Fajar ada di sunga
 | M3 | 4 | Kolam Kakek | Kak Fajar | Kolam | Bangun Kolam Kakek (setor 10 Batu + 5 Kayu + 3 ikan Early; tombol Kolam muncul di langkah ini) → Tangkap 1 ikan di kolam | Kolam Kakek + 300 Koin + 60 XP | Ada |
 | M4 | 5 | Pagar Pertama | Pak Amran | Hias | Pasang 1 Pagar Bambu | – | Ada |
 | M5 | 5 | Kokok Pertama | Pak Udin | Ternak | Terima Ayam → Isi pakan → Ambil 1 telur | Ayam + Kandang Ayam Lv 1 | Ada |
-| M6 | 6 | Dapur Pertama | Mak Sari | Dapur + Buff | Craft Tungku → Masak 1 olahan → Makan 1 olahan | 200 Koin | Ada |
+| M6 | 6 | Dapur Pertama | Mak Sari | Dapur + Buff | Craft Tungku (Meja) → Pasang Tungku (lahan) → Masak 1 olahan (Tungku, Aksi) → Makan 1 olahan (Tungku) | 200 Koin | Ada |
 | M7 | 7 | Warung Pertama | Mak Sari | Warung | Pasang Warung → Jual 1 olahan di Warung | 200 Koin | Ada |
 | M8 | 8 | Jebakan Kak Fajar | Kak Fajar | Bubu | Pasang 1 Bubu (selesai saat terpasang, panen 6 jam tidak ditunggu) | 1 Bubu Bambu | Ada di kode (R2.1), tidak diblok |
 | M9 | 8 | Sumur Tua | Nek Ani | Bundel Kakek | Pulihkan Sumur Tua (10 Kayu + 5 Batu + 2 olahan) | 300 Koin + 5 Bunga (✔ K-31) | Ada |
@@ -311,7 +311,7 @@ Langkah `kak_fajar`: `tut.t1b.kak_fajar.1` (Pak Udin) — Kak Fajar ada di sunga
 |-------|------|
 | `dlg.m6.start.1` | Nak, hasil kebunmu enak kalau dimasak. Ayo bikin tungku. |
 | `dlg.m6.start.2` | Kalau dimakan sendiri, badan jadi semangat. Kerja di kebun atau mancing jadi lebih lancar. |
-| `quest.m6.s1` / `s2` / `s3` | Craft Tungku / Masak 1 olahan / Makan 1 olahan |
+| `quest.m6_dapur.s1` … `s4` | Craft Tungku di Meja Crafting (pointer: Meja) / Pasang Tungku di lahanmu (pointer: lahan) / Masak 1 olahan di Tungku (pointer: Tungku, Aksi) / Makan 1 olahan (pointer: Tungku). K-103 |
 | `dlg.m6.done.1` | Masakanmu enak, Nak. Persis resep Mak. |
 
 **M7 Warung Pertama — Mak Sari**

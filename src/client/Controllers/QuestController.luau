@@ -122,6 +122,9 @@ local function labelOfTarget(questId: string, snap: any): string
 	if name == KB_QUEST then
 		return Locale.t("kb.active")
 	end
+	if name == "lahan" then
+		return Locale.t("target.lahan")
+	end
 	return if Locale.has(`npc.{name}`) then Locale.t(`npc.{name}`) else name
 end
 
@@ -137,6 +140,14 @@ function QuestController.PositionOf(name: string): Vector3?
 				end
 			end
 		end
+	end
+	if name == "lahan" then
+		-- K-103: the player's own plot (PlotService sets the PlotName attribute); its Origin is the lahan's centre.
+		local plotName = player:GetAttribute("PlotName")
+		local plots = Workspace:FindFirstChild("Plots")
+		local plot = if typeof(plotName) == "string" and plots then plots:FindFirstChild(plotName) else nil
+		local origin = if plot then plot:FindFirstChild("Origin") else nil
+		return if origin and origin:IsA("BasePart") then origin.Position else nil
 	end
 	if name == KB_QUEST then
 		local character = player.Character

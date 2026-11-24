@@ -122,8 +122,11 @@ local list: { Quest } = {
 		unlockLevel = 6,
 		after = "m5_kokok",
 		steps = {
-			{ event = "dapur_built", count = 1, reveals = "dapur" }, -- K-94: Tungku dibangun dari panel Dapur (tanpa pointer, lihat R5.8a)
-			{ event = "cook", count = 1, target = "Tungku" }, -- masak di Tungku (Dapur) yang sudah berdiri
+			-- K-103 (owner 2026-11-24 butir 8): craft Tungku at Meja Crafting -> place it on the lahan -> cook at the Tungku
+			-- (Aksi) -> eat. Each step points: the Meja, the lahan (player's plot), then the Tungku.
+			{ event = "craft_tungku", count = 1, target = "Meja Crafting" },
+			{ event = "dapur_built", count = 1, reveals = "dapur", target = "lahan" },
+			{ event = "cook", count = 1, target = "Tungku" },
 			{ event = "eat", count = 1, target = "Tungku" },
 		},
 		reward = { koin = 200 },

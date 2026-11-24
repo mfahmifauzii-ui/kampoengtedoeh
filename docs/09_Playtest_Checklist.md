@@ -428,3 +428,4 @@ Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 12. [ ] **Tungku, pasang (K-102):** dengan Tungku di tas dan belum punya dapur, tombol Aksi berlabel "Pasang Tungku" muncul. Ketuk: Tungku berdiri di lahan (2×2).
 13. [ ] **Masak di Tungku (K-102):** dekat Tungku sendiri, tombol Aksi berlabel "Masak" muncul dan membuka panel Dapur. Menjauh, tombol hilang.
 14. [ ] **Tidak ada tombol Dapur di dock:** dock bawah hanya Garap, Kolam, Hias, Tas, Quest. Tidak ada tombol Dapur.
+15. [ ] **M6, jalan lengkap (K-103):** Craft Tungku (panah ke Meja Crafting), lalu "Pasang Tungku di lahanmu" (panah ke lahanmu, tombol Aksi "Pasang Tungku"), lalu "Masak 1 olahan di Tungku" (panah ke Tungku, tombol Aksi "Masak"), lalu "Makan 1 olahan" (panah ke Tungku).

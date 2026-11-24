@@ -109,6 +109,7 @@ return {
 	["dapur.tungku_once"] = "Tungku hanya satu. Pasang yang sudah kamu punya dulu.", -- K-95
 	["dapur.need_tungku"] = "Belum ada Tungku. Craft di Meja Crafting, lalu pasang di lahan.", -- R5.8a
 	["item.tungku"] = "Tungku",
+	["target.lahan"] = "Lahanmu", -- K-103: label of the player's own plot in the quest arrow
 	["dapur.aksi_cook"] = "Masak", -- R5.8b (K-102)
 	["dapur.aksi_place"] = "Pasang Tungku",
 	["quest.too_far"] ="Dekati {npc} dulu untuk menyerahkan quest.", -- K-100
@@ -1141,9 +1142,10 @@ return {
 	["quest.m5_kokok.s1"] = "Isi pakan ayam",
 	["quest.m5_kokok.s2"] = "Ambil 1 telur",
 	["quest.m6_dapur.title"] = "Dapur Pertama",
-	["quest.m6_dapur.s1"] = "Pasang Tungku di lahanmu lewat panel Dapur", -- K-94: teks lama "Craft Tungku" tidak sesuai aksi (dapur_built)
-	["quest.m6_dapur.s2"] = "Masak 1 olahan",
-	["quest.m6_dapur.s3"] = "Makan 1 olahan",
+	["quest.m6_dapur.s1"] = "Craft Tungku di Meja Crafting",
+	["quest.m6_dapur.s2"] = "Pasang Tungku di lahanmu (tombol Aksi)",
+	["quest.m6_dapur.s3"] = "Masak 1 olahan di Tungku (tombol Aksi)",
+	["quest.m6_dapur.s4"] = "Makan 1 olahan",
 	["quest.m7_warung.title"] = "Warung Pertama",
 	["quest.m7_warung.s1"] = "Pasang Warung",
 	["quest.m7_warung.s2"] = "Jual 1 olahan di Warung",
@@ -1198,7 +1200,7 @@ return {
 	["quest.m3_kolam_kakek.story"] = "Bangun Kolam Kakek di lahanmu (10 batu, 5 kayu, 3 ikan Early), lalu tangkap 1 ikan di kolam itu.",
 	["quest.m4_pagar.story"] = "Buka menu Hias dan pasang 1 Pagar Bambu di lahanmu.",
 	["quest.m5_kokok.story"] = "Isi pakan ayam, lalu ambil 1 telur.",
-	["quest.m6_dapur.story"] = "Pasang Tungku, masak 1 olahan, lalu makan 1 olahan.",
+	["quest.m6_dapur.story"] = "Craft Tungku di Meja Crafting, pasang di lahan, masak 1 olahan, lalu makan 1 olahan.",
 	["quest.m7_warung.story"] = "Pasang Warung di lahanmu, lalu jual 1 olahan di sana.",
 	["quest.m8_bubu.story"] = "Pasang 1 Bubu di sungai dekat titik mancing, tunggu 6 jam, lalu ambil ikannya.",
 	["quest.m9_sumur.story"] = "Pulihkan Sumur Tua dengan 10 kayu, 5 batu, dan 2 olahan.",

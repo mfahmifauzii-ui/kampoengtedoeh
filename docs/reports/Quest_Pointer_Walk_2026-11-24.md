@@ -28,9 +28,10 @@ Langkah yang hanya punya baris tracker, tanpa panah, dihitung **GAP** (lihat daf
 | M4 Pagar Pertama (Pak Amran, Lv5) | s1 `decor_placed` | Pasang 1 Pagar Bambu | baris tracker. Tombol Hias tidak ditunjuk | GAP-A |
 | M5 Kokok Pertama (Pak Udin, Lv5) | s1 `feed_animal` | Isi pakan ayam | baris tracker. Kandang ayam belum ada target | GAP-B |
 | | s2 `collect_egg` | Ambil 1 telur | baris tracker | GAP-B |
-| M6 Dapur Pertama (Mak Sari, Lv6) | s1 `dapur_built` | Pasang Tungku di lahanmu lewat panel Dapur | baris tracker. Tanpa target (Tungku belum ada) | **GAP-D** (lihat R5.8a, R5.8b) |
-| | s2 `cook` | Masak 1 olahan | panah ke **Tungku** (target `Tungku`, K-95) | OK (setelah Tungku berdiri) |
-| | s3 `eat` | Makan 1 olahan | panah ke **Tungku** | OK |
+| M6 Dapur Pertama (Mak Sari, Lv6) | s1 `craft_tungku` | Craft Tungku di Meja Crafting | panah ke **Meja Crafting** (target `Meja Crafting`) | OK (walk ulang, K-103) |
+| | s2 `dapur_built` | Pasang Tungku di lahanmu (tombol Aksi) | panah ke **lahanmu** (target `lahan` = Origin plot sendiri). Tombol Aksi "Pasang Tungku" muncul saat Tungku di tas | OK (walk ulang, K-103) |
+| | s3 `cook` | Masak 1 olahan di Tungku (tombol Aksi) | panah ke **Tungku** (target `Tungku`); tombol Aksi "Masak" muncul dekat Tungku | OK (walk ulang, K-103) |
+| | s4 `eat` | Makan 1 olahan | panah ke **Tungku** | OK |
 | M7 Warung Pertama (Mak Sari, Lv7) | s1 `warung_place` | Pasang Warung | baris tracker, tanpa target | GAP-B |
 | | s2 `warung_sale` | Jual 1 olahan di Warung | baris tracker, tanpa target | GAP-B |
 | M8 Jebakan Kak Fajar (Kak Fajar, Lv8) | s1 `bubu_place` | Pasang 1 Bubu | baris tracker, tanpa target (sungai) | GAP-B |
@@ -58,7 +59,7 @@ Catatan: M1–M9 tiap "start" dan "selesai" punya "!" pemberi (offer dan siap di
 - **GAP-A: tombol HUD tanpa panah** (Papan/Agenda, Hias, Dapur/DapurButton). Panah dunia tidak menunjuk tombol layar. Perlu keputusan: tombol diberi sorot (coachmark) atau cukup teks. Owner belum memutuskan.
 - **GAP-B: langkah tanpa tempat di dunia** (hutan, kolam, sungai, kandang, petak, warung, sumur, bubu, Kanal Timur, Gerobak). Perlu nama objek di Workspace atau titik sungai/kolam. Lihat R5.8d.
 - **GAP-C: target sudah ada di dunia tapi belum diisi di Config**: M2 s3 (`Meja Crafting`), S4 (`pak_amran`). Perbaikan satu baris per langkah, belum dikerjakan di batch ini (owner: "jangan perbaiki lebih dari butir di atas").
-- **GAP-D: M6 s1 (Tungku)**: craft Tungku di Meja Crafting belum ada di kode, dan Aksi dapur dekat Tungku belum ada. Lihat R5.8a dan R5.8b (K-95).
+- **GAP-D (M6): TUTUP.** Craft Tungku di Meja Crafting (R5.8a, K-101) dan Aksi dapur dekat Tungku (R5.8b, K-102) sudah dibangun. Walk ulang M6 di atas: 4 langkah, masing-masing punya panah. Belum diuji di Play.
 - **GAP-E: langkah beli/jual di NPC** (S1 s1, S3 s1): panah ke NPC hanya saat ditawarkan. Setelah diambil, tidak ada panah ke toko atau NPC. Target `pak_udin` dan `bang_jali` bisa diisi (sama dengan GAP-C).
 
 ## Ringkas
