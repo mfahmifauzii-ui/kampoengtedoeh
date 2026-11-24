@@ -22,7 +22,8 @@
 - **R2.G2 (fix(R2.G2), 2026-11-24, K-76):** Tetangga Baik disembunyikan selama Bantu mati (tidak tampil, cabang Sosial tidak tampil, beli ditolak `locked`). GDD 4.5 mencatat 15 skill / 75 SP. DONE-CODE, Play belum; owner cek di 09 B22 butir 3.
 - **R2.G3 (fix(R2.G3), 2026-11-24, K-77):** surat 6/13/20/29 punya teks alt tanpa Bantu selama flag mati, dipakai saat dibayar dan saat dibaca (`SuratService.TextKey`). DONE-CODE, Play belum; owner cek di 09 B22 butir 4.
 - **R2.G4 (fix(R2.G4), 2026-11-24, K-78):** dokumen only. Season "Bantu 20 lahan" tidak dibangun; GDD 19 dan Quest 03 menandai syarat flag. DONE-DOC, tidak ada yang perlu dicek di HP.
-- **Berikutnya:** R2.G5–R2.G6 berurutan, lalu walk ulang Lv 0–10. Keputusan terbuka: K-72 (default konservatif, owner belum meninjau).
+- **R2.G5 (fix(R2.G5), 2026-11-24, K-79):** dokumen only. Kerja Bakti tetap dipicu hujan Deres/Petir (tidak diubah); GDD 13.4 dan Quest 03 menulis ketergantungan cuaca; 09 B22 butir 5 menegaskan tidak ada tes solo yang menunggunya. DONE-DOC.
+- **Berikutnya:** R2.G6, lalu walk ulang Lv 0–10. Keputusan terbuka: K-72 (default konservatif, owner belum meninjau).
 - **Branch:** `feat/v.7`. Sudah di-push sampai `1f562d0`; `6c5e593`, `06521d5`, `995d049` belum.
 - **Baseline:** selene 0 error / 85 warning (turun dari 86 di feat R7.x); rojo build exit 0. Dicek ulang 24 Nov 2026 setelah id SFX dipasang.
 - **Keputusan owner terbuka:** tidak ada yang menunggu. Gerbang rilis di bawah (Bab 23) belum dikerjakan.
@@ -185,7 +186,7 @@ Butuh: R0.3 selesai.
 | R2.G2 | Skill Tetangga Baik tanpa efek saat Bantu mati: disembunyikan (cabang Sosial juga) dan tidak bisa dibeli | walk G2, K-76 | Pohon Skill tanpa Tetangga Baik; beli ditolak | | S | DONE-CODE | fix(R2.G2) |
 | R2.G3 | Teks surat 6, 13, 20, 29 yang menyebut Bantu: teks alt tanpa Bantu selama flag mati (asli dipakai saat flag hidup) | walk G3, K-77 | Toast surat memakai teks alt; tidak ada kata Bantu | | S | DONE-CODE | fix(R2.G3) |
 | R2.G4 | Season "Bantu 20 lahan" (K-58) belum ada di kode: dokumen diberi tanda "aktif saat BANTU_ENABLED" (K-78); kartu tidak dibangun | K-58, K-78, walk G4 | GDD 19, Quest 03, RP2.S menyebut syarat flag; tidak ada yang menjanjikan kartu tanpa flag | | M | DONE-DOC | fix(R2.G4) |
-| R2.G5 | side_kerjabakti (Lv 1) hanya mulai saat hujan Deres/Petir berakhir: beri jadwal atau sumber yang bisa diminta pemain | walk G5 | Quest bisa selesai dalam waktu wajar tanpa menunggu hujan | ★ | S | TODO | — |
+| R2.G5 | side_kerjabakti (Lv 1) hanya mulai saat hujan Deres/Petir berakhir. Pemicu tidak diubah (K-79); dokumen menulis ketergantungan cuaca dan checklist tidak menunggunya | walk G5, K-79 | GDD 13.4 dan Quest 03 menyebut cuaca; B22 butir 5 | ★ | S | DONE-DOC | fix(R2.G5) |
 | R2.G6 | Agenda hanya 3–4 tugas sebelum Lv 6 (GDD 14.5 minta 5): tambah tugas Lv 1 atau catat keputusan | walk G6, K-56 | Lv 1 punya 5 tugas, atau K-nn mencatat aturan baru | | S | TODO | — |
 
 ---

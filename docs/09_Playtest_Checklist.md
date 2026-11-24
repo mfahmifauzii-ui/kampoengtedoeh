@@ -382,6 +382,7 @@ Belum pernah dimainkan di Play.
 2. [ ] **Warga dua pemain:** saat akun kedua masuk, tombol Warga muncul di akun pertama; saat akun kedua keluar, tombol hilang lagi.
 3. [ ] **Skill Tetangga Baik tidak ada:** di Pohon Skill (Sosial) tidak ada skill Tetangga Baik. Skill lain tetap bisa dibeli.
 4. [ ] **Surat tanpa Bantu:** surat 6, 13, 20, 29 tidak menyebut Bantu. Jika toast surat muncul di layar, kalimatnya wajar tanpa kata "Bantu".
+5. [ ] **Kerja Bakti bukan langkah tes solo (K-79):** tidak ada langkah di B22 yang menunggu Kerja Bakti. Ia hanya muncul setelah hujan Deres atau Petir berakhir dan setelah M1 langkah 3. Quest "Pekerja Bakti" (Lv 1) boleh menunggu cuaca; jangan dihitung sebagai gagal.
 
 ### B15. Satu toast (T0, 2026-11-23): owner cek di HP dan PC
 
