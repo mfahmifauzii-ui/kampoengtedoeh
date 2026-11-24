@@ -409,3 +409,9 @@ Aturan: GUI 4.2. Satu tempat (di bawah Koin/Bunga), satu gaya krem.
 6. [ ] **Hitungan garap_5:** "Tap Garap, lalu Cangkul: n/5" naik langsung setiap petak selesai digali; tidak pernah 4/5 saat sudah 5 petak.
 7. [ ] **Tidak ada dua instruksi:** satu langkah tutorial hanya menampilkan satu teks (bubble atau toast, bukan keduanya). Pil cokelat coachmark tidak ada lagi.
 8. [ ] **Mancing:** status "Menunggu…" di strip bawah berwarna krem dan tidak menutupi dock atau tombol Aksi.
+
+### B24. Putaran 5 quest (owner playtest 2026-11-24, K-92…): cek di HP
+
+Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
+
+1. [ ] **Tracker tetap tampil saat bicara (K-92):** ambil quest dari NPC. Tracker di kiri tidak hilang selama dialog dan setelahnya.

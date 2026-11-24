@@ -146,7 +146,8 @@ end
 -- While a conversation is open every other screen is hidden (HUD, pills, hints, bars): only the NPC, the camera, the dialogue
 -- box and the choices remain. They come back, exactly as they were, when it closes.
 local hiddenGuis: { ScreenGui } = {}
-local KEEP_VISIBLE = { DialogueUI = true, T1Dialog = true }
+-- K-92: the quest tracker stays up during a talk (it vanished when a talk took a quest; quest UI must not blink).
+local KEEP_VISIBLE = { DialogueUI = true, T1Dialog = true, QuestUI = true }
 
 local function hideOtherGuis()
 	if #hiddenGuis > 0 then

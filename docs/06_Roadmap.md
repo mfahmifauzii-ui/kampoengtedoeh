@@ -8,6 +8,7 @@
 
 ## Handoff (update setiap selesai tugas; sesi baru mulai dari sini)
 
+- **Owner playtest 2026-11-24, quest butir 1 (Q5.1, K-92):** tracker tetap tampil saat bicara dengan NPC (`QuestUI` masuk `KEEP_VISIBLE`). DONE-CODE, Play belum; owner cek di 09 B24 butir 1. Butir quest 2–8 = Roadmap bab 24 (Q5.2–Q5.8), belum dikerjakan.
 - **Owner playtest 2026-11-24, butir 6 (fix, K-89):** toast naik level dan toast "Terbuka" berurutan satu chip sekaligus (1,8–5 dtk sesuai panjang). DONE-CODE, Play belum; owner cek di 09 B23 butir 6.
 - **Owner playtest 2026-11-24, butir 5 (fix, K-88):** tombol Ok toast "Bibit habis" = tombol UiKit standar, tinggi `TOUCH` 32 (GUI 4.2 44 px diganti). DONE-CODE, Play belum; owner cek di 09 B23 butir 5.
 - **Follow-up owner (K-91, 2026-11-24):** potret Pak Kumis tetap kosong (tidak ada placeholder yang tepat); Roadmap R4.5 `needs asset: Pak Kumis portrait`. DONE-CODE (teks saja), Play NOT verified.
@@ -458,3 +459,18 @@ Semua baris di sini berstatus TODO kecuali disebut lain. Tidak ada yang VERIFIED
 | GR-1 | Perintah DEV dimatikan untuk akun owner di server live (`Config/DevAccess.LIVE_ENABLED = false`). Audit 2026-11-24: sekarang `true`. Termasuk jalur `!masuk` (masuk gameplay tanpa PLAY, feat MS-2, Bab 17). | TODO | R10.5 |
 | GR-2 | Tes otomatis minimal: skrip assert (lune atau Studio) untuk harga `Trade` dan `ShopService.validPack`. Belum ada file tes di repo. | TODO | R10.x (sebelum perubahan ekonomi berikutnya) |
 | GR-3 | Loop polling di `GuideController` (0.3 s) diganti event. Dijadwalkan setelah F8. | TODO | setelah F8 |
+
+## 24. Putaran 5: quest (owner playtest 2026-11-24, K-92…)
+
+Satu butir = satu commit. Selene 0 error / 85 warning, rojo exit 0 di tiap commit. Tidak ada Play run; semua DONE-CODE sampai owner cek di 09 B24.
+
+| ID | Tugas | Dasar | Selesai kalau | Status | Commit |
+|----|-------|-------|---------------|---|---|
+| Q5.1 | Tracker tidak hilang saat quest diambil dari NPC | Butir 1, K-92 | Tracker tetap tampil selama bicara | DONE-CODE | — |
+| Q5.2 | Satu Quest Log, 4 tab (Main, Side, Harian, Pesanan); tombol dock Pesanan jadi Quest; tombol Quest di kartu pemain | Butir 2, GUI 6.8 | Satu panel, tanpa sheet Pesanan terpisah | TODO | — |
+| Q5.3 | Track / Lepas per baris (maks 3); tracker dan panah arah | Butir 3, GUI 6.8 | Quest bertanda tampil di tracker dengan panah | TODO | — |
+| Q5.4 | Turn-in Main dan Side: "siap diserahkan", "!" dan panah ke pemberi, hadiah saat bicara | Butir 4, K-93 | Hadiah hanya dibayar saat bicara | TODO | — |
+| Q5.5 | Surat Kakek (S2): baris tracker dan panah menuju tempat baca, tombol Baca | Butir 5 | S2 selesai dari awal sampai akhir | TODO | — |
+| Q5.6 | Hapus baris kosong "Tidak ada Kerja Bakti sekarang" | Butir 6 | Kerja Bakti hanya muncul saat aktif | TODO | — |
+| Q5.7 | Lv 5 Kanal Barat: baris unlock setelah banner level, "!" di Kak Fajar, quest tracked dengan panah | Butir 7 | Pemain tahu harus menemui Kak Fajar | TODO | — |
+| Q5.8 | M6 Dapur: langkah ke Meja Crafting, Tungku di lahan, Aksi di dekat Tungku, masing-masing ada petunjuk. Jalan ulang M1–M9 dan S1–S9 di atas kertas | Butir 8 | Celah tercatat di `docs/reports/` dan baris TODO | TODO | — |
