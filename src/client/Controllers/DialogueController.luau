@@ -41,8 +41,6 @@ local holdFor: string? = nil -- the NPC whose sapaan decision / greeting is on s
 local FOCUS_TIME = 0.6
 local RETURN_TIME = 0.45
 local saved: { cframe: CFrame, fov: number }? = nil
-local focusedModel: Model? = nil
-local focusedPivot: CFrame? = nil
 local cameraTween: Tween? = nil
 
 local function flat(v: Vector3): Vector3
@@ -100,15 +98,8 @@ local function focusNpc(npcId: string)
 	if not saved then
 		saved = { cframe = camera.CFrame, fov = camera.FieldOfView }
 	end
-	-- The NPC turns to face you (local only).
-	if focusedModel ~= model then
-		if focusedModel and focusedPivot then
-			focusedModel:PivotTo(focusedPivot)
-		end
-		focusedModel, focusedPivot = model, model:GetPivot()
-	end
-	local pivot = (focusedPivot :: CFrame).Position
-	model:PivotTo(CFrame.lookAt(pivot, pivot + toPlayer))
+	-- K-106: the server turns the NPC toward the player (0.35 s, replicated); the camera does not wait for it.
+	Net.Send("NpcFace", npcId, true)
 
 	-- The head after the NPC has turned (it may have moved a little).
 	local turned = model:FindFirstChild("Head")
@@ -121,10 +112,6 @@ end
 
 -- instant = true: the camera goes back at once, with no tween (Jual / Beli opens the shop straight away).
 local function releaseCamera(instant: boolean?)
-	if focusedModel and focusedPivot and focusedModel.Parent then
-		focusedModel:PivotTo(focusedPivot)
-	end
-	focusedModel, focusedPivot = nil, nil
 	NpcCamera.SetBlur(false)
 	local back = saved
 	saved = nil
@@ -185,10 +172,6 @@ local function resetCameraToPlayer()
 		cameraTween:Cancel()
 		cameraTween = nil
 	end
-	if focusedModel and focusedPivot and focusedModel.Parent then
-		focusedModel:PivotTo(focusedPivot)
-	end
-	focusedModel, focusedPivot = nil, nil
 	saved = nil
 	NpcCamera.SetBlur(false)
 	local camera = Workspace.CurrentCamera
@@ -203,6 +186,9 @@ local function resetCameraToPlayer()
 end
 
 local function close(instantCamera: boolean?)
+	if currentNpc then
+		Net.Send("NpcFace", currentNpc, false) -- K-106: the NPC turns back (server side; also on respawn and leaving)
+	end
 	currentNpc = nil
 	holdFor = nil
 	QuestOfferController.Cancel() -- Q-3: a start dialog that is still running does not accept its quest

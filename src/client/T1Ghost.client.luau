@@ -1345,6 +1345,7 @@ local function runGiftBeat(beat: Beat, _guide: any)
 			return
 		end
 		ended = true
+		Net.Send("NpcFace", beat.npc, false) -- K-106: the NPC turns back
 		if endCutscene then
 			endCutscene()
 		end
@@ -1374,13 +1375,9 @@ local function runGiftBeat(beat: Beat, _guide: any)
 	end
 	task.wait(0.9)
 
-	-- 2. He turns to the player, then the gift bubble (one button).
-	local from = npcRig:GetPivot()
-	local turnTo = CFrame.lookAt(from.Position, Vector3.new(root.Position.X, from.Position.Y, root.Position.Z))
-	for step = 1, 8 do
-		npcRig:PivotTo(from:Lerp(turnTo, step / 8))
-		task.wait(0.04)
-	end
+	-- 2. He turns to the player (K-106: the server turns him, 0.35 s, replicated), then the gift bubble (one button).
+	Net.Send("NpcFace", beat.npc, true)
+	task.wait(0.35)
 	-- Naskah 1.4: line 1 (Next), then line 2 with the one button (Terima Hadiah).
 	if beat.greet then
 		lineNext(beat.name, npcRig, Locale.t(beat.greet, { name = player.DisplayName }))
@@ -1432,6 +1429,7 @@ local function runBeat(beat: Beat, guide: any)
 			return
 		end
 		ended = true
+		Net.Send("NpcFace", beat.npc, false) -- K-106: the NPC turns back
 		Cutscene.End()
 		PromptGate.Show()
 		T1Dialog.Hide()
@@ -1451,6 +1449,7 @@ local function runBeat(beat: Beat, guide: any)
 	local endCutscene: (() -> ())? = nil -- Cutscene.Begin's End, set inside the fade (nil until then)
 	humanoid:MoveTo(root.Position) -- stop any walk before the screen goes dark
 	saleRestore = function()
+		Net.Send("NpcFace", beat.npc, false) -- K-106: the NPC turns back
 		if endCutscene then
 			endCutscene()
 		end
@@ -1467,13 +1466,9 @@ local function runBeat(beat: Beat, guide: any)
 	end)
 	beatLog("sale: fade, teleport, Cutscene.Begin")
 
-	-- 2. The NPC turns to face the player (a short turn, the rig only: other players see the normal pose).
-	local from = npcRig:GetPivot()
-	local turnTo = CFrame.lookAt(from.Position, Vector3.new(root.Position.X, from.Position.Y, root.Position.Z))
-	for step = 1, 8 do
-		npcRig:PivotTo(from:Lerp(turnTo, step / 8))
-		task.wait(0.04)
-	end
+	-- 2. The NPC turns to face the player (K-106: the server turns him, 0.35 s, replicated to every player).
+	Net.Send("NpcFace", beat.npc, true)
+	task.wait(0.35)
 
 	local function say(text: string, choices: { T1Dialog.Choice }?)
 		local pressed = false

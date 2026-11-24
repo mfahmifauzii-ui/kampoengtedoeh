@@ -173,6 +173,8 @@ Ini satu-satunya aturan toast. Modul lain tidak boleh membuat label hint sendiri
 Status T0 (06 Bab 18): API pinned + dismissible dan hitungan garap_5 event-driven = DONE-CODE. Reroute GuideUI Hint, brown pill coachmark, dan statusFrame Memancing = TODO.
 
 ### 4.3 Bubble Dialog NPC (`T1Dialog`)
+
+- **Menghadap saat bicara (K-106, owner 2026-11-24):** NPC menoleh ke pemain 0,35 dtk saat bicara dimulai, lalu kembali ke posisi dan arah semula saat bicara selesai (tutup, lepas, respawn, pemain keluar). Dilakukan server, jadi semua pemain melihat. Hanya rotasi, tidak pindah.
 n- **MS-2 (2026-11-23):** bubble NPC tutorial (`T1Dialog`) berada di atas dock: `T1Dialog.DOCK_CLEAR` = 92 px dari bawah, tidak menutupi tombol Garap atau Aksi. Ring Garap kuning bulat (tanpa gelap) saat garap_5. Lihat docs/03 Bab 4.2c.
 
 | | Bubble Instruksi (langkah tutorial / quest) | Bubble Percakapan (NPC, Next / pilihan) |

@@ -68,6 +68,7 @@ local function adopt(npc: Npcs.Npc): boolean
 				Net.Fire("Notify", player, "npc.tut_block") -- Bab 16.3: "Selesaikan tutorial dulu", no dialog
 				return
 			end
+			NpcService.Face(npc.id, player, true) -- K-106: the NPC turns to the player at the talk start
 			Net.Fire("NpcTalk", player, npc.id)
 			QuestService.Report(player, `talk_{npc.id}`) -- Quest S4 "talk_pak_amran", quest giver progress
 		end)
@@ -221,6 +222,7 @@ local function build(npc: Npcs.Npc)
 			Net.Fire("Notify", player, "npc.tut_block")
 			return
 		end
+		NpcService.Face(npc.id, player, true) -- K-106: the NPC turns to the player at the talk start
 		Net.Fire("NpcTalk", player, npc.id)
 		QuestService.Report(player, `talk_{npc.id}`)
 	end)
@@ -341,6 +343,97 @@ local function publishTutorialModel(npcId: string)
 	else
 		warn(`[NpcService] ServerStorage.NpcModels.{npcId} not found: the tutorial copy of {npcId} will use the colour fallback`)
 	end
+end
+
+-- K-106 (owner 2026-11-24): an NPC turns to the player it talks to and turns back when the talk ends. The server moves the
+-- NPC (it is anchored, so every client sees the same turn). Rotation only: the NPC never leaves its spot. 0.35 s each way.
+-- Restores: the client's close (NpcFace off), the player leaving, respawn (CharacterRemoving). One talker per NPC.
+local TURN_SECONDS = 0.35
+local FACE_RANGE = 40 -- studs: the server only turns an NPC for a player who is that close
+
+local faced: { [string]: { player: Player, home: CFrame } } = {}
+
+-- Turns the NPC's rotation toward `goal` over `seconds`. entry (optional): stops if the NPC is no longer that talk's.
+local function turnRotation(npcId: string, goal: CFrame, seconds: number, entry: { player: Player, home: CFrame }?)
+	local model = models[npcId]
+	if not model then
+		return
+	end
+	local from = model:GetPivot().Rotation
+	local startedAt = os.clock()
+	while model.Parent do
+		if entry and faced[npcId] ~= entry then
+			return
+		end
+		local alpha = math.min((os.clock() - startedAt) / seconds, 1)
+		model:PivotTo(CFrame.new(model:GetPivot().Position) * from:Lerp(goal, alpha))
+		if alpha >= 1 then
+			return
+		end
+		task.wait()
+	end
+end
+
+-- on = true: the NPC turns toward `player` (only if nobody is talking to it yet). on = false: the NPC turns back, if this
+-- player is the one it turned for.
+function NpcService.Face(npcId: string, player: Player, on: boolean)
+	local model = models[npcId]
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not model or not model.Parent or not root or not root:IsA("BasePart") then
+		return
+	end
+	local pos = model:GetPivot().Position
+	if (pos - root.Position).Magnitude > FACE_RANGE then
+		return
+	end
+	if on then
+		if faced[npcId] then
+			return
+		end
+		local entry = { player = player, home = model:GetPivot().Rotation }
+		faced[npcId] = entry
+		local goal = CFrame.lookAt(pos, Vector3.new(root.Position.X, pos.Y, root.Position.Z)).Rotation
+		turnRotation(npcId, goal, TURN_SECONDS, entry)
+	else
+		local entry = faced[npcId]
+		if not entry or entry.player ~= player then
+			return
+		end
+		faced[npcId] = nil
+		turnRotation(npcId, entry.home, TURN_SECONDS)
+	end
+end
+
+-- Puts back, at once, every NPC this player turned (respawn, leaving).
+function NpcService.ReleaseFace(player: Player)
+	for npcId, entry in faced do
+		if entry.player == player then
+			faced[npcId] = nil
+			local model = models[npcId]
+			if model and model.Parent then
+				model:PivotTo(CFrame.new(model:GetPivot().Position) * entry.home)
+			end
+		end
+	end
+end
+
+function NpcService.Init()
+	Net.On("NpcFace", function(player: Player, npcId: any, on: any)
+		if typeof(npcId) == "string" and typeof(on) == "boolean" then
+			NpcService.Face(npcId, player, on)
+		end
+	end, { rate = 8, burst = 16 })
+	local function watch(player: Player)
+		player.CharacterRemoving:Connect(function()
+			NpcService.ReleaseFace(player)
+		end)
+	end
+	Players.PlayerAdded:Connect(watch)
+	for _, player in Players:GetPlayers() do
+		watch(player)
+	end
+	Players.PlayerRemoving:Connect(NpcService.ReleaseFace)
 end
 
 function NpcService.Start()
