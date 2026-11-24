@@ -19,6 +19,7 @@ local Workspace = game:GetService("Workspace")
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Quests = require(ReplicatedStorage.Shared.Config.Quests)
+local Npcs = require(ReplicatedStorage.Shared.Config.Npcs)
 local State = require(script.Parent.Parent.State)
 local FeatureClient = require(script.Parent.Parent.FeatureClient)
 local UiKit = require(script.Parent.Parent.UiKit)
@@ -45,7 +46,6 @@ local logTab: string = "main"
 local pointedKey: string? = nil -- "Tunjukkan": the arrow goes to this key until pointedUntil
 local pointedUntil = 0.0
 local arrowTarget: (() -> Vector3?)? = nil -- where the arrow points now (nil = no arrow)
-local arrowLabel = ""
 local refresh: () -> ()
 
 -- ---------------------------------------------------------------------------------------------------------------------
@@ -118,16 +118,6 @@ local function targetOfQuest(questId: string, snap: any): (() -> Vector3?)?
 	end
 end
 
-local function labelOfTarget(questId: string, snap: any): string
-	local name = nameOfTarget(questId, snap) or ""
-	if name == KB_QUEST then
-		return Locale.t("kb.active")
-	end
-	if name == "lahan" then
-		return Locale.t("target.lahan")
-	end
-	return if Locale.has(`npc.{name}`) then Locale.t(`npc.{name}`) else name
-end
 
 -- The position of an NPC (its Head) or a named world object, nil while it is not in the world.
 function QuestController.PositionOf(name: string): Vector3?
@@ -546,13 +536,15 @@ local function fitTracker()
 	end
 end
 
--- Screen-edge arrow + world marker (one target). Runs every frame only while a target is set.
+-- K-110 (owner 2026-11-24 butir 6): tracking shows a direction arrow only. On screen, a straight arrow above the player's head
+-- points at the target; off screen, a screen-edge arrow points at it. No name label. Hidden the moment there is no target
+-- (Lepas, completion, removal). Runs every frame only while the GUI is enabled.
 local function placeArrow()
-	if not arrowGui or not arrowTarget then
+	if not arrowGui then
 		return
 	end
 	local camera = Workspace.CurrentCamera
-	local world = arrowTarget()
+	local world = if arrowTarget then arrowTarget() else nil
 	if not camera or not world then
 		arrowGui.Enabled = false
 		return
@@ -565,8 +557,15 @@ local function placeArrow()
 	if onScreen then
 		arrowEdge.Visible = false
 		arrowMarker.Visible = true
-		arrowMarker.Text = arrowLabel
-		arrowMarker.Position = UDim2.fromOffset(screen.X, screen.Y - 26)
+		local character = player.Character
+		local head = character and character:FindFirstChild("Head")
+		local anchor = if head and head:IsA("BasePart")
+			then camera:WorldToViewportPoint(head.Position + Vector3.new(0, 1.5, 0))
+			else Vector3.new(center.X, center.Y, 0)
+		local from = Vector2.new(anchor.X, anchor.Y)
+		local dir = Vector2.new(screen.X, screen.Y) - from
+		arrowMarker.Position = UDim2.fromOffset(from.X, from.Y - 40)
+		arrowMarker.Rotation = if dir.Magnitude > 4 then math.deg(math.atan2(dir.Y, dir.X)) else 0
 	else
 		arrowMarker.Visible = false
 		arrowEdge.Visible = true
@@ -592,22 +591,91 @@ local function placeArrow()
 	end
 end
 
+-- K-110: the "!" over every tracked quest's NPC (the giver of an offer or a ready quest, or a step target that is an NPC).
+-- Its own billboard on the NPC's head, 200 studs, gold "!" (as the offer marker). Removed with the tracking.
+local trackMarkers: { [string]: BillboardGui } = {}
+local wantedNpcs: { [string]: boolean } = {} -- the NPCs chooseArrow last wanted a "!" over (re-synced by the 0.5 s loop)
+
+local function npcHeadNamed(name: string): BasePart?
+	local folder = Workspace:FindFirstChild("Npcs")
+	if folder then
+		for _, model in folder:GetChildren() do
+			if model:IsA("Model") and giverOf(model.Name) == name then
+				local head = model:FindFirstChild("Head")
+				if head and head:IsA("BasePart") then
+					return head
+				end
+			end
+		end
+	end
+	return nil
+end
+
+local function makeTrackMarker(head: BasePart): BillboardGui
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "TrackBang"
+	billboard.Adornee = head
+	billboard.Size = UDim2.fromOffset(26, 30)
+	billboard.StudsOffset = Vector3.new(0, 3.6, 0)
+	billboard.AlwaysOnTop = false
+	billboard.MaxDistance = 200
+	billboard.Parent = head
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundColor3 = Color3.fromRGB(250, 240, 214)
+	label.Text = "!"
+	label.TextColor3 = Color3.fromRGB(214, 164, 64)
+	label.Font = UiKit.FONT
+	label.TextScaled = true
+	label.Parent = billboard
+	Instance.new("UICorner").Parent = label
+	return billboard
+end
+
+local function syncTrackMarkers(wanted: { [string]: boolean })
+	for name, gui in trackMarkers do
+		local head = npcHeadNamed(name)
+		if not wanted[name] or head == nil or gui.Adornee ~= head then
+			gui:Destroy()
+			trackMarkers[name] = nil
+		end
+	end
+	for name in wanted do
+		if trackMarkers[name] == nil then
+			local head = npcHeadNamed(name)
+			if head then
+				trackMarkers[name] = makeTrackMarker(head)
+			end
+		end
+	end
+end
+
 -- Chooses the arrow target: the "Tunjukkan" key while it runs, else the first tracked quest that has a place to point at.
+-- Also sets the "!" markers: every tracked quest whose target is an NPC.
 local function chooseArrow(snap: any)
 	arrowTarget = nil
-	arrowLabel = ""
 	if pointedKey and os.clock() > pointedUntil then
 		pointedKey = nil
 	end
-	local keys: { string } = if pointedKey then { pointedKey } elseif snap and snap.quests then snap.quests.tracked else {}
+	local tracked: { string } = if snap and snap.quests then snap.quests.tracked else {}
+	local keys: { string } = if pointedKey then { pointedKey } else tracked
 	for _, key in keys do
 		local getter = targetOfQuest(key, snap)
 		if getter then
 			arrowTarget = getter
-			arrowLabel = labelOfTarget(key, snap)
 			break
 		end
 	end
+	local wanted: { [string]: boolean } = {}
+	for _, key in tracked do
+		-- Only an active step's NPC: an offer's or a ready quest's giver already has the "!" of QuestOfferController.
+		local name = nameOfTarget(key, snap)
+		if name and Npcs.byId[name] and snap.quests.active[key] ~= nil then
+			wanted[name] = true
+		end
+	end
+	wantedNpcs = wanted
+	syncTrackMarkers(wanted)
 end
 
 -- K-104: names the tracked quests point at: the Aksi slot breaks a tie in their favour.
@@ -765,14 +833,15 @@ function QuestController.Init()
 	arrowEdge.Parent = arrowGui
 	Instance.new("UICorner").Parent = arrowEdge
 
-	arrowMarker = Instance.new("TextLabel")
+	arrowMarker = Instance.new("TextLabel") -- the straight arrow above the player's head (on screen)
 	arrowMarker.Name = "Marker"
-	arrowMarker.AnchorPoint = Vector2.new(0.5, 1)
-	arrowMarker.Size = UDim2.fromOffset(220, 28)
+	arrowMarker.AnchorPoint = Vector2.new(0.5, 0.5)
+	arrowMarker.Size = UDim2.fromOffset(34, 34)
 	arrowMarker.BackgroundColor3 = UiKit.DARK
 	arrowMarker.BackgroundTransparency = 0.1
 	arrowMarker.Font = UiKit.FONT
-	arrowMarker.TextSize = 14
+	arrowMarker.TextSize = 24
+	arrowMarker.Text = ">"
 	arrowMarker.TextColor3 = UiKit.CREAM
 	arrowMarker.Visible = false
 	arrowMarker.Parent = arrowGui
@@ -820,6 +889,7 @@ function QuestController.Start()
 				refresh()
 			end
 			syncButtons()
+			syncTrackMarkers(wantedNpcs) -- NPC models stream in after tracking: the "!" follows them
 			task.wait(0.5)
 		end
 	end)

@@ -317,7 +317,8 @@ Satu panel (`QuestLog`). Dibuka dari tombol **Quest** di dock bawah (tempat tomb
 ### 6.8b Tracker dan panah (owner 2026-11-24 butir 3, 5, 7)
 
 - Tracker kiri berisi baris quest yang dilacak, urutan ikut urutan Track. Baris: langkah aktif, **Siap diserahkan ke <pemberi>**, atau **Temui <pemberi>**. Baris Surat (surat yang jatuh tempo) punya tombol **Baca**. Quest S2 (Surat Pertama) saat langkahnya baca juga punya **Baca** (K-95).
-- **Panah:** satu target dalam satu waktu. Di luar layar: panah di tepi layar menunjuk ke target. Di layar: label nama di atas target. Target = pemberi (siap diserahkan atau ditawarkan), atau `target` langkah di `Config/Quests`.
+- **Panah:** satu target dalam satu waktu. Di luar layar: panah di tepi layar menunjuk ke target. Di layar: panah lurus di atas kepala pemain, menunjuk ke target (K-110; tanpa label nama). Target = pemberi (siap diserahkan atau ditawarkan), atau `target` langkah di `Config/Quests`.
+- **"!" di NPC (K-110):** NPC yang menjadi target langkah aktif quest yang dilacak diberi "!" emas (200 stud). Lepas, selesai, atau quest dihapus: panah dan "!" hilang. Jalur tanah (path trail) sebagai peningkatan nanti, belum dibuat.
 - Tunjukkan di log menaruh panah ke target quest itu selama 6 dtk.
 
 ### 6.9 Papan Hari Ini (baru, ✔ K-34 / Penyempurnaan P-04)
