@@ -140,7 +140,7 @@ Reset harian (Agenda, Login, Bantu, Order, batas Kerja Bakti) = **05:00 WIB**. H
 
 | Aturan | Detail |
 |--------|--------|
-| Siklus | Terik 8–15 mnt (acak) → Hujan 3 mnt → Terik … Tidak pernah hujan 2x berturut. |
+| Siklus | Terik 3–5 mnt (acak; K-128, sebelumnya 8–15) → Hujan 3 mnt → Terik … Tidak pernah hujan 2x berturut. |
 | Jenis hujan | Gerimis 55%, Deres 30%, Petir 15%. |
 | Tanda | 10 detik sebelum hujan: awan gelap + suara + ikon. Tidak ada ramalan. |
 | Terik | Netral. |
@@ -1102,7 +1102,7 @@ Daftar lengkap (VFX, SFX, musik, haptic, animasi, model 3D) ada di **`04_Asset_B
 
 - Panen Biasa: partikel daun kecil. Bagus: kilau lembut. Prima: partikel emas + `pop` + haptic kecil.
 - Legenda: fanfare kecil + banner ke server.
-- Hujan: partikel 30 (Gerimis), 60 (Deres), 90 + kilat (Petir). Tidak ada salju. Hujan masuk dan keluar pelan (3 dtk, tanpa muncul atau hilang mendadak). Kualitas gambar Rendah = tanpa hujan (R6.5).
+- Hujan: partikel 80 (Gerimis), 120 (Deres), 150 + kilat (Petir) per detik, di kotak 40 studs di atas kamera (K-129; sebelumnya 30/60/90). Tidak ada salju. Hujan masuk dan keluar pelan (3 dtk, tanpa muncul atau hilang mendadak). Kualitas gambar Rendah = tanpa hujan (R6.5).
 - Firasat: gelembung emas di pelampung.
 - Kerja Bakti: sampah visual di alun-alun, hilang saat dipungut.
 - Banner server hanya: Legenda + Prima Late.

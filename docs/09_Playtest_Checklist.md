@@ -483,3 +483,14 @@ Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 11. [ ] **Peti Main (K-123):** garis waktu kotak dengan hitung mundur ("m:ss lagi") untuk peti berikutnya. Tombol besar "Buka Peti n" aktif saat siap. Jumlah peti: 5 (keputusan owner, K-123).
 12. [ ] **Teks kotak peti (K-123):** hadiah dan status tidak terpotong di HP portrait. Kalau terpotong, catat lebarnya.
 13. [ ] **Peta HUD (K-124/K-125):** sudah diterapkan. Di landscape HP, tablet, dan Studio simulator: sembilan ubin ≡ tampil dalam kisi tanpa menutupi Aksi atau dock (terukur, GUI 05 4.0). **Owner cek di HP portrait:** kisi 3 kolom di bawah ≡, baris ketiga lewat gulir, tidak menutupi dock. Portrait belum terukur (K-125).
+
+### B28. Hujan terlihat (K-128, K-129, K-130): cek di HP
+
+Belum pernah dilihat owner. Claude hanya memeriksa di Studio (lihat Handoff). Tidak ada yang VERIFIED.
+
+1. [ ] **Hujan datang cukup cepat (K-128):** main 10 menit. Terik 3–5 menit, lalu hujan 3 menit. Hujan pertama harus muncul sebelum menit 6.
+2. [ ] **Tetes terlihat (K-129):** saat hujan, garis tipis biru pucat jatuh di sekitar kamera dari atas. Terlihat di kamera HP default, tanpa mendekat.
+3. [ ] **Suara hujan (K-129):** suara hujan naik pelan saat hujan mulai dan turun pelan saat berhenti (sekitar 3 dtk).
+4. [ ] **Langit berubah (K-129):** saat hujan, cahaya sedikit lebih redup dan kabut sedikit naik. Saat terik, kembali seperti biasa.
+5. [ ] **Kurangi gerak (K-129):** Atur, nyalakan "Kurangi gerak". Tetes lebih jarang tetapi hujan tetap ada.
+6. [ ] **Perintah DEV (K-130):** sebagai akun DEV: `!cuaca gerimis` memulai hujan 3 menit, `!clear` menghentikannya. Hanya berfungsi untuk akun yang lolos IsAllowed.

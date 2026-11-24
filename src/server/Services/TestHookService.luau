@@ -14,6 +14,7 @@ local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local DataService = require(script.Parent.DataService)
 local InventoryService = require(script.Parent.InventoryService)
 local ProgressionService = require(script.Parent.ProgressionService)
+local WorldService = require(script.Parent.WorldService)
 
 local TestHookService = {}
 
@@ -68,6 +69,10 @@ function TestHookService.Start()
 			skipTutorial(player)
 		elseif action == "grant" then
 			grant(player)
+		elseif action == "weather:rain" then
+			WorldService.DevSetWeather("gerimis") -- server weather is per server: the same effect for everyone
+		elseif action == "weather:clear" then
+			WorldService.DevSetWeather("terik")
 		end
 	end, { rate = 4, burst = 8 })
 end

@@ -92,21 +92,25 @@ local function setupRain()
 	rainPart.CanQuery = false
 	rainPart.CanTouch = false
 	rainPart.Transparency = 1
-	rainPart.Size = Vector3.new(80, 1, 80)
+	rainPart.Size = Vector3.new(40, 1, 40)
 	rainPart.Parent = Workspace
 
 	rainEmitter = Instance.new("ParticleEmitter")
 	rainEmitter.Enabled = false
 	-- One emitter for the whole session, rate eased by fadeRain (Config/Weather PARTICLES, low counts for phones).
 	rainEmitter.Rate = 0
-	rainEmitter.Lifetime = NumberRange.new(0.9, 1.1)
-	rainEmitter.Speed = NumberRange.new(55, 65)
+	-- K-129 (rain visibility): a 40-stud box 18 studs above the camera. Drops fall through the view and stay in it ~1 s.
+	-- (The earlier 80-stud box at 30 studs spread ~40 drops over an area the camera barely sees.)
+	rainEmitter.Lifetime = NumberRange.new(1.0, 1.3)
+	rainEmitter.Speed = NumberRange.new(25, 30)
 	rainEmitter.EmissionDirection = Enum.NormalId.Bottom
 	rainEmitter.SpreadAngle = Vector2.new(4, 4)
-	rainEmitter.Size = NumberSequence.new(0.12)
-	rainEmitter.Squash = NumberSequence.new(3) -- stretch into streaks
-	rainEmitter.Transparency = NumberSequence.new(0.45)
-	rainEmitter.Color = ColorSequence.new(Color3.fromRGB(200, 210, 220))
+	-- K-129 (rain visibility): 0.12 studs drew 1-2 px at play distance, so the rain was not seen. 0.22 with a stronger stretch.
+	-- K-129 (rain visibility, tested in Studio): 0.12-0.25 studs grey drops were not readable; 0.35 pale-blue streaks are.
+	rainEmitter.Size = NumberSequence.new(0.35)
+	rainEmitter.Squash = NumberSequence.new(3.5) -- stretch into streaks
+	rainEmitter.Transparency = NumberSequence.new(0.15)
+	rainEmitter.Color = ColorSequence.new(Color3.fromRGB(215, 228, 240))
 	rainEmitter.LightInfluence = 1
 	rainEmitter.Orientation = Enum.ParticleOrientation.VelocityParallel
 	rainEmitter.Parent = rainPart
@@ -120,7 +124,12 @@ local function rainTarget(): number
 		return 0
 	end
 	local kind = Workspace:GetAttribute("Weather")
-	return (typeof(kind) == "string" and WeatherConfig.PARTICLES[kind]) or WeatherConfig.PARTICLES.gerimis
+	local rate = (typeof(kind) == "string" and WeatherConfig.PARTICLES[kind]) or WeatherConfig.PARTICLES.gerimis
+	-- Kurangi gerak (GUI 4.11): fewer drops; the rain itself stays.
+	if snapshot and snapshot.settings and snapshot.settings.reduceMotion == true then
+		rate *= WeatherConfig.REDUCE_MOTION_DENSITY
+	end
+	return rate
 end
 
 -- Eases the rate toward its target; a new target cancels the running tween. Disables the emitter once faded out.
@@ -234,7 +243,7 @@ function WorldController.Start()
 	RunService.RenderStepped:Connect(function()
 		if rainEmitter.Enabled then
 			local camera = Workspace.CurrentCamera
-			rainPart.CFrame = CFrame.new(camera.CFrame.Position + Vector3.new(0, 30, 0))
+			rainPart.CFrame = CFrame.new(camera.CFrame.Position + Vector3.new(0, 18, 0))
 		end
 	end)
 

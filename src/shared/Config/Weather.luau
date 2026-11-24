@@ -9,8 +9,9 @@ export type Kind = "terik" | "gerimis" | "deres" | "petir"
 
 return {
 	-- Durations in seconds.
-	TERIK_MIN_SECONDS = 480, -- 8 menit
-	TERIK_MAX_SECONDS = 900, -- 15 menit
+	-- K-128 (owner has never seen rain): was 480-900 s (8-15 min), so a normal 10-minute session rarely reached rain.
+	TERIK_MIN_SECONDS = 180, -- 3 menit (K-128, was 8)
+	TERIK_MAX_SECONDS = 300, -- 5 menit (was 15)
 	RAIN_SECONDS = 180, -- 3 menit
 
 	-- Roll when Terik ends. Chances sum to 1.
@@ -27,7 +28,9 @@ return {
 	HISTORY_SECONDS = 10800,
 
 	-- Client visuals (Bab 21.3). Particle counts are kept low for the 4 GB phone target (Bab 21 limits).
-	PARTICLES = { gerimis = 30, deres = 60, petir = 90 }, -- Bab 21: Gerimis 30, Deres 60, Petir 90 + kilat
+	-- K-129: rates raised (was 30/60/90, which drew too few drops to read). Phone cap: at most 150/s with 1.3 s life (about 190 alive).
+	PARTICLES = { gerimis = 80, deres = 120, petir = 150 }, -- Bab 21: Gerimis, Deres, Petir + kilat
+	REDUCE_MOTION_DENSITY = 0.4, -- Kurangi gerak: 40% of the drops, rain still on
 	RAIN_FADE_SECONDS = 3, -- rain rate eases in/out over this long (no pop-in or pop-out)
 	LIGHTNING_INTERVAL = 20, -- Petir: a flash every 20 s
 	LIGHTNING_FLASH_SECONDS = 0.1, -- the flash itself is at most 0.1 s

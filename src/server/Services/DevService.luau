@@ -27,7 +27,7 @@ local BubuService = require(script.Parent.BubuService)
 local DevAccess = require(ReplicatedStorage.Shared.Config.DevAccess)
 local DevScenarios = require(ReplicatedStorage.Shared.Config.DevScenarios)
 
-local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !sp 2, !orders, !grow, !time malam, !rain, !cuaca terik|gerimis|deres|petir, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 2: !level 2),!inv, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !buff tani 60 (UI test only: no effect yet), !give kangkung 30, !tut [reset|fast], !kakek (unlock Kolam Kakek: MQ4/Bundel placeholder)"
+local HELP = "!koin 500, !koin -200, !bunga 5, !level 10, !xp 100, !sp 2, !orders, !grow, !time malam, !rain, !clear (hujan berhenti), !cuaca terik|gerimis|deres|petir, !rod fiber, !pond (fills all your ponds; build one first via Garap > Kolam, needs Lv 2: !level 2),!inv, !receipt bunga_s, !event lebaran|off|auto, !likes 9, !buff tani 60 (UI test only: no effect yet), !give kangkung 30, !tut [reset|fast], !kakek (unlock Kolam Kakek: MQ4/Bundel placeholder)"
 
 local DevService = {}
 
@@ -322,6 +322,10 @@ local function onChatted(player: Player, message: string)
 		WorldService.DevSetPhase(arg)
 	elseif command == "rain" then
 		WorldService.DevToggleRain()
+		print(`[DevService] Raining = {Workspace:GetAttribute("Raining")}`)
+	elseif command == "clear" then
+		-- K-130: "!clear" stops the rain (Terik), the same as "!cuaca terik".
+		WorldService.DevSetWeather("terik")
 		print(`[DevService] Raining = {Workspace:GetAttribute("Raining")}`)
 	elseif command == "cuaca" then
 		local ok = WorldService.DevSetWeather(arg)

@@ -58,7 +58,7 @@ function TestHookController.Start()
 			openScreen(string.match(arg, "^(%a+)") or arg, player) -- "hadiah#2" -> "hadiah"
 		else
 			-- "grant#2" -> "grant": the #n suffix only makes each request a new attribute value.
-			Net.Send("TestHook", string.match(request, "^(%a+)") or request)
+			Net.Send("TestHook", string.match(request, "^([%a:]+)") or request) -- keeps "weather:rain"
 		end
 	end)
 end
