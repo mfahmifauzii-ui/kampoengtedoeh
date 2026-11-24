@@ -242,7 +242,7 @@ Status kode (UI-3): 3 tab ada; Musim = 2 track horizontal (node 64 px, milestone
 
 ### 6.2 Pohon Skill — Sheet Lebar (kode ST-3)
 
-- 6 dahan berjajar (Bertani, Mancing, Ternak, Tukang, Masak, Sosial), scroll horizontal di HP. Root bawah, Cabang tengah (Bertani & Mancing: A dan B berdampingan), Capstone atas, garis dahan menyala sampai node tertinggi yang dibeli.
+- 6 dahan berjajar (Bertani, Mancing, Ternak, Tukang, Masak, Sosial), scroll horizontal di HP. K-76: selama Bantu disembunyikan, dahan Sosial tidak tampil (5 dahan). Root bawah, Cabang tengah (Bertani & Mancing: A dan B berdampingan), Capstone atas, garis dahan menyala sampai node tertinggi yang dibeli.
 - Node **40 px** (`TOUCH_CTA`), jarak tier 30 px, pil level `x/5`, badge `+` bila bisa naik, bingkai emas = maks. Label nama di node: ✔ K-35 (final: ikon unik per skill, nama di drawer).
 - Header dahan: ikon cabang + nama + total (`Bertani 7/20`, tampilan saja).
 - Chip **SP** dan **Koin** kanan atas.

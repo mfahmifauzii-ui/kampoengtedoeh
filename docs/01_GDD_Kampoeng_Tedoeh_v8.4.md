@@ -221,6 +221,7 @@ Bibit/ikan/joran/umpan baru tidak digerbang quest — cukup level.
 
 - 1 level skill = **1 SP + Koin yang naik**: Lv 1 = 1.000, Lv 2 = 2.000, Lv 3 = 3.000, Lv 4 = 4.000, Lv 5 = 5.000 ✔ K-12. Total per skill 15.000; total semua 240.000 (kode saat ini 3.000 rata → R1.8).
 - Maks 1 skill = 5 level = 5 SP + 15.000 Koin. Semua skill = 80 SP + 240.000 Koin (tercapai Lv 81).
+- **K-76 (Bantu disembunyikan):** selama `BANTU_ENABLED = false`, Tetangga Baik tidak tampil dan tidak bisa dibeli, sehingga cabang Sosial tidak tampil. Yang tersedia 15 skill, 5 cabang. Semua skill yang bisa dibeli = 75 SP + 225.000 Koin (tercapai Lv 76). Angka di atas (16 skill, 80 SP) berlaku saat flag hidup. Tidak ada skill lain yang prasyaratnya memakai total level Tetangga Baik.
 - Sampai Lv 60 pemain hanya punya 59 SP → harus memilih cabang. Belanja skill maksimal sampai Lv 60 = 177.000 Koin.
 - Beli hanya bila **Player Lv** cukup **dan** prasyarat skill terpenuhi (dihitung dari level skill). Tidak ada level cabang.
 - "N SP di mana pun" = jumlah level semua skill ≥ N.

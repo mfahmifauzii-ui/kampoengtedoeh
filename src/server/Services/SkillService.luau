@@ -30,6 +30,9 @@ local function buy(player: Player, skillId: any): BuyResult
 	if not def or not data then
 		return "unknown"
 	end
+	if Skills.HIDDEN[skillId] then -- K-76: hidden skill (Tetangga Baik while Bantu is off)
+		return "locked"
+	end
 	-- D-39: the Skill panel is a level-gated feature (Player Lv 2). Same toast as every gated feature when it is closed.
 	if not FeatureGate.Check(player, "skill") then
 		return "locked"

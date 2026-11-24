@@ -64,7 +64,13 @@ for _, def in SKILLS do
 	byId[def.id] = def
 end
 
-local CABANG_ORDER = { "bertani", "mancing", "ternak", "tukang", "masak", "sosial" }
+-- K-76 (G2): Tetangga Baik only adds to Bantu (Config/Features). While Bantu is hidden it is not in the tree (its branch
+-- "sosial" is not shown) and cannot be bought (SkillService checks HIDDEN). Data stays.
+local Features = require(script.Parent.Features)
+local HIDDEN: { [string]: boolean } = if Features.BANTU_ENABLED then {} else { tetangga_baik = true }
+local CABANG_ORDER = if Features.BANTU_ENABLED
+	then { "bertani", "mancing", "ternak", "tukang", "masak", "sosial" }
+	else { "bertani", "mancing", "ternak", "tukang", "masak" }
 
 -- Biaya (Skill Tree Bab 1): per level.
 local SP_PER_LEVEL = 1
@@ -143,6 +149,7 @@ return {
 	SKILLS = SKILLS,
 	byId = byId,
 	CABANG_ORDER = CABANG_ORDER,
+	HIDDEN = HIDDEN,
 	SP_PER_LEVEL = SP_PER_LEVEL,
 	koinForLevel = koinForLevel,
 	missing = missing,
