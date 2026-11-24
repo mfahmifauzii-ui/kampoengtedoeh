@@ -432,3 +432,9 @@ Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 16. [ ] **Dock 4 tombol (K-104):** dock bawah hanya Garap, Hias, Tas, Quest. Tidak ada Kolam di dock.
 17. [ ] **Kolam dari ≡ dan Aksi (K-104):** Kolam ada sebagai ubin di menu ≡ (mode Garap kolam). Dekat kolam sendiri, tombol Aksi "Kolam" muncul dan membuka panel Kolam.
 18. [ ] **Prioritas slot Aksi (K-104):** berdiri di antara kolam dan node tambang. Tombol yang tampil adalah yang lebih dekat. Jarak sama: tombol untuk quest yang dilacak yang tampil. Tidak ada dua tombol Aksi bersamaan.
+
+### B25. Putaran 6 (owner playtest 2026-11-24, kamera, NPC, memancing, quest): cek di HP
+
+Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
+
+1. [ ] **Jual Pertama, kamera (K-105):** saat mendekati Pak Udin, layar jadi hitam, lalu fade masuk di shot dekat (wajah Pak Udin dan avatar terlihat, seperti adegan Mak Sari). Tidak ada jalan masuk frame.

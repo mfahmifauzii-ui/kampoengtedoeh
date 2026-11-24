@@ -940,7 +940,7 @@ Dua tutorial: `t1_awal` (langkah 1–9) dan `t1b_kolam` (langkah 10–13). Id la
 
 ### 16.4 Cutscene Jual Pertama — LOCKED
 
-- Trigger **proximity** (`SALE_BEAT_RADIUS` 10 stud), dicek tiap frame di klien. Pemain dikunci. **Kamera (K-84, 2026-11-24):** shot lebar tetap di dekat pohon beringin, menghadap warung dan Pak Udin (kamera tidak boleh di dalam avatar atau prop; tanpa blur). Pemain berjalan ke titik berdiri (`MoveTo`) dan masuk frame; Pak Udin menoleh; baru bubble. Tanpa skip.
+- Trigger **proximity** (`SALE_BEAT_RADIUS` 10 stud), dicek tiap frame di klien. Pemain dikunci. **Kamera (K-105, 2026-11-24; menggantikan K-84):** layar jadi hitam, pemain dipindah ke depan warung Pak Udin (4,5 stud, menghadap dia), lalu fade masuk di shot bicara dekat (`NpcCamera.Shot`, angka yang sama dengan adegan Mak Sari). Tidak ada jalan masuk frame. Pak Udin menoleh; baru bubble. Tanpa skip.
 - Jual lewat pilihan **"Jual semua"** di bubble (tanpa GUI Jual). Harga tetap 100% Pak Udin. Ditolak → bubble diulang.
 - Setelah jual: baris penutup + baris yang mengarahkan ke Kak Fajar → fade.
 

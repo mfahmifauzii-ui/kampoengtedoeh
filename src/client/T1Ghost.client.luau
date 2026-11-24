@@ -41,7 +41,6 @@ local Locale = require(RS.Shared.Locale)
 local Items = require(RS.Shared.Modules.Items)
 local Npcs = require(RS.Shared.Config.Npcs)
 local Onboarding = require(RS.Shared.Config.Onboarding)
-local Map = require(RS.Shared.Config.Map)
 local Cutscene = require(script.Parent:WaitForChild("Cutscene"))
 local UiKit = require(script.Parent:WaitForChild("UiKit"))
 local FadeManager = require(script.Parent:WaitForChild("FadeManager"))
@@ -1143,12 +1142,9 @@ end
 -- No click, no auto-sell, no skip, full price: the beat opens the sale as a bubble choice, waits for the real sale (the
 -- guide flag from the server), says the lines and ends.
 local SALE_BEAT_DISTANCE = Onboarding.SALE_BEAT_RADIUS -- studs (flat) between the player and the NPC when the beat starts; the server sell range is Shop.NPC_DISTANCE
--- The wide shot of the sale (Bab 16.4, 2026-11-24): a fixed camera on the tree's south-east side, aimed at the warung ring
--- south of the banyan (Pak Udin's stall at z 59, Map.WARUNG). Eye 14 studs east and 10 south of the trunk, 22 up.
-local SALE_WIDE_SHOT = {
-	eye = Vector3.new(Map.TOWN.TREE_X + 14, 22, Map.TOWN.TREE_Z + 10),
-	focus = Vector3.new(-2, 8, 40),
-}
+-- K-105 (Bab 16.4, owner 2026-11-24): the sale beat is a fade to black, then the close talk shot from a stand point 4.5
+-- studs in front of Pak Udin (the Mak Sari intro's stop distance, STOP_FORWARD/SIDE 3.2 -> 4.5). The wide shot is gone.
+local SALE_STAND_DISTANCE = 4.5
 
 -- B-1 timing log: os.clock() when the trigger fires (tryStartBeat), then each milestone of the beat. Set false to silence.
 local BEAT_TIMING_LOG = true
@@ -1446,42 +1442,32 @@ local function runBeat(beat: Beat, guide: any)
 	-- No "Ngobrol" prompt from the first step of the walk (see runGiftBeat): shown again in restore().
 	PromptGate.Hide()
 
-	-- 1. The wide shot starts at once (a cut, Bab 16.4 rebuild 2026-11-24): the player is LOCKED (Cutscene.Begin ->
-	-- PlayerLock), the camera sits near the banyan so Pak Udin, his stall and the buildings are in frame.
+	-- 1. Bab 16.4 (owner 2026-11-24, K-105 supersedes K-84): fade to black, the player is put in front of Pak Udin's stall at
+	-- the Mak Sari stop distance, facing him, and the fade comes back on the close talk shot (NpcCamera.Shot). No run-in walk.
 	local facing = npcRig:GetPivot().LookVector
 	local front = Vector3.new(facing.X, 0, facing.Z).Unit
-	local npcPos = head.Position
-	local stand = npcPos + front * 5
-	local endCutscene = Cutscene.Begin(npcRig, head, true, SALE_WIDE_SHOT)
-	beatLog("sale: Cutscene.Begin")
+	local npcFlat = Vector3.new(head.Position.X, root.Position.Y, head.Position.Z)
+	local stand = npcFlat + front * SALE_STAND_DISTANCE
+	local endCutscene: (() -> ())? = nil -- Cutscene.Begin's End, set inside the fade (nil until then)
+	humanoid:MoveTo(root.Position) -- stop any walk before the screen goes dark
 	saleRestore = function()
-		endCutscene()
+		if endCutscene then
+			endCutscene()
+		end
 		PromptGate.Show()
 		T1Dialog.Hide()
 		dialogBusy = false
 		saleRestore = nil
 	end
-
-	-- 2. The player runs into frame: MoveTo a stand point in front of the NPC (he cannot be out of the sell range). Waits for
-	-- the arrival, at most 4 s; then the walk stops where he is.
-	if humanoid then
-		local arrived = false
-		local arrivedConn = humanoid.MoveToFinished:Connect(function()
-			arrived = true
-		end)
-		humanoid:MoveTo(Vector3.new(stand.X, root.Position.Y, stand.Z))
-		local waitedWalk = 0
-		while not arrived and waitedWalk < 4 do
-			task.wait(0.1)
-			waitedWalk += 0.1
+	Cutscene.Transition(function()
+		if character then
+			character:PivotTo(CFrame.lookAt(stand, npcFlat))
 		end
-		arrivedConn:Disconnect()
-		if not arrived then
-			humanoid:MoveTo(root.Position)
-		end
-	end
+		endCutscene = Cutscene.Begin(npcRig, head, true)
+	end)
+	beatLog("sale: fade, teleport, Cutscene.Begin")
 
-	-- 3. The NPC turns to face the player (a short turn, the rig only: other players see the normal pose).
+	-- 2. The NPC turns to face the player (a short turn, the rig only: other players see the normal pose).
 	local from = npcRig:GetPivot()
 	local turnTo = CFrame.lookAt(from.Position, Vector3.new(root.Position.X, from.Position.Y, root.Position.Z))
 	for step = 1, 8 do
