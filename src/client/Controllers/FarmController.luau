@@ -814,6 +814,14 @@ local BAMBOO_RING_IMAGE = "rbxassetid://86005759010163" -- the uploaded bamboo c
 
 local popupGui: ScreenGui? = nil
 local popupCard: Frame
+-- K-120: the seed card shows 2 rows x 4 = 8 seeds per page; chevrons turn the page. Owned seeds first, x0 last (dimmed).
+local SEEDS_PER_PAGE = 8
+local popupPage = 1
+local popupPrev: TextButton
+local popupNext: TextButton
+local popupGrid: Frame
+local popupPageLabel: TextLabel
+local fillPopup: (BasePart) -> () -- defined below (the chevrons call it)
 local popupArrow: TextLabel
 local popupScale: UIScale
 local popupBed: BasePart? = nil
@@ -900,14 +908,80 @@ local function buildPopup()
 	pad.PaddingTop, pad.PaddingBottom = UDim.new(0, 10), UDim.new(0, 10)
 	pad.PaddingLeft, pad.PaddingRight = UDim.new(0, 8), UDim.new(0, 8) -- 8 px panel padding
 	pad.Parent = popupCard
+	-- Column: [row: ‹ · grid · ›] over the page label. The grid holds the 8 seeds of the current page.
+	local column = Instance.new("UIListLayout")
+	column.FillDirection = Enum.FillDirection.Vertical
+	column.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	column.Padding = UDim.new(0, 4)
+	column.SortOrder = Enum.SortOrder.LayoutOrder
+	column.Parent = popupCard
+
+	local row = Instance.new("Frame")
+	row.Name = "PageRow"
+	row.BackgroundTransparency = 1
+	row.AutomaticSize = Enum.AutomaticSize.XY
+	row.LayoutOrder = 1
+	row.Parent = popupCard
+	local rowLayout = Instance.new("UIListLayout")
+	rowLayout.FillDirection = Enum.FillDirection.Horizontal
+	rowLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	rowLayout.Padding = UDim.new(0, 6)
+	rowLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	rowLayout.Parent = row
+
+	-- Chevron: a standard tier tap target (UiKit.TOUCH, GUI 3.4), not a hardcoded size.
+	local function chevron(text: string, order: number, delta: number): TextButton
+		local button = Instance.new("TextButton")
+		button.Name = if delta < 0 then "PagePrev" else "PageNext"
+		button.LayoutOrder = order
+		button.Size = UDim2.fromOffset(UiKit.TOUCH, UiKit.TOUCH)
+		button.BackgroundColor3 = UiKit.ROW
+		button.AutoButtonColor = true
+		button.Font = UiKit.FONT
+		button.TextSize = 20
+		button.TextColor3 = UiKit.TEXT
+		button.Text = text
+		button.Parent = row
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius = UDim.new(0, 8)
+		corner.Parent = button
+		button.Activated:Connect(function()
+			if not button.Active or not popupBed then
+				return
+			end
+			popupPage += delta
+			fillPopup(popupBed)
+		end)
+		return button
+	end
+	popupPrev = chevron("‹", 1, -1)
+
+	popupGrid = Instance.new("Frame")
+	popupGrid.Name = "SeedGrid"
+	popupGrid.BackgroundTransparency = 1
+	popupGrid.AutomaticSize = Enum.AutomaticSize.XY
+	popupGrid.LayoutOrder = 2
+	popupGrid.Parent = row
 	local grid = Instance.new("UIGridLayout")
 	grid.CellSize = UDim2.fromOffset(slotPx(), slotPx()) -- bamboo rings, 8 px gaps
 	grid.CellPadding = UDim2.fromOffset(10, 10) -- 10 px between the rings
 	grid.FillDirection = Enum.FillDirection.Horizontal
 	grid.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	grid.SortOrder = Enum.SortOrder.LayoutOrder
-	grid.FillDirectionMaxCells = 4 -- 1 row of 4; 8 seeds = 2 rows, 12 = 3 rows
-	grid.Parent = popupCard
+	grid.FillDirectionMaxCells = 4 -- 4 per row = 2 rows per page (SEEDS_PER_PAGE 8)
+	grid.Parent = popupGrid
+
+	popupNext = chevron("›", 3, 1)
+
+	popupPageLabel = Instance.new("TextLabel")
+	popupPageLabel.Name = "PageLabel"
+	popupPageLabel.BackgroundTransparency = 1
+	popupPageLabel.AutomaticSize = Enum.AutomaticSize.XY
+	popupPageLabel.LayoutOrder = 2
+	popupPageLabel.Font = UiKit.FONT
+	popupPageLabel.TextSize = 12
+	popupPageLabel.TextColor3 = UiKit.TEXT
+	popupPageLabel.Parent = popupCard
 
 	popupArrow = Instance.new("TextLabel")
 	popupArrow.Name = "Arrow"
@@ -932,8 +1006,8 @@ end
 
 -- Fills the card with the seed icons for this bed. Lit = have seed & unlocked (tap plants); grey = unlocked, none in the bag
 -- (tip: buy at the shop); dark with "Lv N" = locked.
-local function fillPopup(bed: BasePart)
-	for _, child in popupCard:GetChildren() do
+function fillPopup(bed: BasePart)
+	for _, child in popupGrid:GetChildren() do
 		if child:IsA("GuiObject") then
 			child:Destroy()
 		end
@@ -942,13 +1016,34 @@ local function fillPopup(bed: BasePart)
 	local playerLevel = if typeof(level) == "number" then level else 1
 	local snapshot = State.current :: any
 	local items = if snapshot and snapshot.items then snapshot.items else {}
-	for order, crop in Crops.list do
-		local unlocked = playerLevel >= crop.unlockLevel
-		local have = items[`seed_{crop.id}`] or 0
-		-- Locked seeds are hidden from the card entirely (no lock icon, no "Lv"): the shop shows them as a goal instead.
-		if not unlocked then
-			continue
+	-- Locked seeds are hidden from the card entirely (no lock icon, no "Lv"): the shop shows them as a goal instead.
+	-- K-120: owned (have > 0) first, then x0 (dimmed), each group in Crops order.
+	local ordered = {}
+	for _, crop in Crops.list do
+		if playerLevel >= crop.unlockLevel and (items[`seed_{crop.id}`] or 0) > 0 then
+			table.insert(ordered, crop)
 		end
+	end
+	for _, crop in Crops.list do
+		if playerLevel >= crop.unlockLevel and (items[`seed_{crop.id}`] or 0) <= 0 then
+			table.insert(ordered, crop)
+		end
+	end
+	local pages = math.max(1, math.ceil(#ordered / SEEDS_PER_PAGE))
+	popupPage = math.clamp(popupPage, 1, pages)
+	popupPrev.Active = popupPage > 1
+	popupNext.Active = popupPage < pages
+	popupPrev.TextTransparency = if popupPage > 1 then 0 else 0.6
+	popupNext.TextTransparency = if popupPage < pages then 0 else 0.6
+	popupPageLabel.Text = Locale.t("seed.page", { n = popupPage, total = pages })
+	popupPageLabel.Visible = pages > 1
+	local first = (popupPage - 1) * SEEDS_PER_PAGE
+	for order = 1, SEEDS_PER_PAGE do
+		local crop = ordered[first + order]
+		if not crop then
+			break
+		end
+		local have = items[`seed_{crop.id}`] or 0
 		-- The bamboo circle is the uploaded image (rbxassetid://86005759010163): no white backdrop, no gold stroke, no dark
 		-- backdrop. The seed (3D thumbnail) sits in its middle; the count is plain white text in the top-right corner.
 		local icon = Instance.new("ImageButton") -- a button: it takes the tap (plant / tip)
@@ -960,7 +1055,7 @@ local function fillPopup(bed: BasePart)
 		icon.ScaleType = Enum.ScaleType.Fit
 		icon.AutoButtonColor = false
 		icon.ClipsDescendants = false -- the count is never clipped
-		icon.Parent = popupCard
+		icon.Parent = popupGrid
 
 		local status = if have > 0 then "lit" else "empty"
 		addThumbnail(icon, crop.id, slotPx() - 12)
@@ -1027,6 +1122,7 @@ end
 
 local function showPopup(bed: BasePart)
 	popupBed = bed
+	popupPage = 1 -- a new bed starts on the first page
 	fillPopup(bed)
 	popupGui.Enabled = true
 	popupCard.Visible = true
@@ -1034,8 +1130,8 @@ local function showPopup(bed: BasePart)
 	popupScale.Scale = 0
 	TweenService:Create(popupScale, TweenInfo.new(0.32, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
 	local children = {}
-	for _, child in popupCard:GetChildren() do
-		if child:IsA("TextButton") then
+	for _, child in popupGrid:GetChildren() do
+		if child:IsA("ImageButton") then
 			table.insert(children, child)
 		end
 	end

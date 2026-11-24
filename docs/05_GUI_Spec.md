@@ -285,6 +285,21 @@ Catatan: "Dibuat di kode = belum (F2)" berarti langkah pengulangan masih menampi
 - Cutscene yang menunggu pemain melepas kunci gerak setelah 60 detik (`Cutscene.UNTIMED_RELEASE_SECONDS`) tetap berlaku.
 - Lihat juga GDD Bab 16.6.
 
+### 4.10 Kartu bibit: 2 baris x 4, berhalaman (K-120, owner 2026-11-24)
+
+Kartu bibit (`FarmController`, muncul di atas petak kosong) menampilkan **8 bibit per halaman** (2 baris x 4 kolom). Chevron ‹ dan › di kiri dan kanan kisi memutar halaman; teks `n/total` di bawah kisi hanya tampil bila halaman lebih dari satu.
+
+- Urutan: bibit yang dimiliki (x ≥ 1) dulu, lalu x0 (redup, tidak bisa ditanam) di urutan Config/Crops. Bibit yang belum dibuka level tidak tampil.
+- Ukuran: lingkaran bambu `slotPx()` (44 px di HP, 64 px di desktop), jarak 10 px. Chevron = `UiKit.TOUCH` (32 px, GUI 3.4), tidak ukuran tetap.
+- Chevron yang tidak bisa dipakai (sudah di halaman pertama atau terakhir) = teks 60% transparan dan `Active = false`.
+- Halaman kembali ke 1 setiap kali kartu muncul di petak baru.
+
+| Ukuran | Sebelum | Sesudah |
+|--------|---------|---------|
+| Bibit tampil sekaligus | semua yang terbuka (sampai 12, hampir semua x0) | 8 per halaman |
+| Baris | 3 baris untuk 12 | 2 baris |
+| Tombol halaman | tidak ada | 2 chevron 32 px |
+
 ## 5. Bentuk Sheet
 
 | Bentuk | Kapan | HP | PC |

@@ -160,6 +160,7 @@ return {
 	["seed.tip_locked"] = "Buka di Lv {level}",
 	["seed.tip_none"] = "Bibit habis, beli di Toko",
 	["seed.tip_have"] = "{name} · x{n}",
+	["seed.page"] = "{n}/{total}", -- K-120: halaman kartu bibit (2 baris x 4)
 	["bed.menu_title"] = "Petak kosong",
 	["bed.locked"] = "Lagi ditanami, bisa dipindah, tidak bisa dihapus",
 	["bed.move"] = "Pindah",

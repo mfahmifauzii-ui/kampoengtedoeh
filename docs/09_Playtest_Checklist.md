@@ -463,3 +463,11 @@ Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 5. [ ] **Gerobak terlihat (K-118):** ada gerobak kayu placeholder di alun-alun, dekat sisi barat daya pohon.
 6. [ ] **Lihat Gerobak (K-118):** dekat gerobak, tombol "Lihat Gerobak" di kanan bawah (satu slot Aksi). Tekan: panel Acara terbuka di tab Gerobak. M1 langkah 3 selesai.
 7. [ ] **Lewat tab Acara (K-118):** tanpa ke gerobak, buka Acara lalu tab Gerobak. M1 langkah 3 tetap selesai.
+
+### B27. Putaran 7 UI (owner playtest 2026-11-24): cek di HP dan landscape
+
+Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
+
+1. [ ] **Kartu bibit 2 x 4 (K-120):** tap petak kosong di dekat petak. Kartu menampilkan 8 bibit: 2 baris, 4 kolom. Bibit yang punya stok ada di depan; x0 redup dan di belakang.
+2. [ ] **Halaman (K-120):** dengan lebih dari 8 bibit, chevron ‹ › dan teks "1/2" tampil. › pindah ke halaman 2; ‹ mati di halaman 1. Chevron 32 px mudah ditekan jempol.
+3. [ ] **Tanam dari halaman 2 (K-120):** tanam bibit di halaman 2 berhasil dan kartu tutup seperti biasa.
