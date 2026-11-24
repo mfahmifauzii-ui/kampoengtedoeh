@@ -17,7 +17,8 @@
 - **Hujan visual (R6.5, feat(R6.x): rain vfx, 2026-11-24):** satu emitter yang sudah ada di `WorldController` sekarang naik-turun rate 3 dtk, dan Kualitas gambar Rendah mematikannya. DONE-CODE, Play belum; owner cek di 09 B18. Tanda hujan, kabut, kunang, kilat, genangan belum.
 - **Seed-out (T3, feat(T3), 2026-11-24):** "Bibit habis" (`farm.no_seed`) sekarang toast Ok dismissible (`seed_out`), hilang saat Ok atau setelah beli bibit (K-72). DONE-CODE, Play belum; owner cek di 09 B19. Ok toast (09 B15 butir 5) ikut selesai lewat ini.
 - **R2.5 (feat(R2.5), 2026-11-24):** Bantu Tetangga disembunyikan lewat `Config/Features.BANTU_ENABLED = false` (K-73). Tidak ada UI Bantu, server tolak `SocialBantu`, S6 dan side Bantu `blocked`, Agenda ganti slot Bantu dengan Tanam 5 (150 Koin, 25 XP), Surat yang minta Bantu dibayar langsung (6, 13, 20, 29). Kebun Warga dibatalkan. DONE-CODE, Play belum; owner cek di 09 B21. Selene 0 error / 85 warning, rojo 0.
-- **Berikutnya:** cek gerbang quest Lv 0–10 di atas kertas (langkah 4 tugas ini), lalu gap list ke Roadmap. Owner yang tes Play untuk B20 dan B21. Keputusan terbuka: K-72 (default konservatif, owner belum meninjau).
+- **Jalan gerbang Lv 0–10 (di atas kertas, 2026-11-24):** `docs/reports/Quest_Gate_Walk_2026-11-24.md`. Enam gap jadi baris R2.G1–R2.G6 (TODO, tidak diperbaiki di tugas ini). Gap terbesar: G1 (Warga tanpa pintu masuk solo).
+- **Berikutnya:** owner yang tes Play untuk B20 dan B21. Pilih urutan R2.G1 dan seterusnya. Keputusan terbuka: K-72 (default konservatif, owner belum meninjau).
 - **Branch:** `feat/v.7`. Sudah di-push sampai `1f562d0`; `6c5e593`, `06521d5`, `995d049` belum.
 - **Baseline:** selene 0 error / 85 warning (turun dari 86 di feat R7.x); rojo build exit 0. Dicek ulang 24 Nov 2026 setelah id SFX dipasang.
 - **Keputusan owner terbuka:** tidak ada yang menunggu. Gerbang rilis di bawah (Bab 23) belum dikerjakan.
@@ -176,6 +177,12 @@ Butuh: R0.3 selesai.
 | R2.10 | Analytics (GDD 25.2 + TutorialStep + FeatureOpen) lewat `AnalyticsService` | GDD 25 | Event muncul di dashboard Creator Hub saat playtest | ★ | M | TODO | — |
 | R2.11 | Cek & lengkapi: toast sehat 120 menit, Settings (Mode Bantu, Efek rendah, Kurangi gerak, volume 4 grup, Haptic, Notif Gerobak) | GDD 2.3, GUI 6.10 | Semua setting tersimpan & berpengaruh | ★ | S | TODO | — |
 | R2.12 | Tabel Bunga & sumber Peti sesuai K-31 (Bundel 10 Bunga, tanpa dobel) | K-31 | Angka di Config = GDD 18.2 baru | | S | TODO | — |
+| R2.G1 | **Warga panel tanpa pintu masuk solo** (tombol memakai gerbang `bantu`, S6 diblokir K-73): beri gerbang sumber lain (mis. level) atau buka lewat quest yang ada | `reports/Quest_Gate_Walk_2026-11-24.md` G1 | Solo bisa Mampir/emote/hadiah di Warga tanpa Bantu | ★ | S | TODO | — |
+| R2.G2 | Skill Tetangga Baik tanpa efek saat Bantu mati: sembunyikan skill atau beri efek lain (keputusan owner) | walk G2 | Skill tidak bisa dibeli, atau punya efek | | S | TODO | — |
+| R2.G3 | Teks surat 6, 13, 20, 29 yang menyebut Bantu: tulis ulang (masuk R8.3) | walk G3, K-73 | Teks tidak menyebut Bantu | | S | TODO | — |
+| R2.G4 | Season "Bantu 20 lahan" (K-58) belum ada di kode: bangun kartu Musim atau hapus dari dokumen | K-58, walk G4 | Kartu ada dan progres jalan, atau dokumen tidak menjanjikannya | | M | TODO | — |
+| R2.G5 | side_kerjabakti (Lv 1) hanya mulai saat hujan Deres/Petir berakhir: beri jadwal atau sumber yang bisa diminta pemain | walk G5 | Quest bisa selesai dalam waktu wajar tanpa menunggu hujan | ★ | S | TODO | — |
+| R2.G6 | Agenda hanya 3–4 tugas sebelum Lv 6 (GDD 14.5 minta 5): tambah tugas Lv 1 atau catat keputusan | walk G6, K-56 | Lv 1 punya 5 tugas, atau K-nn mencatat aturan baru | | S | TODO | — |
 
 ---
 
