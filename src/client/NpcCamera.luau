@@ -11,6 +11,7 @@ local Workspace = game:GetService("Workspace")
 local NpcCamera = {}
 
 NpcCamera.FOV = 34
+NpcCamera.WIDE_FOV = 60 -- the Jual Pertama wide shot (Bab 16.4): wide enough for the stall and the buildings
 
 local BACK = 2.4 -- studs behind the player's head
 local SIDE = 2.4 -- studs to the player's right: the player ends up at the left of the frame
@@ -61,6 +62,22 @@ function NpcCamera.Shot(npcHead: Vector3, character: Model?, ignore: { Instance 
 
 	local aim = npcHead + Vector3.new(0, DROP, 0) - right * SHIFT
 	return CFrame.lookAt(eye, aim), (eye - npcHead).Magnitude
+end
+
+-- The wide shot of the Jual Pertama beat (Bab 16.4): a fixed camera at `eye`, aimed at `focus`, so the NPC, his stall and the
+-- buildings around read. Pulled in when a wall or prop lies between it and the focus. `ignore` = the NPC and the player.
+-- shortcut: one ray from the focus, no clearance margin for near-wall props; upgrade if Play shows clipping at the tree.
+function NpcCamera.Wide(eye: Vector3, focus: Vector3, ignore: { Instance }): CFrame
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.RespectCanCollide = true
+	params.FilterDescendantsInstances = ignore
+	local pos = eye
+	local hit = Workspace:Raycast(focus, eye - focus, params)
+	if hit then
+		pos = focus + (eye - focus).Unit * math.max(hit.Distance - 0.6, 0.5)
+	end
+	return CFrame.lookAt(pos, focus)
 end
 
 -- The depth-of-field blur: on = the NPC (at focusDistance) is sharp, the player in front and the background behind are blurred.

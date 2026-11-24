@@ -386,6 +386,12 @@ Belum pernah dimainkan di Play.
 7. [ ] **Toast hadiah surat (K-83):** saat surat 6 jatuh tempo (login ke-6, atau setelah ada kejadian kebun), muncul satu toast "Surat Kakek #6: ... Hadiah +80 Koin." Koin benar-benar bertambah, walau Surat belum dibuka di Lv 1. Surat 13, 20, 29 sama (20 dan 29 juga menyebut Bunga).
 6. [ ] **Pekerja Bakti mulai di Lv 2 (K-81):** di Lv 1 Nek Ani belum menawarkan "Kerja Bakti 10x". Di Lv 2 (setelah M1 mulai) tawaran muncul di daftar quest.
 
+### B23. Putaran 4 (owner playtest 2026-11-24, K-84–K-89): cek di HP dan PC
+
+Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
+
+1. [ ] **Jual Pertama, kamera (K-84):** saat Pak Udin mulai bicara, kamera lebar tampak dari dekat pohon. Pak Udin, warungnya, dan bangunan di sekitar terlihat. Rambut dan badan avatar tidak menutupi layar. Pemain berjalan masuk ke frame, Pak Udin menoleh, lalu dialog mulai. Tidak ada tombol skip.
+
 ### B15. Satu toast (T0, 2026-11-23): owner cek di HP dan PC
 
 Aturan: GUI 4.2. Satu tempat (di bawah Koin/Bunga), satu gaya krem.

@@ -41,6 +41,7 @@ local Locale = require(RS.Shared.Locale)
 local Items = require(RS.Shared.Modules.Items)
 local Npcs = require(RS.Shared.Config.Npcs)
 local Onboarding = require(RS.Shared.Config.Onboarding)
+local Map = require(RS.Shared.Config.Map)
 local Cutscene = require(script.Parent:WaitForChild("Cutscene"))
 local UiKit = require(script.Parent:WaitForChild("UiKit"))
 local FadeManager = require(script.Parent:WaitForChild("FadeManager"))
@@ -1142,6 +1143,12 @@ end
 -- No click, no auto-sell, no skip, full price: the beat opens the sale as a bubble choice, waits for the real sale (the
 -- guide flag from the server), says the lines and ends.
 local SALE_BEAT_DISTANCE = Onboarding.SALE_BEAT_RADIUS -- studs (flat) between the player and the NPC when the beat starts; the server sell range is Shop.NPC_DISTANCE
+-- The wide shot of the sale (Bab 16.4, 2026-11-24): a fixed camera on the tree's south-east side, aimed at the warung ring
+-- south of the banyan (Pak Udin's stall at z 59, Map.WARUNG). Eye 14 studs east and 10 south of the trunk, 22 up.
+local SALE_WIDE_SHOT = {
+	eye = Vector3.new(Map.TOWN.TREE_X + 14, 22, Map.TOWN.TREE_Z + 10),
+	focus = Vector3.new(-2, 8, 40),
+}
 
 -- B-1 timing log: os.clock() when the trigger fires (tryStartBeat), then each milestone of the beat. Set false to silence.
 local BEAT_TIMING_LOG = true
@@ -1439,20 +1446,14 @@ local function runBeat(beat: Beat, guide: any)
 	-- No "Ngobrol" prompt from the first step of the walk (see runGiftBeat): shown again in restore().
 	PromptGate.Hide()
 
-	-- 1. The cutscene starts at once: the player is LOCKED (Cutscene.Begin -> PlayerLock). Outside the trigger radius he is
-	-- moved to a fixed stand point in front of the NPC, so he cannot be out of the sell range. (Playtest item 2.)
+	-- 1. The wide shot starts at once (a cut, Bab 16.4 rebuild 2026-11-24): the player is LOCKED (Cutscene.Begin ->
+	-- PlayerLock), the camera sits near the banyan so Pak Udin, his stall and the buildings are in frame.
 	local facing = npcRig:GetPivot().LookVector
 	local front = Vector3.new(facing.X, 0, facing.Z).Unit
 	local npcPos = head.Position
 	local stand = npcPos + front * 5
-	local endCutscene = Cutscene.Begin(npcRig, head, true)
+	local endCutscene = Cutscene.Begin(npcRig, head, true, SALE_WIDE_SHOT)
 	beatLog("sale: Cutscene.Begin")
-	local flatDistance = (Vector3.new(root.Position.X, 0, root.Position.Z) - Vector3.new(npcPos.X, 0, npcPos.Z)).Magnitude
-	if flatDistance > Onboarding.SALE_BEAT_RADIUS then
-		character:PivotTo(CFrame.lookAt(Vector3.new(stand.X, root.Position.Y, stand.Z), Vector3.new(npcPos.X, root.Position.Y, npcPos.Z)))
-	end
-
-	-- 2. The talk camera: glide to the shot (the player is already held).
 	saleRestore = function()
 		endCutscene()
 		PromptGate.Show()
@@ -1460,7 +1461,25 @@ local function runBeat(beat: Beat, guide: any)
 		dialogBusy = false
 		saleRestore = nil
 	end
-	task.wait(0.9)
+
+	-- 2. The player runs into frame: MoveTo a stand point in front of the NPC (he cannot be out of the sell range). Waits for
+	-- the arrival, at most 4 s; then the walk stops where he is.
+	if humanoid then
+		local arrived = false
+		local arrivedConn = humanoid.MoveToFinished:Connect(function()
+			arrived = true
+		end)
+		humanoid:MoveTo(Vector3.new(stand.X, root.Position.Y, stand.Z))
+		local waitedWalk = 0
+		while not arrived and waitedWalk < 4 do
+			task.wait(0.1)
+			waitedWalk += 0.1
+		end
+		arrivedConn:Disconnect()
+		if not arrived then
+			humanoid:MoveTo(root.Position)
+		end
+	end
 
 	-- 3. The NPC turns to face the player (a short turn, the rig only: other players see the normal pose).
 	local from = npcRig:GetPivot()

@@ -8,6 +8,7 @@
 
 ## Handoff (update setiap selesai tugas; sesi baru mulai dari sini)
 
+- **Owner playtest 2026-11-24, butir 1 (fix, K-84):** Jual Pertama dibangun ulang: kamera lebar dekat pohon, pemain jalan masuk frame (MoveTo), Pak Udin menoleh, baru dialog. DONE-CODE, Play belum; owner cek di 09 B23 butir 1. Selene 0 error / 85 warning, rojo 0.
 - **Terakhir selesai:** T0 (`03c643b` + fix `995d049`, DONE-CODE, Play belum). Lalu `06521d5` (CLAUDE.md + handoff), `6c5e593` (gitignore Obsidian), `1f562d0` (vault Obsidian).
 - **MS-2 selesai (2026-11-24), verified by owner:** tutorial 15 langkah (GDD 16.2 + langkah 15 waktu) sudah dites owner di Play dan dicentang di checklist (`09_Playtest_Checklist.md` B16, artifact `A6NTqsiwqJZVHRYCZJFetx`). Waktu PLAY sampai Lv 2: 2 menit. Claude tidak menandai apa pun VERIFIED; centang itu dari owner.
 - **Kode MS-2 hari ini:** `!masuk` / `DevService.Enter` (DEV, dikunci `IsAllowed`, `77c3e17`); K-71 tanam cepat ditahan sampai siram (`ddc0230`, `b78b635`, pill tanpa hitung mundur). Owner menyetujui K-71 dan K-70 ditutup. K-71 status DIPUTUSKAN (opsi a), baris dipindah setelah K-70 di `02_Audit_Perbaikan.md`.
