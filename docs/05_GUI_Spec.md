@@ -85,14 +85,14 @@ Tombol HUD lain tetap: dock 58, Tombol Aksi 84. Jarak antar target ≥ 6 px. (Ge
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
 │ [Roblox] [Foto Lv ▬XP] [buff]   [● Koin] [✿ Bunga]          (Acara)  │
-│ Quest tracker                     ┌ toast stack ┐            (Skill)  │
-│  ★ Main: Kolam Kakek       [→]    └─────────────┘            (Hadiah) │
-│   · Bangun kolam                                             (Warga)  │
-│  · Side: Bibit Kedua                                         (Toko)   │
-│                                                    (≡ Kolam, Atur)   │
-│                                                                       │
-│ ░░░░░░░░░░░░            [chip umpan · status mancing]   [Aksi 84px]   │
-│ ░ thumbstick ░  (Garap)(Hias)(Tas)(Quest)                        [Jump]│
+│                                                              (Skill)  │
+│ Quest tracker (di atas kartu)     ┌ toast stack ┐            (Hadiah) │
+│  ★ Main: Kolam Kakek       [→]    └─────────────┘            (Warga)  │
+│   · Bangun kolam                                             (Toko)   │
+│  · Side: Bibit Kedua                                         (≡ Kolam, Atur) │
+│  + 1 lagi                                                             │
+│ ┌ Kartu pemain: foto · Lv · XP · buff (kiri bawah, tetap) ┐ [Aksi 104px] │
+│ ░ thumbstick ░  [chip umpan · status mancing]  (Garap)(Hias)(Tas)(Quest)  [Jump]│
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -100,12 +100,8 @@ Tombol HUD lain tetap: dock 58, Tombol Aksi 84. Jarak antar target ≥ 6 px. (Ge
 |------|-----|-------------------------------|
 | Atas tengah | Koin, Bunga | Tetap |
 | Atas tengah, di bawah mata uang | Toast stack | Lihat 4.2 |
-| Kiri atas | Kartu pemain ringkas (foto + level + bar XP) + chip buff, lalu tracker | Kartu pindah dari kiri bawah ✔ K-34. Tracker lebar 200 px, mulai 118 px dari atas, tinggi maks min(200 px, 25% layar), maks 3 baris + "+N lainnya", teks krem outline gelap tanpa panel, baris membungkus teks |
-| Kanan atas | Kolom menu bulat 50 px, ikon saja, bisa dilipat di HP | Urutan: Acara, Skill, Hadiah, Warga, Toko, **Kolam**, Atur. Kolam ada di sini sebagai ubin (K-104). Dapur **tidak** di sini (✔ K-34) |
-| Bawah tengah | Dock 58 px, 10 px dari bawah, **maks 4 tombol** | Garap, Hias, Tas, **Quest** (ikon gulungan, K-109; dulu Pesanan; owner 2026-11-24) — hanya yang sudah terbuka. **Kolam tidak ada di dock** (K-104, ubin ≡ dan slot Aksi). **Dapur tidak ada di dock** (K-102). |
-| Kanan bawah, slot Aksi | Satu tombol Aksi 104 px per objek; hanya satu yang tampil (aturan 4.7) | **Kolam** dekat kolam sendiri (membuka panel Kolam, K-104); **Masak** dekat Tungku sendiri (panel Dapur); **Pasang Tungku** saat Tier 1 belum berdiri dan Tungku ada di tas (K-102) |
-| Zona konteks (di atas dock, tengah) | Status memancing + chip umpan | Satu tombol di atas dock; tombol Batal berlabel 64×32 px |
-| Kanan bawah, di atas Jump | **Satu slot Tombol Aksi** | Mancing / Pukul / Bubu / Kelola Kandang / Kolam / Masak / Pasang Tungku — satu aksi, yang terdekat (4.7, K-104). Craft masih melayang di atas meja |
+| Kiri bawah | Kartu pemain ringkas (foto + level + bar XP) + chip buff. **Tetap di kiri bawah, bukan dipindah** (K-114: pemilik memutuskan; menggantikan tulisan "kiri atas" K-34) | Kartu pemain: anchor kiri bawah, posisi 8 px (12 px di HP) dari kiri dan 6 px (12 px) dari bawah. Ukuran 248×92 (HP 250×100) |
+| Kiri bawah, di atas kartu | Tracker (quest yang dilacak) | Lebar 200 px, tepi kiri sama dengan kartu, tepi bawah 8 px (`GAP`) di atas kartu (K-114). Diukur dari `AbsolutePosition` kartu, bukan angka tetap. Tinggi = baris (maks 3) + "+N lagi" bila lebih; tinggi maks min(200 px, 25% layar, ruang di bawah 118 px dari atas). Tap baris atau "+N lagi" membuka Quest Log. Teks krem outline gelap, tanpa panel, baris membungkus teks |
 | Kiri bawah | Thumbstick | **Kosong** |
 
 Margin layar 12, gap 8.
@@ -130,6 +126,25 @@ Satu slot Aksi di kanan bawah. Tiap objek yang bisa dipakai punya tombol Aksi se
 | 6 | Masak / Pasang Tungku | Tungku sendiri / lahan | dekat Tungku (12 studs), atau Tungku ada di tas dan belum ada dapur |
 
 Craft Meja Crafting tetap melayang di atas meja (bukan slot ini).
+
+### 4.8 Kiri: kartu pemain dan tracker (K-114, owner 2026-11-24)
+
+Kartu pemain tetap di kiri bawah (keputusan owner; K-34 yang menulis "kiri atas" digantikan). Tracker berdiri tepat di atasnya.
+
+Cek (dihitung dari angka di kode, belum diukur di perangkat; owner cek di 09 B25):
+
+| Yang dicek | Hasil hitungan |
+|------------|----------------|
+| Ikuti kartu | Posisi tracker = `AbsolutePosition` kartu (X) dan Y kartu minus 8 px; diukur ulang saat kartu berubah posisi atau ukuran, dan saat viewport berubah |
+| Bar Roblox atas | Tepi atas tracker ≥ 118 px (`TRACKER_TOP`), bar Roblox ±36 px: tidak tumpang tindih |
+| Bar mata uang (tengah atas) | Di tengah, tepi atas 6–48 px; tracker di kiri dan di bawah 118 px: tidak tumpang tindih |
+| Kolom ≡ (kanan atas) | Tracker 8–208 px dari kiri; kolom ≡ di kanan (12 px dari kanan): tidak tumpang tindih |
+| Aksi (kanan bawah) | Aksi di kanan: tidak tumpang tindih |
+| Dock (bawah tengah, landscape) | Dock ±260 px di tengah. Di 844 px lebar mulai ±292 px: tidak tumpang tindih. Portrait: dock jadi kolom kanan |
+| Toast | Di portrait sempit toast turun di bawah tracker (UiKit, tanpa perubahan) |
+| Tangan di kiri (joystick) | Tracker tidak punya bingkai aktif penuh-tinggi. Hanya baris (dan tombol Tap di tiap baris) yang menerima sentuhan. Area di bawah tracker dan joystick tidak terhalang |
+| Portrait 390×844 | Tracker 8–208 px, tinggi maks 200 px dan 25% layar (211 px): tidak menimpa kolom kanan (dock kolom mulai 184 px dari atas, di x 320–378) |
+| Landscape HP (contoh 844×390) | Kartu di y 292–384; tracker di y 187–284 (tinggi maks 97 px = 25% layar); bar atas 0–36: tidak tumpang tindih |
 
 ### 4.1 Portrait (390×844)
 
@@ -200,6 +215,8 @@ n- **MS-2 (2026-11-23):** bubble NPC tutorial (`T1Dialog`) berada di atas dock: 
 ---
 
 ### 4.5 Kartu pemain dan marker "!"
+
+- **Posisi kartu (K-114, owner 2026-11-24):** kiri bawah, tetap. Tracker tepat di atasnya (lihat 4.8). Tidak ada tombol Quest di kartu (K-112).
 
 - Kartu pemain: pill "Lv n" di sebelah nama. Slot buff kosong disembunyikan. (K-53)
 - Marker "!" di atas setiap pemberi quest yang menawarkan quest Tersedia atau siap diserahkan. Terlihat dari jarak jauh (`MARKER_MAX_DISTANCE` 200 studs, sejak 2026-11-23). Satu marker per pemberi. (F6)

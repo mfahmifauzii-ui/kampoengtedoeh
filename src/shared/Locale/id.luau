@@ -98,7 +98,7 @@ return {
 	["quest.new"] = "Quest baru: {title}",
 	["quest.step"] = "Misi maju: {title}",
 	["quest.done"] = "Misi selesai: {title}!",
-	["quest.more"] = "+{n} quest lain · buka Quest Log",
+	["quest.more"] = "+{n} lagi", -- K-114 (GUI 4): the overflow row; a tap opens the Quest Log
 	["quest.point"] = "Cari", -- K-113: was "Tunjukkan"
 	["quest.ready"] = "Siap diserahkan: {title}", -- K-93: all tasks done, talk to the giver
 	["quest.track_full"] = "Quest Log: maks 3 quest dilacak. Lepas satu dulu.", -- GUI 6.8

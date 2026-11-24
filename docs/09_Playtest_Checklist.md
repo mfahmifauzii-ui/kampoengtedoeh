@@ -118,7 +118,7 @@ Tempel juga **teks merah/kuning dari panel Output** bila ada. Tidak perlu meneba
 8. [ ] Tidak ada tombol yang mati / abu-abu.
 
 ### B3. Fase 3 — GUI (R3.1 – R3.8)
-1. [ ] Kartu pemain di kiri atas; tombol Dapur tidak ada di HUD; Dapur dibuka dari Tombol Aksi dekat Tungku.
+1. [ ] Kartu pemain di kiri bawah (K-114, bukan kiri atas); tombol Dapur tidak ada di HUD; Dapur dibuka dari Tombol Aksi dekat Tungku.
 2. [ ] Satu **Tombol Aksi** (84 px) berubah sesuai yang terdekat: Mancing / Pukul / Tebang / Kandang / Craft / Masak.
 3. [ ] Hadiah: kartu Login 7 hari, bar Peti Main, Peti Bunga besar, **Klaim Semua** berfungsi.
 4. [ ] Pohon Skill: tiap skill punya ikon sendiri, nama di drawer, pil level `x/5`.
@@ -443,6 +443,8 @@ Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 4. [ ] **Pelampung di air (K-108):** lempar di sungai atau kolam. Pelampung mendarat di permukaan air, tidak di pasir atau tepi. Lintasan terlihat terbang dari ujung joran, lalu cipratan, lalu mengambang. Saat gigitan, pelampung turun sebentar. Pemain lain melihat hal yang sama. Setelah tarik atau batal, pelampung hilang. Bila ada spot tanpa air, log output menulis `[Bobber]`: kirim nama spotnya.
 5. [ ] **Ikon Quest (K-109):** tombol Quest di dock memakai ikon gulungan (seperti Pesanan dulu). Bintang di kolom kanan (Hadiah) tetap bintang. Keduanya tampak berbeda.
 6. [ ] **Lepas bersih (K-110):** lacak quest yang punya tujuan NPC lalu Lepas. Panah dan "!" di NPC hilang, dan tidak ada label nama yang tersisa. Panah di layar tampil di atas kepala, di luar layar di tepi.
-7. [ ] **Tracker terlihat di kiri (K-111):** di Lv 2 dengan quest aktif, tracker tampil di kiri atas dengan baris quest Main. Kalau tidak, kirim screenshot dan nama quest yang aktif. Catatan: kartu pemain di kode masih kiri bawah (lihat K-111).
+7. [ ] **Tracker terlihat di kiri (K-111):** di Lv 2 dengan quest aktif, tracker tampil di kiri, tepat di atas kartu pemain (yang tetap di kiri bawah), dengan baris quest Main. Kalau tidak, kirim screenshot dan nama quest yang aktif. Catatan: kartu pemain di kode masih kiri bawah (lihat K-111).
 8. [ ] **Tidak ada tombol Quest di kartu (K-112):** kartu pemain di kiri hanya foto, level, nama, bar XP, dan buff. Tidak ada tombol Quest. Quest Log dibuka dari dock.
 9. [ ] **Cari (K-113):** di Quest Log, tombol Cari (dulu Tunjukkan) ada di baris yang punya tujuan. Ketuk: log menutup, dan satu "!" muncul di atas target. Ia naik-turun 3 kali lalu pudar. Tidak ada panah yang tertinggal dan tracker tidak berubah. Track / Lepas tetap bekerja seperti biasa.
+10. [ ] **Tracker di atas kartu (K-114):** tracker berdiri tepat di atas kartu pemain, tepi kirinya sama dengan kartu. Kartu tetap di kiri bawah dan tidak pindah. Di HP landscape dan portrait, tracker tidak menimpa bar atas, bar mata uang, kolom ≡, tombol Aksi, dan dock. Quest bisa dilacak dan dibuka dengan mengetuk tracker.
+11. [ ] **Jari di sisi kiri (K-114):** dengan satu jari di kiri layar (joystick), gerak tetap jalan. Tracker tidak menahan sentuhan di luar barisnya.

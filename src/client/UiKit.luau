@@ -1464,7 +1464,7 @@ end
 -- HUD layout map (GUI fix batch): the ONE place for HUD margins and zones. Pixels. Zones that touch a screen edge are
 -- computed from the viewport (UiKit.hudStripBottomGap). Other HUD code reads these names; it does not repeat the numbers.
 --   top centre   : CurrencyBar (top), then the toast anchor (TOAST_GAP below the bar)
---   left column  : quest tracker, at MARGIN from the left edge and TRACKER_TOP below the bar / goal chip (Roblox topbar inset applies)
+--   left column  : quest tracker, 200 px wide, stacked directly above the player card (K-114); its top stops at TRACKER_TOP (under the bar / goal chip)
 --   right column : menu items, MENU_W wide, MENU_TOP from the top, MARGIN from the right edge
 --   bottom centre: dock row (landscape); portrait: the dock is a column on the right (DOCK_PORTRAIT_TOP)
 --   context strip: ABOVE the bottom dock with a gap of one dock button (DOCK_H), STRIP_H tall, centred: fishing status, bait chip

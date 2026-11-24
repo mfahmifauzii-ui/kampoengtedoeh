@@ -1,6 +1,6 @@
 --!strict
 -- Quest tracker, Quest Log and the direction arrow (GUI 6.8, GUI 4.5, Quest 03 bab 9; owner playtest 2026-11-24, butir 2-7).
---   Tracker (left column, under the player card): the rows of State.quests.tracked, in tracked order, at most 3 (+ the Surat row
+--   Tracker (left column, directly above the player card, K-114): the rows of State.quests.tracked, in tracked order, at most 3 (+ the Surat row
 --     while a letter is due). A quest row reads: its step (Berjalan), "Siap diserahkan ke <pemberi>" (ready) or "Temui <pemberi>"
 --     (offered). Harian and Mingguan slot rows show only while tracked. A tap opens the Quest Log on that quest's tab.
 --   Quest Log: one panel, tabs Main · Side · Harian · Pesanan. Pesanan is the order list (OrdersController.Fill).
@@ -34,6 +34,7 @@ local player = Players.LocalPlayer
 local QuestController = {}
 
 local MAX_HEIGHT_PX = 200 -- top limit in px (stops above the Craft button)
+local MAX_ROWS = 3 -- GUI 4: three rows, then "+N lagi"
 local MAX_HEIGHT_SCREEN = 0.25 -- top limit as a share of the screen height (Update owner 2026-11-22, Task 5)
 local KOLAM_QUEST = "kolam_pertama" -- hidden for the whole of T1b (v7.4 Bab 16.5), back when MQ4 opens the pond
 local KB_QUEST = "side_kerjabakti" -- Kerja Bakti: shown only while the event runs (Workspace KBActive)
@@ -584,15 +585,34 @@ local function buildRows(snap: any)
 	end
 end
 
+-- Left column (owner 2026-11-24, GUI 4 and 4.5): the tracker stacks DIRECTLY ABOVE the player card, same left edge, 200 px
+-- wide. Its place comes from the card's measured AbsolutePosition, so it follows the card on every screen size. The HUD and
+-- this gui both ignore the GUI inset, so both measure in one screen space. Its top never goes above UiKit.HUD.TRACKER_TOP
+-- (under the top bar and the goal chip). Its height is its rows, capped by MAX_HEIGHT and by the room above the card.
+local card: GuiObject? = nil -- the HUD's "StatusCard" (set in Start)
+
 local function fitTracker()
-	if tracker then
-		local content = tracker:FindFirstChildOfClass("UIListLayout")
-		local height = if content then content.AbsoluteContentSize.Y + 16 else 0
-		local camera = Workspace.CurrentCamera
-		local viewport = if camera then camera.ViewportSize.Y else MAX_HEIGHT_PX / MAX_HEIGHT_SCREEN
-		local limit = math.min(MAX_HEIGHT_PX, MAX_HEIGHT_SCREEN * viewport)
-		tracker.Size = UDim2.fromOffset(UiKit.HUD.TRACKER_W, math.min(limit, math.max(height, 0)))
+	if not tracker then
+		return
 	end
+	local content = tracker:FindFirstChildOfClass("UIListLayout")
+	local height = if content then content.AbsoluteContentSize.Y + 16 else 0
+	local camera = Workspace.CurrentCamera
+	local viewport = if camera then camera.ViewportSize.Y else MAX_HEIGHT_PX / MAX_HEIGHT_SCREEN
+	local limit = math.min(MAX_HEIGHT_PX, MAX_HEIGHT_SCREEN * viewport)
+	local cardTop = if card then card.AbsolutePosition.Y else nil
+	if cardTop == nil then
+		-- The card is not built yet: the fixed place under the bar (only until the card exists).
+		tracker.AnchorPoint = Vector2.new(0, 0)
+		tracker.Position = UDim2.fromOffset(UiKit.HUD.MARGIN, UiKit.HUD.TRACKER_TOP)
+		tracker.Size = UDim2.fromOffset(UiKit.HUD.TRACKER_W, math.min(limit, math.max(height, 0)))
+		return
+	end
+	local bottom = cardTop - UiKit.HUD.GAP
+	local room = bottom - UiKit.HUD.TRACKER_TOP
+	tracker.AnchorPoint = Vector2.new(0, 1)
+	tracker.Position = UDim2.fromOffset(card.AbsolutePosition.X, bottom)
+	tracker.Size = UDim2.fromOffset(UiKit.HUD.TRACKER_W, math.max(0, math.min(limit, room, height)))
 end
 
 -- K-110 (owner 2026-11-24 butir 6): tracking shows a direction arrow only. On screen, a straight arrow above the player's head
@@ -771,6 +791,23 @@ function refresh()
 	if not built then
 		warn(`[QuestController] tracker rows failed: {buildError}`)
 	end
+	-- GUI 4 (K-114): at most MAX_ROWS rows; the rest collapse into one "+N lagi" row. A tap on it opens the Quest Log.
+	local rowFrames: { Frame } = {}
+	for _, child in tracker:GetChildren() do
+		if child:IsA("Frame") then
+			table.insert(rowFrames, child)
+		end
+	end
+	table.sort(rowFrames, function(a, b)
+		return a.LayoutOrder < b.LayoutOrder
+	end)
+	if #rowFrames > MAX_ROWS then
+		for index = MAX_ROWS + 1, #rowFrames do
+			rowFrames[index]:Destroy()
+		end
+		local more = addRow(MAX_ROWS + 1, "more", Locale.t("quest.more", { n = #rowFrames - MAX_ROWS }), "", "main")
+		more.Name = "more"
+	end
 	-- Readable without a panel: cream text with a dark outline on every label of the tracker.
 	for _, label in tracker:GetDescendants() do
 		if label:IsA("TextLabel") then
@@ -812,10 +849,11 @@ function QuestController.Init()
 	gui.Name = "QuestUI"
 	gui.ResetOnSpawn = false
 	gui.DisplayOrder = UiKit.LAYER.HUD -- GUI doc 4.5: quest tracker is a HUD layer (20)
+	gui.IgnoreGuiInset = true -- K-114: the same screen space as the HUD, so the card's measured position maps 1:1
 
 	tracker = Instance.new("Frame")
 	tracker.Name = "Tracker"
-	tracker.Position = UDim2.fromOffset(UiKit.HUD.MARGIN, UiKit.HUD.TRACKER_TOP) -- HUD map: left column
+	tracker.AnchorPoint = Vector2.new(0, 1) -- K-114: bottom edge sits above the player card (fitTracker places it)
 	tracker.Size = UDim2.fromOffset(UiKit.HUD.TRACKER_W, 0)
 	-- The height follows the rows (fitTracker) but never past maxHeight; the rest is clipped, so nothing draws over the buttons.
 	tracker.AutomaticSize = Enum.AutomaticSize.None
@@ -889,6 +927,18 @@ function QuestController.Init()
 end
 
 function QuestController.Start()
+	-- K-114: the tracker follows the player card. The card is in the HUD, built by HudController: wait for it, then refit
+	-- whenever the card moves or changes size (and on every screen size change, below).
+	task.spawn(function()
+		local hud = player:WaitForChild("PlayerGui"):WaitForChild("HUD", 30)
+		local found = if hud then hud:WaitForChild("StatusCard", 30) else nil
+		if found and found:IsA("GuiObject") then
+			card = found
+			found:GetPropertyChangedSignal("AbsolutePosition"):Connect(fitTracker)
+			found:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitTracker)
+			fitTracker()
+		end
+	end)
 	-- Max height follows the screen (25 % of the height): refit when the camera or its viewport changes.
 	local function watchViewport()
 		local camera = workspace.CurrentCamera
