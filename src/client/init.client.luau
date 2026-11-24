@@ -40,6 +40,7 @@ local ORDER = {
 	"StoreController",
 	"SocialController",
 	"RepeatController", -- Acara: Gerobak Kaget + Pasar Malam + Tamu + Kerja Bakti (Bab 13)
+	"KerjaBaktiController", -- K-117: sampah Kerja Bakti milik pemain ini (klien), pungut lewat KBPick
 }
 
 local loaded = {}

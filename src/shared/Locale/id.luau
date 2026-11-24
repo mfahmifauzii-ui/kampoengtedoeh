@@ -1044,6 +1044,7 @@ return {
 	["repeat.tab.tamu"] = "Tamu",
 	["repeat.tab.acara"] = "Acara",
 	["gerobak.title"] = "Gerobak Kaget",
+	["gerobak.cart_action"] = "Lihat Gerobak", -- K-118: tombol Aksi di dekat gerobak alun-alun
 	["gerobak.restock"] = "Gerobak Kaget: ada {item}!",
 	["gerobak.bought"] = "Dapat {item}!",
 	["gerobak.full"] = "Slot ini sudah max 3x",

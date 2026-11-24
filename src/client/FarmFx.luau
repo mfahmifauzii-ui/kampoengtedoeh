@@ -259,6 +259,13 @@ function FarmFx.harvest(bed: BasePart, silent: boolean?)
 	Sfx.play("farm_harvest", bed, SOUND_JITTER)
 end
 
+-- Kerja Bakti: the character bends and picks up a piece of trash (reuses the plant dig clip; K-117, no new animation).
+function FarmFx.pickUp(piece: BasePart)
+	faceBed(piece)
+	playClip("plant")
+	Sfx.play("farm_harvest", piece, SOUND_JITTER)
+end
+
 -- Garap: turning grass into a bed (deep dig) or back into grass (soft dig).
 function FarmFx.till(back)
 	local root = myRoot()

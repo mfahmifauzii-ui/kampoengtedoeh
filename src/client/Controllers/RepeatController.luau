@@ -3,6 +3,7 @@
 -- daftar slot Gerobak deterministik (Config/Repeat) jadi klien sepakat tanpa sinkronisasi.
 -- Tombol hanya kirim request; harga, stok, dan level dicek ulang di server.
 
+local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
@@ -17,6 +18,7 @@ local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local State = require(script.Parent.Parent.State)
 local FeatureClient = require(script.Parent.Parent.FeatureClient)
 local UiKit = require(script.Parent.Parent.UiKit)
+local AksiSlot = require(script.Parent.Parent.AksiSlot)
 
 local player = Players.LocalPlayer
 
@@ -280,7 +282,59 @@ local function reportGerobakView()
 	end
 end
 
+-- K-118: gerobak placeholder di alun-alun (server: RepeatService.buildGerobakCart). Tombol "Lihat Gerobak" ada di satu
+-- slot Aksi (AksiSlot, prioritas 7; posisi UiKit.placeAksi). Tekan = buka panel Acara tab Gerobak, sama dengan tab Acara.
+local CART_TAG = "GerobakCart"
+local CART_REACH = 10 -- studs
+local cartButton: GuiObject? = nil
+
+local function cartProbe(): (number?, string?)
+	if not FeatureClient.IsOpen("gerobak") then
+		return nil
+	end
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") then
+		return nil
+	end
+	local best: number? = nil
+	for _, cart in CollectionService:GetTagged(CART_TAG) do
+		if cart:IsA("BasePart") then
+			local distance = (cart.Position - root.Position).Magnitude
+			if distance <= CART_REACH and (best == nil or distance < best) then
+				best = distance
+			end
+		end
+	end
+	return best, "GerobakCart"
+end
+
+local function setupCart()
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "GerobakCartUI"
+	gui.ResetOnSpawn = false
+	gui.DisplayOrder = UiKit.LAYER.ACTION
+	gui.Parent = player:WaitForChild("PlayerGui")
+	local aksi = UiKit.button(gui, "GerobakAksiButton", Locale.t("gerobak.cart_action"), UiKit.BUTTON_MUTED)
+	UiKit.placeAksi(aksi) -- the one Aksi slot (K-116)
+	aksi.TextSize = 15
+	aksi.Visible = false
+	aksi.Activated:Connect(function()
+		tab = "gerobak"
+		panel.gui.Enabled = true
+		render()
+		reportGerobakView()
+	end)
+	cartButton = aksi
+	AksiSlot.register("gerobak", 7, cartProbe, function(visible: boolean)
+		if cartButton then
+			cartButton.Visible = visible
+		end
+	end)
+end
+
 function RepeatController.Start()
+	setupCart()
 	State.Changed:Connect(function()
 		render()
 		updateDot()

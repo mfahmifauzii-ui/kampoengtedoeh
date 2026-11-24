@@ -36,9 +36,11 @@ local PASAR = {
 }
 
 local KERJA = {
-	BASE_TRASH = 10, -- kotoran base
-	TRASH_PER_PLAYER = 6, -- +6 x player di server
-	TRASH_MAX = 58, -- max 58 (untuk 8 player)
+	PIECES_EACH = 16, -- K-117: tiap pemain dapat 16 sampahnya sendiri (= total solo lama); tidak lagi dibagi
+	SPREAD_R = 44, -- K-117: sampah tersebar di piringan alun-alun (pusat cincin, pusat ring jalan 62 di luar)
+	SPACING = 7, -- K-117: jarak minimal antar sampah milik satu pemain (studs)
+	TREE_CLEAR = 6, -- K-117: sampah tidak ditaruh di batang pohon
+	PICK_REACH = 16, -- K-117: server menolak pungut bila HRP lebih jauh dari ini (studs)
 	KOIN_PER_POINT = 15, -- 15 Koin per poin
 	XP_PER_POINT = 3, -- 3 XP per poin
 	MAX_POINTS = 20, -- max 20 poin berhadiah per Kerja Bakti

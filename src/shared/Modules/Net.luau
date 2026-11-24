@@ -94,6 +94,9 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 
 	SkillBuy = "Function", -- C->S (skillId: string) -> "ok" | "max" | "locked" | "noSP" | "noKoin" | "unknown" (SkillService)
 	GerobakBuy = "Event", -- C->S (slot: number) beli 1 unit slot Gerobak Kaget (max 3/slot/restock)
+	KBPieces = "Event", -- S->C (positions: { Vector3 }) sampah Kerja Bakti milik pemain ini; index = piece id (K-117)
+	KBPick = "Event", -- C->S (pieceId: number) pungut sampah Kerja Bakti sendiri; server cek id, jarak, sekali saja (K-117)
+	KBPicked = "Event", -- S->C (pieceId: number) pungutan diterima; klien menghapus sampah itu (K-117)
 	PasarJual = "Event", -- C->S (count: number) jual barang malam ini ke Pedagang Tamu (+50%, max 10/malam)
 	GelangThrow = "Event", -- C->S () lempar gelang (max 3/malam)
 	TamuDeliver = "Event", -- C->S () serahkan semua barang Pesanan Tamu

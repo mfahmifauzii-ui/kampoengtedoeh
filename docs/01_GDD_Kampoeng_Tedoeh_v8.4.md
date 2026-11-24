@@ -787,7 +787,7 @@ Agustusan (10–24 Agu), Lebaran (ikut kalender), Tahun Baru (28 Des – 7 Jan),
 |--------|--------|
 | Pemicu | Setelah Hujan Deres / Petir. Prompt pungut terbuka setelah M1 (gerbang Gerobak). |
 | Ketergantungan (K-79) | Pemain tidak bisa memicunya sendiri. Kerja Bakti mulai hanya saat hujan Deres atau Petir **berakhir** (`WorldService.RainEnded`). Tidak ada jadwal dan tidak ada tombol. Peluang per hujan: Deres 30%, Petir 15% (`Config/Weather` RAIN_ROLL). Quest Lv 1 Pekerja Bakti (side_kerjabakti) karena itu bisa menunggu cuaca. |
-| Sampah | 10 + 6 × pemain di server (maks 58). |
+| Sampah | 16 per pemain (K-117), tiap pemain punya set sendiri, hanya terlihat olehnya. Tersebar acak di piringan alun-alun (jarak min 7 studs, tidak di batang pohon). Pungut = prompt "Pungut" di dekat sampah itu (server cek jarak). Placeholder visual: kotak coklat; R4.10 mengganti art. |
 | Hadiah | 15 Koin + 3 XP per poin, maks 20 poin per Kerja Bakti, maks 4 Kerja Bakti berhadiah per hari. |
 | Bonus 100% | Semua dengan ≥ 1 poin: +150 Koin + Diskon Warga −10% (bibit & pakan di Pak Udin dan Kak Fajar, ✔ K-41) selama 30 menit nyata. |
 | Solo | 1 pemain bisa 100%. |

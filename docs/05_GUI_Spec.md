@@ -129,6 +129,9 @@ Satu slot Aksi di kanan bawah. Tiap objek yang bisa dipakai punya tombol Aksi se
 | 4 | Kelola | kandang sendiri | dalam jangkauan kandang |
 | 5 | Kolam | kolam sendiri | dalam jangkauan kolam (membuka panel Kolam) |
 | 6 | Masak / Pasang Tungku | Tungku sendiri / lahan | dekat Tungku (12 studs), atau Tungku ada di tas dan belum ada dapur |
+| 7 | Lihat Gerobak (K-118) | gerobak placeholder di alun-alun | dalam 10 studs dan gerbang gerobak terbuka; tekan = panel Acara tab Gerobak |
+
+Kerja Bakti: sampah tidak masuk slot ini. Pungut lewat prompt "Pungut" di sampah sendiri (K-117, prompt bukan tombol Aksi).
 
 Craft Meja Crafting tetap melayang di atas meja (bukan slot ini).
 

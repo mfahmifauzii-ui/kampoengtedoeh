@@ -451,3 +451,15 @@ Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 12. [ ] **Pintu masuk kolam satu (K-115):** ubin Kolam di menu ≡ dan tombol Aksi Kolam dekat kolam sendiri membuka panel yang sama (Breeding Kolam). Di atas panel ada "Bangun Kolam" bila kamu boleh membangun lagi. Tap: mode gali kolam aktif dan panel tertutup. Tidak ada tombol Kolam di Garap.
 13. [ ] **Satu tempat Aksi (K-116):** Pancing, Pukul, Bubu, Kelola, Kolam, dan Masak muncul di tempat yang sama: kanan bawah, di atas tombol Jump, 84 px. Tarik muncul di tempat Pancing. Tidak ada tombol Aksi yang muncul di tengah layar atau di kiri.
 14. [ ] **Tidak menumpuk (K-116):** di HP portrait dan landscape, slot Aksi tidak menimpa Jump, joystick, tracker, toast, dock, atau kolom ≡ (kolom ≡ dilipat). Di landscape dengan kolom ≡ terbuka, slot bisa menumpuk bagian bawah kolom: catat jika terjadi.
+
+### B26. Putaran 7 (owner playtest 2026-11-24, Kerja Bakti dan Gerobak): cek di HP
+
+Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED. Peti Bunga di lahan (butir ketiga owner) belum dikerjakan; lihat Handoff.
+
+1. [ ] **Kerja Bakti tersebar (K-117):** saat event jalan, sampah tersebar di seluruh alun-alun, tidak menumpuk di pohon. Tidak ada dua sampah yang berdempet.
+2. [ ] **Sampah sendiri (K-117):** di HP kedua (pemain lain), sampah yang kamu lihat tidak sama dengan milik orang lain. Pungutanmu tidak menghapus sampah di layar mereka.
+3. [ ] **Pungut (K-117):** dekat sampah, prompt "Pungut" muncul. Tekan: badan membungkuk, sampah hilang, +15 Koin +3 XP. Dari jauh (lebih dari 16 studs) tidak ada yang terjadi.
+4. [ ] **Bonus 100% (K-117):** pungut semua sampahmu dan semua peserta lain. Bonus +150 Koin dan Diskon Warga muncul seperti sebelumnya.
+5. [ ] **Gerobak terlihat (K-118):** ada gerobak kayu placeholder di alun-alun, dekat sisi barat daya pohon.
+6. [ ] **Lihat Gerobak (K-118):** dekat gerobak, tombol "Lihat Gerobak" di kanan bawah (satu slot Aksi). Tekan: panel Acara terbuka di tab Gerobak. M1 langkah 3 selesai.
+7. [ ] **Lewat tab Acara (K-118):** tanpa ke gerobak, buka Acara lalu tab Gerobak. M1 langkah 3 tetap selesai.

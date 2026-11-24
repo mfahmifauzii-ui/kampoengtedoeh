@@ -3,6 +3,7 @@
 -- Kerja Bakti Kilat, Kalender Musiman + Pesanan Tamu.
 -- Angka USULAN ditandai; v7.3 memberi struktur, sebagian angka butuh lock owner.
 
+local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
@@ -12,7 +13,7 @@ local BookService = require(script.Parent.BookService)
 local Crops = require(ReplicatedStorage.Shared.Config.Crops)
 local Decor = require(ReplicatedStorage.Shared.Config.Decor)
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
-local Locale = require(ReplicatedStorage.Shared.Locale)
+local Map = require(ReplicatedStorage.Shared.Config.Map)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local TutorialService = require(script.Parent.TutorialService)
 local Ranch = require(ReplicatedStorage.Shared.Config.Ranch)
@@ -360,13 +361,14 @@ end
 -- per poin, max 20 poin/event, max 4 event berhadiah/hari. Bonus Kampung 100%: semua yang punya
 -- >= 1 poin dapat +150 Koin + Diskon Warga (-10% 30 mnt). Solo 1 player pun bisa 100%.
 
+-- K-117: sampah tiap pemain milik pemain itu (klien yang menggambar). Server hanya menyimpan posisinya.
 local kb = {
 	active = false,
-	total = 0,
-	collected = 0,
+	total = 0, -- jumlah sampah semua peserta (KBTotal)
+	collected = 0, -- sudah dipungut semua peserta (KBGot)
 	points = {} :: { [number]: number }, -- [userId] = poin event ini
 	counted = {} :: { [number]: boolean }, -- [userId] = event ini sudah dihitung ke kuota harian
-	parts = {} :: { BasePart }, -- trash parts (milik event ini)
+	pieces = {} :: { [number]: { Vector3 } }, -- [userId] = posisi sampah (index = piece id), kosong = sudah dipungut
 	deadline = 0, -- os.time batas event (TIMEOUT_SECONDS)
 }
 
@@ -380,12 +382,7 @@ local function kbCount(data: Types.PlayerData): number
 end
 
 local function clearTrash()
-	for _, part in kb.parts do
-		pcall(function()
-			part:Destroy()
-		end)
-	end
-	kb.parts = {}
+	kb.pieces = {} -- klien menghapus gambarnya sendiri saat KBActive jadi false
 end
 
 local function kbStop(rewarded: boolean)
@@ -422,54 +419,66 @@ local function kbGroundY(x: number, z: number): number
 	return if hit then hit.Position.Y else 2
 end
 
+-- K-117: satu titik sampah acak di piringan alun-alun, tidak dekat batang pohon dan tidak dekat sampah lain
+-- milik pemain yang sama. Gagal setelah 40 percobaan = titik itu dilewati (sampah lebih sedikit, tidak macet).
+local function kbSpot(taken: { Vector3 }): Vector3?
+	local KERJA = Repeat.KERJA
+	for _ = 1, 40 do
+		local angle = random:NextNumber() * math.pi * 2
+		local radius = math.sqrt(random:NextNumber()) * KERJA.SPREAD_R -- akar: sebaran merata di luas piringan
+		local x = Map.TOWN.RING_X + math.cos(angle) * radius
+		local z = Map.TOWN.RING_Z + math.sin(angle) * radius
+		local tree = math.sqrt((x - Map.TOWN.TREE_X) ^ 2 + (z - Map.TOWN.TREE_Z) ^ 2)
+		local clear = tree >= KERJA.TREE_CLEAR
+		for _, other in taken do
+			if math.sqrt((x - other.X) ^ 2 + (z - other.Z) ^ 2) < KERJA.SPACING then
+				clear = false
+				break
+			end
+		end
+		if clear then
+			return Vector3.new(x, kbGroundY(x, z) + 0.4, z)
+		end
+	end
+	return nil
+end
+
 local function kbStart()
 	if kb.active then
 		return
 	end
 	local players = Players:GetPlayers()
-	local total = math.min(Repeat.KERJA.TRASH_MAX, Repeat.KERJA.BASE_TRASH + Repeat.KERJA.TRASH_PER_PLAYER * #players)
-	if total <= 0 then
+	if #players == 0 then
 		return
 	end
 	kb.active = true
-	kb.total = total
+	kb.total = 0
 	kb.collected = 0
 	kb.points = {}
 	kb.counted = {}
+	kb.pieces = {}
 	kb.deadline = os.time() + Repeat.KERJA.TIMEOUT_SECONDS
-	-- Kotoran di sekitar alun-alun (plaza tengah, radius 10-25).
-	for i = 1, total do
-		local angle = (i / total) * math.pi * 2 + random:NextNumber(-0.2, 0.2)
-		local radius = 10 + (i * 7) % 16
-		local x = math.cos(angle) * radius
-		local z = math.sin(angle) * radius
-		local part = Instance.new("Part")
-		part.Name = "Sampah"
-		part.Anchored = true
-		part.CanCollide = false
-		part.Size = Vector3.new(1.2, 0.8, 1.2)
-		part.Position = Vector3.new(x, kbGroundY(x, z) + 0.4, z)
-		part.Color = Color3.fromRGB(110, 85, 60)
-		part.Material = Enum.Material.SmoothPlastic
-		part.TopSurface = Enum.SurfaceType.Smooth
-		part.BottomSurface = Enum.SurfaceType.Smooth
-		part.Parent = Workspace
-		local prompt = Instance.new("ProximityPrompt")
-		prompt.Name = "KBPungut"
-		prompt.ActionText = Locale.t("prompt.kb_collect")
-		prompt.HoldDuration = 0
-		prompt.MaxActivationDistance = 12
-		prompt.RequiresLineOfSight = false
-		prompt:SetAttribute("Feature", "gerobak") -- Q-2: client hides this prompt while the gerobak feature is closed
-		prompt.Parent = part
-		prompt.Triggered:Connect(function(triggered: Player)
-			if not FeatureGate.Check(triggered, "gerobak") then return end -- Q-2 server gate (same as the other gerobak actions)
-			RepeatService.KBCollect(triggered, part)
-		end)
-		table.insert(kb.parts, part)
+	local taken: { Vector3 } = {}
+	for _, player in players do
+		-- K-117: server memutuskan jumlah sampah tiap pemain (PIECES_EACH); tiap pemain dapat set sendiri.
+		local mine: { Vector3 } = {}
+		for _ = 1, Repeat.KERJA.PIECES_EACH do
+			local spot = kbSpot(taken)
+			if spot then
+				table.insert(mine, spot)
+				table.insert(taken, spot)
+			end
+		end
+		kb.pieces[player.UserId] = mine
+		kb.total += #mine
+		Net.Fire("KBPieces", player, mine)
+	end
+	if kb.total <= 0 then
+		kbStop(false)
+		return
 	end
 	Workspace:SetAttribute("KBActive", true)
-	Workspace:SetAttribute("KBTotal", total)
+	Workspace:SetAttribute("KBTotal", kb.total)
 	Workspace:SetAttribute("KBGot", 0)
 	task.delay(Repeat.KERJA.TIMEOUT_SECONDS, function()
 		if kb.active and os.time() >= kb.deadline then
@@ -478,26 +487,27 @@ local function kbStart()
 	end)
 end
 
-function RepeatService.KBCollect(player: Player, part: BasePart)
-	if not kb.active then
+-- K-117: pungut sampah sendiri. Server cek: event aktif, gerbang gerobak, id milik pemain ini dan belum dipungut,
+-- jarak HRP <= PICK_REACH. Sekali saja: id dihapus dari daftar sebelum hadiah.
+local function onKBPick(player: Player, pieceId: any)
+	if not kb.active or typeof(pieceId) ~= "number" then
 		return
 	end
-	local found = false
-	for index, existing in kb.parts do
-		if existing == part then
-			table.remove(kb.parts, index)
-			found = true
-			break
-		end
+	if not FeatureGate.Check(player, "gerobak") then return end -- Q-2 server gate (same as the other gerobak actions)
+	local mine = kb.pieces[player.UserId]
+	local spot = if mine then mine[pieceId] else nil
+	if not spot then
+		return
 	end
-	if not found then
-		return -- sudah dipungut pemain lain (race aman)
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") or (root.Position - spot).Magnitude > Repeat.KERJA.PICK_REACH then
+		return
 	end
-	pcall(function()
-		part:Destroy()
-	end)
+	mine[pieceId] = nil
 	kb.collected += 1
 	Workspace:SetAttribute("KBGot", kb.collected)
+	Net.Fire("KBPicked", player, pieceId)
 	local data = DataService.Get(player)
 	if data then
 		local uid = player.UserId
@@ -768,7 +778,42 @@ function RepeatService.Init()
 	end)
 end
 
+-- K-118: gerobak placeholder di alun-alun (R4.10 menggantinya dengan art asli). Dibangun dari part sederhana,
+-- selalu ada di plaza. Klien (RepeatController) menampilkan "Lihat Gerobak" saat pemain dekat dan gerbang gerobak terbuka.
+local CART_AT = Vector3.new(-18, Map.TOWN.PLAZA_Y, 14) -- antara cincin toko (r 62) dan batang pohon; tidak di jalan jembatan
+local function buildGerobakCart()
+	local model = Instance.new("Model")
+	model.Name = "GerobakCart"
+	local function piece(name: string, size: Vector3, cf: CFrame, color: Color3, shape: Enum.PartType?): Part
+		local p = Instance.new("Part")
+		p.Name = name
+		p.Anchored = true
+		p.Size = size
+		p.CFrame = CFrame.new(CART_AT) * cf
+		p.Color = color
+		p.Material = Enum.Material.WoodPlanks
+		p.TopSurface = Enum.SurfaceType.Smooth
+		p.BottomSurface = Enum.SurfaceType.Smooth
+		p.Shape = shape or Enum.PartType.Block
+		p.Parent = model
+		return p
+	end
+	local wood = Color3.fromRGB(150, 104, 62)
+	local bak = piece("Bak", Vector3.new(5, 1.6, 3), CFrame.new(0, 2.2, 0), wood)
+	piece("Atap", Vector3.new(5.4, 0.3, 3.4), CFrame.new(0, 4.2, 0), Color3.fromRGB(196, 72, 60))
+	piece("Pegangan", Vector3.new(3.5, 0.3, 0.3), CFrame.new(-4.2, 2.4, 0), wood)
+	for _, x in { -1.2, 1.2 } do -- roda: silinder dengan sumbu Z (diputar 90 derajat di Y)
+		for _, z in { -1.7, 1.7 } do
+			piece("Roda", Vector3.new(0.4, 2, 2), CFrame.new(x, 1, z) * CFrame.Angles(0, math.pi / 2, 0), Color3.fromRGB(70, 52, 38), Enum.PartType.Cylinder)
+		end
+	end
+	CollectionService:AddTag(bak, "GerobakCart")
+	model.Parent = Workspace
+end
+
 function RepeatService.Start()
+	buildGerobakCart()
+	Net.On("KBPick", onKBPick, { rate = 6, burst = 12 })
 	Net.On("GerobakBuy", onGerobakBuy, RATE)
 	Net.On("PasarJual", onPasarJual, RATE)
 	Net.On("GelangThrow", onGelangThrow, RATE)

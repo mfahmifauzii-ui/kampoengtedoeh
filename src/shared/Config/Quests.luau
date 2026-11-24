@@ -59,7 +59,7 @@ local list: { Quest } = {
 		steps = {
 			{ event = "agenda_open", count = 1, reveals = "agenda" },
 			{ event = "agenda_done", count = 1 },
-			{ event = "gerobak_view", count = 1, reveals = "gerobak" },
+			{ event = "gerobak_view", count = 1, reveals = "gerobak", target = "GerobakCart" }, -- K-118: panah ke gerobak; selesai juga dari tab Acara
 		},
 		reward = { koin = 100 },
 	},
