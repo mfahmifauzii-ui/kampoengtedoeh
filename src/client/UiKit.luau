@@ -1520,6 +1520,9 @@ UiKit.HUD = {
 	DOCK_BOTTOM = 10, -- dock margin from the bottom (landscape row)
 	DOCK_PORTRAIT_TOP = 184, -- dock column top (portrait)
 	STRIP_H = 54, -- context strip height (fishing status panel, bait chip)
+	-- K-125 (GUI 4.0): the ≡ tile grid under the toggle (MENU_TOP + MENU_W + 4). Portrait: 3 columns, two rows visible,
+	-- the third by scrolling (the dock starts at DOCK_PORTRAIT_TOP 184). Landscape: 5 x 2 at the top, left of the toggle.
+	MENU_PORTRAIT_TOP = 62,
 }
 
 -- K-116 (owner 2026-11-24): the ONE Aksi slot. Every Aksi-owning control (Pancing, Tarik, Bubu, Pukul, Kelola, Kolam, Masak /
@@ -1961,7 +1964,7 @@ local menuState: { setExpanded: ((on: boolean, animate: boolean) -> ())? } = { s
 local function menuItemsOf(hud: Instance): Frame
 	local existing = hud:FindFirstChild("MenuBar")
 	if existing then
-		return existing:FindFirstChild("Items") :: Frame
+		return hud:FindFirstChild("Items") :: Frame -- K-125: the grid is a sibling of the toggle, not its child
 	end
 	local menu = Instance.new("Frame")
 	menu.Name = "MenuBar"
@@ -2008,48 +2011,51 @@ local function menuItemsOf(hud: Instance): Frame
 	toggle:SetAttribute("TipText", Locale.t("ui.menu"))
 	attachTip(hud, toggle, false)
 
-	local items = Instance.new("Frame")
+	-- K-125 (GUI 4.0): the nine tiles are a grid (not a column) so they fit the screen. The grid is a sibling of the toggle,
+	-- placed by placeItems below: landscape 5 x 2 at the top, left of the toggle; portrait 3 x 3 under the toggle, clear of
+	-- the tracker and the dock. A UIScale keeps the 50 px tile (MENU_SIZE) and shrinks the whole grid to 40 / 36 px tiles.
+	-- A scrolling grid: landscape 5 x 2 (fully visible), portrait 3 x 2 visible with the 3rd row by scrolling (the portrait
+	-- space above the dock fits two rows). Tiles stay MENU_SIZE (50 HUD px = 37.5 px on screen with the HUD scale 0.75).
+	local items = Instance.new("ScrollingFrame")
 	items.Name = "Items"
 	items.BackgroundTransparency = 1
-	items.ClipsDescendants = true
-	items.LayoutOrder = 0
-	items.Size = UDim2.fromOffset(MENU_SIZE, 0)
-	items.AutomaticSize = Enum.AutomaticSize.Y
-	items.Parent = menu
-	local itemsLayout = Instance.new("UIListLayout")
+	items.BorderSizePixel = 0
+	items.AnchorPoint = Vector2.new(1, 0)
+	items.ScrollBarThickness = 4
+	items.ScrollingDirection = Enum.ScrollingDirection.Y
+	items.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	items.CanvasSize = UDim2.new()
+	items.Parent = hud
+	local itemsLayout = Instance.new("UIGridLayout")
+	itemsLayout.CellSize = UDim2.fromOffset(MENU_SIZE, MENU_SIZE)
+	itemsLayout.CellPadding = UDim2.fromOffset(UiKit.HUD.GAP, UiKit.HUD.GAP)
 	itemsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	itemsLayout.Padding = UDim.new(0, 8)
-	itemsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+	itemsLayout.FillDirection = Enum.FillDirection.Horizontal
+	itemsLayout.FillDirectionMaxCells = 5
 	itemsLayout.Parent = items
 
+	local function placeItems()
+		local camera = Workspace.CurrentCamera
+		local view = if camera then camera.ViewportSize else Vector2.new(844, 390)
+		local perRow = 5
+		local width = 5 * MENU_SIZE + 4 * UiKit.HUD.GAP
+		if view.X < view.Y * 1.1 then -- portrait: under the toggle, right edge, above the dock (DOCK_PORTRAIT_TOP)
+			perRow = 3
+			width = 3 * MENU_SIZE + 2 * UiKit.HUD.GAP
+			items.Position = UDim2.new(1, -UiKit.HUD.GAP, 0, UiKit.HUD.MENU_PORTRAIT_TOP)
+		else -- landscape: top, left of the toggle, clear of the Aksi slot (84 px, 200 px from the bottom)
+			items.Position = UDim2.new(1, -(UiKit.HUD.GAP + MENU_SIZE + UiKit.HUD.GAP), 0, UiKit.HUD.MENU_TOP)
+		end
+		itemsLayout.FillDirectionMaxCells = perRow
+		items.Size = UDim2.fromOffset(width, 2 * MENU_SIZE + UiKit.HUD.GAP)
+	end
+	onViewportChanged(placeItems)
+
 	local expanded = true
-	local running: Tween? = nil
-	local function setExpanded(on: boolean, animate: boolean)
+	local function setExpanded(on: boolean, _animate: boolean)
 		expanded = on
-		if running then
-			running:Cancel()
-			running = nil
-		end
-		items.AutomaticSize = Enum.AutomaticSize.None
-		local target = if on then itemsLayout.AbsoluteContentSize.Y else 0
-		local turn = if on then 90 else 0
-		if animate then
-			local tween = TweenService:Create(items, TweenInfo.new(0.28, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.fromOffset(MENU_SIZE, target) })
-			running = tween
-			tween.Completed:Connect(function(state)
-				if state == Enum.PlaybackState.Completed and on then
-					items.AutomaticSize = Enum.AutomaticSize.Y -- follow items added later
-				end
-			end)
-			tween:Play()
-			TweenService:Create(bars, TweenInfo.new(0.2, Enum.EasingStyle.Quad), { Rotation = turn }):Play()
-		else
-			items.Size = UDim2.fromOffset(MENU_SIZE, target)
-			bars.Rotation = turn
-			if on then
-				items.AutomaticSize = Enum.AutomaticSize.Y
-			end
-		end
+		items.Visible = on
+		bars.Rotation = if on then 90 else 0
 	end
 	menuState.setExpanded = setExpanded
 	toggle.Activated:Connect(function()

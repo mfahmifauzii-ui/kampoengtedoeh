@@ -61,4 +61,4 @@ for _, name in ORDER do
 end
 
 -- K-104: one Aksi button is shown at a time (nearest object wins; see AksiSlot.luau). Controllers register in Init.
-require(script.Parent:WaitForChild("AksiSlot")).Start()
+require(script:WaitForChild("AksiSlot")).Start() -- script = this LocalScript; AksiSlot is its child (was script.Parent: never found, Aksi slot never started)

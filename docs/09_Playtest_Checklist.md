@@ -478,6 +478,6 @@ Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 8. [ ] **Token panen (K-122):** panen satu crop. Token yang terbang ke Tas memakai ikon panen, bukan huruf awal nama. Token koin memakai ikon koin.
 9. [ ] **Hadiah dipecah (K-123):** tab Hadiah: Login Harian · Peti Main · Musim · Koleksi. Tidak ada baris peti di Login Harian dan tidak ada kartu login di Peti Main.
 10. [ ] **Login Harian (K-123):** 7 kartu, hari ini emas. Satu tombol besar "Klaim Hari n" mengambil hari itu; tombol mati bila tidak ada yang siap.
-11. [ ] **Peti Main (K-123):** garis waktu kotak dengan hitung mundur ("m:ss lagi") untuk peti berikutnya. Tombol besar "Buka Peti n" aktif saat siap. **Jumlah peti: 5 di kode; catatan owner 4. Owner jawab: 4 atau 5?** (K-123)
+11. [ ] **Peti Main (K-123):** garis waktu kotak dengan hitung mundur ("m:ss lagi") untuk peti berikutnya. Tombol besar "Buka Peti n" aktif saat siap. Jumlah peti: 5 (keputusan owner, K-123).
 12. [ ] **Teks kotak peti (K-123):** hadiah dan status tidak terpotong di HP portrait. Kalau terpotong, catat lebarnya.
-13. [ ] **Peta HUD (K-124, dokumen saja):** belum diterapkan. Cek di HP landscape dan portrait: buka ≡ dengan semua ubin tampil. Catat apakah ubin melewati tepi layar atau menutupi Aksi (landscape) atau dock (portrait). Angka ada di GUI 05 4.0.
+13. [ ] **Peta HUD (K-124/K-125):** sudah diterapkan. Di landscape HP, tablet, dan Studio simulator: sembilan ubin ≡ tampil dalam kisi tanpa menutupi Aksi atau dock (terukur, GUI 05 4.0). **Owner cek di HP portrait:** kisi 3 kolom di bawah ≡, baris ketiga lewat gulir, tidak menutupi dock. Portrait belum terukur (K-125).

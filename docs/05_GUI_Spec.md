@@ -82,50 +82,42 @@ Tombol HUD lain tetap: dock 58, Tombol Aksi 84. Jarak antar target ≥ 6 px. (Ge
 
 ## 4. HUD (landscape) — peta di `UiKit.HUD`
 
-### 4.0 Peta HUD baru (K-124, owner 2026-11-24): dokumen saja, belum dikerjakan
+### 4.0 Peta HUD (K-124 target, dikerjakan K-125; diukur di Studio)
 
-Target ini belum diterapkan di kode. Tabel "Sekarang" di bawah 4.0 menggambarkan kode saat ini; "Target" adalah yang diminta owner. Remap tidak dikerjakan di tugas ini.
+**Status:** diterapkan di kode (K-125). Ubin ≡ sudah sembilan dan terukur di layar landscape HP dan tablet. Portrait belum bisa diukur (lihat "Cek tumpang tindih").
 
-**Target (satu aturan untuk setiap tempat):**
+**Peta (satu aturan untuk setiap tempat):**
 
-| Zona | Isi target | Catatan |
-|------|-----------|---------|
+| Zona | Isi | Catatan |
+|------|-----|---------|
 | Bawah tengah (dock) | **4 tombol**: Garap, Hias, Tas, Quest | Maks 4. Landscape: baris. Portrait: kolom kanan (`DOCK_PORTRAIT_TOP` 184) |
 | Kanan bawah (slot Aksi) | **1 tombol Aksi** (84 px, K-116) | Satu objek yang tampil (4.7) |
-| Kanan atas (≡) | **1 tombol ≡** yang membuka **6 ubin**: Papan Hari Ini, Skill, Hadiah, Acara, Toko, Atur | Titik merah di ≡ dan di ubin bila ada yang baru (`UiKit.notifyDot`) |
+| Kanan atas | **1 tombol ≡** + **9 ubin** dalam satu kisi: Papan Hari Ini, Skill, Hadiah, Acara, Toko, Atur, Warga, Buku, Kolam | Kisi, bukan kolom (K-125). Titik merah di ≡ dan di ubin bila ada yang baru |
 | Kiri (info pasif) | Kartu pemain, tracker quest, umpan XP (4.11), chip buff | Tidak ada tombol di sini |
 | Atas tengah | Koin, Bunga | Tetap |
 
-**Sebelum dan sesudah (hitung dari kode):**
+**Keputusan K-125 (Claude, owner: "kamu yang putuskan"):** sembilan ubin tetap di ≡. Warga (tersembunyi bila Bantu mati, K-73), Buku, dan Kolam tidak dibuang; ubinnya ikut kisi dan muncul sesuai gerbangnya sendiri. Kolam tetap juga bisa dibuka dari slot Aksi dekat kolam (K-104).
 
-| Hitungan | Sekarang (kode) | Target |
-|----------|-----------------|--------|
+**Sebelum dan sesudah (diukur):**
+
+| Hitungan | Sebelum (kode lama) | Sesudah (K-125) |
+|----------|---------------------|-----------------|
 | Tombol dock | 4 | 4 |
 | Tombol Aksi | 1 slot (7 objek bergantian) | 1 |
 | Tombol ≡ | 1 | 1 |
-| Ubin di dalam ≡ | 9: Papan, Hadiah, Skill, Acara, Warga, Toko, Atur, Buku, Kolam (Warga hilang bila Bantu mati, K-73, jadi 8 yang tampil) | 6: Papan, Skill, Hadiah, Acara, Toko, Atur |
-| Tombol di kanan atas (total) | 10 (≡ + 9 ubin; 9 bila Warga tersembunyi) | 7 (≡ + 6 ubin) |
+| Ubin di ≡ | 9, satu kolom | 9, satu kisi 5 x 2 (landscape) |
+| Tinggi ≡ terbuka (landscape, 370 px layar; dihitung, bukan diukur) | 10 tombol × 58 px = melewati layar | 2 baris, ujung bawah ≈ 107 px dari atas (diukur) |
+| Tombol di kanan atas (total) | 10 | 10 (sama jumlahnya, tersusun dalam kisi) |
 
-Ubin yang keluar dari ≡ (Warga, Buku, Kolam) **belum punya tempat di peta target**. Owner tidak menyebutnya. Usulan Claude (belum diputuskan, tanya owner): Kolam tetap lewat slot Aksi dekat kolam (K-104, sudah ada); Buku sudah ada di Hadiah > Koleksi (Album), jadi ubinnya bisa dibuang; Warga tetap tersembunyi sampai Bantu hidup lagi.
+**Cek tumpang tindih (diukur dari screenshot Studio, device simulator):**
 
-**Cek tumpang tindih (dihitung dari angka layout, belum diukur di perangkat):**
+- Landscape HP (device 844 × 390, viewport 843 × 370), semua 9 ubin tampil: kisi 5 + 4 di kanan atas, ujung bawah ≈ 107 px. Tidak menutupi slot Aksi (slot tidak tampil saat tes, tetapi kisi berakhir jauh di atas tempat Aksi) dan tidak menutupi dock atau kartu pemain. Tinggi aman: lebih kecil dari 370 px. **Lulus.**
+- Tablet landscape (device 1366 × 1024, viewport 1364 × 1004): kisi di kanan atas, tidak bertumpuk dengan apa pun. **Lulus.**
+- Portrait: **BELUM DIUKUR.** Device simulator tidak memutar viewport di Studio ini (tetap 843 × 370 walau orientasi diset Portrait), dan StarterGui.ScreenOrientation = Sensor. Kode portrait ada (`placeItems`: kisi 3 kolom di bawah toggle, dua baris terlihat, baris ketiga dengan gulir, tidak melewati `DOCK_PORTRAIT_TOP` 184). Harus diukur di HP portrait nyata atau di simulator yang bisa diputar.
 
-Landscape 844 × 390 (HP, margin 12, gap 8, ubin ≡ 50 px):
-- ≡ tertutup: toggle di y 8–58, x 782–832.
-- ≡ terbuka dengan 6 ubin: ubin di y 66, 124, 182, 240, 298, 356 (tinggi 50). Ujung bawah = 406 > 390. **Melebihi layar 16 px.** Dengan toggle dan 6 ubin, ada 7 item × 50 + 6 × 8 + 8 = 406 px.
-- ≡ terbuka menutupi **slot Aksi** (x 736–820, y 106–190 untuk Aksi 84 px, 200 px dari bawah): kolom ≡ di x 782–832 dan y 66–406 bertumpuk di x 782–820, y 106–190. **Tumpang tindih.**
-- Dock (y 322–380, x tengah) dan kartu pemain (x 12–262, y 278–378) tidak bertumpuk dengan ≡.
-- Tracker (x 12–212, y 118 sampai maks 118 + 97 = 215, batas 25% layar) tidak bertumpuk dengan kartu (mulai y 278).
+**Catatan ukuran:** HUD memakai `UIScale` 0.75 (`KT_Scale`). Ubin 50 px di kode tampil 37,5 px di layar; masih di atas `UiKit.TOUCH` (32 px). Angka dalam dokumen ini adalah ukuran di layar, kecuali disebut lain.
 
-Portrait 390 × 844 (HP, dock kolom kanan 184–434 px dari atas):
-- ≡ tertutup: x 328–378, y 8–58. Aman.
-- ≡ terbuka 6 ubin: ujung bawah = 8 + 7 × 58 = 414. Menutupi dock kolom kanan (x 320–378, y 184–434) di y 184–414. **Tumpang tindih** dengan 3 dari 4 tombol dock.
-- Slot Aksi (x 282–366, y 560–644) dan kartu pemain kiri bawah tidak bertumpuk.
-- Tracker (x 12–212, y 118–329) tidak bertumpuk dengan ≡ atau dock.
-
-**Usulan (belum dikerjakan):** ≡ terbuka jadi kisi 2 kolom (3 baris untuk 6 ubin, tinggi 3 × 58 = 174) di bawah toggle; atau ≡ terbuka menyembunyikan dock dan slot Aksi selama terbuka. Harus diukur di HP sebelum dipilih.
-
-### 4.0b Sekarang (kode saat ini)
+### 4.0b Sebelum K-125 (kode lama, dihitung dari layout)
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -401,7 +393,7 @@ Hadiah dipecah jadi empat layar, tidak ada yang dicampur. Tab Harian lama tidak 
 - **Peti Main:** garis waktu 5 kotak (`CHEST_COLUMNS` = 5, sama dengan Config/Progression). Tiap kotak: judul, syarat menit, hadiah, bar kemajuan, dan status: "Dibuka" (hijau), berikutnya (emas, hitung mundur "m:ss lagi"), "Siap dibuka", atau "Belum". Satu tombol besar: "Buka Peti n" bila siap, "Tunggu m:ss" bila belum, "Semua peti sudah dibuka" bila habis.
 - **Musim** dan **Koleksi:** tidak berubah (Koleksi tetap berisi Peti Bunga, Title, dan Album milestone).
 
-Catatan: jumlah peti 5 (Config dan GDD 15.2), bukan 4 seperti catatan owner; lihat K-123.
+Jumlah peti 5 (Config dan GDD 15.2); keputusan owner: tetap 5 (K-123).
 
 Lama, untuk referensi: tab Harian berisi kedua daftar dalam satu layar (baris peti dan baris login).
 
