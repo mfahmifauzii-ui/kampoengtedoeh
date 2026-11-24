@@ -15,6 +15,7 @@ local DataService = require(script.Parent.DataService)
 local InventoryService = require(script.Parent.InventoryService)
 local ProgressionService = require(script.Parent.ProgressionService)
 local WorldService = require(script.Parent.WorldService)
+local PuddleService = require(script.Parent.PuddleService)
 
 local TestHookService = {}
 
@@ -73,6 +74,10 @@ function TestHookService.Start()
 			WorldService.DevSetWeather("gerimis") -- server weather is per server: the same effect for everyone
 		elseif action == "weather:clear" then
 			WorldService.DevSetWeather("terik")
+		elseif action == "weather:puddles" then
+			PuddleService.Spawn(10) -- test lifetime 10 s (the real one is PUDDLE_LIFETIME, 180 s)
+		elseif action == "weather:puddles_clear" then
+			PuddleService.Clear()
 		end
 	end, { rate = 4, burst = 8 })
 end

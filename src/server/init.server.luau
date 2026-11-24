@@ -42,6 +42,7 @@ local ORDER = {
 	"SettingsService",
 	"DevService",
 	"TestHookService", -- K-127: Studio-only test hook (inert outside Studio)
+	"PuddleService", -- K-134: puddles on the map after rain (after WorldService)
 	"BubuService", -- R2.1: Bubu di sungai (6 jam)
 }
 

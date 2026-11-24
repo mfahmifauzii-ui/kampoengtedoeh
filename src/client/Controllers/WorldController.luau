@@ -26,6 +26,13 @@ local clouds: Clouds?
 local rainPart: Part
 local rainEmitter: ParticleEmitter
 local rainTween: Tween?
+-- K-133: ground splashes around the player (pooled: one part and one emitter for the whole session).
+local splashPart: Part
+local splashEmitter: ParticleEmitter
+local splashTween: Tween?
+local groundParams: RaycastParams
+local groundY = 0
+local nextGroundCheck = 0
 local lampsOn = false
 
 -- Reuses ANY existing instance of the class: the place already has the Studio-template Atmosphere / Bloom /
@@ -92,7 +99,7 @@ local function setupRain()
 	rainPart.CanQuery = false
 	rainPart.CanTouch = false
 	rainPart.Transparency = 1
-	rainPart.Size = Vector3.new(1, 36, 40) -- thin wall: X is the emission axis (horizontal rain)
+	rainPart.Size = Vector3.new(40, 1, 40) -- a flat sheet above the camera: drops fall through the view
 	rainPart.Parent = Workspace
 
 	rainEmitter = Instance.new("ParticleEmitter")
@@ -101,22 +108,56 @@ local function setupRain()
 	rainEmitter.Rate = 0
 	-- K-129 (rain visibility): a 40-stud box 18 studs above the camera. Drops fall through the view and stay in it ~1 s.
 	-- (The earlier 80-stud box at 30 studs spread ~40 drops over an area the camera barely sees.)
-	-- Horizontal rain (owner's request, 2026-11-24): drops fly sideways across the view from a thin wall at the left edge
-	-- (rainPart: local +X = camera right), with no gravity, so each streak lies flat.
-	rainEmitter.Lifetime = NumberRange.new(0.9, 1.1)
-	rainEmitter.Speed = NumberRange.new(38, 46)
-	rainEmitter.EmissionDirection = Enum.NormalId.Right
+	-- K-132 (owner, final): drops fall straight down, each streak vertical. K-131 (horizontal) was reverted: the wall
+	-- emitted sideways, and VelocityParallel stretched every streak along that sideways motion.
+	rainEmitter.Lifetime = NumberRange.new(1.0, 1.2)
+	rainEmitter.Speed = NumberRange.new(28, 34)
+	rainEmitter.EmissionDirection = Enum.NormalId.Bottom
 	rainEmitter.Acceleration = Vector3.zero
-	rainEmitter.SpreadAngle = Vector2.new(3, 8)
+	rainEmitter.SpreadAngle = Vector2.new(4, 4)
 	-- K-129 (rain visibility): 0.12 studs drew 1-2 px at play distance, so the rain was not seen. 0.22 with a stronger stretch.
 	-- K-129 (rain visibility, tested in Studio): 0.12-0.25 studs grey drops were not readable; 0.35 pale-blue streaks are.
-	rainEmitter.Size = NumberSequence.new(0.35)
-	rainEmitter.Squash = NumberSequence.new(3.5) -- stretch into streaks
-	rainEmitter.Transparency = NumberSequence.new(0.15)
-	rainEmitter.Color = ColorSequence.new(Color3.fromRGB(215, 228, 240))
+	rainEmitter.Size = NumberSequence.new(0.5) -- K-132: 0.35 was too faint to see from the default phone camera
+	rainEmitter.Squash = NumberSequence.new(5) -- stretch into streaks
+	rainEmitter.Transparency = NumberSequence.new(0.05)
+	rainEmitter.Color = ColorSequence.new(Color3.fromRGB(235, 242, 250))
 	rainEmitter.LightInfluence = 1
-	rainEmitter.Orientation = Enum.ParticleOrientation.VelocityParallel
+	-- K-132: VelocityParallel drew the streaks HORIZONTAL in Studio while the drops fell vertically (tested, screenshots).
+	-- VelocityPerpendicular gave near-vertical streaks in the same test.
+	rainEmitter.Orientation = Enum.ParticleOrientation.VelocityPerpendicular
 	rainEmitter.Parent = rainPart
+
+	-- K-133: splash droplets on the ground around the camera. A flat disc at ground level; its rate is a fraction of the rain
+	-- rate (Config/Weather SPLASH_RATIO), so Kurangi gerak (which lowers the rain rate) lowers the splashes too.
+	splashPart = Instance.new("Part")
+	splashPart.Name = "KT_Splash"
+	splashPart.Anchored = true
+	splashPart.CanCollide = false
+	splashPart.CanQuery = false
+	splashPart.CanTouch = false
+	splashPart.Transparency = 1
+	splashPart.Size = Vector3.new(30, 0.2, 30)
+	splashPart.Parent = Workspace
+	splashEmitter = Instance.new("ParticleEmitter")
+	splashEmitter.Enabled = false
+	splashEmitter.Rate = 0
+	splashEmitter.Shape = Enum.ParticleEmitterShape.Disc
+	splashEmitter.ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface
+	splashEmitter.EmissionDirection = Enum.NormalId.Top
+	splashEmitter.Lifetime = NumberRange.new(0.25, 0.35)
+	splashEmitter.Speed = NumberRange.new(3, 5)
+	splashEmitter.Acceleration = Vector3.new(0, -30, 0)
+	splashEmitter.SpreadAngle = Vector2.new(30, 30)
+	splashEmitter.Size = NumberSequence.new(0.12, 0.2)
+	splashEmitter.Transparency = NumberSequence.new(0.3, 1)
+	splashEmitter.Color = ColorSequence.new(Color3.fromRGB(215, 228, 240))
+	splashEmitter.LightInfluence = 1
+	splashEmitter.Orientation = Enum.ParticleOrientation.FacingCamera
+	splashEmitter.Parent = splashPart
+
+	groundParams = RaycastParams.new()
+	groundParams.FilterType = Enum.RaycastFilterType.Exclude
+	groundParams.FilterDescendantsInstances = { rainPart, splashPart }
 end
 
 -- Target rate for the current weather. Picture quality Rendah (1) draws no rain at all: the cheapest setting on a 4 GB phone.
@@ -151,6 +192,22 @@ local function fadeRain()
 		end
 	end)
 	rainTween:Play()
+
+	-- K-133: splashes follow the rain rate (a fraction of it), with the same fade in and out.
+	local splashTarget = target * WeatherConfig.SPLASH_RATIO
+	if splashTarget > 0 then
+		splashEmitter.Enabled = true
+	end
+	if splashTween then
+		splashTween:Cancel()
+	end
+	splashTween = TweenService:Create(splashEmitter, TweenInfo.new(WeatherConfig.RAIN_FADE_SECONDS, Enum.EasingStyle.Sine), { Rate = splashTarget })
+	splashTween.Completed:Once(function(playback)
+		if playback == Enum.PlaybackState.Completed and splashTarget == 0 then
+			splashEmitter.Enabled = false
+		end
+	end)
+	splashTween:Play()
 end
 
 -- Petir: one flash every LIGHTNING_INTERVAL seconds, at most LIGHTNING_FLASH_SECONDS long (Bab 21.3).
@@ -244,9 +301,22 @@ function WorldController.Start()
 
 	-- Rain volume follows the camera (one emitter, no per-drop work in Lua).
 	RunService.RenderStepped:Connect(function()
+		local camera = Workspace.CurrentCamera
 		if rainEmitter.Enabled then
-			local camera = Workspace.CurrentCamera
-			rainPart.CFrame = camera.CFrame * CFrame.new(-24, 0, 0) -- wall just outside the left edge of the view
+			rainPart.CFrame = CFrame.new(camera.CFrame.Position + Vector3.new(0, 18, 0))
+		end
+		if splashEmitter.Enabled then
+			-- ground height under the camera, sampled 4 times a second (no per-frame raycast)
+			local now = os.clock()
+			if now >= nextGroundCheck then
+				nextGroundCheck = now + 0.25
+				local from = camera.CFrame.Position
+				groundParams.FilterDescendantsInstances = { rainPart, splashPart, game:GetService("Players").LocalPlayer.Character or rainPart }
+				local hit = Workspace:Raycast(from, Vector3.new(0, -300, 0), groundParams)
+				groundY = if hit then hit.Position.Y else from.Y - 12
+			end
+			local at = camera.CFrame.Position
+			splashPart.CFrame = CFrame.new(at.X, groundY + 0.1, at.Z)
 		end
 	end)
 
