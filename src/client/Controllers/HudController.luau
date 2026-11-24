@@ -633,6 +633,46 @@ local function showLevelUp(level: number)
 	end)
 end
 
+-- Owner 2026-11-24 (item 6, K-89): the level-up toast and the "terbuka" lines are ONE sequence in the toast stack, one chip
+-- at a time: "Naik ke Level n!" first, then one line per unlock. Each chip stays min 1.8 s, +0.05 s per character, max 5 s.
+local LEVEL_MIN_SECONDS, LEVEL_PER_CHAR, LEVEL_MAX_SECONDS = 1.8, 0.05, 5
+local levelLines: { string } = {}
+local levelBusy = false -- one level chip on screen at a time (the sequence's one slot)
+
+local function levelSeconds(text: string): number
+	return math.clamp(LEVEL_MIN_SECONDS + LEVEL_PER_CHAR * (utf8.len(text) or #text), LEVEL_MIN_SECONDS, LEVEL_MAX_SECONDS)
+end
+
+local function pumpLevel()
+	if levelBusy or #levelLines == 0 or not toastStack then
+		return
+	end
+	levelBusy = true
+	local text = table.remove(levelLines, 1) :: string
+	local chip = UiKit.toastChip(toastStack, text)
+	task.delay(levelSeconds(text), function()
+		UiKit.toastFadeOut(chip, function()
+			levelBusy = false
+			pumpLevel()
+		end)
+	end)
+end
+
+local function queueLevelLines(vars: { [string]: any }?)
+	local level = if vars then vars.level else nil
+	if typeof(level) == "number" then
+		table.insert(levelLines, Locale.t("level.up", { level = Locale.formatNumber(level) }))
+	end
+	if vars and typeof(vars.unlocks) == "table" then
+		for _, key in vars.unlocks do
+			if typeof(key) == "string" then
+				table.insert(levelLines, Locale.t("level.unlock_line", { item = Locale.t(key) }))
+			end
+		end
+	end
+	pumpLevel()
+end
+
 function HudController.Start()
 	local shownLevel = player:GetAttribute("Level")
 	player:GetAttributeChangedSignal("Level"):Connect(function()
@@ -676,6 +716,10 @@ function HudController.Start()
 				-- the catch flies from the water (the middle of the screen, where the bobber is) to the Bag
 				local view = (workspace.CurrentCamera :: Camera).ViewportSize
 				FeedbackController.FlyToBag(Vector2.new(view.X / 2, view.Y * 0.45), Color3.fromRGB(60, 140, 176), "~")
+			end
+			if key == "level.up" or key == "level.up_unlocks" then
+				queueLevelLines(if typeof(vars) == "table" then vars else nil)
+				return
 			end
 			local text = Locale.t(key, resolveVars(if typeof(vars) == "table" then vars else nil))
 			if key == "farm.no_seed" then

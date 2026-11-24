@@ -735,6 +735,7 @@ return {
 	["hud.level_banner"] = "LEVEL {level}!",
 	["level.up"] = "Naik ke Level {level}!",
 	["level.up_unlocks"] = "Level {level}! Terbuka: {unlocks}",
+	["level.unlock_line"] = "Terbuka: {item}",
 	["location.sungai"] = "Kanal Barat", -- K-23
 	["location.sungai_lahan"] = "Sungai Lahan",
 	["location.empang"] = "Kanal Timur", -- K-23

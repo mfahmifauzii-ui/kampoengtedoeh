@@ -8,6 +8,7 @@
 
 ## Handoff (update setiap selesai tugas; sesi baru mulai dari sini)
 
+- **Owner playtest 2026-11-24, butir 6 (fix, K-89):** toast naik level dan toast "Terbuka" berurutan satu chip sekaligus (1,8–5 dtk sesuai panjang). DONE-CODE, Play belum; owner cek di 09 B23 butir 6.
 - **Owner playtest 2026-11-24, butir 5 (fix, K-88):** tombol Ok toast "Bibit habis" = tombol UiKit standar, tinggi `TOUCH` 32 (GUI 4.2 44 px diganti). DONE-CODE, Play belum; owner cek di 09 B23 butir 5.
 - **Owner playtest 2026-11-24, butir 4 (fix, K-87, sebagian):** teks sapaan Pak Kumis dan 5 pedagang Pasar Malam lain ditambah (kunci mentah hilang). Portret Pak Kumis BELUM: tidak ada gambar, butuh dari owner. DONE-CODE (teks), Play belum; owner cek di 09 B23 butir 4.
 - **Owner playtest 2026-11-24, butir 3 (fix, K-86):** sungai dan empang wajib umpan (server tolak, tombol mati, chip "Umpan habis, beli di Kak Fajar"). Kolam tetap 6–12 dtk tanpa umpan. Hadiah tutorial di kode = Pelet x5 (K-21 bilang Cacing; owner perlu pilih). DONE-CODE, Play belum; owner cek di 09 B23 butir 3. Selene 0 error / 85 warning, rojo 0.
