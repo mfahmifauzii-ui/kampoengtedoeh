@@ -116,6 +116,7 @@ local function sync(player: Player, tile: Types.FarmTile)
 	part:SetAttribute("PlantedAt", tile.plantedAt)
 	part:SetAttribute("ReadyAt", tile.readyAt)
 	part:SetAttribute("Watered", tile.watered)
+	part:SetAttribute("FastHold", tile.fastHold == true) -- K-71: the timer is held until the first siram, so no countdown
 
 	local state = if tile.crop ~= nil and tile.watered == true then "wet" else "dry"
 	if soilState[part] ~= state then

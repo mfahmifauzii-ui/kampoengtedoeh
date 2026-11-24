@@ -94,6 +94,9 @@ local function content(part: BasePart, kind: string, now: number): (string, stri
 	if kind == "empty" then
 		return "bibit", Locale.t("float.empty"), Locale.t("float.empty_sub")
 	elseif kind == "dry" then
+		if part:GetAttribute("FastHold") == true then -- K-71: held tutorial bed, the timer starts at the siram
+			return "siram", Locale.t("float.water"), cropName
+		end
 		return "siram", Locale.t("float.water"), `{cropName} · {clock(left)}`
 	elseif kind == "ripe" then
 		return "panen", Locale.t("float.harvest"), cropName
