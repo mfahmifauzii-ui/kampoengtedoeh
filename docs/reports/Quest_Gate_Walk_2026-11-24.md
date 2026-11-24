@@ -44,18 +44,30 @@ Quest main berurutan lewat `after`. Quest side jalan paralel. Kolom "Gerbang" = 
 
 Gap ditulis sebagai baris TODO di Roadmap (R2.G1–R2.G6). Tidak ada yang diperbaiki di tugas ini.
 
-| ID | Celah | Jenis | Tingkat |
-|----|-------|-------|---------|
-| G1 | **Warga panel tidak punya pintu masuk.** Tombol Warga (HUD `SocialButton`) memakai gerbang fitur `bantu`, yang hanya dibuka S6. Dengan Bantu mati (K-73), Mampir, emote, Pulang, dan hadiah ikut hilang. Solo tidak punya tempat untuk Warga. | Gerbang tanpa sumber | Tinggi |
-| G2 | **Skill Tetangga Baik bisa dibeli tanpa efek** (`tetanggaBonus` hanya dipakai Bantu). | Konten tanpa efek | Rendah |
-| G3 | **Teks surat 6, 13, 20, 29 menyebut Bantu.** Surat dibayar diam-diam (K-73). Surat lain masih teks placeholder (R8.3). | Teks | Sedang |
-| G4 | **Season "Bantu 20 lahan" (K-58) tidak ada di kode.** Tidak ada kartu di Hadiah > Musim dan tidak ada `season.bantu`. Dokumen mengklaimnya ada. | Dokumen melebihi kode | Sedang |
-| G5 | **side_kerjabakti (Lv 1) hanya bisa dimulai lewat hujan Deres atau Petir yang berakhir** (`kbStart`). Tidak ada jadwal dan tidak ada tombol. Dengan RAIN_ROLL Deres 30% dan Petir 15%, sumbernya ada tapi tidak bisa dipaksa. Pemain bisa menunggu lama di Lv 1–2. | Gerbang tanpa kontrol pemain | Sedang |
-| G6 | **Agenda hanya 3–4 tugas sebelum Lv 6.** Lv 1–3: Panen, Mancing, Tanam (3). Lv 4–5 dengan Hutan: + Nambang (4). Lv 6+: 5 (GDD 14.5 "5 tugas/hari"). | Spesifikasi | Rendah |
+| ID | Celah | Jenis | Tingkat | Ditutup oleh |
+|----|-------|-------|---------|--------------|
+| G1 | **Warga panel tidak punya pintu masuk.** Tombol Warga (HUD `SocialButton`) memakai gerbang fitur `bantu`, yang hanya dibuka S6. Dengan Bantu mati (K-73), Mampir, emote, Pulang, dan hadiah ikut hilang. Solo tidak punya tempat untuk Warga. | Gerbang tanpa sumber | Tinggi | fix(R2.G1) `b8b72e4`, K-75 |
+| G2 | **Skill Tetangga Baik bisa dibeli tanpa efek** (`tetanggaBonus` hanya dipakai Bantu). | Konten tanpa efek | Rendah | fix(R2.G2) `1d1084e`, K-76 |
+| G3 | **Teks surat 6, 13, 20, 29 menyebut Bantu.** Surat dibayar diam-diam (K-73). Surat lain masih teks placeholder (R8.3). | Teks | Sedang | fix(R2.G3) `7d1fdd8`, K-77 |
+| G4 | **Season "Bantu 20 lahan" (K-58) tidak ada di kode.** Tidak ada kartu di Hadiah > Musim dan tidak ada `season.bantu`. Dokumen mengklaimnya ada. | Dokumen melebihi kode | Sedang | fix(R2.G4) `62dc38e`, K-78 |
+| G5 | **side_kerjabakti (Lv 1) hanya bisa dimulai lewat hujan Deres atau Petir yang berakhir** (`kbStart`). Tidak ada jadwal dan tidak ada tombol. Dengan RAIN_ROLL Deres 30% dan Petir 15%, sumbernya ada tapi tidak bisa dipaksa. Pemain bisa menunggu lama di Lv 1–2. | Gerbang tanpa kontrol pemain | Sedang | fix(R2.G5) `7b1fc1b`, K-79 (dokumen; pemicu tidak diubah) |
+| G6 | **Agenda hanya 3–4 tugas sebelum Lv 6.** Lv 1–3: Panen, Mancing, Tanam (3). Lv 4–5 dengan Hutan: + Nambang (4). Lv 6+: 5 (GDD 14.5 "5 tugas/hari"). | Spesifikasi | Rendah | fix(R2.G6) `51671cb`, K-80 |
 
 **Yang sudah ditutup di R2.3 / R2.5 dan tidak lagi jadi gap:** M1 macet di langkah Gerobak (`gerobak_view`), S2 tidak bisa selesai (`surat_read`), Pesanan muncul sebelum M1, S6 dan Ringan Tangan menunggu Bantu (`blocked`), Agenda memilih tugas Bantu (diganti Tanam 5), surat 6/13/20/29 macet (dibayar langsung).
 
 **Di luar walk (tidak diperiksa):** Quest Lv 11+, Kucing Alun-alun dan Joran Hilang (K-16, ditunda, belum ada di kode), Mingguan, dan Kebun Favorit (like, ditunda oleh G1).
+
+## 2b. Walk ulang Lv 0–10 (setelah G1–G6, 2026-11-24)
+
+Dibaca ulang dari kode yang sudah berubah (K-75–K-80). Tidak ada perbaikan di bagian ini; setiap gap baru jadi baris TODO di Roadmap.
+
+| ID | Celah baru | Tingkat | Baris Roadmap |
+|----|-----------|---------|---------------|
+| N1 | **side_kerjabakti ditawarkan di Lv 1, tapi prompt pungut hanya terbuka setelah M1 langkah 3 (gerbang `gerobak`, Lv 2).** Quest tidak bisa maju di Lv 1. `unlockLevel` tidak cocok dengan gerbangnya. | Sedang | R2.G7 |
+| N2 | **Solo tidak punya konten sosial sama sekali** (Warga butuh 2 pemain, K-75). Tidak ada quest yang macet karenanya, tapi tidak ada sesuatu yang bisa dilakukan solo di sisi sosial. | Rendah | R2.G8 |
+| N3 | **Surat 6/13/20/29 dibayar tanpa toast saat fitur Surat belum terbuka** (sebelum S2, Lv 2). Pemain mendapat Koin/Bunga tanpa tahu sebabnya, dan surat itu tidak pernah terbaca. | Rendah | R2.G9 |
+
+Sudah diperiksa dan tidak ada gap baru: M1–M9 dan S1–S9 Lv 0–10 (gerbang dan event punya sumber), S6 dan Ringan Tangan `blocked`, Agenda 3/4/5 tugas sesuai syarat (K-80), Tetangga Baik tidak tampil, surat text alt, Season Bantu tidak dibangun (K-78).
 
 ## 3. Keputusan yang dipakai (ringkas)
 
