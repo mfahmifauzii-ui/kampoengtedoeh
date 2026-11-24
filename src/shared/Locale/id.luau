@@ -1232,6 +1232,11 @@ return {
 	["surat.27.text"] = "Nambang 12 bahan. Tangan boleh kapalan.",
 	["surat.28.text"] = "Masak 2 olahan. Resep warisan jangan putus.",
 	["surat.29.text"] = "Bantu 2 lahan. Kebaikan kembali padamu.",
+	-- K-77: alt texts shown while Bantu is hidden (same voice, no Bantu). Original text above is kept for the flag-on build.
+	["surat.6.alt"] = "Tetangga itu keluarga jauh. Kalau ketemu, sapa dulu ya, Nak.",
+	["surat.13.alt"] = "Hari ini genap 13. Cek kebunmu sendiri, ada yang haus.",
+	["surat.20.alt"] = "Dua puluh surat! Kakek bangga padamu.",
+	["surat.29.alt"] = "Kebaikan kembali padamu. Jangan lupa makan, Nak.",
 	["surat.30.text"] = "Surat terakhir. Terima kasih sudah menjaga kampung, Nak.",
 	["bundel.give"] = "Setor +{n} {item}",
 	["bundel.done"] = "{bundel} pulih!",

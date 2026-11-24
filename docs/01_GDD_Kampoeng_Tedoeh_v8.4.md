@@ -813,6 +813,7 @@ Semua quest baru muncul setelah tutorial jual ikan (`t1b_kolam`) selesai.
 ### 14.3 Surat Kakek
 
 30 surat, kumulatif (tidak reset). Isi: cerita + 1 tugas kecil + hadiah Koin/Bunga/bahan. Surat #1: `Nak, kalau hujan, jangan lari. Siram tanamanmu, biar Prima. — Kakek` Teks surat #2–#30 belum ditulis (Roadmap R8.3).
+K-77: surat 6, 13, 20, 29 meminta Bantu. Selama Bantu disembunyikan, hadiahnya dibayar saat jatuh tempo dan teks alt (tanpa kata Bantu) tampil sebagai toast bila fitur Surat terbuka. Teks asli dipakai saat flag hidup.
 
 ### 14.5 Agenda Harian — ada di kode (R2.2: tombol HUD "Papan", AgendaController)
 

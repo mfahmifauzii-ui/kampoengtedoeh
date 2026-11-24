@@ -38,8 +38,17 @@ local function grant(player: Player, def: Surat.Surat)
 	end
 end
 
--- K-73: while Bantu is hidden, a letter that asks for Bantu is paid out at once (no toast), so the letters after it are not
--- stuck. Only letters already due (n <= logins). Text of letters 6, 13, 20, 29 still says Bantu: the owner rewrites it (R8.3).
+-- K-77 (G3): the text key of letter n. While Bantu is hidden, a letter that asks for Bantu reads its alt text (surat.<n>.alt),
+-- which is written without Bantu. With the flag on, every letter reads surat.<n>.text as before.
+function SuratService.TextKey(n: number): string
+	if not Features.BANTU_ENABLED and Surat.byN[n].event == "bantu" then
+		return `surat.{n}.alt`
+	end
+	return `surat.{n}.text`
+end
+
+-- K-73: while Bantu is hidden, a letter that asks for Bantu is paid out at once, so the letters after it are not stuck.
+-- Only letters already due (n <= logins). The alt text is shown as a toast when the surat feature is open (K-77).
 local function skipBantuLetters(player: Player, data: Types.PlayerData)
 	if Features.BANTU_ENABLED then
 		return
@@ -50,6 +59,9 @@ local function skipBantuLetters(player: Player, data: Types.PlayerData)
 		data.surat.done[n] = true
 		data.surat.progress = 0
 		grant(player, Surat.byN[n])
+		if FeatureGate.IsUsable(data, "surat") then
+			Net.Fire("Notify", player, "surat.new", { n = n, text = SuratService.TextKey(n) })
+		end
 		skipped = true
 		n = current(data)
 	end
@@ -108,7 +120,7 @@ function SuratService.Init()
 		-- Q-2 gate "surat": the login toast only once the feature is open (login counting is unchanged).
 		if n > 0 and n <= data.surat.logins and FeatureGate.IsUsable(data, "surat") then
 			-- Surat baru hari ini (atau tertunda): tampilkan teksnya 1x per login.
-			Net.Fire("Notify", player, "surat.new", { text = `surat.{n}.text` })
+			Net.Fire("Notify", player, "surat.new", { n = n, text = SuratService.TextKey(n) })
 		end
 	end)
 end

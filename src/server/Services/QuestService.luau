@@ -404,7 +404,7 @@ local function onUiReport(player: Player, event: any)
 		local data = DataService.Get(player)
 		local n = if data then SuratService.Current(data) else 0
 		if data and n > 0 and n <= data.surat.logins then
-			Net.Fire("Notify", player, "surat.new", { n = n, text = `surat.{n}.text` })
+			Net.Fire("Notify", player, "surat.new", { n = n, text = SuratService.TextKey(n) })
 		end
 	end
 	reportEvent(player, event, 1)
