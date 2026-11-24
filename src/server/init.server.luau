@@ -41,6 +41,7 @@ local ORDER = {
 	"SocialService",
 	"SettingsService",
 	"DevService",
+	"TestHookService", -- K-127: Studio-only test hook (inert outside Studio)
 	"BubuService", -- R2.1: Bubu di sungai (6 jam)
 }
 

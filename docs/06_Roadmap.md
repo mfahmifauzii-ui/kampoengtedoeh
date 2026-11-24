@@ -8,6 +8,7 @@
 
 ## Handoff (update setiap selesai tugas; sesi baru mulai dari sini)
 
+- **Kait uji Studio (K-127, DONE-CODE, belum diuji di Play):** `TestHookService` (server) dan `TestHookController` (klien) hanya aktif di Studio. Permintaan lewat atribut `KTTestRequest`: `skipTutorial`, `grant`, `open:<layar>`. **Play Studio macet:** sejak percobaan ini, `start_stop_play` menjawab "Start play hasn't finished yet" dan tidak bisa berhenti. Perlu dibersihkan di Studio oleh owner (tutup dialog atau tekan Stop). Tugas Play (B27 dan Portrait K-125) belum dijalankan.
 - **Remap HUD (K-125, DONE-CODE; landscape dan tablet terukur di Studio, portrait BELUM):** sembilan ubin ≡ dalam kisi (5 x 2 landscape, 3 x 2 + gulir portrait). Bug ditemukan dan diperbaiki: AksiSlot tidak pernah jalan sejak K-104 (K-126). Keputusan chest: tetap 5 (owner, final).
 - **UI putaran 7, butir 5 (K-124, dokumen saja; sekarang diterapkan oleh K-125):** GUI 05 4.0 berisi peta HUD target (dock 4, 1 Aksi, ≡ dengan 6 ubin, info pasif kiri), hitungan sebelum/sesudah (≡ 10 → 7), dan cek tumpang tindih terhitung untuk landscape 844×390 dan portrait 390×844. Remap belum dikerjakan. Ubin Warga, Buku, Kolam belum punya tempat: pertanyaan ke owner.
 - **UI putaran 7, butir 4 (B27.9–12, K-123, DONE-CODE, Play NOT verified):** Hadiah dipecah: tab Login Harian (7 kartu + satu Klaim) dan Peti Main (garis waktu + satu Buka), Musim dan Koleksi tetap. Jumlah peti 5 (keputusan owner: tetap 5; catatan "4" sudah dicabut, K-123). Selene 76→75 setelah perbaikan, rojo 0.

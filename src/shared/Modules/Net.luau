@@ -94,6 +94,7 @@ local DEFINITIONS: { [string]: RemoteKind } = {
 
 	SkillBuy = "Function", -- C->S (skillId: string) -> "ok" | "max" | "locked" | "noSP" | "noKoin" | "unknown" (SkillService)
 	GerobakBuy = "Event", -- C->S (slot: number) beli 1 unit slot Gerobak Kaget (max 3/slot/restock)
+	TestHook = "Event", -- C->S (action: "skipTutorial" | "grant") Studio-only test hook (K-127); server ignores it outside Studio
 	KBPieces = "Event", -- S->C (positions: { Vector3 }) sampah Kerja Bakti milik pemain ini; index = piece id (K-117)
 	KBPick = "Event", -- C->S (pieceId: number) pungut sampah Kerja Bakti sendiri; server cek id, jarak, sekali saja (K-117)
 	KBPicked = "Event", -- S->C (pieceId: number) pungutan diterima; klien menghapus sampah itu (K-117)
