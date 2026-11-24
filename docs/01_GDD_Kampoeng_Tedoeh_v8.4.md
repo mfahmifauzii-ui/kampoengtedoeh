@@ -61,7 +61,7 @@ Tagline: `Kampung lo, rumah lo, panen lo — tiap hujan bisa jadi panen Prima.`
 | 13 | Sehat untuk 16+ | Tidak ada hadiah main > 60 menit, streak yang reset, loot box, iklan, desain judi/FOMO. |
 | 14 | Jangan terlalu diinfokan | UI = angka & ikon. Info pertama kali = toast 1x, lalu diam. |
 | 15 | 1 aturan, 1 tempat | Setiap angka hanya di 1 Config dan 1 bab dokumen. |
-| 16 | Tidak bergantung jumlah pemain | Game lengkap walau server cuma 1 orang. Target bersama dihitung dari pemain di server saat itu. ✔ K-17 (Kebun Warga membuat Bantu bisa solo, R2.5) |
+| 16 | Tidak bergantung jumlah pemain | Game lengkap walau server cuma 1 orang. Target bersama dihitung dari pemain di server saat itu. ⚠ K-73: Kebun Warga dibatalkan, Bantu disembunyikan. Solo belum lengkap: Warga (Mampir, Suka, hadiah) belum punya pintu masuk; lihat gap list (R2.G). |
 | 17 | Kualitas, bukan lotre | Kualitas dari timing + siram. Tidak ada Mutasi, Pelangi, Greenhouse, Super. |
 
 **Gating — LOCKED.** Boleh: Level, Koin, Quest (feature gate, `03_Quest_Naskah.md` Bab 2). Dilarang: Blueprint gating, Backpack/Tas gating, Bibit Unggul, apa pun di balik Robux selain kosmetik & QoL.
@@ -726,14 +726,16 @@ Album = GUI kartu, dibuka dari HUD. Bukan item, bukan bangunan.
 
 Sosial memberi, tidak pernah mengambil. Tidak ada pencurian, rebutan, transaksi antar pemain.
 
-### 12.2 Bantu Tetangga (buka Lv 5, S6)
+### 12.2 Bantu Tetangga (buka Lv 5, S6) — DISEMBUNYIKAN (K-73: `Config/Features.BANTU_ENABLED = false`)
+
+Selama disembunyikan: tidak ada tombol, baris, atau remote Bantu; S6 dan Ringan Tangan tidak ditawarkan; Surat yang minta Bantu dibayar langsung. Kode tetap ada.
 
 | Aturan | Detail |
 |--------|--------|
 | Batas | Per lahan per hari: 1 Siram + 1 Panen. Per pemain per hari: maks 5 lahan (+ Tetangga Baik). Reset 05:00 WIB. |
 | Yang dibantu | Siram: tanaman jadi Basah. Panen: hasil masuk Tas pemilik + 1 bibit sejenis bonus untuk pemilik. Kualitas milik pemilik. |
 | Pembantu | +40 Koin +10 XP per bantu. |
-| Solo | ✔ K-17: 4 petak **Kebun Warga** milik NPC di alun-alun, bisa disiram/dipanen 1x per hari dan dihitung sebagai Bantu (R2.5). |
+| Solo | **Dibatalkan (K-73).** Kebun Warga tidak dibangun. K-17 diganti K-73. |
 
 ### 12.3 Kirim Hadiah (Lv 20)
 
@@ -814,6 +816,8 @@ Semua quest baru muncul setelah tutorial jual ikan (`t1b_kolam`) selesai.
 ### 14.5 Agenda Harian — ada di kode (R2.2: tombol HUD "Papan", AgendaController)
 
 5 tugas/hari, reset 05:00 WIB. Hadiah: Panen 200 / Pancing 250 / Masak 300 / Bantu 150 / Nambang 400 Koin (USULAN). Tanpa XP, tanpa Bunga. Hadiah otomatis saat tugas selesai.
+
+K-73: selama Bantu disembunyikan, slot Bantu diganti **Tanam 5** (150 Koin + 25 XP, event `plant`), sehingga tetap 5 tugas dari yang lain (Panen, Mancing, Tanam, Masak, Nambang). Yang muncul sesuai level dan fitur.
 
 ### 14.6 Bundel Kakek
 

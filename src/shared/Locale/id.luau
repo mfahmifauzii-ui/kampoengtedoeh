@@ -1066,6 +1066,7 @@ return {
 	["agenda.pancing.title"] = "Agenda: Mancing 3",
 	["agenda.masak.title"] = "Agenda: Masak 1",
 	["agenda.bantu.title"] = "Agenda: Bantu 1",
+	["agenda.tanam.title"] = "Agenda: Tanam 5",
 	["agenda.nambang.title"] = "Agenda: Nambang 10",
 	["quest_harian.title"] = "Quest Harian",
 	["quest_harian.panen_besar"] = "Panen 10 tanaman",

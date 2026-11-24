@@ -18,6 +18,10 @@
 -- (whitelist in QuestService). Locale keys: quest.<id>.title, quest.<id>.s<n> (may use {n}).
 
 local Progression = require(script.Parent.Progression)
+local Features = require(script.Parent.Features)
+
+-- K-73: S6 and side_tetangga need Bantu. While Features.BANTU_ENABLED is false they are listed as blocked and never start.
+local BANTU_BLOCKED = if Features.BANTU_ENABLED then nil else "Bantu ditunda (K-73)"
 
 export type Step = {
 	event: string?,
@@ -238,6 +242,7 @@ local list: { Quest } = {
 	},
 	{
 		id = "s6_tetangga_baik",
+		blocked = BANTU_BLOCKED,
 		kind = "side",
 		giver = "nek_ani",
 		unlockLevel = 5,
@@ -293,6 +298,7 @@ local list: { Quest } = {
 	},
 	{
 		id = "side_tetangga",
+		blocked = BANTU_BLOCKED,
 		kind = "side",
 		giver = "nek_ani",
 		unlockLevel = 5,
@@ -369,14 +375,15 @@ local list: { Quest } = {
 -- XP di bawah ini USULAN (v7.3 Bab 14.5 tidak memberi XP; contoh P1-9: Agenda cuma Koin) — butuh lock owner.
 -- Tugas P2-7: Agenda bisa dipilih player (semua 5 aktif, player memilih mana yang dikerjakan).
 -- D1 (K-56): requires = what the player needs before the template can be picked (level, and a feature when given).
--- hidden = not picked at all for now (Bantu waits for Kebun Warga, R2.5).
+-- hidden = not picked at all for now (Bantu, while Features.BANTU_ENABLED is false, K-73).
 export type Requires = { level: number, feature: string? }
 export type Daily = { id: string, event: string, count: number, reward: Progression.Reward, requires: Requires?, hidden: boolean? }
 local DAILY: { Daily } = {
 	{ id = "panen", event = "harvest", count = 5, reward = { koin = 200, xp = 30 }, requires = { level = 1 } },
 	{ id = "pancing", event = "catch", count = 3, reward = { koin = 250, xp = 40 }, requires = { level = 1 } },
 	{ id = "masak", event = "cook", count = 1, reward = { koin = 300, xp = 45 }, requires = { level = 6, feature = "dapur" } },
-	{ id = "bantu", event = "bantu", count = 1, reward = { koin = 150, xp = 25 }, requires = { level = 1 }, hidden = true }, -- D1 (K-56): hidden until Kebun Warga (R2.5)
+	{ id = "bantu", event = "bantu", count = 1, reward = { koin = 150, xp = 25 }, requires = { level = 1 }, hidden = not Features.BANTU_ENABLED }, -- D1 (K-56), K-73: hidden while BANTU_ENABLED is false
+	{ id = "tanam", event = "plant", count = 5, reward = { koin = 150, xp = 25 }, requires = { level = 1 } }, -- K-73: pengganti slot Bantu (nilai sama, 150 Koin + 25 XP)
 	{ id = "nambang", event = "mine", count = 10, reward = { koin = 400, xp = 60 }, requires = { level = 4, feature = "hutan" } },
 }
 local DAILY_RESET_HOUR = 5 -- WIB

@@ -19,7 +19,7 @@ local ProgressionService = require(script.Parent.ProgressionService)
 local AgendaService = {}
 
 -- D1 (K-56): a pool template is only picked when the player can do it now: its level and, when given, its feature are open.
--- Hidden templates (Bantu, until Kebun Warga) are never picked. Returns the eligible templates (may be fewer than asked).
+-- Hidden templates (Bantu while Config/Features.BANTU_ENABLED is false, K-73) are never picked. Returns the eligible templates (may be fewer than asked).
 function AgendaService.Eligible(data: Types.PlayerData, pool: { Quests.Daily }): { Quests.Daily }
 	local out: { Quests.Daily } = {}
 	for _, def in pool do

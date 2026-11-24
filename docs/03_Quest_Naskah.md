@@ -229,7 +229,7 @@ Langkah `kak_fajar`: `tut.t1b.kak_fajar.1` (Pak Udin) — Kak Fajar ada di sunga
 | S3 | 3 | Tetangga di Depan | Bang Jali | Jual 1 barang ke Bang Jali | Jual Bang Jali | – |
 | S4 | 3 | Rumah dari Kakek | Pak Amran | Ngobrol dengan Pak Amran | Rangka rumah | – |
 | S5 | 5 | Ikan Kanal | Kak Fajar | Tangkap 1 ikan Mid di Kanal Barat | Kanal Barat | 100 Koin [USULAN] |
-| S6 | 5 | Kenalan Tetangga *(dulu "Tetangga Baik (kenalan)")* | Nek Ani | Bantu 1 lahan (pemain lain **atau Kebun Warga**, ✔ K-17) | Bantu | +40 Koin +10 XP (dari Bantu) |
+| S6 | 5 | Kenalan Tetangga *(dulu "Tetangga Baik (kenalan)")* | Nek Ani | Bantu 1 lahan (pemain lain) — **DITUNDA K-73** (`blocked`, tidak ditawarkan) | Bantu | +40 Koin +10 XP (dari Bantu) |
 | S7 | 9 | Sawah | Pak Udin | Tanam 1 Padi → Panen Padi (dapat Jerami). *Langkah 2 makan 2 jam; Side tidak menahan apa pun.* | – | 100 Koin [USULAN] |
 | S8 | 10 | Kandang Bebek | Pak Udin | Bangun Kandang Bebek → Beli 1 Bebek | Kandang Bebek | 200 Koin [USULAN] |
 | S9 | 10 | Kanal Timur *(dulu "Empang", ✔ K-23)* | Kak Fajar | Tangkap 1 ikan di Kanal Timur | Kanal Timur | 200 Koin [USULAN] |
@@ -243,7 +243,7 @@ Langkah `kak_fajar`: `tut.t1b.kak_fajar.1` (Pak Udin) — Kak Fajar ada di sunga
 | Kucing Alun-alun | belum di kode (ditunda R12.4, K-16 b) | Pak Udin | Kasih makan kucing 3 hari berbeda | Title Penyayang Kucing + pet kucing kampung (kosmetik) | **Update 1** (✔ K-16 b): tidak muncul di Quest Log rilis, data disimpan dengan `released=false` |
 | Joran Hilang | belum di kode (ditunda R12.4, K-16 b) | Kak Fajar | Cari 3 joran hilang di pinggir air | Joran Kayu + 200 Koin | **Update 1** (✔ K-16 b): tidak muncul di Quest Log rilis, data disimpan dengan `released=false` |
 | Rumah Rapi | `side_rumah_rapi` | Pak Amran | Pasang 20 piece | Title Dinding Spesial + warna dinding spesial ✔ K-15 | Ada, tanpa naskah |
-| Ringan Tangan *(dulu "Tetangga Baik")* | `side_tetangga` | Nek Ani | Bantu 10 lahan | 300 Koin ✔ K-15 | Ada, tanpa naskah |
+| Ringan Tangan *(dulu "Tetangga Baik")* | `side_tetangga` | Nek Ani | Bantu 10 lahan | 300 Koin ✔ K-15 | Ditunda K-73 (`blocked`), tanpa naskah |
 | Resep Mak | `side_resep` | Mak Sari | Masak 3 resep berbeda | 200 Koin [USULAN] ✔ K-15 | Ada, tanpa naskah |
 | Panen Prima | `side_prima` | Mak Sari | Panen 5 Prima | Skin Gembor Emas ✔ K-15 | Ada, tanpa naskah |
 | Ikan Jumbo | `side_jumbo` | Kak Fajar | Dapat 1 ikan Jumbo | 200 Koin + Title Raja Jumbo | Ada, tanpa naskah |
@@ -467,6 +467,7 @@ Struktur cerita "Babak 2 & 3" dan rancangan quest-nya: `08_Penyempurnaan.md` P-0
 ## 8. Revisi Playtest Putaran 1 (v8.3, K-54 / K-56)
 
 - **Bantu lahan** dihapus dari pool Harian dan Mingguan. Quest Season baru: "Bantu 20 lahan (Season)", 500 Koin, tanpa Bunga, muncul setelah Bantu terbuka.
+- **K-73 (Bantu disembunyikan):** S6 dan Ringan Tangan `blocked`; Agenda pakai Tanam 5 selama Bantu mati; surat 6, 13, 20, 29 (minta Bantu) dibayar langsung saat jatuh tempo, tanpa toast. Teks surat-surat itu perlu ditulis ulang (R8.3).
 - **Quest diblok** hanya bila `blocked` di `Config/Quests` terisi. Saat ini tidak ada quest yang diblok (Agenda R2.2 dan Bubu R2.1 sudah ada di kode). Dua quest yang belum ada di kode (Kucing Alun-alun, Joran Hilang) tidak ada di `Config/Quests` sama sekali; lihat 5.3.
 - **Baris langkah pemain** = kolom Langkah di bab ini, dipakai di tracker dan log (contoh: "Buka Agenda (1/3)", "Tanam 6 bibit Kangkung (3/6)"). Side quest juga menampilkan apa yang harus dilakukan dan di mana.
 - **Tutorial:** naskah Mak Sari dan Kak Fajar mengikuti K-54 (Bab 4 di atas).

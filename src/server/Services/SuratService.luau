@@ -8,6 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Surat = require(ReplicatedStorage.Shared.Config.Surat)
+local Features = require(ReplicatedStorage.Shared.Config.Features)
 local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
@@ -37,6 +38,26 @@ local function grant(player: Player, def: Surat.Surat)
 	end
 end
 
+-- K-73: while Bantu is hidden, a letter that asks for Bantu is paid out at once (no toast), so the letters after it are not
+-- stuck. Only letters already due (n <= logins). Text of letters 6, 13, 20, 29 still says Bantu: the owner rewrites it (R8.3).
+local function skipBantuLetters(player: Player, data: Types.PlayerData)
+	if Features.BANTU_ENABLED then
+		return
+	end
+	local skipped = false
+	local n = current(data)
+	while n > 0 and n <= data.surat.logins and Surat.byN[n].event == "bantu" do
+		data.surat.done[n] = true
+		data.surat.progress = 0
+		grant(player, Surat.byN[n])
+		skipped = true
+		n = current(data)
+	end
+	if skipped then
+		InventoryService.Sync(player)
+	end
+end
+
 function SuratService.Current(data: Types.PlayerData): number
 	return current(data)
 end
@@ -46,6 +67,7 @@ function SuratService.Report(player: Player, event: string, add: number)
 	if not data then
 		return
 	end
+	skipBantuLetters(player, data)
 	-- Q-2 gate "surat": gameplay events do not progress surat while the feature is closed. Silent (no toast): this is
 	-- not a player request, only a side effect of a harvest/bantu/mancing event.
 	if not FeatureGate.IsUsable(data, "surat") then
@@ -81,6 +103,7 @@ function SuratService.Init()
 			data.surat.logins += 1
 			InventoryService.Sync(player)
 		end
+		skipBantuLetters(player, data)
 		local n = current(data)
 		-- Q-2 gate "surat": the login toast only once the feature is open (login counting is unchanged).
 		if n > 0 and n <= data.surat.logins and FeatureGate.IsUsable(data, "surat") then

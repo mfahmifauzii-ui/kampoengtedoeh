@@ -10,6 +10,7 @@ local Workspace = game:GetService("Workspace")
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
 local Social = require(ReplicatedStorage.Shared.Config.Social)
+local Features = require(ReplicatedStorage.Shared.Config.Features)
 local Skills = require(ReplicatedStorage.Shared.Config.Skills)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
@@ -177,7 +178,7 @@ local function render()
 	-- Bantu + Hadiah di lahan yang sedang dikunjungi (Bab 12.2/12.3, P2-5).
 	local here = plotUnderMe()
 	local snap = State.current :: any
-	if here then
+	if here and Features.BANTU_ENABLED then -- K-73: no Bantu rows while hidden
 		UiKit.header(panel.list, Locale.t("bantu.title"), nextOrder())
 		local helpGiven = (snap and snap.social and snap.social.helpGiven) or {}
 		local doneCount = 0

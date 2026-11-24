@@ -13,6 +13,7 @@ local PlotsConfig = require(ReplicatedStorage.Shared.Config.Plots)
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Social = require(ReplicatedStorage.Shared.Config.Social)
+local Features = require(ReplicatedStorage.Shared.Config.Features)
 local Skills = require(ReplicatedStorage.Shared.Config.Skills)
 local Items = require(ReplicatedStorage.Shared.Modules.Items)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
@@ -283,6 +284,7 @@ end
 -- barang pembantu; tidak bisa bantu lahan sendiri. Siram -> Basah (ikut peluang Bagus/Prima).
 -- Panen -> hasil masuk tas pemilik + 1 bibit sejenis bonus, Kualitas tetap milik pemilik.
 local function onBantu(helper: Player, ownerId: any, kind: any)
+	if not Features.BANTU_ENABLED then return end -- K-73: Bantu hidden; the remote is rejected
 	if not FeatureGate.Check(helper, "bantu") then return end
 	if TutorialService.NpcBlocked(helper, nil) then
 		Net.Fire("Notify", helper, "npc.tut_block") -- Bab 16.3: no order/event/social while Tutorial 1 runs

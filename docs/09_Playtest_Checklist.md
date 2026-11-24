@@ -110,7 +110,7 @@ Tempel juga **teks merah/kuning dari panel Output** bila ada. Tidak perlu meneba
 ### B2. Fase 2 — Sistem Baru (R2.1 – R2.12)
 1. [ ] **Bubu (M8):** pasang malam, ambil pagi, hasil masuk Tas.
 2. [ ] **Agenda Harian (M1):** UI terbuka, 5 kategori terlihat, klaim hadiah jalan; **Papan Hari Ini** menampung Agenda + Surat + Order.
-3. [ ] **Kebun Warga (K-17):** di server kosong (1 pemain) S6 dan side Bantu **bisa diselesaikan sendirian**.
+3. [x] **Bantu disembunyikan (K-73, diganti Kebun Warga yang dibatalkan):** lihat B21. Tidak lagi diuji di sini.
 4. [ ] **Blueprint:** simpan desain, pasang ulang di lahan sendiri dengan bahan sendiri; **Kirim ke pemain** ke akun kedua; kode tidak bisa dikirim lewat chat.
 5. [ ] **Pajangan:** pasang ikan/hasil di pajangan, terlihat oleh pemain lain.
 6. [ ] **Event:** event uji bisa selesai → 1 Peti Bunga; tidak bisa diklaim dua kali.
@@ -365,6 +365,14 @@ Belum pernah dimainkan di Play. Pakai akun baru atau save Lv 2 tanpa M1.
 2. [ ] **Gerobak (M1):** Lihat Gerobak Kaget = buka panel Acara lalu tab Gerobak. M1 selesai setelah itu; tab Gerobak tidak tampil sebelumnya.
 3. [ ] **Pesanan:** tombol Pesanan tidak tampil sampai M1 mulai (Agenda terbuka). Sesudah itu tampil.
 4. [ ] **Tutorial tidak berubah:** 15 langkah tetap sama (sudah diverifikasi owner di B16).
+
+### B21. Bantu disembunyikan (R2.5, K-73): cek di HP
+
+Belum pernah dimainkan di Play. Pakai akun yang sudah Lv 6 dengan Hutan dan Dapur terbuka, supaya Agenda penuh.
+
+1. [ ] **Bantu tidak ada di mana pun:** tidak ada tombol Warga di HUD, tidak ada baris "Bantu Tetangga" saat berdiri di lahan orang lain, tidak ada quest "Tetangga Baik" di tracker.
+2. [ ] **Agenda 5 tugas tanpa Bantu:** Papan Hari Ini menampilkan Panen, Mancing, Tanam 5, Masak 1, Nambang 10. Tidak ada "Bantu 1".
+3. [ ] **Surat tetap jalan:** surat 6 (dan 13, 20, 29) tidak berhenti. Surat berikutnya bisa dicapai; tidak ada toast untuk surat yang minta Bantu.
 
 ### B15. Satu toast (T0, 2026-11-23): owner cek di HP dan PC
 

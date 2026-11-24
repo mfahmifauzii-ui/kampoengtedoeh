@@ -16,7 +16,8 @@
 - **SFX pertama (feat R7.x, 2026-11-24):** panen, siram, gigitan dipasang (DONE-CODE, Play belum; owner cek di 09 B17). Id panen dan gigitan sudah dipilih dari toolbox (`farm_harvest` = 126130663615387, `fish_bite` = 18145114696); `farm_harvest` punya fallback `plant_seed` yang hanya dipakai saat id kosong. Selene 85 peringatan, rojo 0. Baseline di CLAUDE.md sekarang 85.
 - **Hujan visual (R6.5, feat(R6.x): rain vfx, 2026-11-24):** satu emitter yang sudah ada di `WorldController` sekarang naik-turun rate 3 dtk, dan Kualitas gambar Rendah mematikannya. DONE-CODE, Play belum; owner cek di 09 B18. Tanda hujan, kabut, kunang, kilat, genangan belum.
 - **Seed-out (T3, feat(T3), 2026-11-24):** "Bibit habis" (`farm.no_seed`) sekarang toast Ok dismissible (`seed_out`), hilang saat Ok atau setelah beli bibit (K-72). DONE-CODE, Play belum; owner cek di 09 B19. Ok toast (09 B15 butir 5) ikut selesai lewat ini.
-- **Berikutnya:** R2.5 dibatalkan dan Bantu disembunyikan (K-73, flag `Config/Features.BANTU_ENABLED`), lalu cek gerbang quest Lv 0–10 di atas kertas. Owner yang tes Play untuk B20. Keputusan terbuka: K-72 (default konservatif, owner belum meninjau).
+- **R2.5 (feat(R2.5), 2026-11-24):** Bantu Tetangga disembunyikan lewat `Config/Features.BANTU_ENABLED = false` (K-73). Tidak ada UI Bantu, server tolak `SocialBantu`, S6 dan side Bantu `blocked`, Agenda ganti slot Bantu dengan Tanam 5 (150 Koin, 25 XP), Surat yang minta Bantu dibayar langsung (6, 13, 20, 29). Kebun Warga dibatalkan. DONE-CODE, Play belum; owner cek di 09 B21. Selene 0 error / 85 warning, rojo 0.
+- **Berikutnya:** cek gerbang quest Lv 0–10 di atas kertas (langkah 4 tugas ini), lalu gap list ke Roadmap. Owner yang tes Play untuk B20 dan B21. Keputusan terbuka: K-72 (default konservatif, owner belum meninjau).
 - **Branch:** `feat/v.7`. Sudah di-push sampai `1f562d0`; `6c5e593`, `06521d5`, `995d049` belum.
 - **Baseline:** selene 0 error / 85 warning (turun dari 86 di feat R7.x); rojo build exit 0. Dicek ulang 24 Nov 2026 setelah id SFX dipasang.
 - **Keputusan owner terbuka:** tidak ada yang menunggu. Gerbang rilis di bawah (Bab 23) belum dikerjakan.
@@ -167,7 +168,7 @@ Butuh: R0.3 selesai.
 | R2.2 | **Agenda UI** di Papan Hari Ini + langkah M1 "Buka Agenda" | GDD 14.5, GUI 6.9 | Agenda terlihat, 5 tugas, hadiah otomatis tercatat | ★ | M | DONE-CODE | be81d41 |
 | R2.3 | Sisa tutorial/quest: event Surat #1 dibaca, Gerobak terbuka di M1 (bukan `starter_pagar`), hapus sisa starter chain | Audit A-28, K-74 | Feature gate Agenda/Gerobak/Order hanya dari M1 | ★ | S | DONE-CODE | feat(R2.3) |
 | R2.4 | Kucing Alun-alun + Joran Hilang: **belum di kode** (tidak ada di `Config/Quests`, tidak ada flag `released`). Ditunda ke R12.4 (K-16 b). Quest Log tidak menampilkannya karena tidak ada di data. | K-16 (b) | Tidak ada error; tidak tampil di Quest Log rilis; dibangun di R12.4 | | S | DITUNDA (R12.4) | — |
-| R2.5 | Kebun Warga (4 petak NPC, Bantu solo) | K-17 | S6 bisa selesai sendirian di server kosong | ★ | S | TODO | — |
+| R2.5 | Sembunyikan Bantu Tetangga lewat `Config/Features.BANTU_ENABLED = false`. **Kebun Warga CANCELLED** (K-73, ganti K-17). | K-73 (ganti K-17) | Flag false: tidak ada UI/remote/quest Bantu; Agenda 5 tugas tanpa Bantu; S6 dan side Bantu `blocked` | ★ | S | DONE-CODE | feat(R2.5) |
 | R2.6 | Blueprint simpan (3 slot) + kirim ke pemain + kode di panel | GDD 8.7, K-39 | Simpan → pasang ulang di lahan sendiri pakai bahan sendiri | | L | TODO | — |
 | R2.7 | Akuarium (8 ikan, Legenda/Jumbo) + Bingkai Album (%) | GDD 8.6 | Keduanya bisa dipasang dan berfungsi | | M | TODO | — |
 | R2.8 | Buff Saung (duduk 5 dtk → +5% XP 10 menit) + cek 5 Bundel jalan semua | GDD 14.6 | Semua Bundel bisa dipulihkan | | S | TODO | — |
