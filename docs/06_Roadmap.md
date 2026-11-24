@@ -14,7 +14,7 @@
 - **Hasil tes Claude (remote path, not UI, sebelum owner mengambil alih):** `sapa`, `cangkul`, `tanam`, `siram`, `panen_1` lolos; `garap_5` macet di 4/5 petak baru (penyebab belum dibuktikan; owner lulus garap_5 di tangannya).
 - **SFX pertama (feat R7.x, 2026-11-24):** panen, siram, gigitan dipasang (DONE-CODE, Play belum; owner cek di 09 B17). Id panen dan gigitan sudah dipilih dari toolbox (`farm_harvest` = 126130663615387, `fish_bite` = 18145114696); `farm_harvest` punya fallback `plant_seed` yang hanya dipakai saat id kosong. Selene 85 peringatan, rojo 0. Baseline di CLAUDE.md sekarang 85.
 - **Hujan visual (R6.5, feat(R6.x): rain vfx, 2026-11-24):** satu emitter yang sudah ada di `WorldController` sekarang naik-turun rate 3 dtk, dan Kualitas gambar Rendah mematikannya. DONE-CODE, Play belum; owner cek di 09 B18. Tanda hujan, kabut, kunang, kilat, genangan belum.
-- **Berikutnya:** owner yang tes Play. Claude menunggu hasil tes/keputusan owner untuk langkah berikutnya: bug 4/5 garap_5 (sudah lulus owner), Mak Sari tiga tahap, F1c, Ok toast, lalu Task 3 (seed-out) dan seterusnya.
+- **Berikutnya:** owner yang tes Play. Sisa: Ok toast (belum punya baris Roadmap; lihat 09 B15 butir 5; perlu keputusan scope), lalu Task 3 (seed-out). F1c sudah di kode (`7683dc2`), tidak dikerjakan ulang.
 - **Branch:** `feat/v.7`. Sudah di-push sampai `1f562d0`; `6c5e593`, `06521d5`, `995d049` belum.
 - **Baseline:** selene 0 error / 85 warning (turun dari 86 di feat R7.x); rojo build exit 0. Dicek ulang 24 Nov 2026 setelah id SFX dipasang.
 - **Keputusan owner terbuka:** tidak ada yang menunggu. Gerbang rilis di bawah (Bab 23) belum dikerjakan.
