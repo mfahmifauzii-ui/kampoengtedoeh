@@ -447,6 +447,14 @@ return {
 	["npc.tamu_event.meet"] = "Selamat datang di acara kampung!",
 	["npc.pak_kumis"] = "Pak Kumis",
 	["npc.pak_kumis.meet"] = "Malam-malam begini enaknya jajan! Lihat-lihat dulu, Nak.",
+	-- Pedagang Pasar Malam (Bab 13.2, Pedagang Tamu): satu tampil per malam. Sapaan (greet) dipakai saat pemain bicara
+	-- dengan mereka; sebelumnya tampil kunci mentah. Isi: apa yang mereka lakukan, dan apa yang bisa diketuk pemain.
+	["npc.pak_kumis.greet"] = "Malam ini saya beli barang pilihan dengan harga lebih mahal. Ketuk Jual 1 atau Jual Semua di bubble.",
+	["npc.nek_esih.greet"] = "Malam ini saya beli barang pilihan dengan harga lebih mahal. Ketuk Jual 1 atau Jual Semua di bubble.",
+	["npc.bang_dodo.greet"] = "Malam ini saya beli barang pilihan dengan harga lebih mahal. Ketuk Jual 1 atau Jual Semua di bubble.",
+	["npc.mpok_riah.greet"] = "Malam ini saya beli barang pilihan dengan harga lebih mahal. Ketuk Jual 1 atau Jual Semua di bubble.",
+	["npc.kang_asep.greet"] = "Malam ini saya beli barang pilihan dengan harga lebih mahal. Ketuk Jual 1 atau Jual Semua di bubble.",
+	["npc.yu_tum.greet"] = "Malam ini saya beli barang pilihan dengan harga lebih mahal. Ketuk Jual 1 atau Jual Semua di bubble.",
 	["npc.nek_esih"] = "Nek Esih",
 	["npc.nek_esih.meet"] = "Dagangan Nek semua fresh dari kebun tetangga!",
 	["npc.bang_dodo"] = "Bang Dodo",

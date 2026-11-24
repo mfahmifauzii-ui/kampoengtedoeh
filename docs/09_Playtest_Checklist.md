@@ -393,6 +393,7 @@ Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 1. [ ] **Jual Pertama, kamera (K-84):** saat Pak Udin mulai bicara, kamera lebar tampak dari dekat pohon. Pak Udin, warungnya, dan bangunan di sekitar terlihat. Rambut dan badan avatar tidak menutupi layar. Pemain berjalan masuk ke frame, Pak Udin menoleh, lalu dialog mulai. Tidak ada tombol skip.
 2. [ ] **Umpan wajib di sungai (K-86):** habiskan semua umpan, lalu coba lempar di sungai. Tombol Pancing mati, chip berkata "Umpan habis, beli di Kak Fajar". Di kolam sendiri lemparan tetap bisa tanpa umpan.
 3. [ ] **Mancing, toast tersemat (K-85):** di langkah "Tangkap 3 ikan" ada toast "Tangkap 3 ikan buat Kak Fajar: 0/3". Tiap ikan menaikkan hitungan (1/3, 2/3, 3/3). Toast tidak hilang sendiri. Setelah ikan ke-3, toast hilang bersama langkah.
+4. [ ] **Pak Kumis, teks (K-87):** saat Pasar Malam tampil Pak Kumis, bubble menampilkan kalimat sapaan (bukan `npc.pak_kumis.greet`). Portret masih kosong: ini sengaja, menunggu gambar dari owner.
 
 ### B15. Satu toast (T0, 2026-11-23): owner cek di HP dan PC
 
