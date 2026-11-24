@@ -12,6 +12,7 @@ local Items = require(ReplicatedStorage.Shared.Modules.Items)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local UiKit = require(script.Parent.Parent.UiKit)
+local AksiSlot = require(script.Parent.Parent.AksiSlot)
 local State = require(script.Parent.Parent.State)
 local FeatureClient = require(script.Parent.Parent.FeatureClient)
 
@@ -230,9 +231,42 @@ local function refreshAksi()
 		end
 	end
 	aksiMode = mode
-	aksi.Visible = mode ~= nil
+	-- Visibility is AksiSlot's (K-104). This sets the label only.
 	aksi.Text = if mode == "place" then Locale.t("dapur.aksi_place") else Locale.t("dapur.aksi_cook")
 end
+
+-- The centre of the player's own plot (its Origin), nil when the plot is not known yet.
+local function lahanPosition(): Vector3?
+	local plotName = player:GetAttribute("PlotName")
+	local plots = Workspace:FindFirstChild("Plots")
+	local plot = if typeof(plotName) == "string" and plots then plots:FindFirstChild(plotName) else nil
+	local origin = if plot then plot:FindFirstChild("Origin") else nil
+	return if origin and origin:IsA("BasePart") then origin.Position else nil
+end
+
+-- K-104: the Aksi slot's probe for the kitchen. Masak = distance to the Tungku (already within KITCHEN_REACH);
+-- Pasang Tungku = distance to the lahan (name "lahan", the quest M6 pointer). Nothing in another mode.
+local function kitchenProbe(): (number?, string?)
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") then
+		return nil, nil
+	end
+	if aksiMode == "cook" then
+		local pos = tungkuPosition()
+		return if pos then (pos - root.Position).Magnitude else nil, "Tungku"
+	elseif aksiMode == "place" then
+		local pos = lahanPosition()
+		return if pos then (pos - root.Position).Magnitude else 40, "lahan"
+	end
+	return nil, nil
+end
+
+AksiSlot.register("dapur", 6, kitchenProbe, function(visible: boolean)
+	if aksi then
+		aksi.Visible = visible
+	end
+end)
 
 function DapurController.Init()
 	panel = UiKit.panel("DapurPanel", `{Locale.t("dapur.title")} + {Locale.t("warung.title")}`, function()

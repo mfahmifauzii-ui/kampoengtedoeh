@@ -13,6 +13,7 @@ local Monetization = require(ReplicatedStorage.Shared.Config.Monetization)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local UiKit = require(script.Parent.Parent.UiKit)
+local AksiSlot = require(script.Parent.Parent.AksiSlot)
 local State = require(script.Parent.Parent.State)
 
 local player = Players.LocalPlayer
@@ -27,7 +28,8 @@ local breedButton: TextButton? = nil
 local panel: UiKit.Panel? = nil
 local selectedUid: number? = nil -- kolam yang sedang dipilih untuk mulai breeding
 
-local function ownPondNear(): number?
+-- K-104: distance to the nearest own pond in reach (the Aksi slot probe) and its uid. nil when none.
+local function ownPondNear(): (number?, number?)
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	if not root or not root:IsA("BasePart") then
@@ -35,11 +37,10 @@ local function ownPondNear(): number?
 	end
 	for _, spot in CollectionService:GetTagged(POND_TAG) do
 		if spot:IsA("BasePart") and spot:GetAttribute("Owner") == player.UserId then
-			if (spot.Position - root.Position).Magnitude <= REACH then
-				local uid = spot:GetAttribute("PondUid")
-				if typeof(uid) == "number" then
-					return uid
-				end
+			local distance = (spot.Position - root.Position).Magnitude
+			local uid = spot:GetAttribute("PondUid")
+			if distance <= REACH and typeof(uid) == "number" then
+				return distance, uid
 			end
 		end
 	end
@@ -146,12 +147,17 @@ local function rebuild()
 	end
 end
 
-local function refreshButton()
-	if not breedButton then
-		return
-	end
-	breedButton.Visible = ownPondNear() ~= nil
+-- K-104: the Aksi slot's probe for Kolam. Visibility is AksiSlot's (see AksiSlot.luau).
+local function pondProbe(): (number?, string?)
+	local distance = ownPondNear()
+	return distance, "Kolam"
 end
+
+AksiSlot.register("kolam", 5, pondProbe, function(visible: boolean)
+	if breedButton then
+		breedButton.Visible = visible
+	end
+end)
 
 -- Sheet Kolam (B-3, 2026-11-22): Tas (ikan saja, Taruh / Taruh semua) dan Isi kolam (Ambil). Header "x/cap ikan".
 -- Dibuka lewat tombol "Kolam" di kolam sendiri (server kirim PondOpen). Server memeriksa jarak, kapasitas, dan isi tas.
@@ -247,7 +253,7 @@ function PondController.Init()
 	gui.DisplayOrder = UiKit.LAYER.ACTION
 	gui.Parent = playerGui
 
-	local aksi = UiKit.button(gui, "PondAksiButton", Locale.t("pond.breed_title"), UiKit.BUTTON_MUTED)
+	local aksi = UiKit.button(gui, "PondAksiButton", Locale.t("pond.sheet_title"), UiKit.BUTTON_MUTED) -- K-104: label "Kolam"
 	aksi.AnchorPoint = Vector2.new(1, 1)
 	aksi.Position = UDim2.new(1, -24, 1, -392)
 	aksi.Size = UDim2.fromOffset(104, 64)
@@ -290,12 +296,6 @@ function PondController.Start()
 	State.Changed:Connect(function()
 		if panel and panel.gui.Enabled then
 			rebuild()
-		end
-	end)
-	task.spawn(function()
-		while true do
-			refreshButton()
-			task.wait(0.25)
 		end
 	end)
 	-- Hitung mundur breeding di panel yang terbuka.

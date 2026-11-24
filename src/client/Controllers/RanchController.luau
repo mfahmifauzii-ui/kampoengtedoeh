@@ -11,6 +11,7 @@ local Ranch = require(ReplicatedStorage.Shared.Config.Ranch)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local UiKit = require(script.Parent.Parent.UiKit)
+local AksiSlot = require(script.Parent.Parent.AksiSlot)
 local State = require(script.Parent.Parent.State)
 
 local player = Players.LocalPlayer
@@ -24,7 +25,8 @@ local RANCH_TAG = "Ranch"
 local kelolaButton: TextButton? = nil
 local panel: UiKit.Panel? = nil
 
-local function ownKandangNear(): string?
+-- K-104: distance to the nearest own kandang in reach (the Aksi slot probe), nil when none.
+local function ownKandangNear(): number?
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	if not root or not root:IsA("BasePart") then
@@ -34,8 +36,9 @@ local function ownKandangNear(): string?
 		if spot:IsA("BasePart") and spot:GetAttribute("Owner") == player.UserId then
 			local hewanId = spot:GetAttribute("HewanId")
 			if typeof(hewanId) == "string" and Ranch.byHewan[hewanId] then
-				if (spot.Position - root.Position).Magnitude <= REACH then
-					return hewanId
+				local distance = (spot.Position - root.Position).Magnitude
+				if distance <= REACH then
+					return distance
 				end
 			end
 		end
@@ -131,12 +134,16 @@ local function rebuild()
 	end
 end
 
-local function refreshButton()
-	if not kelolaButton then
-		return
-	end
-	kelolaButton.Visible = ownKandangNear() ~= nil
+-- K-104: the Aksi slot's probe for Kelola. Visibility is AksiSlot's (see AksiSlot.luau).
+local function kelolaProbe(): (number?, string?)
+	return ownKandangNear(), "Kandang"
 end
+
+AksiSlot.register("kelola", 4, kelolaProbe, function(visible: boolean)
+	if kelolaButton then
+		kelolaButton.Visible = visible
+	end
+end)
 
 function RanchController.Init()
 	local gui = Instance.new("ScreenGui")
@@ -176,12 +183,6 @@ function RanchController.Start()
 	State.Changed:Connect(function()
 		if panel and panel.gui.Enabled then
 			rebuild()
-		end
-	end)
-	task.spawn(function()
-		while true do
-			refreshButton()
-			task.wait(0.25)
 		end
 	end)
 end

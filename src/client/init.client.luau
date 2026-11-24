@@ -58,3 +58,6 @@ for _, name in ORDER do
 		task.spawn(loaded[name].Start)
 	end
 end
+
+-- K-104: one Aksi button is shown at a time (nearest object wins; see AksiSlot.luau). Controllers register in Init.
+require(script.Parent:WaitForChild("AksiSlot")).Start()

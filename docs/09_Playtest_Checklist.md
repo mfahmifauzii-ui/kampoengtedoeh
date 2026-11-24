@@ -429,3 +429,6 @@ Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 13. [ ] **Masak di Tungku (K-102):** dekat Tungku sendiri, tombol Aksi berlabel "Masak" muncul dan membuka panel Dapur. Menjauh, tombol hilang.
 14. [ ] **Tidak ada tombol Dapur di dock:** dock bawah hanya Garap, Kolam, Hias, Tas, Quest. Tidak ada tombol Dapur.
 15. [ ] **M6, jalan lengkap (K-103):** Craft Tungku (panah ke Meja Crafting), lalu "Pasang Tungku di lahanmu" (panah ke lahanmu, tombol Aksi "Pasang Tungku"), lalu "Masak 1 olahan di Tungku" (panah ke Tungku, tombol Aksi "Masak"), lalu "Makan 1 olahan" (panah ke Tungku).
+16. [ ] **Dock 4 tombol (K-104):** dock bawah hanya Garap, Hias, Tas, Quest. Tidak ada Kolam di dock.
+17. [ ] **Kolam dari ≡ dan Aksi (K-104):** Kolam ada sebagai ubin di menu ≡ (mode Garap kolam). Dekat kolam sendiri, tombol Aksi "Kolam" muncul dan membuka panel Kolam.
+18. [ ] **Prioritas slot Aksi (K-104):** berdiri di antara kolam dan node tambang. Tombol yang tampil adalah yang lebih dekat. Jarak sama: tombol untuk quest yang dilacak yang tampil. Tidak ada dua tombol Aksi bersamaan.

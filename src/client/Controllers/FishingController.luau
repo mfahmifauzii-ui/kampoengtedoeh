@@ -23,6 +23,7 @@ local UiAssets = require(ReplicatedStorage.Shared.Config.UiAssets)
 local UiKit = require(script.Parent.Parent.UiKit)
 local PlayerLock = require(script.Parent.Parent.PlayerLock)
 local State = require(script.Parent.Parent.State)
+local AksiSlot = require(script.Parent.Parent.AksiSlot)
 local TweenService = game:GetService("TweenService")
 
 -- The viewport (the HUD map in UiKit computes the context strip from it).
@@ -594,33 +595,56 @@ end
 local SPOT_GATE: { [string]: string } = { sungai = "kanal_barat", empang = "empang", kolam = "kolam" }
 
 -- The Location of the first open fishing spot in reach, or nil when there is none.
-local function nearSpot(): string?
+-- The nearest usable spot in reach: its location ("" when unnamed) and its distance. nil when none.
+local function nearSpot(): (string?, number?)
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	if not root or not root:IsA("BasePart") then
-		return nil
+		return nil, nil
 	end
+	local best: string? = nil
+	local bestDistance = math.huge
 	for _, spot in CollectionService:GetTagged("FishingSpot") do
-		if spot:IsA("BasePart") and (spot.Position - root.Position).Magnitude <= REACH then
+		if spot:IsA("BasePart") then
+			local distance = (spot.Position - root.Position).Magnitude
 			local loc = spot:GetAttribute("Location")
 			local feature = if typeof(loc) == "string" then SPOT_GATE[loc] else nil
-			if feature == nil or FeatureClient.IsOpen(feature) then
-				return if typeof(loc) == "string" then loc else ""
+			if distance <= REACH and distance < bestDistance and (feature == nil or FeatureClient.IsOpen(feature)) then
+				best = if typeof(loc) == "string" then loc else ""
+				bestDistance = distance
 			end
 		end
 	end
-	return nil
+	if best == nil then
+		return nil, nil
+	end
+	return best, bestDistance
 end
+
+-- K-104: the Aksi slot's probe for Pancing (only while the rod is given, not fishing, and a spot is in reach).
+local function pancingProbe(): (number?, string?)
+	local snap = State.current :: any
+	local gifted = snap ~= nil and snap.guide ~= nil and snap.guide.rodGift == true
+	if not gifted or player:GetAttribute("FishingActive") == true then
+		return nil, nil
+	end
+	local _loc, distance = nearSpot()
+	return distance, nil
+end
+
+AksiSlot.register("pancing", 1, pancingProbe, function(visible: boolean)
+	if aksiButton then
+		aksiButton.Visible = visible
+	end
+end)
 
 local function refreshAksi()
 	if not aksiButton then
 		return
 	end
 	local snap = State.current :: any
-	local gifted = snap ~= nil and snap.guide ~= nil and snap.guide.rodGift == true
-	local fishing = player:GetAttribute("FishingActive") == true
 	local near = nearSpot()
-	aksiButton.Visible = gifted and not fishing and near ~= nil
+	-- Visibility belongs to AksiSlot (K-104): aksiButton.Visible is set by its apply.
 	-- K-86 (owner 2026-11-24): sungai and empang need a bait; the pond (kolam) does not. No bait = the button is off, and the
 	-- bait chip says "Umpan habis, beli di Kak Fajar" (renderBait).
 	baitBlocked = near ~= nil and near ~= "kolam" and snap ~= nil and snap.bait == nil

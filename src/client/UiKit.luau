@@ -1723,7 +1723,9 @@ local MENU_ICON = {
 --          Big (58 px) round icon buttons.
 --   everything else = a vertical column at the top right (Warga, Toko, Atur, Koleksi). On phones it collapses behind a
 --   round menu button and slides open downward.
-local DOCK_ORDER = { GarapButton = 1, KolamButton = 2, DecorButton = 3, BagButton = 4, QuestButton = 5 }
+-- K-104: the dock has four buttons (Garap, Hias, Tas, Quest). Kolam is not here: it opens from the Aksi slot near the pond and
+-- as a tile in the ≡ menu (menuItem puts every name that is not listed here in the menu column).
+local DOCK_ORDER = { GarapButton = 1, DecorButton = 2, BagButton = 3, QuestButton = 4 }
 local MENU_SIZE = UiKit.HUD.MENU_W -- round button size in the top-right column (HUD map)
 
 -- Calls `callback` now and whenever the screen size changes (rotation, window resize). It follows the CURRENT camera:

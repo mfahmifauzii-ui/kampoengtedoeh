@@ -24,6 +24,7 @@ local FeatureClient = require(script.Parent.Parent.FeatureClient)
 local UiKit = require(script.Parent.Parent.UiKit)
 local QuestOfferController = require(script.Parent.QuestOfferController)
 local OrdersController = require(script.Parent.OrdersController)
+local AksiSlot = require(script.Parent.Parent.AksiSlot)
 
 local player = Players.LocalPlayer
 
@@ -609,6 +610,18 @@ local function chooseArrow(snap: any)
 	end
 end
 
+-- K-104: names the tracked quests point at: the Aksi slot breaks a tie in their favour.
+local function trackedTargetNames(snap: any): { string }
+	local names: { string } = {}
+	for _, key in (snap and snap.quests and snap.quests.tracked) or {} do
+		local name = nameOfTarget(key, snap)
+		if name then
+			table.insert(names, name)
+		end
+	end
+	return names
+end
+
 function refresh()
 	if not tracker then
 		return
@@ -651,6 +664,7 @@ function refresh()
 	end
 	tracker.Visible = hasRows
 	chooseArrow(snap)
+	AksiSlot.setTracked(trackedTargetNames(snap))
 	if logPanel then
 		renderLog()
 	end

@@ -12,6 +12,7 @@ local Bubu = require(ReplicatedStorage.Shared.Config.Bubu)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local UiKit = require(script.Parent.Parent.UiKit)
+local AksiSlot = require(script.Parent.Parent.AksiSlot)
 local State = require(script.Parent.Parent.State)
 
 local player = Players.LocalPlayer
@@ -35,14 +36,19 @@ local function rootPosition(): Vector3?
 	return nil
 end
 
-local function nearRiver(pos: Vector3): boolean
+-- Distance to the nearest river spot in reach, nil when none (K-104: it is the Aksi slot's distance for Pasang).
+local function nearRiver(pos: Vector3): number?
+	local best: number? = nil
 	for _, spot in CollectionService:GetTagged("FishingSpot") do
 		local location = spot:GetAttribute("Location")
-		if spot:IsA("BasePart") and typeof(location) == "string" and RIVER[location] and (spot.Position - pos).Magnitude <= REACH then
-			return true
+		if spot:IsA("BasePart") and typeof(location) == "string" and RIVER[location] then
+			local distance = (spot.Position - pos).Magnitude
+			if distance <= REACH and (best == nil or distance < best) then
+				best = distance
+			end
 		end
 	end
-	return false
+	return best
 end
 
 local function ownedKind(snap: any): string?
@@ -55,46 +61,59 @@ local function ownedKind(snap: any): string?
 	return nil
 end
 
--- Decides what the button does right now. Ambil wins over Pasang.
-local function refresh()
-	if not button then
-		return
-	end
+-- Decides what the button does right now. Ambil wins over Pasang. Also returns the distance to the object it acts on
+-- (the Aksi slot's probe, K-104). Nothing (nil text) when no action is possible.
+local function decide(): (string?, (() -> ())?, number?)
 	local snap = State.current
 	local pos = rootPosition()
 	local fishing = player:GetAttribute("FishingActive") == true
-	local text: string? = nil
-	local action: (() -> ())? = nil
 	if snap and snap.bubu and pos and not fishing and not UiKit.anyPanelOpen() then
 		for _, entry in snap.bubu.list do
 			if entry.ready and entry.pos then
 				local post = Vector3.new(entry.pos[1], entry.pos[2], entry.pos[3])
 				if (post - pos).Magnitude <= REACH then
 					local uid = entry.uid
-					text = Locale.t("bubu.btn_collect")
-					action = function()
+					return Locale.t("bubu.btn_collect"), function()
 						Net.Send("BubuCollect", uid)
-					end
-					break
+					end, (post - pos).Magnitude
 				end
 			end
 		end
-		if not text and nearRiver(pos) and #snap.bubu.list < snap.bubu.max then
+		local river = nearRiver(pos)
+		if river and #snap.bubu.list < snap.bubu.max then
 			local kind = ownedKind(snap)
 			if kind then
-				text = Locale.t("bubu.btn_place")
-				action = function()
+				return Locale.t("bubu.btn_place"), function()
 					Net.Send("BubuPlace", kind)
-				end
+				end, river
 			end
 		end
 	end
+	return nil, nil, nil
+end
+
+local function refresh()
+	if not button then
+		return
+	end
+	local text, action = decide()
 	pendingAction = action
-	button.Visible = text ~= nil
 	if text then
 		button.Text = text
 	end
 end
+
+-- K-104: the Aksi slot's probe for Bubu (visibility is AksiSlot's, see AksiSlot.luau).
+local function bubuProbe(): (number?, string?)
+	local text, _action, distance = decide()
+	return if text then distance else nil, nil
+end
+
+AksiSlot.register("bubu", 3, bubuProbe, function(visible: boolean)
+	if button then
+		button.Visible = visible
+	end
+end)
 
 function BubuController.Init()
 	local gui = Instance.new("ScreenGui")

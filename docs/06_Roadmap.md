@@ -8,6 +8,7 @@
 
 ## Handoff (update setiap selesai tugas; sesi baru mulai dari sini)
 
+- **Dock 4 + slot Aksi (R5.9, K-104):** dock hanya Garap, Hias, Tas, Quest. Kolam pindah ke ubin ≡ dan tombol Aksi "Kolam" dekat kolam. Satu slot Aksi lewat `src/client/AksiSlot.luau`: terdekat menang, jarak sama → objek quest yang dilacak, lalu prioritas (GUI 05 4.7). DONE-CODE, Play belum; owner cek di 09 B24 butir 16–18. Selene 0 error / 75 warning, rojo 0.
 - **Tungku (R5.8a, K-101, cfee047), R5.8b (K-102, 95e3313), M6 pointer (K-103):** craft Tungku di Meja Crafting (resep `tungku`, 10 Kayu + 8 Batu + 5 Tanah Liat, Lv 6), `DapurBuild` memakai item tungku, bukan bahan. DONE-CODE, Play belum; owner cek di 09 B24 butir 11. Aksi (R5.8b) menyusul.
 - **Quest butir 8 (Q5.8, K-95), walk selesai:** M6 s2/s3 pakai panah ke Tungku (Config), teks M6 s1 dibetulkan. Dua hal M6 belum ada di kode dan belum dibangun: craft Tungku di Meja Crafting (R5.8a) dan Aksi dapur dekat Tungku (R5.8b), menunggu keputusan owner. Gap pointer M1–M9 dan S1–S9 di `reports/Quest_Pointer_Walk_2026-11-24.md`, TODO R5.8c–e.
 - **Quest butir 2, 3, 5, 6 (Q5.2, Q5.3, Q5.5, Q5.6, K-94, K-95, K-96), commit C3:** satu Quest Log dengan tab Main · Side · Harian · Pesanan (dock Quest, tombol Quest di kartu pemain); Track / Lepas (maks 3); tracker dengan baris siap diserahkan dan panah layar-tepi; Baca di baris Surat dan S2; baris Kerja Bakti kosong dihapus. DONE-CODE, Play belum; owner cek di 09 B24 butir 5–8. Selene 0 error, rojo 0.
@@ -482,4 +483,5 @@ Satu butir = satu commit. Selene 0 error / 85 warning, rojo exit 0 di tiap commi
 | R5.8b | Aksi dapur dekat Tungku (tombol Aksi membuka dapur, bukan dock) | Butir 8, K-95, K-102 | Tombol Aksi muncul dekat Tungku dan membuka panel Dapur; tombol Dapur di dock hilang | DONE-CODE, Play belum | 95e3313 |
 | R5.8c | Isi `target` langkah yang sudah punya tempat: M2 s3 (Meja Crafting), S4 (pak_amran), S1 s1 (pak_udin), S3 s1 (bang_jali) | Walk butir 8, GAP-C dan GAP-E | Panah ke NPC atau Meja pada langkah itu | TODO | — |
 | R5.8d | Tempat dunia untuk langkah tanpa objek (hutan, kolam, sungai, kandang, petak, warung, sumur, bubu, Kanal Timur, Gerobak) | Walk butir 8, GAP-B | Nama objek di Workspace untuk tiap tempat | TODO (perlu nama dari Studio/owner) | — |
+| R5.9 | Dock 4 tombol (Garap, Hias, Tas, Quest); Kolam pindah ke ubin ≡ dan tombol Aksi dekat kolam; satu slot Aksi dengan prioritas (GUI 05 4.7) | Owner 2026-11-24, K-104 | Dock hanya 4; Aksi tampil satu per waktu; urutan prioritas sesuai 4.7 | DONE-CODE, Play belum | — |
 | R5.8e | Panah untuk tombol HUD (Papan, Hias, Dapur) | Walk butir 8, GAP-A | Keputusan: sorot tombol atau cukup teks | TODO (keputusan owner) | — |

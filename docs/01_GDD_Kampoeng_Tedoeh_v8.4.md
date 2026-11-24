@@ -480,6 +480,9 @@ Loop: Beli hewan → Isi Tempat Pakan → Produksi (jalan offline) → Ambil →
 
 ### 7.2 Kolam
 
+Akses (K-104): kolam dibuka dari tombol Aksi "Kolam" dekat kolam sendiri, dan dari ubin Kolam di menu ≡ (mode Garap kolam). Tidak ada tombol Kolam di dock. Aturan slot Aksi: GUI 05 bab 4.7.
+
+
 | Tier | Lv | Harga | Breeding | Kapasitas stok |
 |------|----|-------|----------|----------------|
 | Tanah | **4** | 1.000 Koin + 20 Batu | 6 jam | 10 ikan |

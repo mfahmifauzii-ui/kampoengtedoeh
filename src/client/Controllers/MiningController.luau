@@ -19,6 +19,7 @@ local Locale = require(ReplicatedStorage.Shared.Locale)
 local Sfx = require(ReplicatedStorage.Shared.Sfx)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local UiKit = require(script.Parent.Parent.UiKit)
+local AksiSlot = require(script.Parent.Parent.AksiSlot)
 local State = require(script.Parent.Parent.State)
 local FeatureClient = require(script.Parent.Parent.FeatureClient)
 
@@ -90,6 +91,17 @@ local function nearestNode(): (string?, BasePart?)
 		end
 	end
 	return bestId, bestPart
+end
+
+-- K-104: the Aksi slot's probe for Pukul (distance to the nearest node in reach, nil when none).
+local function pukulProbe(): (number?, string?)
+	local _, part = nearestNode()
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if part and root and root:IsA("BasePart") then
+		return (part.Position - root.Position).Magnitude, nil
+	end
+	return nil, nil
 end
 
 local function nodeReady(nodeId: string): boolean
@@ -240,6 +252,9 @@ local function buildUi()
 	aksi.Visible = false
 	aksi.Activated:Connect(tapPukul)
 	aksiButton = aksi
+	AksiSlot.register("pukul", 2, pukulProbe, function(visible: boolean)
+		aksi.Visible = visible
+	end)
 
 	local craft = UiKit.button(gui, "CraftButton", Locale.t("mine.craft"), UiKit.BUTTON_MUTED)
 	craft.AnchorPoint = Vector2.new(0.5, 1) -- placed over the table each frame (refreshCraft)
@@ -351,13 +366,13 @@ local function refreshCraft()
 	craftButton.Position = UDim2.fromOffset(screen.X, screen.Y)
 end
 
+-- Visibility belongs to AksiSlot (K-104); this sets the text and the ring only.
 local function refreshAksi()
 	if not aksiButton then
 		return
 	end
 	local nodeId, _part = nearestNode()
 	if nodeId == nil then
-		aksiButton.Visible = false
 		stopRing()
 		return
 	end
@@ -365,14 +380,12 @@ local function refreshAksi()
 		-- Node habis (respawn per-player): tombol tampil sebagai hitungan mundur, tidak bisa dipukul.
 		local entry = states[nodeId]
 		aksiButton.Text = if entry then fmtCountdown(entry.readyAt) else Locale.t("prompt.mine")
-		aksiButton.Visible = true
 		if activeNode == nodeId then
 			stopRing()
 		end
 		return
 	end
 	aksiButton.Text = Locale.t("prompt.mine")
-	aksiButton.Visible = true
 	if activeNode ~= nodeId then
 		startRing(nodeId)
 	end

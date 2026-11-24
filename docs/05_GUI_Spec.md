@@ -89,10 +89,10 @@ Tombol HUD lain tetap: dock 58, Tombol Aksi 84. Jarak antar target ≥ 6 px. (Ge
 │  ★ Main: Kolam Kakek       [→]    └─────────────┘            (Hadiah) │
 │   · Bangun kolam                                             (Warga)  │
 │  · Side: Bibit Kedua                                         (Toko)   │
-│                                                              (≡ Atur) │
+│                                                    (≡ Kolam, Atur)   │
 │                                                                       │
 │ ░░░░░░░░░░░░            [chip umpan · status mancing]   [Aksi 84px]   │
-│ ░ thumbstick ░  (Garap)(Kolam)(Hias)(Tas)(Pesanan)               [Jump]│
+│ ░ thumbstick ░  (Garap)(Hias)(Tas)(Quest)                        [Jump]│
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -101,16 +101,35 @@ Tombol HUD lain tetap: dock 58, Tombol Aksi 84. Jarak antar target ≥ 6 px. (Ge
 | Atas tengah | Koin, Bunga | Tetap |
 | Atas tengah, di bawah mata uang | Toast stack | Lihat 4.2 |
 | Kiri atas | Kartu pemain ringkas (foto + level + bar XP) + chip buff, lalu tracker | Kartu pindah dari kiri bawah ✔ K-34. Tracker lebar 200 px, mulai 118 px dari atas, tinggi maks min(200 px, 25% layar), maks 3 baris + "+N lainnya", teks krem outline gelap tanpa panel, baris membungkus teks |
-| Kanan atas | Kolom menu bulat 50 px, ikon saja, bisa dilipat di HP | Urutan: Acara, Skill, Hadiah, Warga, Toko, Atur. Dapur **tidak** di sini (✔ K-34) |
-| Bawah tengah | Dock 58 px, 10 px dari bawah | Garap, Kolam, Hias, Tas, **Quest** (dulu Pesanan; owner 2026-11-24) — hanya yang sudah terbuka. **Dapur tidak ada di dock** (K-102). |
-| Kanan bawah, slot Aksi | Satu tombol Aksi 104 px, slot yang sama dengan Pukul/Pancing/Kolam | **Masak** saat dekat Tungku sendiri (membuka panel Dapur); **Pasang Tungku** saat Tier 1 belum berdiri dan Tungku ada di tas (K-102, R5.8b) |
+| Kanan atas | Kolom menu bulat 50 px, ikon saja, bisa dilipat di HP | Urutan: Acara, Skill, Hadiah, Warga, Toko, **Kolam**, Atur. Kolam ada di sini sebagai ubin (K-104). Dapur **tidak** di sini (✔ K-34) |
+| Bawah tengah | Dock 58 px, 10 px dari bawah, **maks 4 tombol** | Garap, Hias, Tas, **Quest** (dulu Pesanan; owner 2026-11-24) — hanya yang sudah terbuka. **Kolam tidak ada di dock** (K-104, ubin ≡ dan slot Aksi). **Dapur tidak ada di dock** (K-102). |
+| Kanan bawah, slot Aksi | Satu tombol Aksi 104 px per objek; hanya satu yang tampil (aturan 4.7) | **Kolam** dekat kolam sendiri (membuka panel Kolam, K-104); **Masak** dekat Tungku sendiri (panel Dapur); **Pasang Tungku** saat Tier 1 belum berdiri dan Tungku ada di tas (K-102) |
 | Zona konteks (di atas dock, tengah) | Status memancing + chip umpan | Satu tombol di atas dock; tombol Batal berlabel 64×32 px |
-| Kanan bawah, di atas Jump | **Satu slot Tombol Aksi 84 px** | Mancing / Pukul / Tebang / Kelola Kandang / Breeding / Craft / Masak — satu aksi, yang terdekat (✔ K-34, sekarang Craft masih melayang di atas meja) |
+| Kanan bawah, di atas Jump | **Satu slot Tombol Aksi** | Mancing / Pukul / Bubu / Kelola Kandang / Kolam / Masak / Pasang Tungku — satu aksi, yang terdekat (4.7, K-104). Craft masih melayang di atas meja |
 | Kiri bawah | Thumbstick | **Kosong** |
 
 Margin layar 12, gap 8.
 
 **Label tombol baru:** saat tombol HUD pertama kali muncul (dibuka quest), tombol memantul + label nama 4 detik. Tekan lama 0,5 dtk (HP) / hover (PC) = tooltip nama (`attachTip`, sekarang kosong → R3.1).
+
+### 4.7 Slot Aksi: satu tombol, prioritas (K-104)
+
+Satu slot Aksi di kanan bawah. Tiap objek yang bisa dipakai punya tombol Aksi sendiri (posisinya tetap), tetapi **hanya satu yang tampil**. Aturan (`src/client/AksiSlot.luau`):
+
+1. Objek dalam jangkauan masing-masing mendaftar dengan jarak. Yang **terdekat** menang.
+2. Jarak sama (selisih ≤ 1,5 studs): menang objek yang dipakai **quest yang dilacak** (langkah aktifnya menunjuk objek itu, mis. Tungku di M6).
+3. Masih sama: prioritas tetap, angka kecil menang:
+
+| Prioritas | Aksi | Objek | Tombol muncul saat |
+|-----------|------|-------|---------------------|
+| 1 | Pancing | spot ikan | pancing sudah diberi, tidak sedang memancing, ada spot dalam jangkauan |
+| 2 | Pukul | node tambang | ada node dalam jangkauan (hitung mundur saat habis) |
+| 3 | Bubu | sungai / bubu sendiri | Ambil bubu siap, atau Pasang di sungai |
+| 4 | Kelola | kandang sendiri | dalam jangkauan kandang |
+| 5 | Kolam | kolam sendiri | dalam jangkauan kolam (membuka panel Kolam) |
+| 6 | Masak / Pasang Tungku | Tungku sendiri / lahan | dekat Tungku (12 studs), atau Tungku ada di tas dan belum ada dapur |
+
+Craft Meja Crafting tetap melayang di atas meja (bukan slot ini).
 
 ### 4.1 Portrait (390×844)
 
