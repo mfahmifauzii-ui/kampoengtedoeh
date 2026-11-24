@@ -2,7 +2,9 @@
 -- Client side of Dapur + Warung + Makan (Bab 9.1/9.2/9.3/9.4): panel resep/slot/warung/buff.
 -- Tombol "Dapur" di HUD. Server yang memutuskan semuanya; ini presentasi + input.
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local Dapur = require(ReplicatedStorage.Shared.Config.Dapur)
 local Crops = require(ReplicatedStorage.Shared.Config.Crops)
@@ -15,6 +17,7 @@ local FeatureClient = require(script.Parent.Parent.FeatureClient)
 
 local DapurController = {}
 
+local player = Players.LocalPlayer
 local panel: UiKit.Panel? = nil
 
 local function fmtCountdown(endsAt: number): string
@@ -190,24 +193,79 @@ local function rebuild()
 	end
 end
 
+-- R5.8b (K-102): the kitchen has no dock button. One Aksi button (the same round component as Mining/Pond) does both:
+--   "Masak" when the player stands near their own Tungku (opens the kitchen panel),
+--   "Pasang Tungku" when Tier 1 is not built yet and a Tungku is in the bag (DapurBuild, auto-place on the lahan).
+local aksi: TextButton? = nil
+local aksiMode: string? = nil -- "cook" | "place" | nil (hidden)
+
+-- The player's own Tungku (a Folder "Tungku" under their plot's "Dapur" folder, built by DapurService.buildLook): its stove.
+local function tungkuPosition(): Vector3?
+	local plotName = player:GetAttribute("PlotName")
+	local plots = Workspace:FindFirstChild("Plots")
+	local plot = if typeof(plotName) == "string" and plots then plots:FindFirstChild(plotName) else nil
+	local kitchen = if plot then plot:FindFirstChild("Tungku", true) else nil
+	local stove = if kitchen then kitchen:FindFirstChild("Stove", true) or kitchen:FindFirstChildWhichIsA("BasePart", true) else nil
+	return if stove and stove:IsA("BasePart") then stove.Position else nil
+end
+
+local function refreshAksi()
+	if not aksi then
+		return
+	end
+	local snap = State.current :: any
+	local dapur = snap and snap.dapur
+	local items = (snap and snap.items) or {}
+	local mode: string? = nil
+	if FeatureClient.IsOpen("dapur") then
+		if dapur and dapur.tier >= 1 then
+			local pos = tungkuPosition()
+			local character = player.Character
+			local root = character and character:FindFirstChild("HumanoidRootPart")
+			if pos and root and root:IsA("BasePart") and (pos - root.Position).Magnitude <= Dapur.KITCHEN_REACH then
+				mode = "cook"
+			end
+		elseif (items.tungku or 0) >= 1 then
+			mode = "place"
+		end
+	end
+	aksiMode = mode
+	aksi.Visible = mode ~= nil
+	aksi.Text = if mode == "place" then Locale.t("dapur.aksi_place") else Locale.t("dapur.aksi_cook")
+end
+
 function DapurController.Init()
 	panel = UiKit.panel("DapurPanel", `{Locale.t("dapur.title")} + {Locale.t("warung.title")}`, function()
 		if panel then
 			panel.gui.Enabled = false
 		end
 	end)
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "DapurUI"
+	gui.ResetOnSpawn = false
+	gui.IgnoreGuiInset = true
+	gui.DisplayOrder = UiKit.LAYER.ACTION
+	gui.Parent = player:WaitForChild("PlayerGui")
+	aksi = UiKit.button(gui, "DapurAksiButton", Locale.t("dapur.aksi_cook"), UiKit.BUTTON)
+	aksi.AnchorPoint = Vector2.new(1, 1)
+	aksi.Position = UDim2.new(1, -24, 1, -200) -- same slot as the other Aksi buttons (Mining, Pond)
+	aksi.Size = UDim2.fromOffset(104, 104)
+	aksi.TextSize = 22
+	aksi.Visible = false
+	aksi.Activated:Connect(function()
+		if aksiMode == "place" then
+			Net.Send("DapurBuild")
+		elseif aksiMode == "cook" and panel then
+			panel.gui.Enabled = true
+			rebuild()
+		end
+	end)
 end
 
 function DapurController.Start()
 	State.Changed:Connect(function()
+		refreshAksi()
 		if panel and panel.gui.Enabled then
-			rebuild()
-		end
-	end)
-	FeatureClient.GateHud("DapurButton", "dapur") -- Q-2: hidden until the dapur feature is open
-	task.spawn(UiKit.hudButton, "DapurButton", Locale.t("dapur.title"), 4, function()
-		if panel then
-			panel.gui.Enabled = not panel.gui.Enabled
 			rebuild()
 		end
 	end)
@@ -218,6 +276,13 @@ function DapurController.Start()
 			if panel and panel.gui.Enabled then
 				rebuild()
 			end
+		end
+	end)
+	-- The Aksi button follows the player: near the Tungku (cook) or holding a Tungku (place). Walking changes it, so poll.
+	task.spawn(function()
+		while true do
+			refreshAksi()
+			task.wait(0.25)
 		end
 	end)
 end

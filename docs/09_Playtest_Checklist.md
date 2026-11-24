@@ -424,3 +424,7 @@ Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 8. [ ] **Kerja Bakti (butir 6):** di Acara dan Quest Log tidak ada baris "Tidak ada Kerja Bakti sekarang". Kerja Bakti hanya muncul saat acaranya jalan.
 9. [ ] **M6 Dapur (butir 8):** langkah "Pasang Tungku di lahanmu lewat panel Dapur" ada di tracker tanpa panah (sengaja, R5.8a dan R5.8b). Setelah Tungku berdiri, "Masak 1 olahan" dan "Makan 1 olahan" menunjuk ke Tungku. Owner cek: apakah langkah pertama sudah cukup jelas di HP.
 10. [ ] **Serah-terima jauh (K-100):** dengan quest siap diserahkan, jauh dari pemberi lalu tekan Ngobrol dari dekat. Hadiah dibayar hanya saat dekat. Toast "Dekati … dulu" muncul bila remote ditolak.
+11. [ ] **Tungku, craft (R5.8a, K-101):** di Meja Crafting, Lv 6, craft "Tungku" (10 Kayu, 8 Batu, 5 Tanah Liat). Tidak ada x10. Tungku kedua tidak bisa dibuat selama punya satu.
+12. [ ] **Tungku, pasang (K-102):** dengan Tungku di tas dan belum punya dapur, tombol Aksi berlabel "Pasang Tungku" muncul. Ketuk: Tungku berdiri di lahan (2×2).
+13. [ ] **Masak di Tungku (K-102):** dekat Tungku sendiri, tombol Aksi berlabel "Masak" muncul dan membuka panel Dapur. Menjauh, tombol hilang.
+14. [ ] **Tidak ada tombol Dapur di dock:** dock bawah hanya Garap, Kolam, Hias, Tas, Quest. Tidak ada tombol Dapur.

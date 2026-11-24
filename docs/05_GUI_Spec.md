@@ -102,7 +102,8 @@ Tombol HUD lain tetap: dock 58, Tombol Aksi 84. Jarak antar target ≥ 6 px. (Ge
 | Atas tengah, di bawah mata uang | Toast stack | Lihat 4.2 |
 | Kiri atas | Kartu pemain ringkas (foto + level + bar XP) + chip buff, lalu tracker | Kartu pindah dari kiri bawah ✔ K-34. Tracker lebar 200 px, mulai 118 px dari atas, tinggi maks min(200 px, 25% layar), maks 3 baris + "+N lainnya", teks krem outline gelap tanpa panel, baris membungkus teks |
 | Kanan atas | Kolom menu bulat 50 px, ikon saja, bisa dilipat di HP | Urutan: Acara, Skill, Hadiah, Warga, Toko, Atur. Dapur **tidak** di sini (✔ K-34) |
-| Bawah tengah | Dock 58 px, 10 px dari bawah | Garap, Kolam, Hias, Tas, **Quest** (dulu Pesanan; owner 2026-11-24) — hanya yang sudah terbuka |
+| Bawah tengah | Dock 58 px, 10 px dari bawah | Garap, Kolam, Hias, Tas, **Quest** (dulu Pesanan; owner 2026-11-24) — hanya yang sudah terbuka. **Dapur tidak ada di dock** (K-102). |
+| Kanan bawah, slot Aksi | Satu tombol Aksi 104 px, slot yang sama dengan Pukul/Pancing/Kolam | **Masak** saat dekat Tungku sendiri (membuka panel Dapur); **Pasang Tungku** saat Tier 1 belum berdiri dan Tungku ada di tas (K-102, R5.8b) |
 | Zona konteks (di atas dock, tengah) | Status memancing + chip umpan | Satu tombol di atas dock; tombol Batal berlabel 64×32 px |
 | Kanan bawah, di atas Jump | **Satu slot Tombol Aksi 84 px** | Mancing / Pukul / Tebang / Kelola Kandang / Breeding / Craft / Masak — satu aksi, yang terdekat (✔ K-34, sekarang Craft masih melayang di atas meja) |
 | Kiri bawah | Thumbstick | **Kosong** |

@@ -109,6 +109,8 @@ return {
 	["dapur.tungku_once"] = "Tungku hanya satu. Pasang yang sudah kamu punya dulu.", -- K-95
 	["dapur.need_tungku"] = "Belum ada Tungku. Craft di Meja Crafting, lalu pasang di lahan.", -- R5.8a
 	["item.tungku"] = "Tungku",
+	["dapur.aksi_cook"] = "Masak", -- R5.8b (K-102)
+	["dapur.aksi_place"] = "Pasang Tungku",
 	["quest.too_far"] ="Dekati {npc} dulu untuk menyerahkan quest.", -- K-100
 	["quest.offer_to"] = "Temui {npc}",
 	["quest.read"] = "Baca",
