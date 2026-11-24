@@ -1705,7 +1705,7 @@ end
 local MENU_ICON = {
 	BagButton = "tas",
 	DecorButton = "hias",
-	OrdersButton = "pesanan",
+	QuestButton = "bintang", -- Quest Log (owner 2026-11-24 butir 2): the dock slot that was Pesanan
 	BookButton = "koleksi",
 	SettingsButton = "atur",
 	StoreButton = "toko",
@@ -1723,7 +1723,7 @@ local MENU_ICON = {
 --          Big (58 px) round icon buttons.
 --   everything else = a vertical column at the top right (Warga, Toko, Atur, Koleksi). On phones it collapses behind a
 --   round menu button and slides open downward.
-local DOCK_ORDER = { GarapButton = 1, KolamButton = 2, DecorButton = 3, BagButton = 4, OrdersButton = 5 }
+local DOCK_ORDER = { GarapButton = 1, KolamButton = 2, DecorButton = 3, BagButton = 4, QuestButton = 5 }
 local MENU_SIZE = UiKit.HUD.MENU_W -- round button size in the top-right column (HUD map)
 
 -- Calls `callback` now and whenever the screen size changes (rotation, window resize). It follows the CURRENT camera:

@@ -9,7 +9,7 @@
 --     Frame     "XPFill"       -> width scale = XP progress     (optional)
 --     TextLabel "GoalLabel"    -> next small goal (set via HudController.SetGoal) (optional)
 --   Toasts go to UiKit.toastStack (one anchor, up to 3 chips), not to a HUD child.
---   Buttons "BagButton", "DecorButton", "OrdersButton", "BookButton" are bound by their controllers.
+--   Buttons "BagButton", "DecorButton", "QuestButton", "BookButton" are bound by their controllers.
 -- If no "HUD" exists, a plain placeholder is built so the game is testable.
 
 local Players = game:GetService("Players")
