@@ -389,6 +389,12 @@ local function waterTile(tile: Types.FarmTile, now: number): boolean
 	if tile.crop == nil or tile.watered == true then
 		return false
 	end
+	if tile.fastHold == true then -- K-71: the tutorial's fast timer starts at the first watering
+		tile.fastHold = nil
+		tile.readyAt = now + math.ceil(Onboarding.FAST_GROW_SECONDS * (1 - Farm.WATER_REDUCTION))
+		tile.watered = true
+		return true
+	end
 	local readyAt = tile.readyAt :: number
 	if now >= readyAt then
 		return false
@@ -437,8 +443,11 @@ local function onPlant(player: Player, uid: any, cropId: any)
 	tile.plantedAt = now
 	tile.readyAt = now + growSeconds(data, crop)
 	-- Tutorial seeds: the first plantings of a new save grow fast (data.guide.fastLeft); later ones use the normal timer.
+	tile.fastHold = nil
 	if TutorialService.ConsumeFast(player) then
-		tile.readyAt = now + Onboarding.FAST_GROW_SECONDS
+		-- K-71: the fast timer waits for the first watering (siram), so a slow player can still water in time.
+		tile.readyAt = now + 10000000
+		tile.fastHold = true
 		InventoryService.Sync(player) -- fastLeft is in the snapshot
 	end
 	tile.watered = false

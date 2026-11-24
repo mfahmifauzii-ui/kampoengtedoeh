@@ -11,6 +11,7 @@ export type FarmTile = {
 	plantedAt: number?,
 	readyAt: number?,
 	watered: boolean?,
+	fastHold: boolean?, -- tutorial bed: the fast timer is held until it is watered (K-71)
 	harvestsLeft: number?,
 	paid: number?, -- koin spent on this bed when it was bought (0 / nil = a free bed). "Hapus Petak" refunds TILE_REFUND_RATE of it.
 }
