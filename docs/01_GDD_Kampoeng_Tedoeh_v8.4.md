@@ -61,7 +61,7 @@ Tagline: `Kampung lo, rumah lo, panen lo — tiap hujan bisa jadi panen Prima.`
 | 13 | Sehat untuk 16+ | Tidak ada hadiah main > 60 menit, streak yang reset, loot box, iklan, desain judi/FOMO. |
 | 14 | Jangan terlalu diinfokan | UI = angka & ikon. Info pertama kali = toast 1x, lalu diam. |
 | 15 | 1 aturan, 1 tempat | Setiap angka hanya di 1 Config dan 1 bab dokumen. |
-| 16 | Tidak bergantung jumlah pemain | Game lengkap walau server cuma 1 orang. Target bersama dihitung dari pemain di server saat itu. ⚠ K-73: Kebun Warga dibatalkan, Bantu disembunyikan. Solo belum lengkap: Warga (Mampir, Suka, hadiah) belum punya pintu masuk; lihat gap list (R2.G). |
+| 16 | Tidak bergantung jumlah pemain | Game lengkap walau server cuma 1 orang. Target bersama dihitung dari pemain di server saat itu. ⚠ K-73: Kebun Warga dibatalkan, Bantu disembunyikan. Solo: Warga (Mampir, Suka, hadiah) hanya tampil di 2+ pemain (K-75). Sosial solo diterima dan kembali bersama `BANTU_ENABLED` (K-82). |
 | 17 | Kualitas, bukan lotre | Kualitas dari timing + siram. Tidak ada Mutasi, Pelangi, Greenhouse, Super. |
 
 **Gating — LOCKED.** Boleh: Level, Koin, Quest (feature gate, `03_Quest_Naskah.md` Bab 2). Dilarang: Blueprint gating, Backpack/Tas gating, Bibit Unggul, apa pun di balik Robux selain kosmetik & QoL.
