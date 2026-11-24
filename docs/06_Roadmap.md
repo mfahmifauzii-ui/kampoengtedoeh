@@ -8,6 +8,7 @@
 
 ## Handoff (update setiap selesai tugas; sesi baru mulai dari sini)
 
+- **Quest butir 2, 3, 5, 6 (Q5.2, Q5.3, Q5.5, Q5.6, K-94, K-95, K-96), commit C3:** satu Quest Log dengan tab Main · Side · Harian · Pesanan (dock Quest, tombol Quest di kartu pemain); Track / Lepas (maks 3); tracker dengan baris siap diserahkan dan panah layar-tepi; Baca di baris Surat dan S2; baris Kerja Bakti kosong dihapus. DONE-CODE, Play belum; owner cek di 09 B24 butir 5–8. Selene 0 error, rojo 0.
 - **Quest butir 4 dan 7 (Q5.4, Q5.7, K-93, K-94, K-97), commit C2:** server punya status siap diserahkan, daftar tracked (maks 3), dan remote QuestTurnIn/QuestTrack; "!" pemberi dan dialog penyerahan jalan; baris level-up Kanal Barat menyebut Kak Fajar. Panah dan UI Quest Log menyusul di C3 (Q5.2, Q5.3). DONE-CODE, Play belum; owner cek di 09 B24 butir 2–4.
 - **Owner playtest 2026-11-24, quest butir 1 (Q5.1, K-92):** tracker tetap tampil saat bicara dengan NPC (`QuestUI` masuk `KEEP_VISIBLE`). DONE-CODE, Play belum; owner cek di 09 B24 butir 1. Butir quest 2–8 = Roadmap bab 24 (Q5.2–Q5.8), belum dikerjakan.
 - **Owner playtest 2026-11-24, butir 6 (fix, K-89):** toast naik level dan toast "Terbuka" berurutan satu chip sekaligus (1,8–5 dtk sesuai panjang). DONE-CODE, Play belum; owner cek di 09 B23 butir 6.
@@ -468,12 +469,10 @@ Satu butir = satu commit. Selene 0 error / 85 warning, rojo exit 0 di tiap commi
 | ID | Tugas | Dasar | Selesai kalau | Status | Commit |
 |----|-------|-------|---------------|---|---|
 | Q5.1 | Tracker tidak hilang saat quest diambil dari NPC | Butir 1, K-92 | Tracker tetap tampil selama bicara | DONE-CODE | 6e48981 |
-| Q5.4 | Turn-in Main dan Side: "siap diserahkan", "!" dan panah ke pemberi, hadiah saat bicara (server dan dialog) | Butir 4, K-93 | Hadiah hanya dibayar saat bicara | DONE-CODE (panah dan baris tracker di Q5.3) | C2 |
-| Q5.7 | Lv 5 Kanal Barat: baris level-up menyebut Kak Fajar; Kak Fajar "!"; quest masuk tracker | Butir 7, K-97, K-94 | Pemain tahu harus menemui Kak Fajar | DONE-CODE (panah di Q5.3) | C2 |
-| Q5.2 | Satu Quest Log, 4 tab (Main, Side, Harian, Pesanan); tombol dock Pesanan jadi Quest; tombol Quest di kartu pemain | Butir 2, GUI 6.8 | Satu panel, tanpa sheet Pesanan terpisah | TODO | — |
-| Q5.3 | Track / Lepas per baris (maks 3); tracker dan panah arah | Butir 3, GUI 6.8 | Quest bertanda tampil di tracker dengan panah | TODO | — |
-| Q5.4 | Turn-in Main dan Side: "siap diserahkan", "!" dan panah ke pemberi, hadiah saat bicara | Butir 4, K-93 | Hadiah hanya dibayar saat bicara | TODO | — |
-| Q5.5 | Surat Kakek (S2): baris tracker dan panah menuju tempat baca, tombol Baca | Butir 5 | S2 selesai dari awal sampai akhir | TODO | — |
-| Q5.6 | Hapus baris kosong "Tidak ada Kerja Bakti sekarang" | Butir 6 | Kerja Bakti hanya muncul saat aktif | TODO | — |
-| Q5.7 | Lv 5 Kanal Barat: baris unlock setelah banner level, "!" di Kak Fajar, quest tracked dengan panah | Butir 7 | Pemain tahu harus menemui Kak Fajar | TODO | — |
+| Q5.2 | Satu Quest Log, 4 tab (Main, Side, Harian, Pesanan); tombol dock Pesanan jadi Quest; tombol Quest di kartu pemain | Butir 2, GUI 6.8 | Satu panel, tanpa sheet Pesanan terpisah | DONE-CODE | C3 |
+| Q5.3 | Track / Lepas per baris (maks 3); tracker dan panah arah | Butir 3, GUI 6.8, K-94 | Quest bertanda tampil di tracker dengan panah | DONE-CODE | C3 |
+| Q5.4 | Turn-in Main dan Side: "siap diserahkan", "!" dan panah ke pemberi, hadiah saat bicara | Butir 4, K-93 | Hadiah hanya dibayar saat bicara | DONE-CODE | f775f63, C3 |
+| Q5.5 | Surat Kakek (S2): tombol Baca di tracker, lalu penyerahan | Butir 5, K-95 | S2 selesai dari awal sampai akhir | DONE-CODE (tanpa panah dunia, K-95) | C3 |
+| Q5.6 | Hapus baris kosong "Tidak ada Kerja Bakti sekarang" | Butir 6, K-96 | Kerja Bakti hanya muncul saat aktif | DONE-CODE | C3 |
+| Q5.7 | Lv 5 Kanal Barat: baris level-up menyebut Kak Fajar; Kak Fajar "!"; quest masuk tracker | Butir 7, K-97, K-94 | Pemain tahu harus menemui Kak Fajar | DONE-CODE | f775f63, C3 |
 | Q5.8 | M6 Dapur: langkah ke Meja Crafting, Tungku di lahan, Aksi di dekat Tungku, masing-masing ada petunjuk. Jalan ulang M1–M9 dan S1–S9 di atas kertas | Butir 8 | Celah tercatat di `docs/reports/` dan baris TODO | TODO | — |

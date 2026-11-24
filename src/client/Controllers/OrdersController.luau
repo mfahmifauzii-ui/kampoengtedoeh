@@ -1,5 +1,6 @@
 --!strict
--- Orders panel (HUD "OrdersButton" / placeholder "Pesanan") + the HUD "next goal" chip.
+-- Order list (Pesanan) + the HUD "next goal" chip. The list lives in the one Quest Log (tab Pesanan, owner 2026-11-24 butir 2):
+-- QuestController calls OrdersController.Fill. The separate Pesanan panel and its dock button are gone.
 -- Goal priority: an order you can deliver now -> the next level unlock -> the next Book entry.
 
 local Players = game:GetService("Players")
@@ -14,14 +15,11 @@ local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local HudController = require(script.Parent.HudController)
 local State = require(script.Parent.Parent.State)
-local FeatureClient = require(script.Parent.Parent.FeatureClient)
 local UiKit = require(script.Parent.Parent.UiKit)
 
 local player = Players.LocalPlayer
 
 local OrdersController = {}
-
-local panel: UiKit.Panel
 
 local function haveCount(items: { [string]: number }, itemId: string): number
 	if FishConfig.byId[itemId] then
@@ -51,17 +49,17 @@ local function requestText(order: any, items: { [string]: number }): string
 	return table.concat(parts, ", ")
 end
 
-local function addOrderRow(order: any, items: { [string]: number }, order_: number, _weekly: boolean, showReroll: boolean)
+local function addOrderRow(list: ScrollingFrame, order: any, items: { [string]: number }, order_: number, _weekly: boolean, showReroll: boolean)
 	local name = Locale.t(`npc.{order.npc}`)
 	-- Weekly: Koin + XP saja, tanpa Bunga, tanpa dekor (Bab 14.7).
 	local reward = Locale.t("order.reward", { koin = Locale.formatNumber(order.koin), xp = order.xp })
 
 	if order.done then
-		UiKit.row(panel.list, order_, `{name}: {requestText(order, items)}`, reward, Locale.t("ui.done_check"), false)
+		UiKit.row(list, order_, `{name}: {requestText(order, items)}`, reward, Locale.t("ui.done_check"), false)
 		return
 	end
 	local ready = canDeliver(order, items)
-	local row = UiKit.row(panel.list, order_, `{name}: {requestText(order, items)}`, reward, Locale.t("ui.deliver"), ready, function()
+	local row = UiKit.row(list, order_, `{name}: {requestText(order, items)}`, reward, Locale.t("ui.deliver"), ready, function()
 		Net.Send("OrderDeliver", order.uid)
 	end)
 
@@ -81,48 +79,27 @@ local function addOrderRow(order: any, items: { [string]: number }, order_: numb
 	end
 end
 
--- Playtest 7: the Orders button and panel stay hidden until the tutorial (t1b_kolam) is finished or skipped.
-local function tutorialDone(snapshot: any): boolean
-	local guide = snapshot and snapshot.guide
-	return guide ~= nil and (guide.done.t1b_kolam == true or guide.skipped.t1b_kolam == true)
-end
-
-local function syncButton()
-	local gui = player:FindFirstChild("PlayerGui")
-	local hud = gui and gui:FindFirstChild("HUD")
-	local button = hud and hud:FindFirstChild("OrdersButton", true)
-	if button and button:IsA("GuiObject") then
-		-- R2.3 (GDD 14.7 "Dibuka: sama dengan Agenda (M1)"): the Agenda feature opens with Quest M1 step 1.
-		button.Visible = tutorialDone(State.current) and FeatureClient.IsOpen("agenda")
-	end
-end
-
-local function render()
-	if not panel.gui.Enabled then
-		return
-	end
-	UiKit.clear(panel.list)
+-- The order rows for the Quest Log's Pesanan tab (cleared by the caller). Numbers start at `order`.
+-- Reroll: 2 Bunga per Order, max 1x per Order per hari (Bab 14.7). Tombol hanya untuk order harian yang belum di-reroll hari ini.
+function OrdersController.Fill(list: ScrollingFrame, order: number)
 	local snapshot = State.current :: any
-	if not snapshot or not snapshot.orders or not tutorialDone(snapshot) then
-		panel.gui.Enabled = false
+	if not snapshot or not snapshot.orders then
 		return
 	end
 	local items = snapshot.items
 	local orders = snapshot.orders
-	-- Reroll: 2 Bunga per Order, max 1x per Order per hari (Bab 14.7). Tombol hanya untuk
-	-- order harian yang belum di-reroll hari ini.
 	local rerolled = orders.rerolled or {}
-	local rerollText = Locale.t("order.rerolls_paid", { n = Orders.REROLL_BUNGA })
 
-	UiKit.header(panel.list, Locale.t("order.daily"), 1)
-	for index, order in orders.daily do
-		addOrderRow(order, items, 1 + index, false, rerolled[order.uid] ~= true)
+	UiKit.header(list, Locale.t("order.daily"), order)
+	for index, daily in orders.daily do
+		addOrderRow(list, daily, items, order + index, false, rerolled[daily.uid] ~= true)
 	end
+	local last = order + #orders.daily
 	if orders.weekly and orders.weekly.uid then
-		UiKit.header(panel.list, Locale.t("order.weekly"), 20)
-		addOrderRow(orders.weekly, items, 21, true, false)
+		UiKit.header(list, Locale.t("order.weekly"), last + 1)
+		addOrderRow(list, orders.weekly, items, last + 2, true, false)
 	end
-	panel.footerLabel.Text = rerollText
+	UiKit.header(list, Locale.t("order.rerolls_paid", { n = Orders.REROLL_BUNGA }), last + 3)
 end
 
 -- Goal chip -------------------------------------------------------------------------------
@@ -208,32 +185,12 @@ local function updateGoal()
 end
 
 function OrdersController.Init()
-	panel = UiKit.panel("OrdersPanel", Locale.t("ui.orders"), function()
-		panel.gui.Enabled = false
-	end)
+	-- no panel of its own: the Quest Log (QuestController) draws the order list
 end
 
 function OrdersController.Start()
-	State.Changed:Connect(function()
-		syncButton()
-		render()
-		updateGoal()
-	end)
+	State.Changed:Connect(updateGoal)
 	player:GetAttributeChangedSignal("XP"):Connect(updateGoal)
-	task.spawn(UiKit.hudButton, "OrdersButton", Locale.t("ui.orders"), 3, function()
-		if not tutorialDone(State.current) then
-			return
-		end
-		panel.gui.Enabled = not panel.gui.Enabled
-		render()
-	end)
-	task.spawn(function()
-		-- the HUD button can be created after the first snapshot: keep its visibility in step with the tutorial
-		while true do
-			syncButton()
-			task.wait(0.5)
-		end
-	end)
 	updateGoal()
 end
 

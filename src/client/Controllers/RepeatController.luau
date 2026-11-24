@@ -180,18 +180,17 @@ local function renderTamu(list: ScrollingFrame, order: number, snapshot: any): n
 end
 
 local function renderAcara(list: ScrollingFrame, order: number, snapshot: any): number
-	UiKit.header(list, Locale.t("kb.title"), order)
-	order += 1
+	-- Item 6 (Quest butir 6): Kerja Bakti is listed only while the event runs; no "Tidak ada Kerja Bakti" row.
 	local active = Workspace:GetAttribute("KBActive") == true
 	if active then
+		UiKit.header(list, Locale.t("kb.title"), order)
+		order += 1
 		local got = Workspace:GetAttribute("KBGot")
 		local total = Workspace:GetAttribute("KBTotal")
 		local progress = if typeof(got) == "number" and typeof(total) == "number" then ` ({got}/{total})` else ""
 		UiKit.row(list, order, `{Locale.t("kb.active")}{progress}`, Locale.t("kb.how"), nil, false)
-	else
-		UiKit.row(list, order, Locale.t("kb.none"), Locale.t("kb.how"), nil, false)
+		order += 1
 	end
-	order += 1
 	local untilTime = if snapshot and typeof(snapshot.discountUntil) == "number" then snapshot.discountUntil else 0
 	if untilTime > os.time() then
 		local left = math.ceil((untilTime - os.time()) / 60)

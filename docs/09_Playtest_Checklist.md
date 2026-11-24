@@ -418,3 +418,7 @@ Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 2. [ ] **Turn-in (K-93):** selesaikan satu Side dari NPC (mis. Pak Udin). Quest jadi "Siap diserahkan" di tracker, ada "!" di atas pemberinya. Hadiah belum masuk. Bicara dengan pemberi: dialog penutup, lalu Koin/XP bertambah.
 3. [ ] **Track (K-94):** di Quest Log, Track dan Lepas bekerja. Ada 3 slot. Tombol Track ke-4 memberi toast "maks 3 quest dilacak".
 4. [ ] **Kanal Barat (K-97):** saat naik ke Lv 5, banner Level lalu baris "Terbuka: Kanal Barat (temui Kak Fajar)". "!" di atas Kak Fajar dan panah ke dia.
+5. [ ] **Quest Log satu panel (butir 2):** dock bawah punya tombol Quest (bukan Pesanan), dan kartu pemain punya tombol Quest kecil. Keduanya membuka panel yang sama dengan 4 tab: Main, Side, Harian, Pesanan. Tab Pesanan berisi order Villager. Tidak ada panel Pesanan terpisah.
+6. [ ] **Track / Lepas (butir 3):** tiap baris quest punya Track atau Lepas. Quest yang dilacak muncul di tracker kiri, dengan panah ke pemberi atau tujuannya di tepi layar. Tombol Tunjukkan menaruh panah ke target selama beberapa detik.
+7. [ ] **Surat Kakek S2 (butir 5):** ambil "Surat Pertama" dari Mak Sari. Baris Surat #1 di tracker punya tombol Baca dan baris S2 juga. Ketuk Baca: surat tampil. Setelah itu quest "Siap diserahkan ke Mak Sari", "!" di atas Mak Sari, lalu bicara dengan Mak Sari untuk menyerahkan.
+8. [ ] **Kerja Bakti (butir 6):** di Acara dan Quest Log tidak ada baris "Tidak ada Kerja Bakti sekarang". Kerja Bakti hanya muncul saat acaranya jalan.

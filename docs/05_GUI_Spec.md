@@ -102,7 +102,7 @@ Tombol HUD lain tetap: dock 58, Tombol Aksi 84. Jarak antar target ≥ 6 px. (Ge
 | Atas tengah, di bawah mata uang | Toast stack | Lihat 4.2 |
 | Kiri atas | Kartu pemain ringkas (foto + level + bar XP) + chip buff, lalu tracker | Kartu pindah dari kiri bawah ✔ K-34. Tracker lebar 200 px, mulai 118 px dari atas, tinggi maks min(200 px, 25% layar), maks 3 baris + "+N lainnya", teks krem outline gelap tanpa panel, baris membungkus teks |
 | Kanan atas | Kolom menu bulat 50 px, ikon saja, bisa dilipat di HP | Urutan: Acara, Skill, Hadiah, Warga, Toko, Atur. Dapur **tidak** di sini (✔ K-34) |
-| Bawah tengah | Dock 58 px, 10 px dari bawah | Garap, Kolam, Hias, Tas, Pesanan — hanya yang sudah terbuka |
+| Bawah tengah | Dock 58 px, 10 px dari bawah | Garap, Kolam, Hias, Tas, **Quest** (dulu Pesanan; owner 2026-11-24) — hanya yang sudah terbuka |
 | Zona konteks (di atas dock, tengah) | Status memancing + chip umpan | Satu tombol di atas dock; tombol Batal berlabel 64×32 px |
 | Kanan bawah, di atas Jump | **Satu slot Tombol Aksi 84 px** | Mancing / Pukul / Tebang / Kelola Kandang / Breeding / Craft / Masak — satu aksi, yang terdekat (✔ K-34, sekarang Craft masih melayang di atas meja) |
 | Kiri bawah | Thumbstick | **Kosong** |
@@ -181,6 +181,7 @@ n- **MS-2 (2026-11-23):** bubble NPC tutorial (`T1Dialog`) berada di atas dock: 
 
 - Kartu pemain: pill "Lv n" di sebelah nama. Slot buff kosong disembunyikan. (K-53)
 - Marker "!" di atas setiap pemberi quest yang menawarkan quest Tersedia atau siap diserahkan. Terlihat dari jarak jauh (`MARKER_MAX_DISTANCE` 200 studs, sejak 2026-11-23). Satu marker per pemberi. (F6)
+- Quest Main dan Side yang sudah selesai langkahnya menunggu penyerahan: "!" tetap di pemberi sampai pemain bicara dan hadiah dibayar (K-93).
 
 ### 4.6 Coachmark tutorial: dua gaya sorot, satu permukaan instruksi — LOCKED (2026-11-23, batch F1)
 
@@ -281,16 +282,21 @@ Grid kartu rumus visual `[2 Kayu] → [1 Papan]`, jumlah dimiliki di bawah tiap 
 
 3 kartu Harian + 1 Mingguan (lebih lebar, bingkai emas). Kartu: foto NPC, barang `punya/butuh`, hadiah, `Setor` (aktif bila cukup), ikon `Ganti` (reroll 2 Bunga, dengan konfirmasi).
 
-### 6.8 Quest Log — dua panel landscape, tab Main · Side · Harian · Pesanan (K-56, F5)
+### 6.8 Quest Log — satu panel, tab Main · Side · Harian · Pesanan (K-56, F5; owner 2026-11-24 butir 2–3)
 
-Dibuka dari **ikon bintang** di kolom kanan dan dari **tap tracker**, di semua keadaan (ada quest aktif, baru selesai, atau tidak ada quest aktif). Badge pada bintang untuk quest baru atau siap diserahkan.
+Satu panel (`QuestLog`). Dibuka dari tombol **Quest** di dock bawah (tempat tombol Pesanan dulu), dari tombol **Quest** kecil di kartu pemain (pojok kanan atas kartu), dan dari tap tracker. Tombol Pesanan yang terpisah dihapus; daftar order jadi tab **Pesanan** di log.
 
-- Tab: **Main · Side · Harian · Pesanan**. Pesanan = daftar order Villager yang sudah ada.
-- **Landscape, dua panel.** Kiri: daftar dikelompokkan **Berjalan / Tersedia / Berikutnya** (redup, "Terbuka di Level n") / **Selesai** (terlipat). Tiap baris punya tanda status.
-- Kanan (detail): judul, potret + nama pemberi, satu baris cerita, checklist **Tugas** dengan progres, chip **Hadiah**, tombol **Tandai** / **Lepas** dan **Tunjukkan**.
-- **Portrait:** daftar dulu; ketuk → detail dengan tombol Kembali.
-- Tracker kiri: hanya quest bertanda, maksimal 3. Quest Main aktif ditandai otomatis; Side dan Harian hanya saat pemain menekan Tandai.
-- Tombol scroll di dock bawah membuka Quest Log.
+- Tab: **Main · Side · Harian · Pesanan**. Tab Harian memuat slot Harian dan Mingguan yang masih terbuka. Tab Pesanan memuat order Villager (`OrdersController.Fill`).
+- Tiap baris quest: judul, sub (langkah, "Siap diserahkan ke <pemberi>", "Temui <pemberi>", "Selesai", atau "Lv n" untuk yang belum terbuka). Tombol **Track** (atau **Lepas** bila sudah dilacak), dan **Tunjukkan** bila quest punya tujuan.
+- Maks **3** quest dilacak (K-94). Main selalu dilacak. Side dan slot Harian/Mingguan dilacak lewat Track; quest yang baru ditawarkan atau diambil masuk sendiri bila ada slot.
+- Kerja Bakti hanya tampil di log saat acaranya jalan (K-96).
+- Grup baris: **Aktif** (berjalan dan siap diserahkan) / **Tersedia** (ditawarkan) / **Selesai** (terlipat) / **Berikutnya** (Main yang belum terbuka: "???").
+
+### 6.8b Tracker dan panah (owner 2026-11-24 butir 3, 5, 7)
+
+- Tracker kiri berisi baris quest yang dilacak, urutan ikut urutan Track. Baris: langkah aktif, **Siap diserahkan ke <pemberi>**, atau **Temui <pemberi>**. Baris Surat (surat yang jatuh tempo) punya tombol **Baca**. Quest S2 (Surat Pertama) saat langkahnya baca juga punya **Baca** (K-95).
+- **Panah:** satu target dalam satu waktu. Di luar layar: panah di tepi layar menunjuk ke target. Di layar: label nama di atas target. Target = pemberi (siap diserahkan atau ditawarkan), atau `target` langkah di `Config/Quests`.
+- Tunjukkan di log menaruh panah ke target quest itu selama 6 dtk.
 
 ### 6.9 Papan Hari Ini (baru, ✔ K-34 / Penyempurnaan P-04)
 

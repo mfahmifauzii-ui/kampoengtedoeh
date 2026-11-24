@@ -485,4 +485,7 @@ Syarat, bukan yang sudah ada. Status ada di `06_Roadmap` (F4, F5, F6).
 - **Quest selesai** menampilkan toast selesai dan tracker ikut berubah saat itu juga.
 - **Tracker tidak berkedip:** muncul saat ada quest yang dilacak, hilang hanya saat tidak ada yang dilacak. Tidak boleh hilang karena quest side mulai atau selesai. → F4.
 - **Tanda "!" di atas pemberi quest** yang punya quest Tersedia atau siap diserahkan, termasuk setelah quest side dari pembelian dan setelah rejoin. → F6.
+- **Siap diserahkan (K-93, owner 2026-11-24):** Main dan Side dengan pemberi NPC, saat semua langkah selesai, menjadi "Siap diserahkan ke <pemberi>". Hadiah dibayar saat pemain bicara dengan pemberi (baris penutup `dlg.<prefix>.done` dulu). Tanpa pemberi NPC (Surat) atau quest auto: selesai langsung.
+- **Surat Pertama (S2, K-95):** baris Surat di tracker dan baris S2 punya tombol **Baca**. Setelah dibaca, S2 jadi siap diserahkan ke Mak Sari.
+- **Kanal Barat (S5, K-97):** baris level-up Lv 5 menyebut "temui Kak Fajar". S5 ditawarkan Kak Fajar dan masuk tracker dengan panah.
 
