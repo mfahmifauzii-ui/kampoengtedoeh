@@ -17,6 +17,8 @@ local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local FishingTutorial = require(ReplicatedStorage.Shared.Modules.FishingTutorial)
+local Bobber = require(ReplicatedStorage.Shared.Modules.Bobber)
+local BobberVisuals = require(script.Parent.Parent.BobberVisuals)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local UiAssets = require(ReplicatedStorage.Shared.Config.UiAssets)
@@ -282,7 +284,7 @@ local function placeBobber(spot: BasePart)
 	part.CanCollide = false
 	part.CanQuery = false
 	part.Color = Color3.fromRGB(196, 92, 72)
-	part.Position = spot.Position + Vector3.new(0, spot.Size.Y / 2 + 0.3, 0)
+	part.Position = Bobber.landing(spot) -- K-108: on the water, never the bank
 	part.Parent = Workspace
 	bobber = part
 end
@@ -667,6 +669,7 @@ function FishingController.Init()
 end
 
 function FishingController.Start()
+	BobberVisuals.Start() -- K-108: every player's bobber lands on the water and is animated here
 	State.Changed:Connect(renderBait)
 	renderBait()
 	Net.Listen("FishState", function(state: any, spot: any)

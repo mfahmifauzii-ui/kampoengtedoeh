@@ -16,6 +16,7 @@
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
+local Debris = game:GetService("Debris")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
@@ -40,6 +41,7 @@ local AnalyticsHooks = require(script.Parent.AnalyticsHooks)
 local Progression = require(ReplicatedStorage.Shared.Config.Progression)
 local Types = require(ReplicatedStorage.Shared.Types)
 local FishingTutorial = require(ReplicatedStorage.Shared.Modules.FishingTutorial)
+local Bobber = require(ReplicatedStorage.Shared.Modules.Bobber)
 
 type Fish = FishConfig.Fish
 type Rarity = FishConfig.Rarity
@@ -211,6 +213,7 @@ local visuals: { [Player]: Visuals } = {}
 local VISUALS_FOLDER = "FishingVisuals"
 local TIP_FALLBACK = 2 -- studs dari pegangan ke ujung joran bila template tak punya bagian "Tip" (cek geometri di Studio)
 local CATCH_SECONDS = 1.3 -- lama animasi tangkap sebelum visual hilang (sama dengan klien)
+local VISUALS_LIFETIME = 120 -- s: the visual model is destroyed at the latest after this (Debris), whatever happened
 
 local function visualsFolder(): Folder
 	local folder = Workspace:FindFirstChild(VISUALS_FOLDER)
@@ -370,7 +373,9 @@ local function startVisuals(player: Player, spot: BasePart)
 		model:Destroy()
 		return
 	end
-	-- Pelampung: sama dengan placeBobber di klien (di atas dermaga / permukaan spot).
+	-- Pelampung (K-108): mendarat di permukaan AIR (Bobber.landing), bukan di tepi. Klien menganimasikan lintasannya
+	-- (BobberVisuals); bobber berjangkar dan tidak bertabrakan.
+	local landing = Bobber.landing(spot)
 	local bobber = Instance.new("Part")
 	bobber.Name = "Bobber"
 	bobber.Shape = Enum.PartType.Ball
@@ -380,7 +385,7 @@ local function startVisuals(player: Player, spot: BasePart)
 	bobber.CanQuery = false
 	bobber.CanTouch = false
 	bobber.Color = Color3.fromRGB(196, 92, 72)
-	bobber.Position = spot.Position + Vector3.new(0, spot.Size.Y / 2 + 0.3, 0)
+	bobber.Position = landing
 	bobber.Parent = model
 	-- Tali: Beam dari ujung joran ke pelampung.
 	local tipAttachment = Instance.new("Attachment")
@@ -397,7 +402,12 @@ local function startVisuals(player: Player, spot: BasePart)
 	line.Parent = model
 
 	model:SetAttribute("Owner", player.UserId)
+	-- What each client animates (BobberVisuals): the cast starts at the rod tip (From) and lands at Land, at server time CastAt.
+	model:SetAttribute("From", tip.Position)
+	model:SetAttribute("Land", landing)
+	model:SetAttribute("CastAt", Workspace:GetServerTimeNow())
 	model.Parent = visualsFolder()
+	Debris:AddItem(model, VISUALS_LIFETIME) -- always a lifetime: the visuals go even if every end path is missed
 	visuals[player] = { model = model, bobber = bobber, tip = tip, tracks = {} }
 end
 
@@ -490,6 +500,7 @@ local function scheduleBite(player: Player, session: Session, biteDelay: number)
 			player:SetAttribute("Fishing", "Bite")
 			local record = visuals[player]
 			if record then
+				record.model:SetAttribute("BiteAt", Workspace:GetServerTimeNow()) -- BobberVisuals dips the bobber from this
 				splash(record.bobber.Position, record.model)
 				playAnim(player, "FishingReel")
 			end

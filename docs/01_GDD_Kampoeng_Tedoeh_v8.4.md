@@ -362,6 +362,7 @@ Dekati spot → Tombol Mancing (bulat, ikon joran) → Lempar (0,6 dtk) → Tung
 - Chip umpan di atas tombol: ikon, nama, jumlah, `-1` saat terpakai, "Umpan habis, beli di Kak Fajar" saat umpan habis (K-86; "Tanpa umpan" tidak dipakai lagi).
 - **Pemain dikunci selama memancing.** Server membatalkan bila pemain lebih dari 24 stud dari spot (watchdog); umpan kembali. ✔ K-25
 - Visual memancing (joran, tali, pelampung, animasi) direplikasi ke pemain lain.
+- **Pelampung mendarat di air (K-108, owner 2026-11-24):** titik jatuh = permukaan air di atas spot (`Bobber.landing`: sinar dari atas, air dihitung; bila tak ada air, atribut `WaterY` spot). Tidak pernah di tepi. Lintasan 0,5 dtk dianimasikan tiap klien dari ujung joran, lalu cipratan, lalu mengambang dengan goyangan kecil. Gigitan: pelampung turun 0,4 stud sebentar. Hilang saat tarik, batal, atau mati.
 - Lapak Kak Fajar (beli umpan, jual ikan 100%) di pinggir kanal alun-alun.
 
 ### 6.2 Mini-game Tarik — LOCKED
