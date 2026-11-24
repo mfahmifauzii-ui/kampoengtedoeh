@@ -29,7 +29,9 @@ local rainTween: Tween?
 -- K-133: ground splashes around the player (pooled: one part and one emitter for the whole session).
 local splashPart: Part
 local splashEmitter: ParticleEmitter
+local splashRing: ParticleEmitter -- K-135: ring ripple, same rate as the burst
 local splashTween: Tween?
+local splashRingTween: Tween?
 local groundParams: RaycastParams
 local groundY = 0
 local nextGroundCheck = 0
@@ -122,9 +124,9 @@ local function setupRain()
 	rainEmitter.Transparency = NumberSequence.new(0.05)
 	rainEmitter.Color = ColorSequence.new(Color3.fromRGB(235, 242, 250))
 	rainEmitter.LightInfluence = 1
-	-- K-132: VelocityParallel drew the streaks HORIZONTAL in Studio while the drops fell vertically (tested, screenshots).
-	-- VelocityPerpendicular gave near-vertical streaks in the same test.
-	rainEmitter.Orientation = Enum.ParticleOrientation.VelocityPerpendicular
+	-- K-135: FacingCameraWorldUp keeps the particle's Y axis on world up, so the stretch is vertical on screen from
+	-- every camera angle. Velocity-based orientations (K-131/K-132) turned the streak with the camera, so the angle varied.
+	rainEmitter.Orientation = Enum.ParticleOrientation.FacingCameraWorldUp
 	rainEmitter.Parent = rainPart
 
 	-- K-133: splash droplets on the ground around the camera. A flat disc at ground level; its rate is a fraction of the rain
@@ -144,16 +146,33 @@ local function setupRain()
 	splashEmitter.Shape = Enum.ParticleEmitterShape.Disc
 	splashEmitter.ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface
 	splashEmitter.EmissionDirection = Enum.NormalId.Top
-	splashEmitter.Lifetime = NumberRange.new(0.25, 0.35)
-	splashEmitter.Speed = NumberRange.new(3, 5)
+	-- K-135: droplet burst (readable at the default phone distance: 0.3-0.5 s, bright, 0.3-0.5 studs).
+	splashEmitter.Lifetime = NumberRange.new(0.3, 0.5)
+	splashEmitter.Speed = NumberRange.new(4, 7)
 	splashEmitter.Acceleration = Vector3.new(0, -30, 0)
-	splashEmitter.SpreadAngle = Vector2.new(30, 30)
-	splashEmitter.Size = NumberSequence.new(0.12, 0.2)
-	splashEmitter.Transparency = NumberSequence.new(0.3, 1)
-	splashEmitter.Color = ColorSequence.new(Color3.fromRGB(215, 228, 240))
-	splashEmitter.LightInfluence = 1
+	splashEmitter.SpreadAngle = Vector2.new(35, 35)
+	splashEmitter.Size = NumberSequence.new(0.3, 0.5)
+	splashEmitter.Transparency = NumberSequence.new(0.1, 1)
+	splashEmitter.Color = ColorSequence.new(Color3.fromRGB(245, 250, 255))
+	splashEmitter.LightInfluence = 0
 	splashEmitter.Orientation = Enum.ParticleOrientation.FacingCamera
 	splashEmitter.Parent = splashPart
+
+	-- K-135: ring ripple under each splash: a flat-ish blob that grows and fades in 0.4 s, same rate as the burst.
+	splashRing = Instance.new("ParticleEmitter")
+	splashRing.Enabled = false
+	splashRing.Rate = 0
+	splashRing.Shape = Enum.ParticleEmitterShape.Disc
+	splashRing.ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface
+	splashRing.EmissionDirection = Enum.NormalId.Top
+	splashRing.Lifetime = NumberRange.new(0.4, 0.4)
+	splashRing.Speed = NumberRange.new(0)
+	splashRing.Size = NumberSequence.new(0.6, 3.0)
+	splashRing.Transparency = NumberSequence.new(0.35, 1)
+	splashRing.Color = ColorSequence.new(Color3.fromRGB(225, 240, 255))
+	splashRing.LightInfluence = 0
+	splashRing.Orientation = Enum.ParticleOrientation.FacingCamera
+	splashRing.Parent = splashPart
 
 	groundParams = RaycastParams.new()
 	groundParams.FilterType = Enum.RaycastFilterType.Exclude
@@ -197,17 +216,25 @@ local function fadeRain()
 	local splashTarget = target * WeatherConfig.SPLASH_RATIO
 	if splashTarget > 0 then
 		splashEmitter.Enabled = true
+		splashRing.Enabled = true
 	end
 	if splashTween then
 		splashTween:Cancel()
 	end
-	splashTween = TweenService:Create(splashEmitter, TweenInfo.new(WeatherConfig.RAIN_FADE_SECONDS, Enum.EasingStyle.Sine), { Rate = splashTarget })
+	if splashRingTween then
+		splashRingTween:Cancel()
+	end
+	local info = TweenInfo.new(WeatherConfig.RAIN_FADE_SECONDS, Enum.EasingStyle.Sine)
+	splashTween = TweenService:Create(splashEmitter, info, { Rate = splashTarget })
+	splashRingTween = TweenService:Create(splashRing, info, { Rate = splashTarget })
 	splashTween.Completed:Once(function(playback)
 		if playback == Enum.PlaybackState.Completed and splashTarget == 0 then
 			splashEmitter.Enabled = false
+			splashRing.Enabled = false
 		end
 	end)
 	splashTween:Play()
+	splashRingTween:Play()
 end
 
 -- Petir: one flash every LIGHTNING_INTERVAL seconds, at most LIGHTNING_FLASH_SECONDS long (Bab 21.3).

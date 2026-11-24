@@ -1102,7 +1102,7 @@ Daftar lengkap (VFX, SFX, musik, haptic, animasi, model 3D) ada di **`04_Asset_B
 
 - Panen Biasa: partikel daun kecil. Bagus: kilau lembut. Prima: partikel emas + `pop` + haptic kecil.
 - Legenda: fanfare kecil + banner ke server.
-- Hujan: tetes lurus ke bawah (K-132). Percikan di tanah sekitar pemain, 12% dari laju hujan (K-133). Genangan (K-134): setelah hujan berhenti, sampai 12 genangan di tanah rumput, 3 menit lalu hilang. Partikel 80 (Gerimis), 120 (Deres), 150 + kilat (Petir) per detik, di kotak 40 studs di atas kamera (K-129; sebelumnya 30/60/90). Tidak ada salju. Hujan masuk dan keluar pelan (3 dtk, tanpa muncul atau hilang mendadak). Kualitas gambar Rendah = tanpa hujan (R6.5).
+- Hujan: tetes lurus ke bawah, garis selalu tegak dari setiap sudut kamera, tanpa angin (K-135, `FacingCameraWorldUp`). Percikan di tanah sekitar pemain, 25% dari laju hujan (K-133, K-135): semburan tetes 0,3–0,5 dtk dan cincin riak. Genangan (K-134): setelah hujan berhenti, sampai 12 genangan di tanah rumput, 3 menit lalu hilang. Partikel 80 (Gerimis), 120 (Deres), 150 + kilat (Petir) per detik, di kotak 40 studs di atas kamera (K-129; sebelumnya 30/60/90). Tidak ada salju. Hujan masuk dan keluar pelan (3 dtk, tanpa muncul atau hilang mendadak). Kualitas gambar Rendah = tanpa hujan (R6.5).
 - Firasat: gelembung emas di pelampung.
 - Kerja Bakti: sampah visual di alun-alun, hilang saat dipungut.
 - Banner server hanya: Legenda + Prima Late.

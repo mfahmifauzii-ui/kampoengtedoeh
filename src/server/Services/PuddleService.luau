@@ -50,41 +50,109 @@ function PuddleService.Clear()
 	end
 end
 
--- One puddle at a valid spot: a glossy blue-grey disc lying on the ground. Fades in, stays, fades out, destroyed.
+-- Pluggable visual (K-135): ReplicatedStorage/Assets/Puddle, a Part or Model, is cloned when present. Its own parts keep
+-- their authored Transparency as the rest value (0 = solid). Missing template = the placeholder disc below.
+-- Fade works on any template: every BasePart in it is tweened from fully clear to its authored Transparency and back.
+-- Model rules: the template is placed at its authored size, lying as authored; the placeholder path is unchanged.
+local function template(): Instance?
+	local assets = ReplicatedStorage:FindFirstChild("Assets")
+	local found = assets and assets:FindFirstChild("Puddle")
+	if found and (found:IsA("BasePart") or found:IsA("Model")) then
+		return found
+	end
+	return nil
+end
+
+-- Fades every BasePart of the puddle to its rest value (in) or to fully clear (out). The rest value is the authored
+-- Transparency, remembered once in the part's KTRestTransparency attribute the first time it is faded.
+-- Returns the tween list so the caller can wait for the last one.
+local function fadeTo(puddle: Instance, out: boolean, duration: number): { Tween }
+	local tweens = {}
+	for _, part in if puddle:IsA("BasePart") then { puddle } else puddle:GetDescendants() do
+		if part:IsA("BasePart") then
+			local rest = part:GetAttribute("KTRestTransparency")
+			if typeof(rest) ~= "number" then
+				rest = part.Transparency
+				part:SetAttribute("KTRestTransparency", rest)
+			end
+			if not out then
+				part.Transparency = 1
+			end
+			local tween = TweenService:Create(part, TweenInfo.new(duration, Enum.EasingStyle.Sine), { Transparency = if out then 1 else rest })
+			tween:Play()
+			table.insert(tweens, tween)
+		end
+	end
+	return tweens
+end
+
+-- One puddle at a valid spot: the template if present, else a glossy blue-grey disc lying on the ground.
+-- Fades in, stays, fades out, destroyed.
 local function place(position: Vector3, lifetime: number)
-	local puddle = Instance.new("Part")
-	puddle.Name = "Puddle"
-	puddle.Shape = Enum.PartType.Cylinder
-	puddle.Anchored = true
-	puddle.CanCollide = false
-	puddle.CanQuery = false
-	puddle.CanTouch = false
-	puddle.CastShadow = false
-	puddle.Material = Enum.Material.Glass
-	puddle.Color = Color3.fromRGB(96, 116, 128)
-	puddle.Reflectance = 0.2
-	-- A cylinder's axis is X: thickness 0.12 along X, diameter 5-8 along Y and Z; turned to lie flat.
-	local diameter = random:NextNumber(5, 8)
-	puddle.Size = Vector3.new(0.12, diameter, diameter)
-	puddle.CFrame = CFrame.new(position + Vector3.new(0, 0.06, 0)) * CFrame.Angles(0, 0, math.rad(90))
-	puddle.Transparency = 1
-	puddle.Parent = folder()
+	local source = template()
+	local puddle: Instance
+	if source then
+		local clone = source:Clone()
+		clone.Parent = folder()
+		-- Keeps the template's own rotation (lying as authored), moves it onto the ground spot.
+		local pivot = if clone:IsA("Model") then clone:GetPivot() else (clone :: BasePart).CFrame
+		local onGround = CFrame.new(position + Vector3.new(0, 0.06, 0)) * (pivot - pivot.Position)
+		if clone:IsA("Model") then
+			clone:PivotTo(onGround)
+		else
+			(clone :: BasePart).CFrame = onGround
+		end
+		for _, part in if clone:IsA("BasePart") then { clone } else clone:GetDescendants() do
+			if part:IsA("BasePart") then
+				part.Anchored = true
+				part.CanCollide = false
+				part.CanQuery = false
+				part.CanTouch = false
+			end
+		end
+		puddle = clone
+	else
+		local disc = Instance.new("Part")
+		disc.Name = "Puddle"
+		disc.Shape = Enum.PartType.Cylinder
+		disc.Anchored = true
+		disc.CanCollide = false
+		disc.CanQuery = false
+		disc.CanTouch = false
+		disc.CastShadow = false
+		disc.Material = Enum.Material.Glass
+		disc.Color = Color3.fromRGB(96, 116, 128)
+		disc.Reflectance = 0.2
+		-- A cylinder's axis is X: thickness 0.12 along X, diameter 5-8 along Y and Z; turned to lie flat.
+		local diameter = random:NextNumber(5, 8)
+		disc.Size = Vector3.new(0.12, diameter, diameter)
+		disc.CFrame = CFrame.new(position + Vector3.new(0, 0.06, 0)) * CFrame.Angles(0, 0, math.rad(90))
+		disc.Transparency = 1
+		disc:SetAttribute("KTRestTransparency", 0.35)
+		disc.Parent = folder()
+		puddle = disc
+	end
 	active[puddle] = true
 
 	local fade = WeatherConfig.PUDDLE_FADE_SECONDS
-	TweenService:Create(puddle, TweenInfo.new(fade, Enum.EasingStyle.Sine), { Transparency = 0.35 }):Play()
+	fadeTo(puddle, false, fade)
 	task.delay(math.max(lifetime - fade, 0), function()
 		if active[puddle] ~= true then
 			return -- cleared earlier
 		end
-		local out = TweenService:Create(puddle, TweenInfo.new(fade, Enum.EasingStyle.Sine), { Transparency = 1 })
-		out.Completed:Once(function()
+		local tweens = fadeTo(puddle, true, fade)
+		local function destroy()
 			active[puddle] = nil
 			pcall(function()
 				puddle:Destroy()
 			end)
-		end)
-		out:Play()
+		end
+		local last = tweens[#tweens]
+		if last then
+			last.Completed:Once(destroy) -- the last part's fade ends with the rest
+		else
+			destroy() -- a template with no BasePart: nothing to fade
+		end
 	end)
 end
 

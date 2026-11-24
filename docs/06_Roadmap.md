@@ -8,6 +8,7 @@
 
 ## Handoff (update setiap selesai tugas; sesi baru mulai dari sini)
 
+- **Hujan v2 (K-135, DONE-CODE; Studio BELUM terukur: kode belum tersinkron ke Studio, sudut dan percikan belum dilihat di gambar):** garis hujan `FacingCameraWorldUp` (sudut tetap tegak), percikan 25% dengan cincin riak dan semburan tetes, genangan pluggable (`ReplicatedStorage/Assets/Puddle`, placeholder bila kosong). Owner: B28 item 7–9.
 - **Hujan tegak, percikan, genangan (K-132, K-133, K-134, DONE-CODE; Studio terukur sebagian):** garis tegak (orientasi `VelocityPerpendicular`, ukuran 0,5), percikan 12% dari laju hujan, 12 genangan 3 menit (hook: `weather:puddles`, `weather:puddles_clear`). Terukur: genangan muncul saat hujan berhenti (12), hilang di masa uji (12→0), tidak di air/jalan batu. Belum terukur: sudut garis di tengah layar, percikan dalam gambar. Owner: B28 item 7–9.
 - **Garis hujan horizontal (K-131, DIBATALKAN oleh K-132):** tetes mengalir mendatar dari kiri layar. Bentuk di Studio masih tampak tegak; penyebab belum selesai (lihat K-131). Owner: B28 item 7.
 - **Hujan terlihat (K-128, K-129, K-130, DONE-CODE; Studio terukur, owner belum cek):** penyebab: siklus Terik 8–15 menit, dan partikel 0,12 studs tidak terbaca. Kini Terik 3–5 menit, partikel 0,35 studs biru pucat, kotak 40 studs di atas kamera, laju 80/120/150, Kurangi gerak ×0,4. DEV: `!cuaca gerimis`, `!rain`, `!clear`. Uji Studio: `weather:rain` dan `weather:clear` (lihat hasil di laporan). Belum diuji: kepekatan lewat chat, transisi tengah, Kurangi gerak. Owner: B28.
@@ -499,6 +500,10 @@ Satu butir = satu commit. Selene 0 error / 85 warning, rojo exit 0 di tiap commi
 | R5.8d | Tempat dunia untuk langkah tanpa objek (hutan, kolam, sungai, kandang, petak, warung, sumur, bubu, Kanal Timur, Gerobak) | Walk butir 8, GAP-B | Nama objek di Workspace untuk tiap tempat | TODO (perlu nama dari Studio/owner) | — |
 | R5.9 | Dock 4 tombol (Garap, Hias, Tas, Quest); Kolam pindah ke ubin ≡ dan tombol Aksi dekat kolam; satu slot Aksi dengan prioritas (GUI 05 4.7) | Owner 2026-11-24, K-104 | Dock hanya 4; Aksi tampil satu per waktu; urutan prioritas sesuai 4.7 | DONE-CODE, Play belum | — |
 | R5.8e | Panah untuk tombol HUD (Papan, Hias, Dapur) | Walk butir 8, GAP-A | Keputusan: sorot tombol atau cukup teks | TODO (keputusan owner) | — |
+
+## Needs asset: genangan (K-135)
+
+- **Puddle model/texture (real, replaces placeholder):** dipasang sebagai `ReplicatedStorage/Assets/Puddle` (Part atau Model). Dibutuhkan: ukuran sekitar 5–8 studs diameter (sesuai placeholder), rata (tinggi ≤ 0,15 studs), reflektif (tampak air), tepi transparan (lembut, tidak keras). Tanpa template, placeholder dipakai. Tidak perlu ubah kode saat diganti. Status: PENDING (belum dibuat).
 
 ## Needs asset: gambar item (UI-4, K-122, owner 2026-11-24)
 

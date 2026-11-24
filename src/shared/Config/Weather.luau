@@ -31,8 +31,9 @@ return {
 	-- K-129: rates raised (was 30/60/90, which drew too few drops to read). Phone cap: at most 150/s with 1.3 s life (about 190 alive).
 	PARTICLES = { gerimis = 80, deres = 120, petir = 150 }, -- Bab 21: Gerimis, Deres, Petir + kilat
 	REDUCE_MOTION_DENSITY = 0.4, -- Kurangi gerak: 40% of the drops, rain still on
-	-- K-133: ground splashes = this fraction of the rain rate (about 10/s at Gerimis). Pooled: one emitter.
-	SPLASH_RATIO = 0.12,
+	-- K-133: ground splashes = this fraction of the rain rate. K-135: 0.12 was barely visible; 0.25 = about 20/s at Gerimis
+	-- (phone-safe: 0.3-0.5 s life, about 10 alive). Pooled: two emitters (burst + ring).
+	SPLASH_RATIO = 0.25,
 	-- K-134: puddles after rain. Server-side, visible to everyone. Cap and lifetime are per server.
 	PUDDLE_MAX = 12, -- at most this many puddles on the map
 	PUDDLE_LIFETIME = 180, -- seconds after the rain ends (3 menit); then fade out and destroy

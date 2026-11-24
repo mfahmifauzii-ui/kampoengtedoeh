@@ -494,6 +494,6 @@ Belum pernah dilihat owner. Claude hanya memeriksa di Studio (lihat Handoff). Ti
 4. [ ] **Langit berubah (K-129):** saat hujan, cahaya sedikit lebih redup dan kabut sedikit naik. Saat terik, kembali seperti biasa.
 5. [ ] **Kurangi gerak (K-129):** Atur, nyalakan "Kurangi gerak". Tetes lebih jarang tetapi hujan tetap ada.
 6. [ ] **Perintah DEV (K-130):** sebagai akun DEV: `!cuaca gerimis` memulai hujan 3 menit, `!clear` menghentikannya. Hanya berfungsi untuk akun yang lolos IsAllowed.
-7. [ ] **Garis hujan tegak (K-132, belum terverifikasi di HP):** saat hujan, tetes jatuh lurus ke bawah dengan garis tegak, bukan mendatar.
-8. [ ] **Percikan (K-133):** saat hujan, ada percikan kecil di tanah dekat kamu, tidak di air.
-9. [ ] **Genangan (K-134):** sesudah hujan berhenti, sampai 12 genangan biru-abu muncul di rumput, tidak di jalan batu atau air. Genangan hilang sekitar 3 menit kemudian. Hujan baru langsung menghapusnya.
+7. [ ] **Garis hujan tegak (K-135, belum terverifikasi di HP):** saat hujan, semua garis tegak dari setiap sudut kamera (lihat ke depan, ke bawah, dan putar kamera), di tengah dan di tepi layar. Tidak ada yang miring atau mendatar.
+8. [ ] **Percikan (K-133, K-135):** saat hujan, percikan dan cincin riak di tanah dekat kamu terlihat dari jarak kamera biasa, tidak di air.
+9. [ ] **Genangan (K-134, K-135):** sesudah hujan berhenti, sampai 12 genangan muncul di rumput, tidak di jalan batu atau air. Genangan hilang sekitar 3 menit kemudian. Ini placeholder; model genangan asli belum dibuat (lihat Roadmap, Needs asset: genangan).
