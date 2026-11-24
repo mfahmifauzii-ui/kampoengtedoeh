@@ -577,6 +577,18 @@ local function evaluate(player: Player)
 			advance(player, data, quest, progress) -- langkah barang (tanpa event) bisa sudah terpenuhi
 		end
 	end
+	-- K-111 (owner 2026-11-24 butir 7): a quest that was already running before the tracked list existed has no tracking
+	-- entry, so the tracker showed nothing. Once per save: Main and Side quests that are running get tracked (Main first).
+	if not data.quests.trackInit then
+		data.quests.trackInit = true
+		for _, kind in { "main", "side" } do
+			for _, quest in Quests.list do
+				if quest.kind == kind and data.quests.active[quest.id] ~= nil then
+					track(data, quest.id)
+				end
+			end
+		end
+	end
 	startAvailable(player, data)
 	syncFeatures(data)
 	InventoryService.Sync(player)

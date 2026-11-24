@@ -476,7 +476,17 @@ local function buildRows(snap: any)
 	end
 	local offered = offeredSet()
 	local order = 0
+	local keys: { string } = {}
 	for _, key in quests.tracked or {} do
+		table.insert(keys, key)
+	end
+	-- K-111 (owner 2026-11-24 butir 7): a running Main quest is always shown, even if the tracked list has lost it.
+	for _, quest in Quests.list do
+		if quest.kind == "main" and quests.active[quest.id] ~= nil and not table.find(keys, quest.id) then
+			table.insert(keys, 1, quest.id)
+		end
+	end
+	for _, key in keys do
 		local quest = Quests.byId[key]
 		if quest then
 			local status = statusOf(quest, snap, offered)

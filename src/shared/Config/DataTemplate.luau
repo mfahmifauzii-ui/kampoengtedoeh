@@ -119,6 +119,7 @@ local template: Types.PlayerData = {
 		done = {}, -- [questId] = true
 		ready = {}, -- [questId] = true: semua tugas selesai, menunggu diserahkan ke pemberi (K-93)
 		tracked = {}, -- Track di Quest Log (maks 3): id quest, "h:<kind>", "w:<kind>"
+		trackInit = false, -- K-111: the one-time tracking of quests that were running before `tracked` existed
 		daily ={ day = "", kind = "", progress = 0, claimed = false }, -- legacy (satu tugas); Agenda sekarang pakai `agenda`
 		agenda = { day = "", tasks = {} }, -- R2.2 (GDD 14.5): 5 tugas per hari, semua aktif; { id, progress, claimed }
 		harian = { day = "", slots = {} }, -- Quest Harian 3/hari (P2-7)
