@@ -468,6 +468,8 @@ Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 
 Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 
+**Status Play oleh Claude (2026-11-24, Studio MCP):** tidak ada butir B27 yang VERIFIED-PLAY. Peta HUD (butir 13) diukur di device simulator landscape dan tablet (K-125). Butir lain: tes Play terblokir: panel Hadiah tidak terbuka lewat Activate, dan dialog intro Mak Sari muncul lagi setelah disembunyikan. Butir 1–12 tetap DONE-CODE.
+
 1. [ ] **Kartu bibit 2 x 4 (K-120):** tap petak kosong di dekat petak. Kartu menampilkan 8 bibit: 2 baris, 4 kolom. Bibit yang punya stok ada di depan; x0 redup dan di belakang.
 2. [ ] **Halaman (K-120):** dengan lebih dari 8 bibit, chevron ‹ › dan teks "1/2" tampil. › pindah ke halaman 2; ‹ mati di halaman 1. Chevron 32 px mudah ditekan jempol.
 3. [ ] **Tanam dari halaman 2 (K-120):** tanam bibit di halaman 2 berhasil dan kartu tutup seperti biasa.
