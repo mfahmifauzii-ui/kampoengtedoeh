@@ -14,6 +14,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Locale = require(ReplicatedStorage.Shared.Locale)
+local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Quests = require(ReplicatedStorage.Shared.Config.Quests)
 local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local State = require(script.Parent.Parent.State)
@@ -519,6 +520,18 @@ local function buildRows()
 			step.TextXAlignment = Enum.TextXAlignment.Left
 			step.Text = `{surat.progress}/{surat.need}`
 			step.Parent = row
+			-- R2.3 (Quest S2 "Baca Surat Kakek #1"): tapping the row reads the letter; the server counts "surat_read".
+			local tap = Instance.new("TextButton")
+			tap.Name = "Tap"
+			tap.Text = ""
+			tap.AutoButtonColor = false
+			tap.BackgroundTransparency = 1
+			tap.Size = UDim2.fromScale(1, 1)
+			tap.ZIndex = 1
+			tap.Parent = row
+			tap.Activated:Connect(function()
+				Net.Send("QuestReport", "surat_read")
+			end)
 		end
 	end
 end

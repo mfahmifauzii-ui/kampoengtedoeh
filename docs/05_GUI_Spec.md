@@ -295,6 +295,8 @@ Dibuka dari **ikon bintang** di kolom kanan dan dari **tap tracker**, di semua k
 
 Satu panel untuk hal harian: Agenda (5 tugas, R2.2), Surat Kakek hari ini, ringkasan Order, Login hari ini, Album (%). Mengurangi jumlah tombol HUD.
 
+R2.3 (K-74): baris Surat di tracker bisa di-tap = baca surat (event Quest S2); surat yang sama tampil lagi sebagai toast. Tombol Pesanan tampil hanya saat tutorial selesai dan fitur `agenda` terbuka (M1 mulai).
+
 ### 6.10 Yang Tetap Bentuknya
 
 | Panel | Bentuk | Perubahan kecil |

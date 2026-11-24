@@ -205,7 +205,7 @@ Langkah `kak_fajar`: `tut.t1b.kak_fajar.1` (Pak Udin) — Kak Fajar ada di sunga
 
 | # | Lv | Judul | Pemberi | Membuka | Langkah | Hadiah | Status kode |
 |---|----|-------|---------|---------|---------|--------|-------------|
-| M1 | 2 | Kampung Hari Ini | Nek Ani | Agenda, Gerobak Kaget, Order, Kerja Bakti | Buka Agenda → Selesaikan 1 tugas Agenda → Lihat Gerobak Kaget | 100 Koin | Ada; Agenda sudah ada di kode (R2.2, tombol Papan) |
+| M1 | 2 | Kampung Hari Ini | Nek Ani | Agenda, Gerobak Kaget, Order, Kerja Bakti | Buka Agenda → Selesaikan 1 tugas Agenda → Lihat Gerobak Kaget (= buka panel Acara, tab Gerobak; K-74) | 100 Koin | Ada; Agenda sudah ada di kode (R2.2, tombol Papan) |
 | M2 | 4 | Ke Hutan | Pak Amran | Nambang, Crafting | Pergi ke Hutan → Kumpulkan 10 Batu + 9 Kayu → Craft 2 Papan | 20 XP + 50 Koin [USULAN] | Ada; butuh objek "Meja Crafting" di Studio |
 | M3 | 4 | Kolam Kakek | Kak Fajar | Kolam | Bangun Kolam Kakek (setor 10 Batu + 5 Kayu + 3 ikan Early; tombol Kolam muncul di langkah ini) → Tangkap 1 ikan di kolam | Kolam Kakek + 300 Koin + 60 XP | Ada |
 | M4 | 5 | Pagar Pertama | Pak Amran | Hias | Pasang 1 Pagar Bambu | – | Ada |
@@ -225,7 +225,7 @@ Langkah `kak_fajar`: `tut.t1b.kak_fajar.1` (Pak Udin) — Kak Fajar ada di sunga
 | # | Lv | Judul | Pemberi | Langkah | Membuka | Hadiah |
 |---|----|-------|---------|---------|---------|--------|
 | S1 | 1 | Bibit Kedua | Pak Udin | Beli 2 Bibit Bayam → Tanam 2 Bayam | – | 50 Koin [USULAN] |
-| S2 | 2 | Surat Pertama | Mak Sari | Baca Surat Kakek #1 | Tombol Surat | Hadiah Surat #1 |
+| S2 | 2 | Surat Pertama | Mak Sari | Baca Surat Kakek #1 | Tombol Surat (baris Surat di tracker; tap = baca, K-74) | Hadiah Surat #1 |
 | S3 | 3 | Tetangga di Depan | Bang Jali | Jual 1 barang ke Bang Jali | Jual Bang Jali | – |
 | S4 | 3 | Rumah dari Kakek | Pak Amran | Ngobrol dengan Pak Amran | Rangka rumah | – |
 | S5 | 5 | Ikan Kanal | Kak Fajar | Tangkap 1 ikan Mid di Kanal Barat | Kanal Barat | 100 Koin [USULAN] |

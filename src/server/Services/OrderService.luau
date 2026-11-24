@@ -14,6 +14,7 @@ local TutorialService = require(script.Parent.TutorialService)
 local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
 local Types = require(ReplicatedStorage.Shared.Types)
 local DataService = require(script.Parent.DataService)
+local FeatureGate = require(script.Parent.FeatureGate)
 local EconomyService = require(script.Parent.EconomyService)
 local InventoryService = require(script.Parent.InventoryService)
 local ProgressionService = require(script.Parent.ProgressionService)
@@ -163,6 +164,7 @@ local function onDeliver(player: Player, uid: any)
 		Net.Fire("Notify", player, "npc.tut_block") -- Bab 16.3: no order/event/social while Tutorial 1 runs
 		return
 	end
+	if not FeatureGate.Check(player, "agenda") then return end -- R2.3: Pesanan opens with Quest M1 (same as Agenda)
 	local data = DataService.Get(player)
 	if not data then
 		return
@@ -204,6 +206,7 @@ local function onReroll(player: Player, uid: any)
 		Net.Fire("Notify", player, "npc.tut_block") -- Bab 16.3: no order/event/social while Tutorial 1 runs
 		return
 	end
+	if not FeatureGate.Check(player, "agenda") then return end -- R2.3: Pesanan opens with Quest M1 (same as Agenda)
 	local data = DataService.Get(player)
 	if not data then
 		return

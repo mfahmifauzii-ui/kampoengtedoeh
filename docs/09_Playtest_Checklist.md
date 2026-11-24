@@ -357,6 +357,15 @@ Toast Ok untuk bibit habis. Belum pernah dimainkan di Play. Butir 5 di B15 (Ok m
 3. [ ] **Ok menutup:** tekan Ok, toast hilang. Joystick dan tombol lain tetap bisa dipakai selama toast ada (tidak ada gelap di layar).
 4. [ ] **Beli bibit menutup:** dengan toast masih ada, beli bibit di Pak Udin. Toast hilang tanpa perlu Ok.
 
+### B20. Surat, Gerobak, Pesanan dibuka dari M1 (R2.3, K-74): cek di HP
+
+Belum pernah dimainkan di Play. Pakai akun baru atau save Lv 2 tanpa M1.
+
+1. [ ] **Surat #1 (S2):** setelah Lv 2 dan tutorial selesai, baris "Surat Kakek #1" muncul di tracker. Tap baris itu: surat tampil sebagai toast, dan Quest "Surat Pertama" selesai (hadiah Surat #1).
+2. [ ] **Gerobak (M1):** Lihat Gerobak Kaget = buka panel Acara lalu tab Gerobak. M1 selesai setelah itu; tab Gerobak tidak tampil sebelumnya.
+3. [ ] **Pesanan:** tombol Pesanan tidak tampil sampai M1 mulai (Agenda terbuka). Sesudah itu tampil.
+4. [ ] **Tutorial tidak berubah:** 15 langkah tetap sama (sudah diverifikasi owner di B16).
+
 ### B15. Satu toast (T0, 2026-11-23): owner cek di HP dan PC
 
 Aturan: GUI 4.2. Satu tempat (di bawah Koin/Bunga), satu gaya krem.

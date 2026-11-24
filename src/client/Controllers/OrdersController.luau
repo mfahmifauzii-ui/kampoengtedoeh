@@ -14,6 +14,7 @@ local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local HudController = require(script.Parent.HudController)
 local State = require(script.Parent.Parent.State)
+local FeatureClient = require(script.Parent.Parent.FeatureClient)
 local UiKit = require(script.Parent.Parent.UiKit)
 
 local player = Players.LocalPlayer
@@ -91,7 +92,8 @@ local function syncButton()
 	local hud = gui and gui:FindFirstChild("HUD")
 	local button = hud and hud:FindFirstChild("OrdersButton", true)
 	if button and button:IsA("GuiObject") then
-		button.Visible = tutorialDone(State.current)
+		-- R2.3 (GDD 14.7 "Dibuka: sama dengan Agenda (M1)"): the Agenda feature opens with Quest M1 step 1.
+		button.Visible = tutorialDone(State.current) and FeatureClient.IsOpen("agenda")
 	end
 end
 

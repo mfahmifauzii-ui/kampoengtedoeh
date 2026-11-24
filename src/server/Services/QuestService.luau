@@ -396,8 +396,16 @@ local function onUiReport(player: Player, event: any)
 		return
 	end
 	-- Q-2 gate "surat": baca surat hanya bila fitur terbuka (introduced saat langkah s2_surat aktif, open setelah selesai).
-	if event == "surat_read" and not FeatureGate.Check(player, "surat") then
-		return
+	if event == "surat_read" then
+		if not FeatureGate.Check(player, "surat") then
+			return
+		end
+		-- R2.3: reading shows the letter again (the text the login toast would show) and counts for Quest S2.
+		local data = DataService.Get(player)
+		local n = if data then SuratService.Current(data) else 0
+		if data and n > 0 and n <= data.surat.logins then
+			Net.Fire("Notify", player, "surat.new", { n = n, text = `surat.{n}.text` })
+		end
 	end
 	reportEvent(player, event, 1)
 end

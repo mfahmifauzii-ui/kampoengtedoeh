@@ -273,6 +273,14 @@ function RepeatController.Init()
 	end)
 end
 
+-- R2.3 (Quest M1 step 3 "Lihat Gerobak Kaget"): the Gerobak tab shown while the panel is open is the event "gerobak_view".
+-- The server counts it only while that step is active.
+local function reportGerobakView()
+	if panel.gui.Enabled and FeatureClient.IsOpen("gerobak") then
+		Net.Send("QuestReport", "gerobak_view")
+	end
+end
+
 function RepeatController.Start()
 	State.Changed:Connect(function()
 		render()
@@ -300,6 +308,7 @@ function RepeatController.Start()
 			item.Activated:Connect(function()
 				panel.gui.Enabled = not panel.gui.Enabled
 				render()
+				reportGerobakView()
 			end)
 			updateDot()
 		end
