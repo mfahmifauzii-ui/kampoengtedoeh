@@ -33,8 +33,11 @@ local splashRing: ParticleEmitter -- K-135: ring ripple, same rate as the burst
 local splashTween: Tween?
 local splashRingTween: Tween?
 local groundParams: RaycastParams
+local coverParams: RaycastParams
+local covered = false -- K-136: camera under a roof or building: no rain volume there (drops fell through the model)
 local groundY = 0
 local nextGroundCheck = 0
+local nextCoverCheck = 0
 local lampsOn = false
 
 -- Reuses ANY existing instance of the class: the place already has the Studio-template Atmosphere / Bloom /
@@ -177,13 +180,18 @@ local function setupRain()
 	groundParams = RaycastParams.new()
 	groundParams.FilterType = Enum.RaycastFilterType.Exclude
 	groundParams.FilterDescendantsInstances = { rainPart, splashPart }
+
+	-- K-136: the cover check ignores trees and rocks (Map.Nature) and the rain itself, so only roofs and walls count.
+	coverParams = RaycastParams.new()
+	coverParams.FilterType = Enum.RaycastFilterType.Exclude
+	coverParams.FilterDescendantsInstances = { rainPart, splashPart, Workspace:FindFirstChild("Map") and Workspace.Map:FindFirstChild("Nature") or rainPart }
 end
 
 -- Target rate for the current weather. Picture quality Rendah (1) draws no rain at all: the cheapest setting on a 4 GB phone.
 local function rainTarget(): number
 	local snapshot = State.current :: any
 	local quality = snapshot and snapshot.settings and snapshot.settings.quality
-	if quality == 1 or Workspace:GetAttribute("Raining") ~= true then
+	if quality == 1 or Workspace:GetAttribute("Raining") ~= true or covered then
 		return 0
 	end
 	local kind = Workspace:GetAttribute("Weather")
@@ -338,10 +346,26 @@ function WorldController.Start()
 			if now >= nextGroundCheck then
 				nextGroundCheck = now + 0.25
 				local from = camera.CFrame.Position
-				groundParams.FilterDescendantsInstances = { rainPart, splashPart, game:GetService("Players").LocalPlayer.Character or rainPart }
+				local character = game:GetService("Players").LocalPlayer.Character or rainPart
+				groundParams.FilterDescendantsInstances = { rainPart, splashPart, character }
 				local hit = Workspace:Raycast(from, Vector3.new(0, -300, 0), groundParams)
 				groundY = if hit then hit.Position.Y else from.Y - 12
 			end
+		end
+		-- K-136: cover check 4 times a second; a change under/out of a roof fades the rain (fadeRain).
+		local now = os.clock()
+		if now >= nextCoverCheck then
+			nextCoverCheck = now + 0.25
+			local map = Workspace:FindFirstChild("Map")
+			local nature = map and map:FindFirstChild("Nature")
+			coverParams.FilterDescendantsInstances = { rainPart, splashPart, game:GetService("Players").LocalPlayer.Character or rainPart, nature or rainPart }
+			local above = Workspace:Raycast(camera.CFrame.Position, Vector3.new(0, 80, 0), coverParams)
+			if (above ~= nil) ~= covered then
+				covered = above ~= nil
+				fadeRain()
+			end
+		end
+		if splashEmitter.Enabled then
 			local at = camera.CFrame.Position
 			splashPart.CFrame = CFrame.new(at.X, groundY + 0.1, at.Z)
 		end
