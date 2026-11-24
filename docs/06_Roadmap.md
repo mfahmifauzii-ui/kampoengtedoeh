@@ -8,6 +8,7 @@
 
 ## Handoff (update setiap selesai tugas; sesi baru mulai dari sini)
 
+- **Owner playtest 2026-11-24, butir 3 (fix, K-86):** sungai dan empang wajib umpan (server tolak, tombol mati, chip "Umpan habis, beli di Kak Fajar"). Kolam tetap 6–12 dtk tanpa umpan. Hadiah tutorial di kode = Pelet x5 (K-21 bilang Cacing; owner perlu pilih). DONE-CODE, Play belum; owner cek di 09 B23 butir 3. Selene 0 error / 85 warning, rojo 0.
 - **Owner playtest 2026-11-24, butir 2 (fix, K-85):** langkah "3 ikan" (mancing) pakai toast tersemat dengan hitungan n/3, hilang saat langkah selesai. DONE-CODE, Play belum; owner cek di 09 B23 butir 2. Selene 0 error / 85 warning, rojo 0.
 - **Owner playtest 2026-11-24, butir 1 (fix, K-84):** Jual Pertama dibangun ulang: kamera lebar dekat pohon, pemain jalan masuk frame (MoveTo), Pak Udin menoleh, baru dialog. DONE-CODE, Play belum; owner cek di 09 B23 butir 1. Selene 0 error / 85 warning, rojo 0.
 - **Terakhir selesai:** T0 (`03c643b` + fix `995d049`, DONE-CODE, Play belum). Lalu `06521d5` (CLAUDE.md + handoff), `6c5e593` (gitignore Obsidian), `1f562d0` (vault Obsidian).

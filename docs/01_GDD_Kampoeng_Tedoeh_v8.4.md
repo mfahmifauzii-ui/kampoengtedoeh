@@ -356,9 +356,10 @@ Bibit ≈ 30% harga jual.
 
 Dekati spot → Tombol Mancing (bulat, ikon joran) → Lempar (0,6 dtk) → Tunggu gigitan → Gigitan: ikan menunggu di kail sampai pemain mulai tarik (tidak ada batas waktu, ✔ K-49) → Mini-game tarik → Kartu ikan → ulangi.
 
-- Waktu tunggu: dengan umpan **3–6 dtk**, tanpa umpan **6–12 dtk**. Urutan pengali: dasar → joran (`rod.biteMult`, ✔ K-26: angka disalin dari kode ke tabel 6.3 di R0.4) → umpan (Jangkrik ×0,7) → Buff Pancing (×0,8) → hujan (**tidak ada pengali**; hujan memperlebar jendela gigitan ✔ K-01). Kolam = aturan tanpa umpan.
+- Waktu tunggu: dengan umpan **3–6 dtk**. Urutan pengali: dasar → joran (`rod.biteMult`, ✔ K-26: angka disalin dari kode ke tabel 6.3 di R0.4) → umpan (Jangkrik ×0,7) → Buff Pancing (×0,8) → hujan (**tidak ada pengali**; hujan memperlebar jendela gigitan ✔ K-01). Kolam (kolam pemain) tidak memakai umpan dan punya aturannya sendiri: **6–12 dtk** (`Fishing.POND_BITE_*`).
+- **Sungai dan empang wajib umpan (K-86, 2026-11-24).** Tanpa umpan di Tas, lemparan ditolak server; tombol Pancing mati dan chip berkata "Umpan habis, beli di Kak Fajar". Aturan tanpa umpan 6–12 dtk untuk sungai dan empang dihapus.
 - Umpan otomatis: umpan pertama yang dimiliki menurut urutan Cacing → Jangkrik → Pelet → Udang Kecil. Tidak ada pilih umpan (final).
-- Chip umpan di atas tombol: ikon, nama, jumlah, `-1` saat terpakai, "Umpan habis" / "Tanpa umpan".
+- Chip umpan di atas tombol: ikon, nama, jumlah, `-1` saat terpakai, "Umpan habis, beli di Kak Fajar" saat umpan habis (K-86; "Tanpa umpan" tidak dipakai lagi).
 - **Pemain dikunci selama memancing.** Server membatalkan bila pemain lebih dari 24 stud dari spot (watchdog); umpan kembali. ✔ K-25
 - Visual memancing (joran, tali, pelampung, animasi) direplikasi ke pemain lain.
 - Lapak Kak Fajar (beli umpan, jual ikan 100%) di pinggir kanal alun-alun.
@@ -913,7 +914,7 @@ Dua tutorial: `t1_awal` (langkah 1–9) dan `t1b_kolam` (langkah 10–13). Id la
 | 8 | `tunggu_semua` | Lahan | Panen 6 bibit gratis (semua) | — | Toast saja (tanpa gelap) |
 | 9 | `panen_jual` | Lahan → Pak Udin | Jual 1 ke Pak Udin | 20 | Toast saja |
 | 10 | `warung` | Pak Udin | Ok (ack) | — | Dialog Pak Udin |
-| 11 | `kak_fajar` | Sungai Lahan | Terima Hadiah (`rodgift`): Joran Bambu + umpan Cacing (✔ K-21) | — | Panah NPC + toast |
+| 11 | `kak_fajar` | Sungai Lahan | Terima Hadiah (`rodgift`): Joran Bambu + Pelet x5 (kode, `TutorialService.FAJAR_BAIT`; K-21 menulis Cacing, lihat K-86) | — | Panah NPC + toast |
 | 12 | `mancing` | Sungai Lahan | 3 ikan (B2 K-54) | 20 | Pertama: bubble coachmark + ring Aksi (Pancing); selama langkah: toast tersemat "Tangkap 3 ikan buat Kak Fajar: n/3" (K-85), tidak hilang sampai langkah selesai |
 | 13 | `jual_ikan` | Sungai Lahan | Ok setelah jual ikan ke Kak Fajar | sampai Lv 2 (xpFill) | Dialog Kak Fajar |
 

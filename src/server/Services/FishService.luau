@@ -464,12 +464,12 @@ local function zoneWidthFor(data: Types.PlayerData): number
 	return width * (1 + 0.02 * (data.skill.joran_kuat or 0))
 end
 
--- B-1: waktu tunggu gigitan. Base: dengan umpan 3-6 dtk, tanpa umpan 6-12 dtk (Fishing.BITE_*). Lalu rod.biteMult (tabel joran),
+-- B-1: waktu tunggu gigitan. Base: dengan umpan 3-6 dtk (Fishing.BITE_*), kolam tanpa umpan 6-12 dtk (Fishing.POND_BITE_*). Lalu rod.biteMult (tabel joran),
 -- umpan (biteReduction), dan buff Pancing (Dapur.BUFF_PANCING_BITE). Hujan TIDAK mengubah waktu tunggu (K-01, GDD 3.3).
 local function biteDelayFor(rod: Fishing.Rod, usedBait: Fishing.Bait?, data: Types.PlayerData): number
 	local low, high = Fishing.BITE_MIN, Fishing.BITE_MAX
 	if not usedBait then
-		low, high = Fishing.BITE_NO_BAIT_MIN, Fishing.BITE_NO_BAIT_MAX
+		low, high = Fishing.POND_BITE_MIN, Fishing.POND_BITE_MAX
 	end
 	local delay = random:NextNumber(low, high) * rod.biteMult
 	if usedBait then
@@ -646,12 +646,13 @@ local function startCast(player: Player, spot: BasePart)
 		return
 	end
 	-- Umpan (Bab 6.3): yang pertama dipunyai dari urutan BAITS. Jangkrik = gigitan 30% lebih cepat.
-	local usedBait: Fishing.Bait? = nil
+	-- K-86 (owner 2026-11-24): sungai dan empang butuh umpan. Tanpa umpan lemparan ditolak (klien menampilkan "Umpan habis").
 	local activeBait = InventoryService.ActiveBait(data)
-	if activeBait and InventoryService.Remove(player, activeBait.id, 1) then
-		usedBait = activeBait
+	if not activeBait or not InventoryService.Remove(player, activeBait.id, 1) then
+		return
 	end
-	if usedBait and (data.inventory[usedBait.id] or 0) == 0 then
+	local usedBait: Fishing.Bait = activeBait
+	if (data.inventory[usedBait.id] or 0) == 0 then
 		-- C1 (K-55): the equipped bait ran out: the next bait the player has takes over, with a toast.
 		local nextBait = InventoryService.ActiveBait(data)
 		if nextBait then

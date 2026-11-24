@@ -76,7 +76,7 @@ Tempel juga **teks merah/kuning dari panel Output** bila ada. Tidak perlu meneba
 25. [ ] "Efek mulai Lv 3" tampil; Tempat Pakan Besar Lv 1–2 tidak mengubah jatah pakan.
 
 **A5. Mancing, Tas, Kolam**
-26. [ ] Dengan umpan tunggu ±3–6 dtk; tanpa umpan ±6–12 dtk.
+26. [ ] Dengan umpan tunggu ±3–6 dtk. Kolam tanpa umpan ±6–12 dtk. Sungai atau empang tanpa umpan: tidak bisa melempar (K-86).
 27. [ ] Chip umpan: nama + jumlah, berkurang 1 tiap lempar; "Umpan habis" muncul.
 28. [ ] Tombol Batal terbaca; pemain **tidak bisa jalan** saat memancing; menjauh > 24 stud membatalkan dan umpan kembali.
 29. [ ] **Akun kedua melihat** joran, tali, pelampung, dan animasi pemain pertama.
@@ -391,7 +391,8 @@ Belum pernah dimainkan di Play.
 Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 
 1. [ ] **Jual Pertama, kamera (K-84):** saat Pak Udin mulai bicara, kamera lebar tampak dari dekat pohon. Pak Udin, warungnya, dan bangunan di sekitar terlihat. Rambut dan badan avatar tidak menutupi layar. Pemain berjalan masuk ke frame, Pak Udin menoleh, lalu dialog mulai. Tidak ada tombol skip.
-2. [ ] **Mancing, toast tersemat (K-85):** di langkah "Tangkap 3 ikan" ada toast "Tangkap 3 ikan buat Kak Fajar: 0/3". Tiap ikan menaikkan hitungan (1/3, 2/3, 3/3). Toast tidak hilang sendiri. Setelah ikan ke-3, toast hilang bersama langkah.
+2. [ ] **Umpan wajib di sungai (K-86):** habiskan semua umpan, lalu coba lempar di sungai. Tombol Pancing mati, chip berkata "Umpan habis, beli di Kak Fajar". Di kolam sendiri lemparan tetap bisa tanpa umpan.
+3. [ ] **Mancing, toast tersemat (K-85):** di langkah "Tangkap 3 ikan" ada toast "Tangkap 3 ikan buat Kak Fajar: 0/3". Tiap ikan menaikkan hitungan (1/3, 2/3, 3/3). Toast tidak hilang sendiri. Setelah ikan ke-3, toast hilang bersama langkah.
 
 ### B15. Satu toast (T0, 2026-11-23): owner cek di HP dan PC
 

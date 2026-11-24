@@ -193,6 +193,7 @@ return {
 	["fish.bait_back"] = "Umpan kembali!",
 	["fish.bait_none"] = "Tanpa umpan",
 	["fish.bait_out"] = "Umpan habis",
+	["fish.bait_out_pointer"] = "Umpan habis, beli di Kak Fajar",
 	["fish.lepas"] = "Ikan lepas!",
 	["fish.firasat"] = "Airnya lagi tenang banget... firasatku bagus.",
 	["fish.none_here"] = "Belum ada ikan di sini sekarang",

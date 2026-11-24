@@ -417,7 +417,7 @@ local baitChip: Frame? = nil
 local baitLabel: TextLabel? = nil
 local baitScale: UIScale? = nil
 local shownBait: { id: string, count: number }? = nil -- the bait the chip showed last (to see a -1)
-local baitOut = false -- the last bait was used up: "Umpan habis" until a new bait shows up
+local baitBlocked = false -- K-86: a bait spot (sungai, empang) with no bait in the Tas: the cast button is off
 
 -- The "-1" that floats up from the chip and a short pulse, on every cast that used one bait.
 local function pulseBait()
@@ -451,7 +451,6 @@ local function renderBait()
 	local snap = State.current :: any
 	local bait = if snap then snap.bait else nil
 	if bait then
-		baitOut = false
 		local name = Locale.t(`item.{bait.id}`)
 		baitLabel.Text = `{name} x{bait.count}`
 		if shownBait and shownBait.id == bait.id and bait.count < shownBait.count then
@@ -459,11 +458,9 @@ local function renderBait()
 		end
 		shownBait = { id = bait.id, count = bait.count }
 	else
-		if shownBait then
-			baitOut = true -- the last one was used up on the last cast
-		end
 		shownBait = nil
-		baitLabel.Text = if baitOut then Locale.t("fish.bait_out") else Locale.t("fish.bait_none")
+		-- K-86: no bait is never a cast here (sungai, empang); the pointer to Kak Fajar's stall is the line.
+		baitLabel.Text = Locale.t("fish.bait_out_pointer")
 	end
 	-- The chip width follows its text (measured), so a short line such as "Umpan habis" is never squeezed or clipped.
 	local ok, measured = pcall(function()
@@ -584,6 +581,9 @@ local function buildAksi()
 	tarikButton = tarik
 	makeBaitChip(aksiGui)
 	button.Activated:Connect(function()
+		if baitBlocked then
+			return -- K-86: no bait, no cast (the server refuses too)
+		end
 		Net.Send("FishCast")
 	end)
 	aksiButton = button
@@ -593,22 +593,23 @@ end
 -- gives no button: sungai = kanal_barat, empang = empang, kolam = kolam.
 local SPOT_GATE: { [string]: string } = { sungai = "kanal_barat", empang = "empang", kolam = "kolam" }
 
-local function nearSpot(): boolean
+-- The Location of the first open fishing spot in reach, or nil when there is none.
+local function nearSpot(): string?
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	if not root or not root:IsA("BasePart") then
-		return false
+		return nil
 	end
 	for _, spot in CollectionService:GetTagged("FishingSpot") do
 		if spot:IsA("BasePart") and (spot.Position - root.Position).Magnitude <= REACH then
 			local loc = spot:GetAttribute("Location")
 			local feature = if typeof(loc) == "string" then SPOT_GATE[loc] else nil
 			if feature == nil or FeatureClient.IsOpen(feature) then
-				return true
+				return if typeof(loc) == "string" then loc else ""
 			end
 		end
 	end
-	return false
+	return nil
 end
 
 local function refreshAksi()
@@ -618,7 +619,12 @@ local function refreshAksi()
 	local snap = State.current :: any
 	local gifted = snap ~= nil and snap.guide ~= nil and snap.guide.rodGift == true
 	local fishing = player:GetAttribute("FishingActive") == true
-	aksiButton.Visible = gifted and not fishing and nearSpot()
+	local near = nearSpot()
+	aksiButton.Visible = gifted and not fishing and near ~= nil
+	-- K-86 (owner 2026-11-24): sungai and empang need a bait; the pond (kolam) does not. No bait = the button is off, and the
+	-- bait chip says "Umpan habis, beli di Kak Fajar" (renderBait).
+	baitBlocked = near ~= nil and near ~= "kolam" and snap ~= nil and snap.bait == nil
+	aksiButton.Active = not baitBlocked
 	if tarikButton then
 		tarikButton.Visible = reeling -- C2: the pull control shows only while the reel runs
 	end
