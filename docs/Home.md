@@ -21,3 +21,4 @@ Start here. Status source of truth: [[06_Roadmap]] (Status + Commit columns).
 - [[R0.4_config_audit]] — config vs GDD number audit
 - [[Test_Report_2026-11-23]] — test report snapshot
 - [[Quest_Gate_Walk_2026-11-24]] — quest gate walk Lv 0–10 snapshot (no open gaps, R2.G1–G9)
+- [[Quest_Pointer_Walk_2026-11-24]] — jalan pointer M1–M9 dan S1–S9, daftar gap (owner butir 8, K-95)
