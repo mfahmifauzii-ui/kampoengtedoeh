@@ -314,21 +314,23 @@ Catatan: di Studio, profil yang gagal dimuat dipakai dari memori (tidak tersimpa
 
 Claude tidak menjalankan Play lagi untuk bagian ini. Owner yang tes dan menandai tiap langkah dengan **verified by owner** (`[x]`). Dari fresh save (`!reset`), mulai dari PLAY.
 
-1. [ ] **PLAY:** tombol PLAY di layar judul bisa ditekan dan masuk ke game (K-70 belum tertutup).
-2. [ ] **sapa:** dialog Mak Sari di awal sampai "Garap tanahnya dulu" (intro).
-3. [ ] **cangkul:** tombol Garap, ketuk rumput, petak pertama terbentuk.
-4. [ ] **tanam:** ketuk petak, pilih Kangkung di cincin Tanam.
-5. [ ] **siram:** siram petak. Tanpa tanda hitung mundur saat ditahan (K-71). Setelah siram, timer jalan dan petak jadi "Panen!".
-6. [ ] **panen_1:** panen petak pertama.
-7. [ ] **garap_5:** buat 5 petak baru. **Catatan:** Claude macet di 4/5 (lihat Roadmap Handoff); owner cek apakah bisa selesai.
-8. [ ] **tanam_5:** tanam 6 bibit gratis. Bed cepat ditahan sampai disiram (K-71): cek apakah ini diinginkan.
-9. [ ] **tunggu_semua:** tunggu sampai semua siap panen, lalu panen semua (bubble "Jangan lupa panen semuanya").
-10. [ ] **panen_jual:** jual 1 ke Pak Udin.
-11. [ ] **warung:** Ok di dialog Pak Udin.
-12. [ ] **kak_fajar:** terima hadiah Joran Bambu dan umpan Cacing di sungai.
-13. [ ] **mancing:** 3 ikan tertangkap (tangkapan ke-2 dan ke-3 hanya toast).
-14. [ ] **jual_ikan:** jual ikan ke Kak Fajar, Ok, dan naik ke Lv 2 (230 XP).
-15. [ ] **Waktu:** catat menit dari PLAY sampai Lv 2 (perkiraan GDD: 3–4 menit).
+Status 2026-11-24: **semua 15 langkah sudah verified by owner** (centang di halaman checklist, tersimpan di db artifact `A6NTqsiwqJZVHRYCZJFetx`). Waktu dari PLAY sampai Lv 2 menurut owner: **2 menit** (catatan langkah 15).
+
+1. [x] **PLAY:** tombol PLAY di layar judul bisa ditekan dan masuk ke game. *Verified by owner.*
+2. [x] **sapa:** dialog Mak Sari di awal sampai "Garap tanahnya dulu" (intro). *Verified by owner.*
+3. [x] **cangkul:** tombol Garap, ketuk rumput, petak pertama terbentuk. *Verified by owner.*
+4. [x] **tanam:** ketuk petak, pilih Kangkung di cincin Tanam. *Verified by owner.*
+5. [x] **siram:** siram petak. Tanpa tanda hitung mundur saat ditahan (K-71). Setelah siram, timer jalan dan petak jadi "Panen!". *Verified by owner.*
+6. [x] **panen_1:** panen petak pertama. *Verified by owner.*
+7. [x] **garap_5:** buat 5 petak baru. *Verified by owner.* (Claude macet di 4/5 saat tes remote; owner lulus.)
+8. [x] **tanam_5:** tanam 6 bibit gratis. *Verified by owner.* Masih perlu dicek apakah bed yang ditahan sampai disiram (K-71) memang diinginkan.
+9. [x] **tunggu_semua:** tunggu sampai semua siap panen, lalu panen semua. *Verified by owner.*
+10. [x] **panen_jual:** jual 1 ke Pak Udin. *Verified by owner.*
+11. [x] **warung:** Ok di dialog Pak Udin. *Verified by owner.*
+12. [x] **kak_fajar:** terima hadiah Joran Bambu dan umpan Cacing di sungai. *Verified by owner.*
+13. [x] **mancing:** 3 ikan tertangkap (tangkapan ke-2 dan ke-3 hanya toast). *Verified by owner.*
+14. [x] **jual_ikan:** jual ikan ke Kak Fajar, Ok, dan naik ke Lv 2 (230 XP). *Verified by owner.*
+15. [x] **Waktu:** 2 menit dari PLAY sampai Lv 2 (catatan owner). *Verified by owner.*
 
 ### B15. Satu toast (T0, 2026-11-23): owner cek di HP dan PC
 
