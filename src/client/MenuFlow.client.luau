@@ -885,6 +885,12 @@ local function leaveMenu()
 	end
 end
 playButton.Activated:Connect(leaveMenu)
+-- DEV ONLY: the server's DevService.Enter (gated there) sets KTDevEnter; this runs the same leaveMenu() as PLAY.
+player:GetAttributeChangedSignal("KTDevEnter"):Connect(function()
+	if phase == "play" then
+		leaveMenu()
+	end
+end)
 
 -- The saved quality is applied for the whole session, whatever screen is up.
 State.Changed:Connect(function()

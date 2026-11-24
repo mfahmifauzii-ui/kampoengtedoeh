@@ -412,6 +412,7 @@ Keputusan Putaran 2 dan keputusan otomatis (detail lengkap di 3.6). Kolom "Diter
 | K-67 | 2026-11-23 | **DIPUTUSKAN (owner).** Bubu Besi tetap memakai perilaku kode: panen mengambil ikan merata dari semua ikan U dan R. Aturan "5% 1 Late" dihapus dari desain (GDD 6.6). | Owner; GDD 6.6 diperbarui |
 | K-68 | 2026-11-23 | **DIPUTUSKAN (owner).** Bahan Bubu tetap ditunda (K-66). Harga Bubu hanya Koin. | Owner; GDD 6.6 tetap |
 | K-69 | 2026-11-23 | **DIPUTUSKAN (owner).** Toast saat quest mulai: `Quest baru: <judul>` (menggantikan "Misi baru" di mana pun). | Owner; Locale `quest.new`, 03 Bab 9 |
+| K-70 | 2026-11-24 | **TERBUKA (DEV, MS-2).** Klik mouse di Studio tidak mengenai PLAY di `KTMenu`. Kode tidak menemukan penutup: `KTMenu` DisplayOrder 200, layar lain di bawahnya dimatikan saat menu, `COVER` 250 baru ada setelah PLAY. Dugaan: koordinat klik MCP tidak sama dengan viewport Studio (belum diukur). Jalur DEV `!masuk` / `DevService.Enter` dibuat sebagai gantinya (R10.5). | Tidak ada perbaikan kode sekarang; penyebab belum dibuktikan |
 
 ---
 

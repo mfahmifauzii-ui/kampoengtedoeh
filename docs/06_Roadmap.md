@@ -9,7 +9,9 @@
 ## Handoff (update setiap selesai tugas; sesi baru mulai dari sini)
 
 - **Terakhir selesai:** T0 (`03c643b` + fix `995d049`, DONE-CODE, Play belum). Lalu `06521d5` (CLAUDE.md + handoff), `6c5e593` (gitignore Obsidian), `1f562d0` (vault Obsidian).
-- **Berikutnya:** Task 2 = MS-2 Play (`!reset` lalu klik Play). Percobaan 2026-11-24: klik mouse di layar judul tidak mengenai tombol PLAY (`KTMenu`), jadi tidak sampai HUD. Coba klik di judul lagi dengan koordinat dari screenshot, atau sediakan jalur remote untuk masuk ke game. Lalu bug 4/5 garap_5, Mak Sari tiga tahap, F1c, Ok toast. Lalu Task 3 (seed-out) dan seterusnya.
+- **Terakhir (MS-2, 2026-11-24, remote path, not UI):** jalur DEV `!masuk` / `DevService.Enter` ditambahkan. Di Studio (Play, server) `Enter` lalu `KTMenu` di client = `done`, tanpa error baru di console. Tombol PLAY tetap NOT verified. Penyebab klik meleset belum dibuktikan (K-70).
+- **Belum selesai di MS-2:** `!reset` dan tur 13 langkah GDD 16.2 belum dijalankan. Chat server tidak memicu `DevService` (`Player:Chat` tidak ada; `Chat:Chat` tidak sampai ke handler), dan profil dari `DataService` tidak terbaca dari perintah MCP (`DataLoaded` true, `GetProfile` nil). Perlu jalur reset yang lain atau cara membaca modul server yang sama.
+- **Berikutnya:** selesaikan MS-2 Play (`!reset`, tur 13 langkah, catat per langkah dan waktu start ke Lv 2 dengan label "remote path, not UI"). Lalu bug 4/5 garap_5, Mak Sari tiga tahap, F1c, Ok toast. Lalu Task 3 (seed-out) dan seterusnya.
 - **Branch:** `feat/v.7`. Sudah di-push sampai `1f562d0`; `6c5e593`, `06521d5`, `995d049` belum.
 - **Baseline:** selene 0 error / 86 warning; rojo build exit 0.
 - **Keputusan owner terbuka:** tidak ada yang menunggu. Gerbang rilis di bawah (Bab 23) belum dikerjakan.
@@ -308,6 +310,7 @@ Butuh: R0.3 selesai.
 |------|--------------|
 | `DevService` perintah `!` (`!state`, `!give`, `!skenario`, ...) dan panel DEV | R10.5 (+ `Config/DevAccess.LIVE_ENABLED = false`, K-64) |
 | `Config/DevAccess.UserIds` (akun owner) | R10.5 (hapus sebelum rilis atau pindahkan ke Config rilis) |
+| Jalur masuk gameplay tanpa PLAY: chat `!masuk`, `DevService.Enter` (server) dan atribut `KTDevEnter` yang dibaca `MenuFlow` (memanggil `leaveMenu()` yang sama). Dikunci `IsAllowed` | R10.5 (+ GR-1) |
 | `DataService` mode studioMock (profil di memori di Studio, K-65) | R10.5 (tetap aman: hanya di Studio) |
 | Atribut Workspace `DevSaveSuffix` (kunci simpan Studio) | R10.5 |
 | Gerbang G3 "perintah DEV dimatikan" | G3 (AUTO check) |
@@ -414,6 +417,6 @@ Semua baris di sini berstatus TODO kecuali disebut lain. Tidak ada yang VERIFIED
 
 | ID | Gerbang | Status | Ditutup oleh |
 |----|---------|--------|--------------|
-| GR-1 | Perintah DEV dimatikan untuk akun owner di server live (`Config/DevAccess.LIVE_ENABLED = false`). Audit 2026-11-24: sekarang `true`. | TODO | R10.5 |
+| GR-1 | Perintah DEV dimatikan untuk akun owner di server live (`Config/DevAccess.LIVE_ENABLED = false`). Audit 2026-11-24: sekarang `true`. Termasuk jalur `!masuk` (masuk gameplay tanpa PLAY, feat MS-2, Bab 17). | TODO | R10.5 |
 | GR-2 | Tes otomatis minimal: skrip assert (lune atau Studio) untuk harga `Trade` dan `ShopService.validPack`. Belum ada file tes di repo. | TODO | R10.x (sebelum perubahan ekonomi berikutnya) |
 | GR-3 | Loop polling di `GuideController` (0.3 s) diganti event. Dijadwalkan setelah F8. | TODO | setelah F8 |

@@ -39,6 +39,16 @@ function DevService.IsAllowed(player: Player): boolean
 	return DevAccess.LIVE_ENABLED and table.find(DevAccess.UserIds, player.UserId) ~= nil
 end
 
+-- DEV ONLY: "!masuk" (or the MCP runner) tells the client to press PLAY's own code path (MenuFlow listens to KTDevEnter).
+-- Gated by IsAllowed like every DEV command, so non-dev accounts and LIVE_ENABLED = false get nothing.
+function DevService.Enter(player: Player): boolean
+	if not DevService.IsAllowed(player) then
+		return false
+	end
+	player:SetAttribute("KTDevEnter", os.clock())
+	return true
+end
+
 -- "!state": printed lines (Output) with what the player has right now.
 local function printState(player: Player)
 	local data = DataService.Get(player)
@@ -268,6 +278,11 @@ local function onChatted(player: Player, message: string)
 
 	local command, arg = normalized:match("^!(%a+)%s*(%S*)%s*$")
 	local amount = tonumber(arg)
+
+	if command == "masuk" then
+		print(`[DEV] masuk (remote, past title): {DevService.Enter(player)}`)
+		return
+	end
 
 	if (command == "koin" or command == "bunga") and amount then
 		currencyCommand(player, command, amount)
