@@ -480,3 +480,4 @@ Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 10. [ ] **Login Harian (K-123):** 7 kartu, hari ini emas. Satu tombol besar "Klaim Hari n" mengambil hari itu; tombol mati bila tidak ada yang siap.
 11. [ ] **Peti Main (K-123):** garis waktu kotak dengan hitung mundur ("m:ss lagi") untuk peti berikutnya. Tombol besar "Buka Peti n" aktif saat siap. **Jumlah peti: 5 di kode; catatan owner 4. Owner jawab: 4 atau 5?** (K-123)
 12. [ ] **Teks kotak peti (K-123):** hadiah dan status tidak terpotong di HP portrait. Kalau terpotong, catat lebarnya.
+13. [ ] **Peta HUD (K-124, dokumen saja):** belum diterapkan. Cek di HP landscape dan portrait: buka ≡ dengan semua ubin tampil. Catat apakah ubin melewati tepi layar atau menutupi Aksi (landscape) atau dock (portrait). Angka ada di GUI 05 4.0.

@@ -8,6 +8,7 @@
 
 ## Handoff (update setiap selesai tugas; sesi baru mulai dari sini)
 
+- **UI putaran 7, butir 5 (K-124, dokumen saja):** GUI 05 4.0 berisi peta HUD target (dock 4, 1 Aksi, ≡ dengan 6 ubin, info pasif kiri), hitungan sebelum/sesudah (≡ 10 → 7), dan cek tumpang tindih terhitung untuk landscape 844×390 dan portrait 390×844. Remap belum dikerjakan. Ubin Warga, Buku, Kolam belum punya tempat: pertanyaan ke owner.
 - **UI putaran 7, butir 4 (B27.9–12, K-123, DONE-CODE, Play NOT verified):** Hadiah dipecah: tab Login Harian (7 kartu + satu Klaim) dan Peti Main (garis waktu + satu Buka), Musim dan Koleksi tetap. **Jumlah peti 5 di kode, catatan owner 4: butuh jawaban owner (K-123).** Selene 76→75 setelah perbaikan, rojo 0.
 - **UI putaran 7, butir 3 (B27.7–8, K-122, DONE-CODE, Play NOT verified):** Tas dan token terbang memakai gambar item lewat `UiKit.itemPicture` (THUMBS, ikon kategori, model, huruf terakhir). Item tanpa gambar sendiri ada di bagian "Needs asset" di bawah. Selene 75, rojo 0.
 - **UI putaran 7, butir 2 (B27.4–6, K-121, DONE-CODE, Play NOT verified):** "+N XP" naik dari bar XP di kartu pemain, geser bar, kilat; pengaturan baru `reduceMotion` "Kurangi gerak" di Atur (default off) mematikan geser, naik, dan kilat. Selene 75, rojo 0.
