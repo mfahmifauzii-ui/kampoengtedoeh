@@ -99,7 +99,7 @@ return {
 	["quest.step"] = "Misi maju: {title}",
 	["quest.done"] = "Misi selesai: {title}!",
 	["quest.more"] = "+{n} quest lain · buka Quest Log",
-	["quest.point"] = "Tunjukkan",
+	["quest.point"] = "Cari", -- K-113: was "Tunjukkan"
 	["quest.ready"] = "Siap diserahkan: {title}", -- K-93: all tasks done, talk to the giver
 	["quest.track_full"] = "Quest Log: maks 3 quest dilacak. Lepas satu dulu.", -- GUI 6.8
 	["quest.track"] = "Track",

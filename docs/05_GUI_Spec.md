@@ -309,7 +309,7 @@ Grid kartu rumus visual `[2 Kayu] → [1 Papan]`, jumlah dimiliki di bawah tiap 
 Satu panel (`QuestLog`). Dibuka dari tombol **Quest** di dock bawah (tempat tombol Pesanan dulu, ikon gulungan), dan dari tap tracker. Tidak ada tombol Quest di kartu pemain (K-112; dulu menimpa bar XP). Tombol Pesanan yang terpisah dihapus; daftar order jadi tab **Pesanan** di log.
 
 - Tab: **Main · Side · Harian · Pesanan**. Tab Harian memuat slot Harian dan Mingguan yang masih terbuka. Tab Pesanan memuat order Villager (`OrdersController.Fill`).
-- Tiap baris quest: judul, sub (langkah, "Siap diserahkan ke <pemberi>", "Temui <pemberi>", "Selesai", atau "Lv n" untuk yang belum terbuka). Tombol **Track** (atau **Lepas** bila sudah dilacak), dan **Tunjukkan** bila quest punya tujuan.
+- Tiap baris quest: judul, sub (langkah, "Siap diserahkan ke <pemberi>", "Temui <pemberi>", "Selesai", atau "Lv n" untuk yang belum terbuka). Tombol **Track** (atau **Lepas** bila sudah dilacak), dan **Cari** bila quest punya tujuan.
 - Maks **3** quest dilacak (K-94). Main selalu dilacak. Side dan slot Harian/Mingguan dilacak lewat Track; quest yang baru ditawarkan atau diambil masuk sendiri bila ada slot.
 - Kerja Bakti hanya tampil di log saat acaranya jalan (K-96).
 - Grup baris: **Aktif** (berjalan dan siap diserahkan) / **Tersedia** (ditawarkan) / **Selesai** (terlipat) / **Berikutnya** (Main yang belum terbuka: "???").
@@ -319,7 +319,7 @@ Satu panel (`QuestLog`). Dibuka dari tombol **Quest** di dock bawah (tempat tomb
 - Tracker kiri berisi baris quest yang dilacak, urutan ikut urutan Track. Baris: langkah aktif, **Siap diserahkan ke <pemberi>**, atau **Temui <pemberi>**. Baris Surat (surat yang jatuh tempo) punya tombol **Baca**. Quest S2 (Surat Pertama) saat langkahnya baca juga punya **Baca** (K-95).
 - **Panah:** satu target dalam satu waktu. Di luar layar: panah di tepi layar menunjuk ke target. Di layar: panah lurus di atas kepala pemain, menunjuk ke target (K-110; tanpa label nama). Target = pemberi (siap diserahkan atau ditawarkan), atau `target` langkah di `Config/Quests`.
 - **"!" di NPC (K-110):** NPC yang menjadi target langkah aktif quest yang dilacak diberi "!" emas (200 stud). Lepas, selesai, atau quest dihapus: panah dan "!" hilang. Jalur tanah (path trail) sebagai peningkatan nanti, belum dibuat.
-- Tunjukkan di log menaruh panah ke target quest itu selama 6 dtk.
+- **Cari** (dulu Tunjukkan; K-113) menutup log dan memunculkan satu kali "!" di atas target: naik-turun 3 kali, lalu pudar. Tanpa tracker, tanpa panah. Track / Lepas tetap yang menetap.
 
 ### 6.9 Papan Hari Ini (baru, ✔ K-34 / Penyempurnaan P-04)
 

@@ -13,7 +13,9 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Debris = game:GetService("Debris")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Locale = require(ReplicatedStorage.Shared.Locale)
@@ -33,7 +35,6 @@ local QuestController = {}
 
 local MAX_HEIGHT_PX = 200 -- top limit in px (stops above the Craft button)
 local MAX_HEIGHT_SCREEN = 0.25 -- top limit as a share of the screen height (Update owner 2026-11-22, Task 5)
-local POINT_SECONDS = 6 -- how long "Tunjukkan" keeps the arrow on its target
 local KOLAM_QUEST = "kolam_pertama" -- hidden for the whole of T1b (v7.4 Bab 16.5), back when MQ4 opens the pond
 local KB_QUEST = "side_kerjabakti" -- Kerja Bakti: shown only while the event runs (Workspace KBActive)
 
@@ -43,8 +44,6 @@ local arrowEdge: TextLabel
 local arrowMarker: TextLabel
 local logPanel: any = nil -- the open Quest Log (UiKit.panel), nil while closed
 local logTab: string = "main"
-local pointedKey: string? = nil -- "Tunjukkan": the arrow goes to this key until pointedUntil
-local pointedUntil = 0.0
 local arrowTarget: (() -> Vector3?)? = nil -- where the arrow points now (nil = no arrow)
 local refresh: () -> ()
 
@@ -243,12 +242,62 @@ local function closeLog()
 	end
 end
 
--- "Tunjukkan": close the log and point the arrow at the quest's target for a few seconds.
+-- K-113 (owner 2026-11-24 butir 9): "Cari" closes the log and plays ONE ping over the quest's target: a "!" that bobs up and
+-- down 3 times, then fades. No tracker change, no arrow. Track / Lepas is the persistent one.
+local PING_BOB = 3
+local PING_HALF_SECONDS = 0.25
+local PING_FADE_SECONDS = 0.5
+
+local function ping(name: string)
+	local at = QuestController.PositionOf(name)
+	if not at then
+		return
+	end
+	local anchor = Instance.new("Part")
+	anchor.Name = "CariAnchor"
+	anchor.Anchored = true
+	anchor.CanCollide = false
+	anchor.CanQuery = false
+	anchor.CanTouch = false
+	anchor.Transparency = 1
+	anchor.Size = Vector3.one * 0.2
+	anchor.CFrame = CFrame.new(at)
+	anchor.Parent = Workspace
+	Debris:AddItem(anchor, PING_BOB * PING_HALF_SECONDS * 2 + PING_FADE_SECONDS + 1) -- a lifetime, whatever happens
+	local billboard = Instance.new("BillboardGui")
+	billboard.Size = UDim2.fromOffset(26, 30)
+	billboard.StudsOffset = Vector3.new(0, 3.6, 0)
+	billboard.AlwaysOnTop = true
+	billboard.MaxDistance = 200
+	billboard.Parent = anchor
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundColor3 = Color3.fromRGB(250, 240, 214)
+	label.Text = "!"
+	label.TextColor3 = Color3.fromRGB(214, 164, 64)
+	label.Font = UiKit.FONT
+	label.TextScaled = true
+	label.Parent = billboard
+	Instance.new("UICorner").Parent = label
+	task.spawn(function()
+		for _ = 1, PING_BOB do
+			TweenService:Create(billboard, TweenInfo.new(PING_HALF_SECONDS), { StudsOffset = Vector3.new(0, 4.6, 0) }):Play()
+			task.wait(PING_HALF_SECONDS)
+			TweenService:Create(billboard, TweenInfo.new(PING_HALF_SECONDS), { StudsOffset = Vector3.new(0, 3.6, 0) }):Play()
+			task.wait(PING_HALF_SECONDS)
+		end
+		TweenService:Create(label, TweenInfo.new(PING_FADE_SECONDS), { TextTransparency = 1, BackgroundTransparency = 1 }):Play()
+		task.wait(PING_FADE_SECONDS)
+		anchor:Destroy()
+	end)
+end
+
 local function pointAt(key: string)
 	closeLog()
-	pointedKey = key
-	pointedUntil = os.clock() + POINT_SECONDS
-	QuestController.Update()
+	local name = nameOfTarget(key, State.current)
+	if name then
+		ping(name)
+	end
 end
 
 -- Rows of one Log tab. Each row: title, sub, track key (nil = no Track button), point key (nil = no Tunjukkan).
@@ -664,12 +713,8 @@ end
 -- Also sets the "!" markers: every tracked quest whose target is an NPC.
 local function chooseArrow(snap: any)
 	arrowTarget = nil
-	if pointedKey and os.clock() > pointedUntil then
-		pointedKey = nil
-	end
 	local tracked: { string } = if snap and snap.quests then snap.quests.tracked else {}
-	local keys: { string } = if pointedKey then { pointedKey } else tracked
-	for _, key in keys do
+	for _, key in tracked do
 		local getter = targetOfQuest(key, snap)
 		if getter then
 			arrowTarget = getter
@@ -867,7 +912,7 @@ function QuestController.Start()
 		local last: string? = nil
 		while true do
 			local snap = snapshot()
-			local signature = `{tostring(kolamCardWanted(snap))}|{tostring(kbRunning())}|{tostring(pointedKey)}`
+			local signature = `{tostring(kolamCardWanted(snap))}|{tostring(kbRunning())}`
 			if signature ~= last then
 				last = signature
 				refresh()

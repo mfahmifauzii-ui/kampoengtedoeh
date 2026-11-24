@@ -15,7 +15,7 @@ Setelah tutorial selesai (jual ikan ke Kak Fajar), pemain selalu tahu langkah be
 |---|---|---|
 | Isi | Membuka **gameplay baru** atau **milestone cerita** (MQ11, MQ12) | Lanjutan gameplay yang sudah terbuka (bibit, lokasi, hewan, cara jual) |
 | Banner Dimulai / Selesai | Ya (`BannerController`, pemain dikunci ±3 dtk, GUI lain disembunyikan) | Tidak. Toast 1 baris dari pemberi saat selesai |
-| Tracker | Selalu paling atas, tombol `Tunjukkan` | Di bawah Main. Bila tidak ada Main, Side teratas dapat `Tunjukkan` |
+| Tracker | Selalu paling atas, tombol `Cari` (K-113) | Di bawah Main. Bila tidak ada Main, Side teratas dapat `Cari` |
 | Aktif | Maks 1 | Boleh beberapa (tracker maks 3 baris + "+N lainnya") |
 | Mulai | Ditawarkan (`!` di pemberi) → dialog Mulai → `QuestAccept` | Sama; semua side punya naskah (✔ K-14) |
 | Menahan jalur | Ya (Main berikutnya menunggu) | Tidak pernah |
@@ -218,7 +218,7 @@ Langkah `kak_fajar`: `tut.t1b.kak_fajar.1` (Pak Udin) — Kak Fajar ada di sunga
 | MQ12 | – | Warga Kampoeng Tedoeh | Mak Sari | (cerita) | Semua Main selesai + Album 50% | Title Warga Kampoeng Tedoeh + 10 Bunga | Ada (`mq12_warga`, auto) |
 
 - M2 minta 10 Batu + 9 Kayu: 4 Kayu jadi 2 Papan, sisa 10 Batu + 5 Kayu pas untuk M3. M3 muncul setelah M2 selesai.
-- 3 ikan Early M3 biasanya sudah dimiliki dari Sungai Lahan; kalau belum, `Tunjukkan` menunjuk sungai terdekat dulu.
+- 3 ikan Early M3 biasanya sudah dimiliki dari Sungai Lahan; kalau belum, `Cari` menunjuk sungai terdekat dulu (sekali, K-113).
 
 ### 5.2 Side Quest
 
