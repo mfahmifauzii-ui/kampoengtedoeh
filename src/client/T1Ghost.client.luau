@@ -801,7 +801,6 @@ local function runIntro()
 	local guideGui: Instance? = nil
 	local guideGuiWasEnabled = false
 	local hiddenGuis: { ScreenGui } = {}
-	local previousFov = camera.FieldOfView
 
 	local ended = false
 	local cameraTaken = false
@@ -827,8 +826,7 @@ local function runIntro()
 			humanoid.AutoRotate = true
 		end)
 		if cameraTaken then
-			camera.CameraType = Enum.CameraType.Custom
-			camera.FieldOfView = previousFov
+			NpcCamera.ReturnToPlayer() -- K-107: from the current character, no saved FOV or type
 		end
 		if guideGui and guideGui:IsA("ScreenGui") and guideGuiWasEnabled then
 			guideGui.Enabled = true
@@ -918,7 +916,6 @@ local function runIntro()
 			table.insert(hiddenGuis, other)
 		end
 	end
-	previousFov = camera.FieldOfView
 	if guideGui and guideGui:IsA("ScreenGui") then
 		guideGui.Enabled = false
 	end

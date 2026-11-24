@@ -39,8 +39,6 @@ local holdFor: string? = nil -- the NPC whose sapaan decision / greeting is on s
 -- Talk camera: while the conversation is open the camera glides to the over-the-shoulder shot (NpcCamera) and the NPC turns to you
 -- (client-side only); closing glides back to where the camera was and hands it back to the player.
 local FOCUS_TIME = 0.6
-local RETURN_TIME = 0.45
-local saved: { cframe: CFrame, fov: number }? = nil
 local cameraTween: Tween? = nil
 
 local function flat(v: Vector3): Vector3
@@ -93,11 +91,6 @@ local function focusNpc(npcId: string)
 	if toPlayer.Magnitude < 0.1 then
 		return
 	end
-	toPlayer = toPlayer.Unit
-
-	if not saved then
-		saved = { cframe = camera.CFrame, fov = camera.FieldOfView }
-	end
 	-- K-106: the server turns the NPC toward the player (0.35 s, replicated); the camera does not wait for it.
 	Net.Send("NpcFace", npcId, true)
 
@@ -111,23 +104,13 @@ local function focusNpc(npcId: string)
 end
 
 -- instant = true: the camera goes back at once, with no tween (Jual / Beli opens the shop straight away).
-local function releaseCamera(instant: boolean?)
-	NpcCamera.SetBlur(false)
-	local back = saved
-	saved = nil
-	local camera = Workspace.CurrentCamera
-	if not back or not camera then
-		return
+-- K-107: the camera goes back to the player at once (NpcCamera.ReturnToPlayer). No saved shot is restored any more.
+local function releaseCamera(_instant: boolean?)
+	if cameraTween then
+		cameraTween:Cancel()
+		cameraTween = nil
 	end
-	if instant then
-		camera.CFrame = back.cframe
-		camera.FieldOfView = back.fov
-		camera.CameraType = Enum.CameraType.Custom
-		return
-	end
-	tweenCamera(back.cframe, back.fov, RETURN_TIME, function()
-		camera.CameraType = Enum.CameraType.Custom
-	end)
+	NpcCamera.ReturnToPlayer()
 end
 
 -- While a conversation is open every other screen is hidden (HUD, pills, hints, bars): only the NPC, the camera, the dialogue
@@ -172,17 +155,7 @@ local function resetCameraToPlayer()
 		cameraTween:Cancel()
 		cameraTween = nil
 	end
-	saved = nil
-	NpcCamera.SetBlur(false)
-	local camera = Workspace.CurrentCamera
-	if camera then
-		camera.CameraType = Enum.CameraType.Custom
-		local character = player.Character
-		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-		if humanoid then
-			camera.CameraSubject = humanoid
-		end
-	end
+	NpcCamera.ReturnToPlayer()
 end
 
 local function close(instantCamera: boolean?)

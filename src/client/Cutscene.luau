@@ -10,10 +10,12 @@
 --   Cutscene.Transition(onBlack)  fades (FadeManager) with onBlack run while the screen is dark, waits until it is clear,
 --                                 and keeps the player held after it. FadeManager releases the hold at the end of every
 --                                 fade, so it is taken again in the same step (onDone), before anything can move.
---   Cutscene.End()                camera back to what it was, the hold released, blur off. Safe to call twice.
+--   Cutscene.End()                camera back to the player (NpcCamera.ReturnToPlayer, K-107), the hold released, blur off.
+--                                 Safe to call twice.
 --
 -- Rules (roblox-camera): the camera is driven in RunService.PreRender; one owner at a time (`owner`, a new Begin ends the old
--- beat; a stale End does nothing); the camera type is snapshotted and restored; the beat ends on CharacterRemoving (respawn).
+-- beat; a stale End does nothing); nothing is snapshotted: the end gives the camera back from the current character (K-107);
+-- the beat ends on CharacterRemoving (respawn).
 -- WalkSpeed and JumpPower are NOT touched here: the hold is PlayerLock's, and PlayerLock snapshots and restores them.
 -- The hold itself is PlayerLock's (PlayerModule when the place has it, else the humanoid).
 -- Rollback: delete this module and the calls in T1Ghost.client (runWarung).
@@ -36,8 +38,6 @@ local owner: {}? = nil -- the token of the beat that owns the camera and the hol
 local camConn: RBXScriptConnection? = nil
 local removingConn: RBXScriptConnection? = nil
 local cameraTaken = false
-local savedFov = 70
-local savedCameraType: Enum.CameraType = Enum.CameraType.Custom
 local beatStartedAt: number? = nil -- os.clock() at Begin: the Bab 16.2 length check (<= Onboarding.CUTSCENE_MAX_SECONDS)
 -- Bab 16.4 (v7.4): the Jual Pertama beat waits for the player (he reads the lines and sells at his own pace), so its
 -- length is not a cutscene length in the sense of Bab 16.2 and is not checked. Every timed beat still is.
@@ -96,8 +96,6 @@ function Cutscene.Begin(npc: Model, head: BasePart, interactive: boolean?, wide:
 		fov = NpcCamera.FOV
 		NpcCamera.SetBlur(true, focusDistance)
 	end
-	savedFov = camera.FieldOfView
-	savedCameraType = camera.CameraType
 	camera.CameraType = Enum.CameraType.Scriptable
 	cameraTaken = true
 	if wide then
@@ -151,12 +149,8 @@ function Cutscene.End()
 	end
 	if cameraTaken then
 		cameraTaken = false
-		NpcCamera.SetBlur(false)
-		local camera = Workspace.CurrentCamera
-		if camera then
-			camera.CameraType = savedCameraType
-			camera.FieldOfView = savedFov
-		end
+		-- K-107: back to the player's camera from the current character, never a saved type or FOV (see NpcCamera.ReturnToPlayer).
+		NpcCamera.ReturnToPlayer()
 	end
 	if held then
 		held = false

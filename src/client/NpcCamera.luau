@@ -5,6 +5,7 @@
 -- blur (the near player and the far background) keeps the eye on the NPC. Client only.
 
 local Lighting = game:GetService("Lighting")
+local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
@@ -81,6 +82,26 @@ function NpcCamera.Wide(eye: Vector3, focus: Vector3, ignore: { Instance }): CFr
 end
 
 -- The depth-of-field blur: on = the NPC (at focusDistance) is sharp, the player in front and the background behind are blurred.
+-- K-107 (owner 2026-11-24, camera after "3 ikan"): the one way back to the player's camera, used by every cutscene and talk
+-- end and by respawn: Custom, followed by the current Humanoid, the default FOV, no blur. It never restores a saved CFrame,
+-- CameraType or FOV: a stale snapshot had put the camera back on the Pak Udin shot.
+NpcCamera.DEFAULT_FOV = 70
+
+function NpcCamera.ReturnToPlayer()
+	NpcCamera.SetBlur(false)
+	local camera = Workspace.CurrentCamera
+	if not camera then
+		return
+	end
+	camera.CameraType = Enum.CameraType.Custom
+	local character = Players.LocalPlayer.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		camera.CameraSubject = humanoid
+	end
+	camera.FieldOfView = NpcCamera.DEFAULT_FOV
+end
+
 function NpcCamera.SetBlur(on: boolean, focusDistance: number?)
 	local effect = Lighting:FindFirstChild(BLUR_NAME)
 	if not effect then

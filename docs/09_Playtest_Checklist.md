@@ -439,3 +439,4 @@ Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 
 1. [ ] **Jual Pertama, kamera (K-105):** saat mendekati Pak Udin, layar jadi hitam, lalu fade masuk di shot dekat (wajah Pak Udin dan avatar terlihat, seperti adegan Mak Sari). Tidak ada jalan masuk frame.
 2. [ ] **NPC menoleh (K-106):** tekan Ngobrol ke Pak Udin (atau NPC lain). Dia menoleh ke kamu dalam sekitar 0,35 dtk. Tutup dialog: dia kembali ke arah semula. Cek di HP kedua (pemain lain) juga melihat dia menoleh.
+3. [ ] **Kamera setelah "3 ikan" (K-107):** selesaikan langkah tangkap 3 ikan dan jual. Kamera tetap di belakang avatar, tidak kembali ke shot Pak Udin. Bicara dengan NPC lalu tutup: kamera kembali ke pemain.
