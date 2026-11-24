@@ -28,7 +28,8 @@
 - **R2.G7 (fix(R2.G7), 2026-11-24, K-81):** Pekerja Bakti (`side_kerjabakti`) mulai di Lv 2, sama dengan gerbang prompt pungut. DONE-CODE, Play belum; owner cek di 09 B22 butir 6.
 - **R2.G8 (fix(R2.G8), 2026-11-24, K-82):** diterima, tanpa kode baru. Sosial solo (Warga) kembali bersama `BANTU_ENABLED`. DONE-DOC.
 - **R2.G9 (fix(R2.G9), 2026-11-24, K-83):** toast hadiah surat 6/13/20/29 selalu tampil saat dibayar (teks alt + hadiah), lewat Notify/Toast yang sudah ada. DONE-CODE, Play belum; owner cek di 09 B22 butir 7 dan B21 butir 3.
-- **Berikutnya:** walk akhir Lv 0–10 di atas kertas, lalu laporan ke owner. Keputusan terbuka: K-72 (default konservatif, owner belum meninjau).
+- **Walk akhir Lv 0–10 (2026-11-24, setelah R2.G1–G9): no open gaps Lv 0–10.** Lingkup dan catatan di `reports/Quest_Gate_Walk_2026-11-24.md` bagian 2c. Kucing/Joran tetap ditunda (K-16).
+- **Berikutnya:** owner menjalankan tes end-to-end lewat gerbang G1 di docs/09 (dan B20–B22 di HP). Tidak ada tugas kode yang menunggu. Keputusan terbuka: K-72 (default konservatif, owner belum meninjau).
 - **Branch:** `feat/v.7`. Sudah di-push sampai `1f562d0`; `6c5e593`, `06521d5`, `995d049` belum.
 - **Baseline:** selene 0 error / 85 warning (turun dari 86 di feat R7.x); rojo build exit 0. Dicek ulang 24 Nov 2026 setelah id SFX dipasang.
 - **Keputusan owner terbuka:** tidak ada yang menunggu. Gerbang rilis di bawah (Bab 23) belum dikerjakan.
