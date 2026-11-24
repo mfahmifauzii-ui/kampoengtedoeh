@@ -90,7 +90,7 @@ end
 
 -- Kak Fajar's gift (Terima Hadiah, or a skipped rodgift step): the Joran Bambu and the pelet, given ONCE. Returns false when
 -- the save already has it. Owned by the server only.
-local FAJAR_BAIT = { id = "pelet", amount = 5 }
+local FAJAR_BAIT = { id = "cacing", amount = 5 } -- K-21 (a): the gift is Cacing; K-90 put it back from Pelet
 local function giveRodGift(player: Player, data: any): boolean
 	local guide = data.guide
 	if guide.rodGift then

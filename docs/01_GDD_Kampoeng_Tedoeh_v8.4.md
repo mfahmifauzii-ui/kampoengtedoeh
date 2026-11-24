@@ -914,7 +914,7 @@ Dua tutorial: `t1_awal` (langkah 1–9) dan `t1b_kolam` (langkah 10–13). Id la
 | 8 | `tunggu_semua` | Lahan | Panen 6 bibit gratis (semua) | — | Toast saja (tanpa gelap) |
 | 9 | `panen_jual` | Lahan → Pak Udin | Jual 1 ke Pak Udin | 20 | Toast saja |
 | 10 | `warung` | Pak Udin | Ok (ack) | — | Dialog Pak Udin |
-| 11 | `kak_fajar` | Sungai Lahan | Terima Hadiah (`rodgift`): Joran Bambu + Pelet x5 (kode, `TutorialService.FAJAR_BAIT`; K-21 menulis Cacing, lihat K-86) | — | Panah NPC + toast |
+| 11 | `kak_fajar` | Sungai Lahan | Terima Hadiah (`rodgift`): Joran Bambu + Cacing x5 (`TutorialService.FAJAR_BAIT`; K-21, dikembalikan K-90) | — | Panah NPC + toast |
 | 12 | `mancing` | Sungai Lahan | 3 ikan (B2 K-54) | 20 | Pertama: bubble coachmark + ring Aksi (Pancing); selama langkah: toast tersemat "Tangkap 3 ikan buat Kak Fajar: n/3" (K-85), tidak hilang sampai langkah selesai |
 | 13 | `jual_ikan` | Sungai Lahan | Ok setelah jual ikan ke Kak Fajar | sampai Lv 2 (xpFill) | Dialog Kak Fajar |
 
