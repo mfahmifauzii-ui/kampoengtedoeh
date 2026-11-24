@@ -809,6 +809,8 @@ Rantai Main / Side Quest (dulu Bab 14.2 & 14.4), feature gate, dan naskah ada di
 | Bundel Kakek | 5 proyek pemulihan. |
 
 Semua quest baru muncul setelah tutorial jual ikan (`t1b_kolam`) selesai.
+- **Penyerahan (K-93):** Main dan Side dengan pemberi NPC: saat semua tugas selesai, quest jadi *siap diserahkan* (`!` dan panah ke pemberi). Hadiah (XP, Koin, bahan) dibayar saat pemain bicara dengan pemberi. Quest tanpa pemberi NPC (Surat) dan quest auto selesai langsung. Harian dan Agenda tetap otomatis.
+- **Track (K-94):** Quest Log punya Track / Lepas, maks 3 yang dilacak. Main selalu dilacak. Quest yang baru ditawarkan atau diambil otomatis masuk tracker bila ada slot. Baris Harian dan Mingguan hanya tampil saat dilacak.
 - **Harian dan Mingguan (K-56):** hanya memilih templat yang fitur dan levelnya sudah terbuka. "Bantu lahan" pindah ke Season (500 Koin, tanpa Bunga, K-28). Quest yang sistemnya belum ada diblok.
 
 

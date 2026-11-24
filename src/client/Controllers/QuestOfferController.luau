@@ -30,8 +30,7 @@ local accepting: { [string]: boolean } = {} -- accepted here, waiting for the se
 local playing = false -- the start dialog is on screen
 local token = 0 -- bumped by Cancel(): a running start dialog stops at its next Next
 local markers: { [string]: BillboardGui } = {} -- npc id -> "!" marker (a child of the NPC name billboard)
-local seenDone: { [string]: boolean } = {}
-local doneSeeded = false
+local handedIn: { [string]: boolean } = {} -- K-93: turn-in sent for this quest; cleared once the server no longer lists it ready
 
 local function prefixOf(questId: string): string
 	return string.match(questId, "^(%a+%d+)_") or questId -- side_* memakai id penuh (dlg.side_rumah_rapi.*)
@@ -109,6 +108,15 @@ local function refreshMarkers()
 		for _, id in offers do
 			local quest = Quests.byId[id]
 			if quest and not accepting[id] then
+				wanted[quest.giver] = true
+			end
+		end
+		-- K-93: a finished quest waiting for its turn-in (siap diserahkan) also has the "!" on its giver.
+		local snap = State.current :: any
+		local ready = if snap and snap.quests then snap.quests.ready else nil
+		for id in ready or {} do
+			local quest = Quests.byId[id]
+			if quest then
 				wanted[quest.giver] = true
 			end
 		end
@@ -201,6 +209,61 @@ function QuestOfferController.PlayStart(npcId: string, questId: string, onDone: 
 	show(1)
 end
 
+-- K-93: the ready quest (all tasks done) of this giver, nil when none. Its turn-in plays when the player talks to the giver.
+function QuestOfferController.ReadyFor(npcId: string): string?
+	if playing then
+		return nil
+	end
+	local snap = State.current :: any
+	local ready = if snap and snap.quests then snap.quests.ready else nil
+	for id in ready or {} do
+		local quest = Quests.byId[id]
+		if quest and quest.giver == giverOf(npcId) and not handedIn[id] then
+			return id
+		end
+	end
+	return nil
+end
+
+-- K-93: the giver's closing line(s) of a ready quest, then the reward is paid (QuestTurnIn). A quest with no done line is
+-- turned in at once. The last Next (or the line-less turn-in) calls onDone.
+function QuestOfferController.PlayTurnIn(npcId: string, questId: string, onDone: () -> ())
+	local lines = linesOf(questId, "done")
+	local function finish()
+		playing = false
+		handedIn[questId] = true -- until the server's state no longer lists it as ready (see Start)
+		Net.Send("QuestTurnIn", questId)
+		onDone()
+	end
+	if #lines == 0 then
+		finish()
+		return
+	end
+	token += 1
+	local mine = token
+	playing = true
+	local function show(index: number)
+		if mine ~= token then
+			return
+		end
+		if index > #lines then
+			finish()
+			return
+		end
+		T1Dialog.Show({
+			name = Locale.t(`npc.{npcId}`),
+			text = Locale.t(lines[index], { name = player.DisplayName }),
+			avatar = T1Dialog.NpcModel(npcId),
+			showNext = true,
+			bottom = 16,
+			onNext = function()
+				show(index + 1)
+			end,
+		})
+	end
+	show(1)
+end
+
 -- The talk was closed: a start dialog that is still running stops (the quest is not accepted).
 function QuestOfferController.Cancel()
 	token += 1
@@ -218,62 +281,6 @@ function QuestOfferController.SideDoneText(questId: string): string?
 		return nil
 	end
 	return `{Locale.t(`npc.{quest.giver}`)}: {Locale.t(lines[1], { name = player.DisplayName })}`
-end
-
--- A finished MAIN quest: its giver's closing line in the dialog box, one Next to close.
-local function playDone(questId: string)
-	local quest = Quests.byId[questId]
-	local lines = linesOf(questId, "done")
-	if not quest or #lines == 0 then
-		return
-	end
-	task.spawn(function()
-		local held = T1Dialog.Acquire(quest.giver, T1Dialog.AMBIENT)
-		if not held then
-			return
-		end
-		local function show(index: number)
-			T1Dialog.Show({
-				name = Locale.t(`npc.{quest.giver}`),
-				text = Locale.t(lines[index], { name = player.DisplayName }),
-				avatar = T1Dialog.NpcModel(quest.giver),
-				showNext = true,
-				bottom = 16,
-				onNext = function()
-					if lines[index + 1] then
-						show(index + 1)
-					else
-						T1Dialog.Hide() -- gives the box back
-					end
-				end,
-			})
-		end
-		show(1)
-	end)
-end
-
-local function refreshDone()
-	local snapshot = State.current :: any
-	local quests = snapshot and snapshot.quests
-	if not quests then
-		return
-	end
-	local nowDone: { [string]: boolean } = {}
-	for id, value in quests.done do
-		if value == true then
-			nowDone[id] = true
-		end
-	end
-	if doneSeeded then
-		for id in nowDone do
-			local quest = Quests.byId[id]
-			if not seenDone[id] and quest and quest.kind == "main" then
-				playDone(id)
-			end
-		end
-	end
-	doneSeeded = true
-	seenDone = nowDone
 end
 
 function QuestOfferController.Init()
@@ -294,8 +301,14 @@ end
 
 function QuestOfferController.Start()
 	State.Changed:Connect(function()
+		local snap = State.current :: any
+		local ready = if snap and snap.quests then snap.quests.ready else nil
+		for id in handedIn do
+			if not (ready and ready[id]) then
+				handedIn[id] = nil
+			end
+		end
 		refreshMarkers()
-		refreshDone()
 	end)
 	-- The NPC model can stream in after the offer: check again every second (cheap: a few names).
 	task.spawn(function()

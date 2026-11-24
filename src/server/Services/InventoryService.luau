@@ -142,6 +142,8 @@ local function buildSnapshot(player: Player, data: Types.PlayerData)
 		quests = {
 			active = table.clone(data.quests.active),
 			done = table.clone(data.quests.done),
+			ready = table.clone(data.quests.ready),
+			tracked = table.clone(data.quests.tracked),
 			daily = table.clone(data.quests.daily),
 			agenda = table.clone(data.quests.agenda),
 			harian = table.clone(data.quests.harian),

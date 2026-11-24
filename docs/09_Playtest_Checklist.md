@@ -415,3 +415,6 @@ Aturan: GUI 4.2. Satu tempat (di bawah Koin/Bunga), satu gaya krem.
 Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 
 1. [ ] **Tracker tetap tampil saat bicara (K-92):** ambil quest dari NPC. Tracker di kiri tidak hilang selama dialog dan setelahnya.
+2. [ ] **Turn-in (K-93):** selesaikan satu Side dari NPC (mis. Pak Udin). Quest jadi "Siap diserahkan" di tracker, ada "!" di atas pemberinya. Hadiah belum masuk. Bicara dengan pemberi: dialog penutup, lalu Koin/XP bertambah.
+3. [ ] **Track (K-94):** di Quest Log, Track dan Lepas bekerja. Ada 3 slot. Tombol Track ke-4 memberi toast "maks 3 quest dilacak".
+4. [ ] **Kanal Barat (K-97):** saat naik ke Lv 5, banner Level lalu baris "Terbuka: Kanal Barat (temui Kak Fajar)". "!" di atas Kak Fajar dan panah ke dia.

@@ -250,6 +250,14 @@ local function greetSuffix(npcId: string): string
 end
 
 local function refresh(npcId: string)
+	-- K-93: a finished quest of this giver is handed in first (its closing line, then the reward is paid), then the choices.
+	local ready = QuestOfferController.ReadyFor(npcId)
+	if ready then
+		QuestOfferController.PlayTurnIn(npcId, ready, function()
+			refresh(npcId)
+		end)
+		return
+	end
 	-- Q-3: a quest this giver offers is first introduced by its Naskah start dialog; the last Next accepts it (QuestAccept),
 	-- then the normal choices come back here.
 	local offer = QuestOfferController.ForGiver(npcId)

@@ -29,6 +29,7 @@ export type Step = {
 	items: { [string]: number }?,
 	consume: boolean?,
 	reveals: string?,
+	target: string?, -- tempat yang ditunjuk panah Quest Log saat langkah ini aktif: id NPC, atau nama objek di Workspace
 }
 
 export type Quest = {
@@ -121,9 +122,9 @@ local list: { Quest } = {
 		unlockLevel = 6,
 		after = "m5_kokok",
 		steps = {
-			{ event = "dapur_built", count = 1, reveals = "dapur" },
-			{ event = "cook", count = 1 },
-			{ event = "eat", count = 1 },
+			{ event = "dapur_built", count = 1, reveals = "dapur" }, -- K-94: Tungku dibangun dari panel Dapur (tanpa pointer, lihat R5.8a)
+			{ event = "cook", count = 1, target = "Tungku" }, -- masak di Tungku (Dapur) yang sudah berdiri
+			{ event = "eat", count = 1, target = "Tungku" },
 		},
 		reward = { koin = 200 },
 	},

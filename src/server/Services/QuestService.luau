@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local Quests = require(ReplicatedStorage.Shared.Config.Quests)
+local Npcs = require(ReplicatedStorage.Shared.Config.Npcs)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local TimeKeys = require(ReplicatedStorage.Shared.Modules.TimeKeys)
@@ -33,6 +34,41 @@ local UI_EVENTS: { [string]: boolean } = {
 	gerobak_view = true,
 	surat_read = true,
 }
+
+-- Quest Log (GUI 6.8, Quest 03 bab 9): at most 3 tracked rows. Keys: a quest id, "h:<kind>" (Harian slot), "w:<kind>" (Mingguan).
+local TRACK_MAX = 3
+
+local function track(data: Types.PlayerData, key: string): boolean
+	if table.find(data.quests.tracked, key) then
+		return true
+	end
+	if #data.quests.tracked >= TRACK_MAX then
+		-- A Main quest is always tracked: it takes the place of the oldest Side / slot row.
+		local quest = Quests.byId[key]
+		if not (quest and quest.kind == "main") then
+			return false
+		end
+		for index, other in data.quests.tracked do
+			local otherQuest = Quests.byId[other]
+			if not (otherQuest and otherQuest.kind == "main") then
+				table.remove(data.quests.tracked, index)
+				break
+			end
+		end
+		if #data.quests.tracked >= TRACK_MAX then
+			return false
+		end
+	end
+	table.insert(data.quests.tracked, key)
+	return true
+end
+
+local function untrack(data: Types.PlayerData, key: string)
+	local index = table.find(data.quests.tracked, key)
+	if index then
+		table.remove(data.quests.tracked, index)
+	end
+end
 
 -- Jumlah barang yang dipegang untuk satu kebutuhan. "early:any" = semua ikan Early (rarity C) apa pun ukurannya.
 local function countNeed(data: Types.PlayerData, need: string): number
@@ -86,6 +122,8 @@ end
 -- Selesaikan 1 quest: grant + hook (kolam/kakek) + notify.
 local function finishQuest(player: Player, data: Types.PlayerData, quest: Quests.Quest)
 	data.quests.active[quest.id] = nil
+	data.quests.ready[quest.id] = nil
+	untrack(data, quest.id)
 	data.quests.done[quest.id] = true
 	TutorialService.MarkMet(player, quest.giver) -- the giver's closing line is a meeting too (no second intro later)
 	ProgressionService.Grant(player, quest.reward, `quest:{quest.id}`)
@@ -98,6 +136,18 @@ local function finishQuest(player: Player, data: Types.PlayerData, quest: Quests
 	Net.Fire("Notify", player, "quest.done", { title = `quest.{quest.id}.title` })
 end
 
+-- K-93: a Main or Side quest with a real NPC giver waits for its turn-in (siap diserahkan) until the player talks to the
+-- giver. Auto quests (no tasks) and a giver that is not an NPC (Surat) finish at once, as before.
+local function completeOrReady(player: Player, data: Types.PlayerData, quest: Quests.Quest)
+	if quest.auto == true or Npcs.byId[quest.giver] == nil then
+		finishQuest(player, data, quest)
+		return
+	end
+	data.quests.active[quest.id] = nil
+	data.quests.ready[quest.id] = true
+	Net.Fire("Notify", player, "quest.ready", { title = `quest.{quest.id}.title` })
+end
+
 -- Starts the quest: pemberi memberi hewan (M5) dulu; kalau gagal (kandang penuh / belum ada plot) quest tidak mulai
 -- dan dicoba lagi di evaluate berikut.
 local function startQuest(player: Player, data: Types.PlayerData, quest: Quests.Quest): boolean
@@ -105,6 +155,9 @@ local function startQuest(player: Player, data: Types.PlayerData, quest: Quests.
 		return false
 	end
 	data.quests.active[quest.id] = { step = 1, count = 0 }
+	if quest.kind == "main" or quest.kind == "side" then
+		track(data, quest.id) -- Main always; Side when a slot is free (the player can Lepas it)
+	end
 	TutorialService.MarkMet(player, quest.giver) -- Bug: a giver met through a quest is not introduced again
 	Net.Fire("Notify", player, "quest.new", { title = `quest.{quest.id}.title` })
 	return true
@@ -123,6 +176,7 @@ local function isStartable(player: Player, data: Types.PlayerData, quest: Quests
 	return quest.blocked == nil
 		and data.quests.done[quest.id] == nil
 		and data.quests.active[quest.id] == nil
+		and data.quests.ready[quest.id] == nil
 		and data.level >= quest.unlockLevel
 		and (quest.after == nil or data.quests.done[quest.after] == true)
 		and (quest.requireAlbum == nil or BookService.AlbumPercent(player) >= quest.requireAlbum)
@@ -233,7 +287,7 @@ local function advance(player: Player, data: Types.PlayerData, quest: Quests.Que
 		end
 		changed = true
 		if progress.step >= #quest.steps then
-			finishQuest(player, data, quest)
+			completeOrReady(player, data, quest)
 			return true
 		end
 		progress.step += 1
@@ -248,7 +302,7 @@ local function reportAnyOf(player: Player, data: Types.PlayerData, quest: Quests
 		if alt.event == event then
 			progress.count += add
 			if progress.count >= alt.count then
-				finishQuest(player, data, quest)
+				completeOrReady(player, data, quest)
 			end
 			return
 		end
@@ -314,8 +368,71 @@ end
 local function sendOffers(player: Player)
 	local data = DataService.Get(player)
 	if data then
-		Net.Fire("QuestOffers", player, offeredIds(player, data))
+		local ids = offeredIds(player, data)
+		-- An offer is tracked at once, so its giver and the arrow show up in the tracker (Quest 03 bab 9, butir 7).
+		local changed = false
+		for _, id in ids do
+			if not table.find(data.quests.tracked, id) and track(data, id) then
+				changed = true
+			end
+		end
+		if changed then
+			InventoryService.Sync(player)
+		end
+		Net.Fire("QuestOffers", player, ids)
 	end
+end
+
+-- K-93: the player talked to the giver of a ready quest; the reward is paid now.
+local function onTurnIn(player: Player, questId: any)
+	if typeof(questId) ~= "string" then
+		return
+	end
+	local data = DataService.Get(player)
+	local quest = Quests.byId[questId]
+	if not data or not quest or data.quests.ready[questId] ~= true then
+		return
+	end
+	finishQuest(player, data, quest)
+	startAvailable(player, data)
+	syncFeatures(data)
+	InventoryService.Sync(player)
+	sendOffers(player)
+end
+
+-- Quest Log: Track / Lepas. Harian and Mingguan slots (h: / w:) only while the slot is still open.
+local function onTrack(player: Player, key: any, on: any)
+	if typeof(key) ~= "string" then
+		return
+	end
+	local data = DataService.Get(player)
+	if not data then
+		return
+	end
+	if on ~= true then
+		untrack(data, key)
+	else
+		local known = false
+		if Quests.byId[key] then
+			known = data.quests.active[key] ~= nil or data.quests.ready[key] == true or table.find(offeredIds(player, data), key) ~= nil
+		else
+			local label, kind = string.match(key, "^([hw]):(.+)$")
+			local slots = if label == "h" then data.quests.harian.slots elseif label == "w" then data.quests.mingguan.slots else nil
+			for _, slot in slots or {} do
+				if slot.kind == kind and not slot.claimed then
+					known = true
+				end
+			end
+		end
+		if not known then
+			return
+		end
+		if not track(data, key) then
+			Net.Fire("Notify", player, "quest.track_full")
+			return
+		end
+	end
+	InventoryService.Sync(player)
 end
 
 -- Q-3: the player accepted an offered quest (after its start dialog). The server checks the offer again and starts it.
@@ -431,6 +548,11 @@ local function evaluate(player: Player)
 	end
 	startAvailable(player, data)
 	syncFeatures(data)
+	for questId in data.quests.ready do
+		if not Quests.byId[questId] then
+			data.quests.ready[questId] = nil
+		end
+	end
 	for questId, progress in data.quests.active do
 		local quest = Quests.byId[questId]
 		if not quest then
@@ -512,6 +634,8 @@ function QuestService.Init()
 		sendOffers(player) -- the client asks once it is ready (a join-time send could arrive before its listener)
 	end, { rate = 2, burst = 4 })
 	Net.On("KakekSetor", onKakekSetor, { rate = 2, burst = 4 })
+	Net.On("QuestTurnIn", onTurnIn, { rate = 4, burst = 8 })
+	Net.On("QuestTrack", onTrack, { rate = 6, burst = 12 })
 	DataService.Loaded:Connect(evaluate)
 	ProgressionService.LevelUp:Connect(evaluate)
 	TutorialService.Finished:Connect(function(player: Player, tutorialId: string)

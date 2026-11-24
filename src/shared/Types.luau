@@ -133,6 +133,8 @@ export type PlayerData = {
 	quests: {
 		active: { [string]: { step: number, count: number } },
 		done: { [string]: boolean },
+		ready: { [string]: boolean }, -- K-93: all tasks done, waits for the turn-in at the giver (siap diserahkan)
+		tracked: { string }, -- Quest Log Track: quest ids, "h:<kind>", "w:<kind>"; at most 3
 		harian: { day: string, slots: { { kind: string, progress: number, claimed: boolean } } },
 		mingguan: { week: string, slots: { { kind: string, progress: number, claimed: boolean } } },
 		agenda: { day: string, tasks: { { id: string, progress: number, claimed: boolean } } },

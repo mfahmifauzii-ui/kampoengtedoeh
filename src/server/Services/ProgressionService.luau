@@ -43,7 +43,8 @@ local function unlocksAt(level: number): { string }
 	end
 	for location, config in Fishing.LOCATIONS do
 		if config.unlockLevel == level and level > 1 then
-			table.insert(keys, `location.{location}`)
+			-- Item 7 (Quest butir 7): Kanal Barat names its giver, so the player knows whom to meet.
+			table.insert(keys, if location == "sungai" then "location.sungai_meet" else `location.{location}`)
 		end
 	end
 	for upgradeId, config in Shop.UPGRADES do

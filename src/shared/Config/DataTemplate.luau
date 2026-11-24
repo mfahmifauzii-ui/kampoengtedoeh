@@ -117,7 +117,9 @@ local template: Types.PlayerData = {
 	quests = {
 		active = {}, -- [questId] = { step = 1, count = 0 } (see Config/Quests)
 		done = {}, -- [questId] = true
-		daily = { day = "", kind = "", progress = 0, claimed = false }, -- legacy (satu tugas); Agenda sekarang pakai `agenda`
+		ready = {}, -- [questId] = true: semua tugas selesai, menunggu diserahkan ke pemberi (K-93)
+		tracked = {}, -- Track di Quest Log (maks 3): id quest, "h:<kind>", "w:<kind>"
+		daily ={ day = "", kind = "", progress = 0, claimed = false }, -- legacy (satu tugas); Agenda sekarang pakai `agenda`
 		agenda = { day = "", tasks = {} }, -- R2.2 (GDD 14.5): 5 tugas per hari, semua aktif; { id, progress, claimed }
 		harian = { day = "", slots = {} }, -- Quest Harian 3/hari (P2-7)
 		mingguan = { week = "", slots = {} }, -- Quest Mingguan 3/minggu (P2-7), reset Senin 05:00 WIB

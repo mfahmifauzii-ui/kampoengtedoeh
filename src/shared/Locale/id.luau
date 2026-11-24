@@ -100,6 +100,19 @@ return {
 	["quest.done"] = "Misi selesai: {title}!",
 	["quest.more"] = "+{n} quest lain · buka Quest Log",
 	["quest.point"] = "Tunjukkan",
+	["quest.ready"] = "Siap diserahkan: {title}", -- K-93: all tasks done, talk to the giver
+	["quest.track_full"] = "Quest Log: maks 3 quest dilacak. Lepas satu dulu.", -- GUI 6.8
+	["quest.track"] = "Track",
+	["quest.untrack"] = "Lepas",
+	["quest.ready_to"] = "Siap diserahkan ke {npc}",
+	["quest.offer_to"] = "Temui {npc}",
+	["quest.read"] = "Baca",
+	["quest.log.tab_harian"] = "Harian",
+	["quest.log.tab_mingguan"] = "Mingguan",
+	["quest.log.tab_pesanan"] = "Pesanan",
+	["quest.log.ready"] = "Siap diserahkan",
+	["quest.log.tracked_none"] = "Belum ada quest yang dilacak. Tekan Track di Quest Log.",
+	["ui.quest"] = "Quest",
 	-- Quest Log (Q-4, GUI doc 6.8). "Tersedia" is not in the docs: label to confirm (Lampiran D #28).
 	["quest.log.title"] = "Quest Log",
 	["quest.log.tab_main"] = "Main",
@@ -737,6 +750,7 @@ return {
 	["level.up_unlocks"] = "Level {level}! Terbuka: {unlocks}",
 	["level.unlock_line"] = "Terbuka: {item}",
 	["location.sungai"] = "Kanal Barat", -- K-23
+	["location.sungai_meet"] = "Kanal Barat (temui Kak Fajar)", -- item 7: the Lv 5 unlock line names the giver
 	["location.sungai_lahan"] = "Sungai Lahan",
 	["location.empang"] = "Kanal Timur", -- K-23
 	["location.kolam"] = "Kolam",
@@ -1046,7 +1060,6 @@ return {
 	["kb.title"] = "Kerja Bakti Kilat",
 	["kb.active"] = "Kerja Bakti! Pungut sampah di plaza",
 	["kb.how"] = "Setelah hujan deres atau petir: pungut sampah di alun-alun. +15 Koin +3 XP per poin.", -- K-37
-	["kb.none"] = "Tidak ada Kerja Bakti sekarang",
 	["kb.bonus"] = "Bonus Kampung 100%! +{n} Koin + Diskon Warga",
 	["kb.discount_on"] = "Diskon Warga aktif (-10%)!",
 	["tamu.title"] = "Pesanan Tamu",
@@ -1121,7 +1134,7 @@ return {
 	["quest.m5_kokok.s1"] = "Isi pakan ayam",
 	["quest.m5_kokok.s2"] = "Ambil 1 telur",
 	["quest.m6_dapur.title"] = "Dapur Pertama",
-	["quest.m6_dapur.s1"] = "Craft Tungku",
+	["quest.m6_dapur.s1"] = "Pasang Tungku di lahanmu lewat panel Dapur", -- K-94: teks lama "Craft Tungku" tidak sesuai aksi (dapur_built)
 	["quest.m6_dapur.s2"] = "Masak 1 olahan",
 	["quest.m6_dapur.s3"] = "Makan 1 olahan",
 	["quest.m7_warung.title"] = "Warung Pertama",
