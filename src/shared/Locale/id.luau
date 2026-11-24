@@ -105,6 +105,7 @@ return {
 	["quest.track"] = "Track",
 	["quest.untrack"] = "Lepas",
 	["quest.ready_to"] = "Siap diserahkan ke {npc}",
+	["quest.too_far"] = "Dekati {npc} dulu untuk menyerahkan quest.", -- K-100
 	["quest.offer_to"] = "Temui {npc}",
 	["quest.read"] = "Baca",
 	["quest.log.tab_harian"] = "Harian",

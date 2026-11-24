@@ -383,7 +383,19 @@ local function sendOffers(player: Player)
 	end
 end
 
--- K-93: the player talked to the giver of a ready quest; the reward is paid now.
+-- K-100: the turn-in needs the player within the talk prompt's range of the giver (Npcs.TALK_DISTANCE).
+-- Lazy require: NpcService requires this module, so a top-level require here would be a cycle.
+local function nearGiver(player: Player, giverId: string): boolean
+	local npcPosition = require(script.Parent.NpcService).Position(giverId)
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not npcPosition or not root or not root:IsA("BasePart") then
+		return false
+	end
+	return (npcPosition - root.Position).Magnitude <= Npcs.TALK_DISTANCE
+end
+
+-- K-93: the player talked to the giver of a ready quest; the reward is paid now (K-100: only when near the giver).
 local function onTurnIn(player: Player, questId: any)
 	if typeof(questId) ~= "string" then
 		return
@@ -391,6 +403,10 @@ local function onTurnIn(player: Player, questId: any)
 	local data = DataService.Get(player)
 	local quest = Quests.byId[questId]
 	if not data or not quest or data.quests.ready[questId] ~= true then
+		return
+	end
+	if not nearGiver(player, quest.giver) then
+		Net.Fire("Notify", player, "quest.too_far", { npc = Locale.t(`npc.{quest.giver}`) })
 		return
 	end
 	finishQuest(player, data, quest)
