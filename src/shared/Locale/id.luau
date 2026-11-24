@@ -1027,8 +1027,20 @@ return {
 	["rewards.season_day"] = "Hari {n}",
 	-- Hadiah panel tabs (UI-3, GUI doc 6.1): names from the GUI doc
 	["rewards.tab_daily"] = "Harian",
+	["rewards.tab_login"] = "Login Harian", -- K-123: layar sendiri (7 kartu hari, satu tombol Klaim)
+	["rewards.tab_chests"] = "Peti Main", -- K-123: layar sendiri (garis waktu peti, satu tombol Buka)
 	["rewards.tab_season"] = "Musim",
 	["rewards.tab_collection"] = "Koleksi",
+	["rewards.claim_day"] = "Klaim Hari {n}",
+	["rewards.login_today"] = "Hari ini",
+	["rewards.login_all"] = "Semua hari sudah diklaim",
+	["rewards.login_none"] = "Belum ada yang bisa diklaim",
+	["rewards.chest_ready"] = "Siap dibuka",
+	["rewards.chest_countdown"] = "{t} lagi",
+	["rewards.chest_later"] = "Belum",
+	["rewards.chest_open_n"] = "Buka Peti {n}",
+	["rewards.chest_wait_btn"] = "Tunggu {t}",
+	["rewards.chests_all"] = "Semua peti sudah dibuka",
 	["rewards.album_milestone"] = "Milestone Album",
 	["book.claim"] = "Klaim",
 	["book.claim_done"] = "Hadiah koleksi sudah masuk!",

@@ -348,7 +348,17 @@ Komponen (Bab 7) dipakai ulang; tidak ada `Instance.new("Frame")` manual di cont
 
 ## 6. Layout per Fitur
 
-### 6.1 Hadiah (tombol ★) — tab **Harian · Musim · Koleksi**, Sheet Lebar
+### 6.1 Hadiah (tombol ★) — tab **Login Harian · Peti Main · Musim · Koleksi**, Sheet Lebar (K-123)
+
+Hadiah dipecah jadi empat layar, tidak ada yang dicampur. Tab Harian lama tidak ada lagi.
+
+- **Login Harian:** 7 kartu hari (4 per baris). Hari terbaru yang sudah tercapai menyala emas dengan tulisan "Hari ini"; yang sudah diambil bertanda "Diambil"; sisanya "Ambil" (sudah tercapai) atau "Belum". Satu tombol besar (`UiKit.TOUCH_CTA`, lebar penuh): "Klaim Hari n" untuk hari tercapai pertama yang belum diambil (server yang memutuskan). Tanpa yang siap: "Belum ada yang bisa diklaim", atau "Semua hari sudah diklaim" bila 7 hari habis.
+- **Peti Main:** garis waktu 5 kotak (`CHEST_COLUMNS` = 5, sama dengan Config/Progression). Tiap kotak: judul, syarat menit, hadiah, bar kemajuan, dan status: "Dibuka" (hijau), berikutnya (emas, hitung mundur "m:ss lagi"), "Siap dibuka", atau "Belum". Satu tombol besar: "Buka Peti n" bila siap, "Tunggu m:ss" bila belum, "Semua peti sudah dibuka" bila habis.
+- **Musim** dan **Koleksi:** tidak berubah (Koleksi tetap berisi Peti Bunga, Title, dan Album milestone).
+
+Catatan: jumlah peti 5 (Config dan GDD 15.2), bukan 4 seperti catatan owner; lihat K-123.
+
+Lama, untuk referensi: tab Harian berisi kedua daftar dalam satu layar (baris peti dan baris login).
 
 Status kode (UI-3): 3 tab ada; Musim = 2 track horizontal (node 64 px, milestone 80 px); Premium terkunci (`PREMIUM_OPEN = false`). Belum (✔ K-36): kartu Login, bar Peti Main, kartu besar Peti Bunga, Klaim Semua, Milestone Album hanya di Koleksi.
 

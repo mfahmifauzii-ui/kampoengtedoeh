@@ -1,6 +1,7 @@
 --!strict
--- "Hadiah" panel (HUD "RewardButton"), GUI doc 6.1 (UI-3). One sheet, three tabs:
---   Harian  : Peti Main (playtime chests, Bab 15.2) and Login Mingguan (Bab 15.1), as rows.
+-- "Hadiah" panel (HUD "RewardButton"), GUI doc 6.1 (UI-3, split K-123). One sheet, four screens (tabs), nothing mixed:
+--   Login Harian : Login Mingguan (Bab 15.1): 7 day cards and one Klaim button.
+--   Peti Main    : playtime chests (Bab 15.2): a timeline with countdown and one Buka button.
 --   Musim   : Season Pass (Bab 19) as two horizontal tracks: Gratis (F2P) and Premium. Premium is locked while
 --             Rewards.SEASON.PREMIUM_OPEN is false: shown as locked, no purchase.
 --   Koleksi : Peti Bunga (Bab 15.3), Title (Bab 15.4), and the Album category / milestone claims (BookController).
@@ -26,7 +27,7 @@ local RewardsController = {}
 
 local panel: any = nil -- the open panel (UiKit.panel), nil while closed
 local button: GuiButton? = nil
-local tab: string = "daily" -- "daily" | "season" | "collection"
+local tab: string = "login" -- "login" | "chests" | "season" | "collection" (K-123)
 
 -- Season track layout (GUI doc 6.1): node 64 x 64; a milestone day (a reward with Bunga) is larger.
 -- The doc does not give the milestone size; NODE_MILESTONE is a layout choice (Lampiran D #34).
@@ -66,22 +67,101 @@ end
 
 -- Harian: Peti Main ---------------------------------------------------------------------------
 
--- One peti row. Only the next peti in order can be opened, and only once its minutes are played today.
-local function renderChest(order: number, index: number, claimed: number, played: number)
-	local chest = Progression.PLAYTIME.CHESTS[index]
-	local need = chest.minutes * 60
-	local title = Locale.t("rewards.chest", { n = index })
-	local sub = `{Locale.t("rewards.chest_need", { minutes = chest.minutes })} · {rewardText(chest.reward)}`
-	if index <= claimed then
-		UiKit.row(panel.list, order, title, sub, Locale.t("rewards.chest_done"), false)
-		return
+-- Peti Main screen (K-123): a timeline of the chests (one cell each: done, next with a countdown, or waiting) and one large
+-- Buka button for the next chest. Only the next chest in order can be opened (server: PlaytimeClaim decides).
+local CHEST_COLUMNS = 5 -- one cell per chest in Config/Progression (5 peti; the owner's note said 4, see K-123)
+local CHEST_CELL_HEIGHT = 118
+
+-- "m:ss" for a number of seconds (the countdown on the next chest).
+local function clock(total: number): string
+	local t = math.max(0, math.ceil(total))
+	return `{t // 60}:{string.format("%02d", t % 60)}`
+end
+
+local function chestCell(parent: Instance, order: number, index: number, state: string, played: number, need: number, reward: Progression.Reward)
+	local cell = Instance.new("Frame")
+	cell.Name = `Chest_{index}`
+	cell.LayoutOrder = order
+	cell.BackgroundColor3 = if state == "done" then UiKit.HEADER elseif state == "next" then UiKit.GOLD else UiKit.ROW
+	cell.Parent = parent
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, UiKit.R_MD)
+	corner.Parent = cell
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.fromRGB(222, 200, 154)
+	stroke.Thickness = 1.5
+	stroke.Parent = cell
+
+	local function label(name: string, y: number, h: number, text: string, size: number)
+		local l = Instance.new("TextLabel")
+		l.Name = name
+		l.BackgroundTransparency = 1
+		l.Position = UDim2.fromOffset(4, y)
+		l.Size = UDim2.new(1, -8, 0, h)
+		l.Font = UiKit.FONT
+		l.TextSize = size
+		l.TextWrapped = true
+		l.TextColor3 = if state == "done" then UiKit.CREAM else UiKit.TEXT
+		l.Text = text
+		l.Parent = cell
 	end
-	local isNext = index == claimed + 1
-	local remaining = math.max(0, math.ceil((need - played) / 60))
-	local ready = isNext and remaining == 0
-	local buttonText = if ready then Locale.t("rewards.chest_open") else Locale.t("rewards.chest_wait", { m = remaining })
-	UiKit.row(panel.list, order, title, sub, buttonText, ready, function()
-		Net.Send("PlaytimeClaim", index)
+	label("Title", 6, 18, Locale.t("rewards.chest", { n = index }), UiKit.TEXT_BODY)
+	label("Need", 26, 16, Locale.t("rewards.chest_need", { minutes = need // 60 }), UiKit.TEXT_CAPTION)
+	label("Reward", 42, 16, rewardText(reward), UiKit.TEXT_CAPTION)
+
+	-- Progress bar: played / need (full when done).
+	local track = Instance.new("Frame")
+	track.Name = "Progress"
+	track.BackgroundColor3 = Color3.fromRGB(230, 214, 178)
+	track.Position = UDim2.fromOffset(8, 66)
+	track.Size = UDim2.new(1, -16, 0, 8)
+	track.Parent = cell
+	corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(1, 0)
+	corner.Parent = track
+	local fill = Instance.new("Frame")
+	fill.Name = "Fill"
+	fill.BackgroundColor3 = UiKit.HEADER
+	fill.Size = UDim2.fromScale(if state == "done" then 1 else math.clamp(played / need, 0, 1), 1)
+	fill.Parent = track
+	corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(1, 0)
+	corner.Parent = fill
+
+	local status = if state == "done" then Locale.t("rewards.chest_done")
+		elseif state == "next" and played >= need then Locale.t("rewards.chest_ready")
+		elseif state == "next" then Locale.t("rewards.chest_countdown", { t = clock(need - played) })
+		else Locale.t("rewards.chest_later")
+	label("Status", 80, 30, status, UiKit.TEXT_CAPTION)
+end
+
+local function renderChestScreen(nextOrder: () -> number, snapshot: any)
+	UiKit.header(panel.list, Locale.t("rewards.chests"), nextOrder())
+	local playtime = snapshot.playtime or { seconds = 0, claimed = 0 }
+	local claimed = playtime.claimed or 0
+	local played = seconds()
+	local chests = Progression.PLAYTIME.CHESTS
+	local grid = UiKit.grid(panel.list, nextOrder(), CHEST_COLUMNS, CHEST_CELL_HEIGHT)
+	local nextIndex = claimed + 1
+	for index, chest in chests do
+		local state = if index <= claimed then "done" elseif index == nextIndex then "next" else "wait"
+		chestCell(grid, index, index, state, played, chest.minutes * 60, chest.reward)
+	end
+
+	local next = chests[nextIndex]
+	local ready = next ~= nil and played >= next.minutes * 60
+	local text = if next == nil then Locale.t("rewards.chests_all")
+		elseif ready then Locale.t("rewards.chest_open_n", { n = nextIndex })
+		else Locale.t("rewards.chest_wait_btn", { t = clock(next.minutes * 60 - played) })
+	local open = UiKit.button(panel.list, "ChestOpen", text, if ready then UiKit.BUTTON else UiKit.BUTTON_MUTED)
+	open.LayoutOrder = nextOrder()
+	open.Size = UDim2.new(1, -12, 0, UiKit.TOUCH_CTA) -- one large main action (GUI 3.4)
+	open.Active = ready
+	open.AutoButtonColor = ready
+	open.Activated:Connect(function()
+		if ready then
+			Net.Send("PlaytimeClaim", nextIndex)
+		end
 	end)
 end
 
@@ -97,16 +177,75 @@ local function loginReady(rewards: any): number
 	return count
 end
 
-local function renderLogin(nextOrder: () -> number, rewards: any)
+-- Login Harian screen (K-123): 7 day cards (4 per row), the newest reached day highlighted in gold, and one large Klaim
+-- button. The button claims the earliest reached day that is not claimed yet (LoginClaim; the server decides).
+local LOGIN_COLUMNS = 4
+local LOGIN_CELL_HEIGHT = 86
+
+local function loginCard(parent: Instance, index: number, reward: Progression.Reward, state: string)
+	local card = Instance.new("Frame")
+	card.Name = `Login_{index}`
+	card.LayoutOrder = index
+	card.BackgroundColor3 = if state == "today" then UiKit.GOLD elseif state == "claimed" then UiKit.HEADER else UiKit.ROW
+	card.Parent = parent
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, UiKit.R_MD)
+	corner.Parent = card
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = if state == "today" then UiKit.HEADER else Color3.fromRGB(222, 200, 154)
+	stroke.Thickness = if state == "today" then 2.5 else 1.5
+	stroke.Parent = card
+
+	local function label(name: string, y: number, h: number, text: string, size: number)
+		local l = Instance.new("TextLabel")
+		l.Name = name
+		l.BackgroundTransparency = 1
+		l.Position = UDim2.fromOffset(3, y)
+		l.Size = UDim2.new(1, -6, 0, h)
+		l.Font = UiKit.FONT
+		l.TextSize = size
+		l.TextWrapped = true
+		l.TextColor3 = if state == "claimed" then UiKit.CREAM else UiKit.TEXT
+		l.Text = text
+		l.Parent = card
+	end
+	label("Day", 4, 18, Locale.t("rewards.login_day", { n = index }), UiKit.TEXT_BODY)
+	label("Reward", 24, 36, rewardText(reward), UiKit.TEXT_CAPTION)
+	local status = if state == "claimed" then Locale.t("rewards.claimed")
+		elseif state == "today" then Locale.t("rewards.login_today")
+		elseif state == "reached" then Locale.t("rewards.claim")
+		else Locale.t("rewards.login_wait")
+	label("Status", 62, 18, status, UiKit.TEXT_CAPTION)
+end
+
+local function renderLoginScreen(nextOrder: () -> number, rewards: any)
 	UiKit.header(panel.list, Locale.t("rewards.login"), nextOrder())
+	local days = rewards.login.days or 0
+	local target: number? = nil
+	local grid = UiKit.grid(panel.list, nextOrder(), LOGIN_COLUMNS, LOGIN_CELL_HEIGHT)
 	for index, reward in Rewards.LOGIN do
 		local claimed = rewards.login.claimed[tostring(index)] == true
-		local ready = not claimed and index <= rewards.login.days
-		local buttonText = if claimed then Locale.t("rewards.claimed") elseif ready then Locale.t("rewards.claim") else Locale.t("rewards.login_wait")
-		UiKit.row(panel.list, nextOrder(), Locale.t("rewards.login_day", { n = index }), rewardText(reward), buttonText, ready, function()
-			Net.Send("LoginClaim", index)
-		end)
+		local reached = index <= days
+		if reached and not claimed and target == nil then
+			target = index
+		end
+		local state = if claimed then "claimed" elseif index == days then "today" elseif reached then "reached" else "wait"
+		loginCard(grid, index, reward, state)
 	end
+
+	local text = if target then Locale.t("rewards.claim_day", { n = target })
+		elseif days >= #Rewards.LOGIN then Locale.t("rewards.login_all")
+		else Locale.t("rewards.login_none")
+	local claim = UiKit.button(panel.list, "LoginClaim", text, if target then UiKit.BUTTON else UiKit.BUTTON_MUTED)
+	claim.LayoutOrder = nextOrder()
+	claim.Size = UDim2.new(1, -12, 0, UiKit.TOUCH_CTA) -- one large main action (GUI 3.4)
+	claim.Active = target ~= nil
+	claim.AutoButtonColor = target ~= nil
+	claim.Activated:Connect(function()
+		if target then
+			Net.Send("LoginClaim", target)
+		end
+	end)
 end
 
 -- Koleksi: Peti Bunga, Title ------------------------------------------------------------------
@@ -251,17 +390,6 @@ end
 
 -- Panel -----------------------------------------------------------------------------------------
 
-local function renderDaily(nextOrder: () -> number, snapshot: any, rewards: any)
-	local playtime = snapshot.playtime or { seconds = 0, claimed = 0 }
-	UiKit.header(panel.list, Locale.t("rewards.chests"), nextOrder())
-	for index in Progression.PLAYTIME.CHESTS do
-		renderChest(nextOrder(), index, playtime.claimed or 0, seconds())
-	end
-	if rewards then
-		renderLogin(nextOrder, rewards)
-	end
-end
-
 local function renderCollection(nextOrder: () -> number, snapshot: any, rewards: any)
 	if rewards then
 		renderPeti(nextOrder, rewards)
@@ -285,7 +413,12 @@ local function render()
 	local rewards = snapshot.rewards
 
 	-- Tabs: a tab with nothing to show is not drawn (Musim needs the season data from the server).
-	local defs = { { id = "daily", text = Locale.t("rewards.tab_daily") } }
+	-- K-123: four screens, nothing mixed: Login Harian, Peti Main, Musim, Koleksi.
+	local defs = {}
+	if rewards then
+		table.insert(defs, { id = "login", text = Locale.t("rewards.tab_login") })
+	end
+	table.insert(defs, { id = "chests", text = Locale.t("rewards.tab_chests") })
 	if rewards then
 		table.insert(defs, { id = "season", text = Locale.t("rewards.tab_season") })
 	end
@@ -301,6 +434,7 @@ local function render()
 		selected = defs[1].id
 		tab = selected
 	end
+	-- (the list above always has at least the Peti Main tab)
 
 	local order = 0
 	local function nextOrder(): number
@@ -313,12 +447,14 @@ local function render()
 	end)
 	bar.frame.LayoutOrder = nextOrder()
 
-	if selected == "season" and rewards then
+	if selected == "login" and rewards then
+		renderLoginScreen(nextOrder, rewards)
+	elseif selected == "season" and rewards then
 		renderSeason(nextOrder, rewards)
 	elseif selected == "collection" then
 		renderCollection(nextOrder, snapshot, rewards)
 	else
-		renderDaily(nextOrder, snapshot, rewards)
+		renderChestScreen(nextOrder, snapshot)
 	end
 
 	panel.footerLabel.Text = Locale.t("rewards.played", { m = math.floor(seconds() / 60) })

@@ -476,3 +476,7 @@ Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 6. [ ] **Kurangi gerak (K-121):** Atur, nyalakan "Kurangi gerak". Ulangi butir 4: angka diam, bar langsung terisi, tanpa kilat. Matikan lagi untuk kembali.
 7. [ ] **Ikon di Tas (K-122):** buka Tas. Crop, ikan, bibit, dan umpan punya gambar (ikon kategori), bukan huruf. Sel Buku tetap seperti sebelumnya.
 8. [ ] **Token panen (K-122):** panen satu crop. Token yang terbang ke Tas memakai ikon panen, bukan huruf awal nama. Token koin memakai ikon koin.
+9. [ ] **Hadiah dipecah (K-123):** tab Hadiah: Login Harian · Peti Main · Musim · Koleksi. Tidak ada baris peti di Login Harian dan tidak ada kartu login di Peti Main.
+10. [ ] **Login Harian (K-123):** 7 kartu, hari ini emas. Satu tombol besar "Klaim Hari n" mengambil hari itu; tombol mati bila tidak ada yang siap.
+11. [ ] **Peti Main (K-123):** garis waktu kotak dengan hitung mundur ("m:ss lagi") untuk peti berikutnya. Tombol besar "Buka Peti n" aktif saat siap. **Jumlah peti: 5 di kode; catatan owner 4. Owner jawab: 4 atau 5?** (K-123)
+12. [ ] **Teks kotak peti (K-123):** hadiah dan status tidak terpotong di HP portrait. Kalau terpotong, catat lebarnya.
