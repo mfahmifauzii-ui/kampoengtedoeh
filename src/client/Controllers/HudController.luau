@@ -677,7 +677,16 @@ function HudController.Start()
 				local view = (workspace.CurrentCamera :: Camera).ViewportSize
 				FeedbackController.FlyToBag(Vector2.new(view.X / 2, view.Y * 0.45), Color3.fromRGB(60, 140, 176), "~")
 			end
-			HudController.Toast(Locale.t(key, resolveVars(if typeof(vars) == "table" then vars else nil)))
+			local text = Locale.t(key, resolveVars(if typeof(vars) == "table" then vars else nil))
+			if key == "farm.no_seed" then
+				-- T3 (K-72): out of seeds for this crop. One dismissible chip: it stays until Ok, or until seeds are bought.
+				HudController.ToastDismissible("seed_out", text)
+				return
+			end
+			if key == "shop.bought_seed" then
+				HudController.ClearDismissible("seed_out")
+			end
+			HudController.Toast(text)
 		end
 	end)
 end

@@ -348,6 +348,15 @@ Partikel hujan dibuat Claude di kode (client, satu emitter), belum pernah dimain
 2. [ ] **FPS tidak turun saat hujan:** main satu hujan penuh (3 menit) tanpa patah-patah yang terasa. Coba juga saat Deres atau Petir.
 3. [ ] **Berhenti rapi:** saat hujan selesai, partikel memudar sekitar 3 detik lalu hilang, tanpa muncul atau hilang mendadak. Kualitas Rendah: tidak ada hujan sama sekali.
 
+### B19. Bibit habis (T3, K-72, 2026-11-24): cek di HP
+
+Toast Ok untuk bibit habis. Belum pernah dimainkan di Play. Butir 5 di B15 (Ok menutup) dicek di sini juga.
+
+1. [ ] **Muncul:** tanam di petak saat bibit tanaman itu habis: muncul satu toast "Bibit ... habis. Beli di Pak Udin" di bawah bar Koin/Bunga, dengan tombol Ok.
+2. [ ] **Tidak hilang sendiri:** toast tetap ada sampai ditekan Ok (lebih dari 10 detik).
+3. [ ] **Ok menutup:** tekan Ok, toast hilang. Joystick dan tombol lain tetap bisa dipakai selama toast ada (tidak ada gelap di layar).
+4. [ ] **Beli bibit menutup:** dengan toast masih ada, beli bibit di Pak Udin. Toast hilang tanpa perlu Ok.
+
 ### B15. Satu toast (T0, 2026-11-23): owner cek di HP dan PC
 
 Aturan: GUI 4.2. Satu tempat (di bawah Koin/Bunga), satu gaya krem.

@@ -139,6 +139,7 @@ Ini satu-satunya aturan toast. Modul lain tidak boleh membuat label hint sendiri
 | Garap mode line (`GarapUI/Hint`) | pinned `garapHint` | rerouted |
 | Decor mode line (`DecorUI/Hint`) | pinned `decorHint` (saat DecorUI aktif) | rerouted |
 | Tip kartu bibit (FarmController `popupTip`) | transient toast | rerouted (sebelumnya pil cokelat 1,6 dtk) |
+| Bibit habis (`farm.no_seed`, HudController Notify) | dismissible `seed_out` (Ok) | T3 (K-72): tetap sampai Ok atau setelah `shop.bought_seed`; tidak ada gelap, tidak memblokir joystick |
 | Status Memancing (`FishingController` statusFrame) | **slot tetap sendiri** di strip bawah, cream | bukan toast: status hidup ("Menunggu…", Cancel) selama mancing; tidak pernah di stack. Posisi = `stripPosition()` (strip bawah). Tidak menutupi dock/Aksi belum diverifikasi di Play (lihat 09 T0) |
 | Banner bab (BannerController) | tetap | banner penuh, bukan instruksi |
 | Tanda "!" pemberi quest (QuestOfferController) | tetap | marker dunia, bukan teks instruksi |

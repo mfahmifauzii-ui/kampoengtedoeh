@@ -272,6 +272,8 @@ Layout di `05_GUI_Spec.md` Bab 6.2. Node: Terkunci (abu + prasyarat), Bisa dibel
 
 Pilih petak → Tanam (bayar bibit) → Tumbuh (jalan walau offline) → Siram (opsional, wajib di tutorial) → Panen (Koin + XP + Kualitas) → tanam lagi.
 
+**Bibit habis (T3, K-72):** tanam tanpa bibit untuk tanaman itu → satu toast Ok `Bibit {crop} habis. Beli di Pak Udin`. Toast tetap sampai di-Ok, atau hilang saat pemain membeli bibit. Tidak ada gelap, tidak memblokir joystick.
+
 - Aksi tanam / panen ≈ 1 detik per petak.
 - **Siram:** potong sisa waktu 15% (1x per siklus) + tanda Basah. Hujan menyiram otomatis.
 - **Telat panen:** tanaman sedikit membesar (scale 1,1) setelah 10 menit matang. Tidak layu.
