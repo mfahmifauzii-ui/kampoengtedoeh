@@ -9,8 +9,8 @@
 -- The ghost snaps to that grid and follows the pointer / finger; a green arrow bobbing above it means "tap here", a gray one
 -- means "not here". Pindah uses the same grid and ghost: a long press on an empty bed starts it (see FarmController).
 -- Buying more land is NOT here: LandController floats a "+" over every chunk you can buy.
--- No popup menu: the tools are two buttons in the dock, Garap (Cangkul) and Kolam. Tap one to turn its mode on (green ring), tap
--- it again (or the other one switches mode) to finish. UI contract: dock buttons "GarapButton" and "KolamButton" (HUD > DockBar),
+-- No popup menu: Garap (Cangkul) is a dock button. Kolam (the pond build) is a button in the Kolam panel (K-115), opened from the ≡ tile or the Aksi button near a pond. Tap Garap to turn its mode on (green ring), tap
+-- it again to finish. UI contract: dock button "GarapButton" (HUD > DockBar),
 -- ScreenGui "GarapUI" > TextLabel "Hint".
 -- The preview square is a transient client Part; the soil itself is terrain created by the server.
 -- All checks here are only for the preview: the server validates every request again.
@@ -32,7 +32,6 @@ local Land = require(ReplicatedStorage.Shared.Modules.Land)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local State = require(script.Parent.Parent.State)
-local FeatureClient = require(script.Parent.Parent.FeatureClient)
 local UiKit = require(script.Parent.Parent.UiKit)
 local HudController = require(script.Parent.HudController)
 
@@ -58,8 +57,6 @@ GarapController.Mode = "till"
 local mode = "till" -- "till" (Cangkul) | "pond" (Kolam)
 local gui: ScreenGui
 local toggleButton: GuiButton
-local kolamButton: GuiButton
-local refreshKolamButton: () -> ()
 -- GUI 4.2: the Garap mode line is a pinned toast (key "garapHint") in the ONE toast stack; no own label.
 local hintText = ""
 local hintShown = false
@@ -680,19 +677,11 @@ function refreshHint()
 	end
 end
 
-function refreshKolamButton()
-	if kolamButton then
-		-- Q-2: also needs the kolam feature open (server FeatureGate "kolam", set by the quest step that reveals it)
-		kolamButton.Visible = (State.current :: any) ~= nil and (State.current :: any).pondKakek == true and FeatureClient.IsOpen("kolam")
-	end
-end
-
 local function setMode(newMode: string)
 	mode = newMode
 	selected = nil
 	GarapController.Mode = newMode
 	UiKit.setMenuActive(toggleButton, GarapController.Active and mode == "till")
-	UiKit.setMenuActive(kolamButton, GarapController.Active and mode == "pond")
 	refreshHint()
 	hideGhost()
 end
@@ -784,7 +773,6 @@ local function setActive(on: boolean, newMode: string?)
 	end
 	refreshGrid()
 	UiKit.setMenuLabel(toggleButton, Locale.t(if on and (newMode or mode) == "till" then "garap.done" else "ui.garap"))
-	UiKit.setMenuLabel(kolamButton, Locale.t(if on and (newMode or mode) == "pond" then "garap.done" else "garap.tool_pond"))
 	if on then
 		setMode(newMode or "till")
 	else
@@ -919,23 +907,25 @@ function GarapController.Init()
 	toggleButton = UiKit.menuItem(hud :: Instance, "GarapButton", Locale.t("ui.garap"), 1) :: GuiButton
 
 
-	kolamButton = UiKit.menuItem(hud :: Instance, "KolamButton", Locale.t("garap.tool_pond"), 2) :: GuiButton
-	-- v7.4 Bab 16.5: the pond left Tutorial 1. The dock button only appears once MQ4 / Bundel Kakek opened the pond
-	-- (pond.kakekUnlocked), so no tutorial step can point at it and a new player never sees a button he cannot use.
-	refreshKolamButton()
 	toggleButton.Activated:Connect(function()
 		pressTool("till")
-	end)
-	kolamButton.Activated:Connect(function()
-		pressTool("pond")
 	end)
 
 	gui.Parent = player:WaitForChild("PlayerGui")
 end
 
+-- K-115: the Kolam panel's "Bangun Kolam" button turns the pond build mode on (the same mode the Kolam tile used to turn on).
+function GarapController.StartPond()
+	setActive(true, "pond")
+end
+
+-- The price text of the next pond, for the Kolam panel's build row.
+function GarapController.PondPriceText(): string
+	return pondPriceText()
+end
+
 function GarapController.Start()
 	State.Changed:Connect(function()
-		refreshKolamButton()
 		if GarapController.Active then
 			buildGrid() -- the land may have grown (a new block bought): the grid follows what you own
 			refreshHint() -- the price of the next pond changes with every pond built

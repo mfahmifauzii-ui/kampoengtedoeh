@@ -249,6 +249,8 @@ return {
 	["pond.not_fish"] = "Hanya ikan yang bisa disetor ke kolam",
 	["pond.bag_full"] = "Tas penuh, ikan tetap di kolam",
 	["pond.sheet_title"] = "Kolam",
+	["pond.build"] = "Bangun Kolam", -- K-115: the one build entry, in the Kolam panel
+	["pond.build_hint"] = "Tap lahan kosong untuk gali kolam",
 	["pond.bag_fish"] = "Tas · ikan",
 	["pond.bag_none"] = "Tidak ada ikan di tas",
 	["pond.put"] = "Taruh",

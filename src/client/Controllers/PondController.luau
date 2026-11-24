@@ -9,12 +9,15 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local FishConfig = require(ReplicatedStorage.Shared.Config.Fish)
 local Ranch = require(ReplicatedStorage.Shared.Config.Ranch)
+local Fishing = require(ReplicatedStorage.Shared.Config.Fishing)
 local Monetization = require(ReplicatedStorage.Shared.Config.Monetization)
 local Locale = require(ReplicatedStorage.Shared.Locale)
 local Net = require(ReplicatedStorage.Shared.Modules.Net)
 local UiKit = require(script.Parent.Parent.UiKit)
 local AksiSlot = require(script.Parent.Parent.AksiSlot)
 local State = require(script.Parent.Parent.State)
+local FeatureClient = require(script.Parent.Parent.FeatureClient)
+local GarapController = require(script.Parent.GarapController)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
@@ -25,6 +28,7 @@ local REACH = 10 -- studs ke kolam sendiri agar tombol tampil (server cek jarak 
 local POND_TAG = "Pond"
 
 local breedButton: TextButton? = nil
+local kolamTile: GuiButton? = nil -- the ≡ menu tile "Kolam" (K-115)
 local panel: UiKit.Panel? = nil
 local selectedUid: number? = nil -- kolam yang sedang dipilih untuk mulai breeding
 
@@ -72,6 +76,12 @@ local function costText(koin: number, mats: { { id: string, count: number } }): 
 	return table.concat(bits, " + ")
 end
 
+-- K-115: the Kolam tile (≡ menu) and the Aksi button open this panel; the tile shows once the pond is unlocked (MQ4 /
+-- Bundel Kakek) and the kolam feature is open (Q-2 gate). Same rule as the tile had in GarapController.
+local function tileWanted(snap: any): boolean
+	return snap ~= nil and snap.pondKakek == true and FeatureClient.IsOpen("kolam")
+end
+
 local function rebuild()
 	local list = panel and panel.list
 	if not list then
@@ -82,6 +92,17 @@ local function rebuild()
 	local ponds = (snap and snap.pondState) or {}
 	local items = (snap and snap.items) or {}
 	local order = 0
+
+	-- K-115: the one entry to building a pond. Shown while the player can build another (below MAX_PONDS).
+	if #ponds < Fishing.POND.MAX_PONDS and tileWanted(snap) then
+		order += 1
+		UiKit.row(list, order, Locale.t("pond.build"), `{GarapController.PondPriceText()} · {Locale.t("pond.build_hint")}`, Locale.t("pond.build"), true, function()
+			if panel then
+				panel.gui.Enabled = false
+			end
+			GarapController.StartPond()
+		end)
+	end
 
 	if #ponds == 0 then
 		order += 1
@@ -144,6 +165,15 @@ local function rebuild()
 				Net.Send("PondTier", uid, nextTier)
 			end)
 		end
+	end
+end
+
+-- K-115: opens the pond panel (the Kolam tile and the Aksi button both call this).
+function PondController.OpenPanel()
+	if panel then
+		panel.gui.Enabled = true
+		selectedUid = nil
+		rebuild()
 	end
 end
 
@@ -260,13 +290,21 @@ function PondController.Init()
 	aksi.TextSize = 15
 	aksi.Visible = false
 	aksi.Activated:Connect(function()
-		if panel then
-			panel.gui.Enabled = true
-			selectedUid = nil
-			rebuild()
-		end
+		PondController.OpenPanel()
 	end)
 	breedButton = aksi
+	-- K-115: the Kolam tile in the ≡ menu (the same entry as the Aksi button).
+	task.spawn(function()
+		local hud = playerGui:WaitForChild("HUD", 5)
+		if hud then
+			kolamTile = UiKit.menuItem(hud, "KolamButton", Locale.t("garap.tool_pond"), 2)
+			if kolamTile then
+				kolamTile.Activated:Connect(function()
+					PondController.OpenPanel()
+				end)
+			end
+		end
+	end)
 
 	panel = UiKit.panel("PondPanel", Locale.t("pond.breed_title"), function()
 		if panel then
@@ -291,6 +329,15 @@ function PondController.Start()
 	State.Changed:Connect(function()
 		if kolamPanel and kolamPanel.gui.Enabled then
 			rebuildKolam()
+		end
+	end)
+	-- The tile follows the unlock (the menu item is created a moment after Init, so it is checked here, every 0.5 s).
+	task.spawn(function()
+		while true do
+			if kolamTile then
+				kolamTile.Visible = tileWanted(State.current :: any)
+			end
+			task.wait(0.5)
 		end
 	end)
 	State.Changed:Connect(function()

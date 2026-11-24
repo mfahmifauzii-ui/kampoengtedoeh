@@ -102,6 +102,11 @@ Tombol HUD lain tetap: dock 58, Tombol Aksi 84. Jarak antar target ≥ 6 px. (Ge
 | Atas tengah, di bawah mata uang | Toast stack | Lihat 4.2 |
 | Kiri bawah | Kartu pemain ringkas (foto + level + bar XP) + chip buff. **Tetap di kiri bawah, bukan dipindah** (K-114: pemilik memutuskan; menggantikan tulisan "kiri atas" K-34) | Kartu pemain: anchor kiri bawah, posisi 8 px (12 px di HP) dari kiri dan 6 px (12 px) dari bawah. Ukuran 248×92 (HP 250×100) |
 | Kiri bawah, di atas kartu | Tracker (quest yang dilacak) | Lebar 200 px, tepi kiri sama dengan kartu, tepi bawah 8 px (`GAP`) di atas kartu (K-114). Diukur dari `AbsolutePosition` kartu, bukan angka tetap. Tinggi = baris (maks 3) + "+N lagi" bila lebih; tinggi maks min(200 px, 25% layar, ruang di bawah 118 px dari atas). Tap baris atau "+N lagi" membuka Quest Log. Teks krem outline gelap, tanpa panel, baris membungkus teks |
+| Kanan atas | Kolom menu bulat 50 px, ikon saja, bisa dilipat di HP | Urutan: Acara, Skill, Hadiah, Warga, Toko, **Kolam**, Atur. Ubin Kolam membuka panel Kolam, sama dengan tombol Aksi Kolam (K-104, K-115). Dapur **tidak** di sini (✔ K-34) |
+| Bawah tengah | Dock 58 px, 10 px dari bawah, **maks 4 tombol** | Garap, Hias, Tas, **Quest** (ikon gulungan, K-109; dulu Pesanan; owner 2026-11-24) — hanya yang sudah terbuka. **Kolam tidak ada di dock** (K-104, ubin ≡ dan slot Aksi). **Dapur tidak ada di dock** (K-102). |
+| Kanan bawah, slot Aksi | Satu tombol Aksi 104 px per objek; hanya satu yang tampil (aturan 4.7) | **Kolam** dekat kolam sendiri (membuka panel Kolam, K-104); **Masak** dekat Tungku sendiri (panel Dapur); **Pasang Tungku** saat Tier 1 belum berdiri dan Tungku ada di tas (K-102) |
+| Zona konteks (di atas dock, tengah) | Status memancing + chip umpan | Satu tombol di atas dock; tombol Batal berlabel 64×32 px |
+| Kanan bawah, di atas Jump | **Satu slot Tombol Aksi** | Mancing / Pukul / Bubu / Kelola Kandang / Kolam / Masak / Pasang Tungku — satu aksi, yang terdekat (4.7, K-104). Craft masih melayang di atas meja |
 | Kiri bawah | Thumbstick | **Kosong** |
 
 Margin layar 12, gap 8.
@@ -306,6 +311,7 @@ Grid kartu rumus visual `[2 Kayu] → [1 Papan]`, jumlah dimiliki di bawah tiap 
 ### 6.5 Kandang & Kolam — Sheet Lebar (UI-5)
 
 - **Kandang:** atas = kartu kandang (jenis, level, kapasitas `6/10`, `Upgrade`). Tengah = grid hewan (foto, 3–5 titik jatah pakan, produk menumpuk, timer siklus, badge Mood Hujan). Bawah = `Isi Pakan Semua` dan `Ambil Semua` (40 px). Beli hewan = kartu `+` terakhir.
+- **Pintu masuk (K-115, owner 2026-11-24):** satu jalan. Tombol Aksi "Kolam" dekat kolam sendiri DAN ubin "Kolam" di menu ≡ membuka panel yang sama ini. Baris paling atas **Bangun Kolam** (harga `PondPriceText`, "Tap lahan kosong untuk gali kolam") muncul bila pemain bisa membangun kolam lagi (di bawah `Fishing.POND.MAX_PONDS`) dan kolam sudah terbuka. Tap = mode Garap kolam (gali di lahan), lalu panel tertutup. Tidak ada tombol Kolam di Garap.
 - **Kolam:** kiri = kartu kolam (tier, stok `7/10`, upgrade, instant Bunga). Kanan atas = slot breeding (2 lubang indukan + 1 anak, timer). Kanan bawah = grid stok ikan (foto + ukuran) dengan tombol Setor / Ambil (kode B-3 sudah punya sheet "Kolam", rapikan ke bentuk ini).
 
 ### 6.6 Acara — Sheet Lebar, tab **Hari Ini · Kalender** (UI-6)
