@@ -8,6 +8,7 @@
 
 ## Handoff (update setiap selesai tugas; sesi baru mulai dari sini)
 
+- **UI putaran 7, butir 3 (B27.7–8, K-122, DONE-CODE, Play NOT verified):** Tas dan token terbang memakai gambar item lewat `UiKit.itemPicture` (THUMBS, ikon kategori, model, huruf terakhir). Item tanpa gambar sendiri ada di bagian "Needs asset" di bawah. Selene 75, rojo 0.
 - **UI putaran 7, butir 2 (B27.4–6, K-121, DONE-CODE, Play NOT verified):** "+N XP" naik dari bar XP di kartu pemain, geser bar, kilat; pengaturan baru `reduceMotion` "Kurangi gerak" di Atur (default off) mematikan geser, naik, dan kilat. Selene 75, rojo 0.
 - **UI putaran 7, butir 1 (B27.1–3, K-120, DONE-CODE, Play NOT verified):** kartu bibit 2 x 4 per halaman dengan chevron ‹ › (`UiKit.TOUCH`), bibit dimiliki dulu, x0 redup terakhir. Sisa butir UI (XP, ikon tas, Hadiah dipisah, dok 05 §4) belum. Selene 75, rojo 0.
 - **Putaran 7 owner (B26, 2026-11-24, DONE-CODE, Play NOT verified; cek di 09 B26):** (1) Kerja Bakti K-117: sampah per pemain (16 tiap pemain, server memutuskan jumlah dan posisi lewat `KBPieces`), tersebar di piringan alun-alun (jarak min 7 studs, tidak di batang pohon), digambar klien (`KerjaBaktiController`, placeholder kotak), pungut lewat `KBPick` (server cek id, jarak 16 studs, sekali saja), animasi "plant" yang ada (`FarmFx.pickUp`). Hadiah tidak berubah. (2) Gerobak K-118: gerobak placeholder di alun-alun (`GerobakCart`), tombol Aksi "Lihat Gerobak" (prioritas 7, `UiKit.placeAksi`), M1 langkah 3 menunjuk gerobak dan selesai dari gerobak atau tab Acara. Art R4.10 menggantikan. (3) Peti Bunga tetap klaim di panel Hadiah; peti dunia + gali 20 dtk tidak dibangun (K-119, owner memilih opsi b; tinjau ulang setelah playtest end-to-end pertama). Selene 75 peringatan, rojo 0.
@@ -491,3 +492,19 @@ Satu butir = satu commit. Selene 0 error / 85 warning, rojo exit 0 di tiap commi
 | R5.8d | Tempat dunia untuk langkah tanpa objek (hutan, kolam, sungai, kandang, petak, warung, sumur, bubu, Kanal Timur, Gerobak) | Walk butir 8, GAP-B | Nama objek di Workspace untuk tiap tempat | TODO (perlu nama dari Studio/owner) | — |
 | R5.9 | Dock 4 tombol (Garap, Hias, Tas, Quest); Kolam pindah ke ubin ≡ dan tombol Aksi dekat kolam; satu slot Aksi dengan prioritas (GUI 05 4.7) | Owner 2026-11-24, K-104 | Dock hanya 4; Aksi tampil satu per waktu; urutan prioritas sesuai 4.7 | DONE-CODE, Play belum | — |
 | R5.8e | Panah untuk tombol HUD (Papan, Hias, Dapur) | Walk butir 8, GAP-A | Keputusan: sorot tombol atau cukup teks | TODO (keputusan owner) | — |
+
+## Needs asset: gambar item (UI-4, K-122, owner 2026-11-24)
+
+Belum ada `UiAssets.THUMBS` untuk item mana pun (tabel kosong). Sampai gambar diunggah, Tas dan token terbang memakai ikon kategori (GUI 05 4.12). Tidak ada id aset yang dibuat. Isi `UiAssets.THUMBS[id] = "rbxassetid://…"` untuk tiap id di bawah; satu isian mengganti semua varian (kualitas, ukuran) dari id itu.
+
+| Kategori | Id yang perlu gambar (dari Config) |
+|----------|-----------------------------------|
+| Crop, hasil panen | kangkung, bayam, tomat, sawi, jagung, ubi_jalar, singkong, cabai, padi, jerami, stroberi, pisang, daun_pisang, tebu, jahe, kopi, teh, melati, mangga, durian, jagung_ungu, tomat_kuning, semangka_kotak, cabai_pelangi, stroberi_putih, pisang_merah |
+| Bibit (`seed_<crop>`) | seed_ untuk tiap crop di atas |
+| Ikan | wader_cakul, betok, sepat, lele, mujair, nila, tawes, gurame, patin, gabus, baung, jelawat, toman, tapah, sidat, semah, belida, gurame_raja, belut_emas, ikan_dewa |
+| Olahan (Dapur) | papan, bata, semen, pakan_jagung, tumis_kangkung, tumis_bayam, sambal_tomat, sup_ubi, jus_jagung, keripik_singkong, ikan_early_goreng, telur_asin, selai_stroberi, pepes_ikan_mid, nasi_goreng_spesial, es_tebu, gulai_telur, salad_sawi, kue_pisang, kopi_tubruk, teh_melati, es_krim_durian, durian_goreng, kopi_susu_gula_aren, nasi_padang_mini, ikan_late_bakar, salad_buah |
+| Ternak | ayam, bebek, sapi |
+| Bahan | kayu, bambu, batu, tanah_liat, pasir, besi, semen, papan, bata, keramik, tanah, atap_ijuk, ijuk, genteng, kaca, anyaman_bambu, bambu_wulung, kayu_jati, batu_kali, tebing_tanah, pinggir_kali, pohon_aren, pohon, rumpun_bambu, cacing (umpan), jangkrik (umpan), pelet (umpan), udang_kecil (umpan) |
+| Alat | bubu_bambu, bubu_kayu, bubu_besi; joran dan alat dari Config/Fishing dan Mining (periksa daftar lengkapnya sebelum mengunggah) |
+
+Daftar ini dibaca dari grep Config, bukan dari daftar lengkap Items; periksa sebelum unggah. Varian kualitas dan ukuran (Biasa/Bagus/Prima, S/M/L) tidak perlu gambar sendiri.

@@ -438,7 +438,8 @@ local function act(part: BasePart, kind: string)
 		local screen, onScreen = (Workspace.CurrentCamera :: Camera):WorldToViewportPoint(part.Position + Vector3.new(0, 2, 0))
 		if crop and onScreen then
 			local point = Vector2.new(screen.X, screen.Y + game:GetService("GuiService"):GetGuiInset().Y)
-			FeedbackController.FlyToBag(point, crop.color, string.sub(Locale.t("crop." .. crop.id), 1, 1))
+			-- K-122: the harvested crop's own picture (THUMBS by crop id, else the harvest icon, else its model).
+			FeedbackController.FlyToBag(point, crop.color, { key = crop.id, icon = "panen", cropId = crop.id, name = Locale.t("crop." .. crop.id) })
 		end
 		Net.Send("FarmHarvest", index)
 	elseif kind == "dry" then

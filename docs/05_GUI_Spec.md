@@ -313,6 +313,26 @@ Saat XP bertambah, kartu pemain (kiri bawah) menampilkan **"+N XP"** yang naik d
 | Geser bar | 0,35 dtk, Quad out |
 | Kilat | naik 0,12 dtk, kembali 0,35 dtk |
 
+### 4.12 Gambar item di Tas dan terbang ke Tas (K-122, owner 2026-11-24)
+
+Setiap sel Tas dan token yang terbang ke tombol Tas memakai gambar item lewat `UiKit.itemPicture`. Urutan, berhenti di yang pertama ada:
+
+1. Gambar item sendiri: `UiAssets.THUMBS[itemId]` (kunci = id item atau id crop).
+2. Ikon kategori: `UiAssets.ICONS` (panen = crop yang dipanen, bibit = bibit, ikan = ikan, pancing = joran, tas = umpan dan bahan).
+3. Model 3D item (ViewportFrame, `CropModels`), hanya bila 1 dan 2 tidak ada.
+4. Huruf pertama nama item. Hanya cadangan terakhir.
+
+Token terbang memakai ikon 24 px di dalam lingkaran 34 px. Koin (token "$") memakai ikon koin (`ICONS.koin`). Tidak ada id aset dibuat di kode; item tanpa gambar sendiri tercantum di Roadmap "Needs asset".
+
+Catatan: rak Toko (`UiKit.thumb`) tidak berubah dan tetap model dulu.
+
+| Keadaan | Sebelum | Sesudah |
+|---------|---------|---------|
+| Crop di Tas | model 3D bila ada | ikon panen (atau gambar item bila diunggah) |
+| Ikan di Tas | ikon ikan | sama, lalu gambar item bila diunggah |
+| Token panen terbang | huruf awal nama | ikon panen |
+| Token koin | "$" | ikon koin |
+
 ## 5. Bentuk Sheet
 
 | Bentuk | Kapan | HP | PC |

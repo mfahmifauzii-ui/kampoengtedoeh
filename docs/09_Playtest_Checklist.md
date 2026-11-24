@@ -474,3 +474,5 @@ Belum pernah dimainkan di Play. Claude tidak menandai apa pun VERIFIED.
 4. [ ] **Umpan XP (K-121):** panen atau jual sesuatu. "+N XP" naik dari bar XP di kartu pemain dan hilang dalam 1 dtk; bar bergeser dan berkilat sekali.
 5. [ ] **Naik level (K-121):** saat naik Lv, bar mulai dari awal tanpa geser panjang; "+N XP" tetap muncul.
 6. [ ] **Kurangi gerak (K-121):** Atur, nyalakan "Kurangi gerak". Ulangi butir 4: angka diam, bar langsung terisi, tanpa kilat. Matikan lagi untuk kembali.
+7. [ ] **Ikon di Tas (K-122):** buka Tas. Crop, ikan, bibit, dan umpan punya gambar (ikon kategori), bukan huruf. Sel Buku tetap seperti sebelumnya.
+8. [ ] **Token panen (K-122):** panen satu crop. Token yang terbang ke Tas memakai ikon panen, bukan huruf awal nama. Token koin memakai ikon koin.

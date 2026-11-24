@@ -104,7 +104,10 @@ local function flyTo(from: Vector2, target: GuiObject, makeClone: () -> GuiObjec
 end
 
 -- A small round token for a harvested crop / a fish: its colour and its first letter (no per-item art needed here).
-local function token(color: Color3, letter: string): () -> GuiObject
+-- K-122: the token shows the item's picture (UiKit.itemPicture); the name's first letter is only the last resort.
+export type Pick = { key: string, icon: string?, cropId: string?, name: string }
+
+local function token(color: Color3, pick: Pick): () -> GuiObject
 	return function()
 		local frame = Instance.new("CanvasGroup") -- a CanvasGroup can fade as one (GroupTransparency)
 		frame.Size = UDim2.fromOffset(34, 34)
@@ -117,26 +120,19 @@ local function token(color: Color3, letter: string): () -> GuiObject
 		edge.Color = Color3.fromRGB(110, 60, 30)
 		edge.Thickness = 2
 		edge.Parent = frame
-		local text = Instance.new("TextLabel")
-		text.Size = UDim2.fromScale(1, 1)
-		text.BackgroundTransparency = 1
-		text.Text = letter
-		text.TextColor3 = Color3.fromRGB(255, 255, 255)
-		text.Font = UiKit.FONT
-		text.TextSize = 16
-		text.Parent = frame
+		UiKit.itemPicture(frame, pick.key, pick.icon, pick.cropId, pick.name, 24)
 		return frame
 	end
 end
 
 -- Harvest or catch: a token flies from the bed / the water to the Bag.
-function FeedbackController.FlyToBag(from: Vector2, color: Color3, letter: string)
+function FeedbackController.FlyToBag(from: Vector2, color: Color3, pick: Pick)
 	local bag = hudObject("BagButton")
 	lastSource = from
 	if not bag then
 		return
 	end
-	flyTo(from, bag, token(color, letter))
+	flyTo(from, bag, token(color, pick))
 end
 
 -- A harvest point is remembered so the coins of that harvest fly from the same spot.
@@ -202,7 +198,7 @@ local function playNext()
 
 	if target and coinChip then
 		local from = item.from
-		flyTo(from, target, token(Color3.fromRGB(240, 196, 92), "$"), count)
+		flyTo(from, target, token(Color3.fromRGB(240, 196, 92), { key = "", icon = "koin", name = "$" }), count)
 	else
 		count()
 	end

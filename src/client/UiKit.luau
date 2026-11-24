@@ -799,6 +799,7 @@ export type Cell = {
 	badge: string?, -- count in the top-right corner ("x3")
 	accent: Color3?,
 	cropId: string?, -- show this crop's 3D model as the picture
+	thumbKey: string?, -- K-122: the item id; when set, the picture resolves THUMBS > icon > model > initial (UiKit.itemPicture)
 	icon: string?, -- else this icon key
 	price: string?, -- shown as a price chip
 	onClick: (() -> ())?,
@@ -831,7 +832,10 @@ function UiKit.cell(grid: Instance, order: number, def: Cell): TextButton
 	picture.Position = UDim2.new(0.5, 0, 0, 7)
 	picture.Size = UDim2.fromOffset(46, 46)
 	picture.Parent = cell
-	if not (def.cropId and UiKit.modelView(picture, def.cropId)) then
+	if def.thumbKey then
+		-- K-122: bag cells resolve their picture by item id (THUMBS, icon, model, initial; GUI 4.12).
+		UiKit.itemPicture(picture, def.thumbKey, def.icon, def.cropId, def.name)
+	elseif not (def.cropId and UiKit.modelView(picture, def.cropId)) then
 		local icon = UiKit.icon(picture, def.icon or "bibit", 40)
 		if icon then
 			icon.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -920,6 +924,41 @@ function UiKit.modelView(parent: Instance, cropId: string): boolean
 	local distance = (boxSize.Magnitude / 2) / math.tan(math.rad(15)) * 1.02
 	camera.CFrame = CFrame.lookAt(boxCFrame.Position + Vector3.new(0.42, 0.3, 1).Unit * distance, boxCFrame.Position)
 	return true
+end
+
+-- K-122 (GUI 4.12): the picture of one item in a bag cell or a flying token. Order: the item's own picture
+-- (UiAssets.THUMBS[key]), else the category icon (UiAssets.ICONS[icon]), else the item's 3D model (cropId), else the
+-- first letter of its name (last resort only). Fills `parent`; the icon is `iconSize` px and centred.
+function UiKit.itemPicture(parent: Instance, key: string, icon: string?, cropId: string?, name: string, iconSize: number?)
+	local real = UiAssets.THUMBS[key]
+	if real and real ~= "" then
+		local image = Instance.new("ImageLabel")
+		image.Name = "Picture"
+		image.BackgroundTransparency = 1
+		image.Size = UDim2.fromScale(1, 1)
+		image.ScaleType = Enum.ScaleType.Fit
+		image.Image = real
+		image.Parent = parent
+		return
+	end
+	local picture = if icon then UiKit.icon(parent, icon, iconSize or 40) else nil
+	if picture then
+		picture.AnchorPoint = Vector2.new(0.5, 0.5)
+		picture.Position = UDim2.fromScale(0.5, 0.5)
+		return
+	end
+	if cropId and UiKit.modelView(parent, cropId) then
+		return
+	end
+	local letter = Instance.new("TextLabel")
+	letter.Name = "Initial"
+	letter.BackgroundTransparency = 1
+	letter.Size = UDim2.fromScale(1, 1)
+	letter.Font = UiKit.FONT
+	letter.TextSize = 16
+	letter.TextColor3 = UiKit.TEXT
+	letter.Text = name:match(utf8.charpattern) or "?"
+	letter.Parent = parent
 end
 
 -- Tabs, number picker, item picture, trade row, confirm modal --------------------------------------

@@ -808,7 +808,7 @@ function HudController.Start()
 			if key == "fish.caught" then
 				-- the catch flies from the water (the middle of the screen, where the bobber is) to the Bag
 				local view = (workspace.CurrentCamera :: Camera).ViewportSize
-				FeedbackController.FlyToBag(Vector2.new(view.X / 2, view.Y * 0.45), Color3.fromRGB(60, 140, 176), "~")
+				FeedbackController.FlyToBag(Vector2.new(view.X / 2, view.Y * 0.45), Color3.fromRGB(60, 140, 176), { key = "", icon = "ikan", name = "~" })
 			end
 			if key == "level.up" or key == "level.up_unlocks" then
 				queueLevelLines(if typeof(vars) == "table" then vars else nil)

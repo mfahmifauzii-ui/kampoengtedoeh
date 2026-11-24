@@ -153,6 +153,7 @@ local function render()
 				badge = if info.kind == "bait" and snapshot.equippedBait == itemId then Locale.t("tas.dipakai") else `×{count}`,
 				accent = if isFish then UiKit.CAT.fish elseif isCrop or isSeed then UiKit.CAT.crop else UiKit.CAT.tool,
 				cropId = cropId,
+				thumbKey = itemId, -- K-122: THUMBS by item id first (GUI 4.12)
 				icon = icon,
 				price = if info.sellPrice then Locale.formatNumber(info.sellPrice * count) else nil,
 			})
