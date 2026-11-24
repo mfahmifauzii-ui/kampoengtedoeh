@@ -153,9 +153,7 @@ function RanchController.Init()
 	gui.Parent = playerGui
 
 	local kelola = UiKit.button(gui, "RanchAksiButton", Locale.t("ranch.manage"), UiKit.BUTTON_MUTED)
-	kelola.AnchorPoint = Vector2.new(1, 1)
-	kelola.Position = UDim2.new(1, -24, 1, -316)
-	kelola.Size = UDim2.fromOffset(104, 64)
+	UiKit.placeAksi(kelola) -- K-116: the one Aksi slot
 	kelola.TextSize = 16
 	kelola.Visible = false
 	kelola.Activated:Connect(function()

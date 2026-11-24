@@ -1483,6 +1483,17 @@ UiKit.HUD = {
 	STRIP_H = 54, -- context strip height (fishing status panel, bait chip)
 }
 
+-- K-116 (owner 2026-11-24): the ONE Aksi slot. Every Aksi-owning control (Pancing, Tarik, Bubu, Pukul, Kelola, Kolam, Masak /
+-- Pasang Tungku) is placed here, so AksiSlot's winner appears exactly where the last one did: 84 px, bottom right, 200 px above
+-- the bottom edge (above the Jump button; the spot Pukul and Masak already used). The bait chip and the fishing status stay above the dock.
+UiKit.AKSI = { SIZE = 84, RIGHT = 24, BOTTOM = 200 }
+
+function UiKit.placeAksi(button: GuiObject)
+	button.AnchorPoint = Vector2.new(1, 1)
+	button.Position = UDim2.new(1, -UiKit.AKSI.RIGHT, 1, -UiKit.AKSI.BOTTOM)
+	button.Size = UDim2.fromOffset(UiKit.AKSI.SIZE, UiKit.AKSI.SIZE)
+end
+
 -- The distance from the screen bottom to the bottom edge of the context strip. Landscape: above the dock row (one dock button
 -- of gap). Portrait: the dock is a column on the right, so the strip sits at the bottom edge.
 function UiKit.hudStripBottomGap(view: Vector2): number

@@ -91,7 +91,7 @@ Tombol HUD lain tetap: dock 58, Tombol Aksi 84. Jarak antar target ≥ 6 px. (Ge
 │   · Bangun kolam                                             (Toko)   │
 │  · Side: Bibit Kedua                                         (≡ Kolam, Atur) │
 │  + 1 lagi                                                             │
-│ ┌ Kartu pemain: foto · Lv · XP · buff (kiri bawah, tetap) ┐ [Aksi 104px] │
+│ ┌ Kartu pemain: foto · Lv · XP · buff (kiri bawah, tetap) ┐   [Aksi 84px]   │
 │ ░ thumbstick ░  [chip umpan · status mancing]  (Garap)(Hias)(Tas)(Quest)  [Jump]│
 └──────────────────────────────────────────────────────────────────────┘
 ```
@@ -104,7 +104,7 @@ Tombol HUD lain tetap: dock 58, Tombol Aksi 84. Jarak antar target ≥ 6 px. (Ge
 | Kiri bawah, di atas kartu | Tracker (quest yang dilacak) | Lebar 200 px, tepi kiri sama dengan kartu, tepi bawah 8 px (`GAP`) di atas kartu (K-114). Diukur dari `AbsolutePosition` kartu, bukan angka tetap. Tinggi = baris (maks 3) + "+N lagi" bila lebih; tinggi maks min(200 px, 25% layar, ruang di bawah 118 px dari atas). Tap baris atau "+N lagi" membuka Quest Log. Teks krem outline gelap, tanpa panel, baris membungkus teks |
 | Kanan atas | Kolom menu bulat 50 px, ikon saja, bisa dilipat di HP | Urutan: Acara, Skill, Hadiah, Warga, Toko, **Kolam**, Atur. Ubin Kolam membuka panel Kolam, sama dengan tombol Aksi Kolam (K-104, K-115). Dapur **tidak** di sini (✔ K-34) |
 | Bawah tengah | Dock 58 px, 10 px dari bawah, **maks 4 tombol** | Garap, Hias, Tas, **Quest** (ikon gulungan, K-109; dulu Pesanan; owner 2026-11-24) — hanya yang sudah terbuka. **Kolam tidak ada di dock** (K-104, ubin ≡ dan slot Aksi). **Dapur tidak ada di dock** (K-102). |
-| Kanan bawah, slot Aksi | Satu tombol Aksi 104 px per objek; hanya satu yang tampil (aturan 4.7) | **Kolam** dekat kolam sendiri (membuka panel Kolam, K-104); **Masak** dekat Tungku sendiri (panel Dapur); **Pasang Tungku** saat Tier 1 belum berdiri dan Tungku ada di tas (K-102) |
+| Kanan bawah, slot Aksi | Satu slot Aksi 84 px untuk semua objek (K-116, 4.9); hanya satu yang tampil (aturan 4.7) | **Kolam** dekat kolam sendiri (membuka panel Kolam, K-104); **Masak** dekat Tungku sendiri (panel Dapur); **Pasang Tungku** saat Tier 1 belum berdiri dan Tungku ada di tas (K-102) |
 | Zona konteks (di atas dock, tengah) | Status memancing + chip umpan | Satu tombol di atas dock; tombol Batal berlabel 64×32 px |
 | Kanan bawah, di atas Jump | **Satu slot Tombol Aksi** | Mancing / Pukul / Bubu / Kelola Kandang / Kolam / Masak / Pasang Tungku — satu aksi, yang terdekat (4.7, K-104). Craft masih melayang di atas meja |
 | Kiri bawah | Thumbstick | **Kosong** |
@@ -150,6 +150,25 @@ Cek (dihitung dari angka di kode, belum diukur di perangkat; owner cek di 09 B25
 | Tangan di kiri (joystick) | Tracker tidak punya bingkai aktif penuh-tinggi. Hanya baris (dan tombol Tap di tiap baris) yang menerima sentuhan. Area di bawah tracker dan joystick tidak terhalang |
 | Portrait 390×844 | Tracker 8–208 px, tinggi maks 200 px dan 25% layar (211 px): tidak menimpa kolom kanan (dock kolom mulai 184 px dari atas, di x 320–378) |
 | Landscape HP (contoh 844×390) | Kartu di y 292–384; tracker di y 187–284 (tinggi maks 97 px = 25% layar); bar atas 0–36: tidak tumpang tindih |
+
+### 4.9 Slot Aksi: satu tempat (K-116, owner 2026-11-24)
+
+Semua tombol Aksi (Pancing, Tarik, Bubu, Pukul, Kelola, Kolam, Masak / Pasang Tungku) dipasang di **satu** tempat lewat
+`UiKit.placeAksi`: 84×84 px, kanan bawah, 24 px dari kanan dan 200 px dari bawah (di atas tombol Jump; tempat Pukul dan Masak
+sudah dipakai). `AksiSlot` hanya menampilkan pemenangnya, jadi pemenang muncul persis di tempat yang tadi.
+
+Cek tumpang tindih (dihitung dari angka di kode, belum diukur di perangkat; owner cek di 09 B25):
+
+| Yang dicek | Portrait 390×844 | Landscape HP (contoh 844×390) |
+|------------|------------------|-------------------------------|
+| Slot Aksi | x 282–366, y 560–644 (dari atas) | x 736–820, y 106–190 |
+| Jump (kanan bawah) | Asumsi Jump setinggi ≤ 140 px dari bawah: di bawah slot. **Cek di perangkat** | Di bawah slot dengan asumsi yang sama |
+| Dock | Kolom kanan, x 320–378, y 184–434: tidak tumpang tindih | Baris tengah bawah, y 322–380: tidak tumpang tindih |
+| Kolom ≡ | Kolom kanan atas, y 8–±400: tidak tumpang tindih (slot di y ≥ 560) | Dilipat (default HP): tidak tumpang tindih. **Terbuka: menumpuk** di x 782–820, y 106–190 (bagian bawah kolom). Keputusan: kolom dilipat sebelum tombol Aksi dipakai, atau cek di perangkat |
+| Tracker | x 8–208, di atas kartu: tidak tumpang tindih | x 8–208: tidak tumpang tindih |
+| Kartu pemain / joystick (kiri bawah) | x 8–256: tidak tumpang tindih | Di kiri: tidak tumpang tindih |
+| Bar Roblox, mata uang, toast | Di atas: tidak tumpang tindih | Di atas: tidak tumpang tindih |
+| Bait chip dan status memancing | Di atas dock (landscape) dan di tepi bawah (portrait), tengah: tidak tumpang tindih | Sama: di tengah, tidak di kanan |
 
 ### 4.1 Portrait (390×844)
 

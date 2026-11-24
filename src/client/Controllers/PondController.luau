@@ -284,9 +284,7 @@ function PondController.Init()
 	gui.Parent = playerGui
 
 	local aksi = UiKit.button(gui, "PondAksiButton", Locale.t("pond.sheet_title"), UiKit.BUTTON_MUTED) -- K-104: label "Kolam"
-	aksi.AnchorPoint = Vector2.new(1, 1)
-	aksi.Position = UDim2.new(1, -24, 1, -392)
-	aksi.Size = UDim2.fromOffset(104, 64)
+	UiKit.placeAksi(aksi) -- K-116: the one Aksi slot
 	aksi.TextSize = 15
 	aksi.Visible = false
 	aksi.Activated:Connect(function()

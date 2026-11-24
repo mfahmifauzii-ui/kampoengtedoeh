@@ -281,10 +281,8 @@ function DapurController.Init()
 	gui.DisplayOrder = UiKit.LAYER.ACTION
 	gui.Parent = player:WaitForChild("PlayerGui")
 	aksi = UiKit.button(gui, "DapurAksiButton", Locale.t("dapur.aksi_cook"), UiKit.BUTTON)
-	aksi.AnchorPoint = Vector2.new(1, 1)
-	aksi.Position = UDim2.new(1, -24, 1, -200) -- same slot as the other Aksi buttons (Mining, Pond)
-	aksi.Size = UDim2.fromOffset(104, 104)
-	aksi.TextSize = 22
+	UiKit.placeAksi(aksi) -- K-116: the one Aksi slot
+	aksi.TextSize = 16
 	aksi.Visible = false
 	aksi.Activated:Connect(function()
 		if aksiMode == "place" then

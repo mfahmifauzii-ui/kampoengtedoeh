@@ -123,9 +123,7 @@ function BubuController.Init()
 	gui.Parent = playerGui
 
 	local b = UiKit.button(gui, "BubuButton", "", UiKit.BUTTON)
-	b.AnchorPoint = Vector2.new(0.5, 0.5)
-	b.Position = UDim2.fromScale(0.68, 0.67) -- left of the Pancing round button (0.8, 0.67)
-	b.Size = UDim2.fromOffset(84, 84)
+	UiKit.placeAksi(b) -- K-116: the one Aksi slot
 	b.TextSize = 18
 	b.Visible = false
 	b.Activated:Connect(function()

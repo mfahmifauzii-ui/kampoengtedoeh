@@ -538,9 +538,7 @@ local function buildAksi()
 	button.Name = "AksiButton"
 	button.Text = ""
 	button.AutoButtonColor = false
-	button.AnchorPoint = Vector2.new(0.5, 0.5)
-	button.Position = UDim2.fromScale(0.8, 0.67) -- the spot the owner circled on the playtest screenshot (2026-11-22, red line)
-	button.Size = UDim2.fromOffset(84, 84)
+	UiKit.placeAksi(button) -- K-116: the one Aksi slot (was the circled spot of 2026-11-22; the slot is shared now)
 	button.BackgroundTransparency = 1
 	button.Visible = false
 	button.Parent = aksiGui
@@ -554,9 +552,7 @@ local function buildAksi()
 	tarik.Name = "TarikButton"
 	tarik.Text = ""
 	tarik.AutoButtonColor = false
-	tarik.AnchorPoint = Vector2.new(0.5, 0.5)
-	tarik.Position = button.Position
-	tarik.Size = UDim2.fromOffset(84, 84)
+	UiKit.placeAksi(tarik) -- K-116: the same slot as Pancing
 	tarik.BackgroundTransparency = 1
 	tarik.Visible = false
 	tarik.Parent = aksiGui
