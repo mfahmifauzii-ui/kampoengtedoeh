@@ -288,7 +288,14 @@ function SocialController.Start()
 	Players.PlayerRemoving:Connect(function()
 		task.defer(render)
 	end)
-	FeatureClient.GateHud("SocialButton", "bantu") -- Q-2: hidden until the bantu feature is open
+	-- Q-2: hidden until the bantu feature is open. K-75 (G1): while Bantu is hidden, Warga needs another player on the server
+	-- (Mampir and Suka have no target alone), so a solo player sees no empty panel.
+	FeatureClient.GateHud("SocialButton", "bantu", function()
+		if Features.BANTU_ENABLED then
+			return FeatureClient.IsOpen("bantu")
+		end
+		return #Players:GetPlayers() >= 2
+	end)
 	task.spawn(UiKit.hudButton, "SocialButton", Locale.t("ui.social"), 7, function()
 		panel.gui.Enabled = not panel.gui.Enabled
 		render()

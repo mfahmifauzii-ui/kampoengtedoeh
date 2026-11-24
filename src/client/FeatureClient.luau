@@ -69,7 +69,8 @@ local function track(instance: Instance)
 end
 
 -- Keeps the HUD button `name` (anywhere in HUD) visible only while feature `id` is open. Hidden buttons take no dock space.
-function FeatureClient.GateHud(name: string, id: string)
+-- `shown` (optional, K-75): a rule of its own instead of the feature; it is re-checked when players join or leave.
+function FeatureClient.GateHud(name: string, id: string, shown: (() -> boolean)?)
 	task.spawn(function()
 		local hud = Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("HUD", 30)
 		if not hud then
@@ -78,7 +79,7 @@ function FeatureClient.GateHud(name: string, id: string)
 		local function apply()
 			local button = hud:FindFirstChild(name, true)
 			if button and button:IsA("GuiObject") then
-				button.Visible = FeatureClient.IsOpen(id)
+				button.Visible = if shown then shown() else FeatureClient.IsOpen(id)
 			end
 		end
 		apply()
@@ -88,6 +89,12 @@ function FeatureClient.GateHud(name: string, id: string)
 			end
 		end)
 		State.Changed:Connect(apply)
+		if shown then
+			Players.PlayerAdded:Connect(apply)
+			Players.PlayerRemoving:Connect(function()
+				task.defer(apply)
+			end)
+		end
 	end)
 end
 

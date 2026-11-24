@@ -297,7 +297,7 @@ Satu panel untuk hal harian: Agenda (5 tugas, R2.2), Surat Kakek hari ini, ringk
 
 R2.3 (K-74): baris Surat di tracker bisa di-tap = baca surat (event Quest S2); surat yang sama tampil lagi sebagai toast. Tombol Pesanan tampil hanya saat tutorial selesai dan fitur `agenda` terbuka (M1 mulai).
 
-K-73: tombol Warga (Sosial) dan baris Bantu tidak tampil selama `Config/Features.BANTU_ENABLED = false`. Warga memakai gate fitur `bantu` (S6), jadi ikut tersembunyi.
+K-73: baris Bantu tidak tampil selama `Config/Features.BANTU_ENABLED = false`. K-75 (G1): selama flag mati, tombol Warga (Sosial) hanya tampil saat ada 2 pemain atau lebih di server (Mampir dan Suka butuh pemain lain). Solo tidak melihat tombol atau panel kosong. Saat flag hidup, Warga memakai gate fitur `bantu` (S6) seperti semula.
 
 ### 6.10 Yang Tetap Bentuknya
 
