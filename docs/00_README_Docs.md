@@ -1,6 +1,6 @@
 # KAMPOENG TEDOEH — Peta Dokumen (baca ini dulu)
 
-> Versi sekarang: **GDD v8.4 + Audit K-01…K-66** (diperbarui 2026-11-23). Semua dokumen di `docs/` mengacu ke versi ini.
+> Versi sekarang: **GDD v8.4 + Audit K-01…K-83** (diperbarui 2026-11-24). Semua dokumen di `docs/` mengacu ke versi ini.
 > Buka `docs/` sebagai vault Obsidian; mulai dari `Home.md`.
 > Game ini dibuat 100% lewat Claude Code. Dokumen ini ditulis supaya Claude Code tidak menebak. **Owner hanya playtest dan memberi masukan**; tidak ada dokumen yang menunggu jawaban owner.
 
@@ -12,7 +12,7 @@
 |------|-----|-------------------------------|
 | `00_README_Docs.md` | Peta dokumen, aturan, cara kerja sekarang | Semua |
 | `01_GDD_Kampoeng_Tedoeh_v8.4.md` | **Sumber kebenaran gameplay**: semua angka, aturan, sistem, Skill Tree | Claude Code |
-| `02_Audit_Perbaikan.md` | Temuan A-nn + **Keputusan K-01…K-66** (Bab 3) + riwayat keputusan final (Bab 4) | Claude Code |
+| `02_Audit_Perbaikan.md` | Temuan A-nn + **Keputusan K-01…K-83** (Bab 3) + riwayat keputusan final (Bab 4) | Claude Code |
 | `03_Quest_Naskah.md` | Feature gate, rantai Main/Side Quest, semua teks dialog | Claude Code |
 | `04_Asset_Bible.md` | Arah gaya, anggaran performa, daftar 3D, animasi, VFX, SFX, musik, ikon | Claude Code (jalur aset) |
 | `05_GUI_Spec.md` | Aturan & layout GUI mobile-first, token UiKit, status implementasi | Claude Code |
