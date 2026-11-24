@@ -30,7 +30,7 @@
 - **R2.G9 (fix(R2.G9), 2026-11-24, K-83):** toast hadiah surat 6/13/20/29 selalu tampil saat dibayar (teks alt + hadiah), lewat Notify/Toast yang sudah ada. DONE-CODE, Play belum; owner cek di 09 B22 butir 7 dan B21 butir 3.
 - **Walk akhir Lv 0–10 (2026-11-24, setelah R2.G1–G9): no open gaps Lv 0–10.** Lingkup dan catatan di `reports/Quest_Gate_Walk_2026-11-24.md` bagian 2c. Kucing/Joran tetap ditunda (K-16).
 - **Berikutnya:** owner menjalankan tes end-to-end lewat gerbang G1 di docs/09 (dan B20–B22 di HP). Tidak ada tugas kode yang menunggu. Keputusan terbuka: K-72 dan K-73…K-83 adalah default pilihan Claude (konservatif), belum ditinjau owner.
-- **Branch:** `feat/v.7`. Sudah di-push sampai `2a2a810` (2026-11-24). Tidak ada commit yang belum di-push.
+- **Branch:** `feat/v.7`. Sudah di-push sampai `2a2a810` (2026-11-24). Belum di-push: `d560a6c` (docs sync), 1 commit.
 - **Sinkron dokumen (docs(sync), 2026-11-24):** README dan Home ke K-01…K-83; laporan `Quest_Gate_Walk_2026-11-24` masuk Home; Audit Bab 3.6 K-70…K-83 berurutan (hanya urutan baris, teks tidak diubah).
 - **Baseline:** selene 0 error / 85 warning (turun dari 86 di feat R7.x); rojo build exit 0. Dicek ulang 24 Nov 2026 setelah id SFX dipasang.
 - **Keputusan owner terbuka:** tidak ada yang menunggu. Gerbang rilis di bawah (Bab 23) belum dikerjakan.
